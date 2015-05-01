@@ -34,13 +34,28 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <!-- A reference to the entire .NET Framework is automatically included -->
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="AllEventsPage.cs" />
+    <Compile Include="EventStoreExtensions.cs" />
+    <Compile Include="ExpectedVersion.cs" />
+    <Compile Include="IEventStore.cs" />
+    <Compile Include="NewStreamEvent.cs" />
+    <Compile Include="PageReadStatus.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ReadDirection.cs" />
+    <Compile Include="StreamEvent.cs" />
+    <Compile Include="StreamEventsPage.cs" />
+    <Compile Include="StreamPosition.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="EnsureThat">
+      <HintPath>..\packages\Ensure.That.2.0.0\lib\portable-net4+sl5+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1\EnsureThat.dll\EnsureThat.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

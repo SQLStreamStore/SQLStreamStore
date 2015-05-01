@@ -14,14 +14,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.GetEventSt
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.GetEventStore", "Cedar.EventStore.GetEventStore\Cedar.EventStore.GetEventStore.csproj", "{1E5E90BF-6481-4EDD-B6E2-560E617B35A9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.Sqlite", "Cedar.EventStore.Sqlite\Cedar.EventStore.Sqlite.csproj", "{FD5E4B5B-45A1-4191-96FB-CCC14A0EC40D}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.Sqlite.Tests", "Cedar.EventStore.Sqlite.Tests\Cedar.EventStore.Sqlite.Tests.csproj", "{24FD888B-E8CC-4E7F-80AD-93FB7E467337}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.Sqlite-Portable", "Cedar.EventStore.Sqlite\Cedar.EventStore.Sqlite-Portable.csproj", "{0E55D221-C584-4703-B52F-7D2EB20337E1}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.Sqlite-Portable.Tests", "Cedar.EventStore.Sqlite.Tests\Cedar.EventStore.Sqlite-Portable.Tests.csproj", "{1C462CB7-7A05-41D0-A0F0-540A546BC5AA}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,22 +44,6 @@ Global
 		{1E5E90BF-6481-4EDD-B6E2-560E617B35A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E5E90BF-6481-4EDD-B6E2-560E617B35A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1E5E90BF-6481-4EDD-B6E2-560E617B35A9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{FD5E4B5B-45A1-4191-96FB-CCC14A0EC40D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{FD5E4B5B-45A1-4191-96FB-CCC14A0EC40D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{FD5E4B5B-45A1-4191-96FB-CCC14A0EC40D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{FD5E4B5B-45A1-4191-96FB-CCC14A0EC40D}.Release|Any CPU.Build.0 = Release|Any CPU
-		{24FD888B-E8CC-4E7F-80AD-93FB7E467337}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{24FD888B-E8CC-4E7F-80AD-93FB7E467337}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{24FD888B-E8CC-4E7F-80AD-93FB7E467337}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{24FD888B-E8CC-4E7F-80AD-93FB7E467337}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0E55D221-C584-4703-B52F-7D2EB20337E1}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0E55D221-C584-4703-B52F-7D2EB20337E1}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0E55D221-C584-4703-B52F-7D2EB20337E1}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{0E55D221-C584-4703-B52F-7D2EB20337E1}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1C462CB7-7A05-41D0-A0F0-540A546BC5AA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1C462CB7-7A05-41D0-A0F0-540A546BC5AA}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1C462CB7-7A05-41D0-A0F0-540A546BC5AA}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1C462CB7-7A05-41D0-A0F0-540A546BC5AA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

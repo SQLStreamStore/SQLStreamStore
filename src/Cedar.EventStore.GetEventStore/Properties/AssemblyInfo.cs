@@ -1,4 +1,4 @@
 using System.Reflection;
 
-[assembly: AssemblyTitle("Cedar.EventStore.GetEventStore")]
+[assembly: AssemblyTitle("Cedar.EventStore.GesEventStore")]
 [assembly: AssemblyDescription("")]

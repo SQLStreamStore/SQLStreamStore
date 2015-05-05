@@ -20,6 +20,8 @@
 
          public Task AppendToStream(string storeId, string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events)
          {
+             StoreIdMustBeDefault(storeId);
+
              var eventDatas = events.Select(e => new EventData(e.EventId, "type", false, e.Body.ToArray(), e.Metadata.ToArray()));
 
              return _connection.AppendToStreamAsync(streamId, expectedVersion, eventDatas);
@@ -27,6 +29,8 @@
 
          public Task DeleteStream(string storeId, string streamId, int exptectedVersion = ExpectedVersion.Any, bool hardDelete = true)
          {
+             StoreIdMustBeDefault(storeId);
+
              return _connection.DeleteStreamAsync(streamId, exptectedVersion, hardDelete);
          }
 
@@ -36,6 +40,8 @@
              int maxCount,
              ReadDirection direction = ReadDirection.Forward)
          {
+             StoreIdMustBeDefault(storeId);
+
              var position = checkpoint.ParsePosition() ?? Position.Start;
 
              AllEventsSlice allEventsSlice;
@@ -58,6 +64,8 @@
              int count,
              ReadDirection direction = ReadDirection.Forward)
          {
+             StoreIdMustBeDefault(storeId);
+
              StreamEventsSlice streamEventsSlice;
              if (direction == ReadDirection.Forward)
              {
@@ -90,6 +98,14 @@
          public void Dispose()
          {
              _connection.Dispose();
+         }
+
+         private void StoreIdMustBeDefault(string storeId)
+         {
+             if (!storeId.Equals(DefaultStore.StoreId, StringComparison.Ordinal))
+             {
+                 throw new NotSupportedException("Get EventStore doesn't support multi-tenancy (yet)");
+             }
          }
      }
  }

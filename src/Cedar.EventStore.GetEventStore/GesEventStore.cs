@@ -10,12 +10,14 @@
 
      public class GesEventStore : IEventStore
      {
+         private readonly ISerializer _serializer;
          private readonly IEventStoreConnection _connection;
 
-         public GesEventStore(Func<IEventStoreConnection> createConnection)
+         public GesEventStore(Func<IEventStoreConnection> createConnection, ISerializer serializer = null)
          {
              Ensure.That(createConnection, "connectionFactory").IsNotNull();
 
+             _serializer = serializer ?? DefaultJsonSerializer.Instance;
              _connection = createConnection();
          }
 
@@ -25,7 +27,7 @@
 
              var eventDatas = events.Select(e =>
              {
-                 var json = DefaultJsonSerializer.Serialize(e.Data);
+                 var json = _serializer.Serialize(e.Data);
                  var data = Encoding.UTF8.GetBytes(json);
                  return new EventData(e.EventId, "type", true, data, e.Metadata.ToArray());
              });

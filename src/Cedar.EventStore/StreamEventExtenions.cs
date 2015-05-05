@@ -4,11 +4,13 @@
 
     public static class StreamEventExtenions
     {
-        public static T JsonAs<T>(this StreamEvent streamEvent)
+        public static T JsonAs<T>(this StreamEvent streamEvent, ISerializer serializer = null)
         {
             Ensure.That(streamEvent, "streamEvent").IsNotNull();
 
-            return DefaultJsonSerializer.Deserialize<T>(streamEvent.Json);
+            serializer = serializer ?? DefaultJsonSerializer.Instance;
+
+            return serializer.Deserialize<T>(streamEvent.Json);
         }
     }
 }

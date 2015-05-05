@@ -11,9 +11,11 @@ namespace Cedar.EventStore
         public readonly int NextSequenceNumber;
         public readonly ReadDirection ReadDirection;
         public readonly PageReadStatus Status;
+        public readonly string StoreId;
         public readonly string StreamId;
 
         public StreamEventsPage(
+            string storeId,
             string streamId,
             PageReadStatus status,
             int fromSequenceNumber,
@@ -23,6 +25,7 @@ namespace Cedar.EventStore
             bool isEndOfStream,
             params StreamEvent[] events)
         {
+            StoreId = storeId;
             StreamId = streamId;
             Status = status;
             FromSequenceNumber = fromSequenceNumber;

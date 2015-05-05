@@ -44,17 +44,21 @@
             }*/
 
             var sequence = 0;
-            var eventsToInsert = events.Select(e => new Event
+            var eventsToInsert = events.Select(e =>
             {
-                Body = e.Body.ToArray(),
-                StoreId = "default",
-                EventId = e.EventId,
-                Metadata = e.Metadata,
-                IsDeleted = false,
-                OriginalStreamId = streamId,
-                SequenceNumber = sequence++,
-                Stamp = _getUtcNow(),
-                StreamId = streamId
+                var json = DefaultJsonSerializer.Serialize(e.Data);
+                return new Event
+                {
+                    Data = json,
+                    StoreId = "default",
+                    EventId = e.EventId,
+                    Metadata = e.Metadata,
+                    IsDeleted = false,
+                    OriginalStreamId = streamId,
+                    SequenceNumber = sequence++,
+                    Stamp = _getUtcNow(),
+                    StreamId = streamId
+                };
             });
 
             foreach (var eventToInsert in eventsToInsert)
@@ -118,7 +122,7 @@
             var connection = _getConnection();
 
             StreamEvent[] results = connection.Table<Event>()
-                .Where(e => e.StoreId == "default" && e.StreamId == streamId)
+                .Where(e => e.StoreId == storeId && e.StreamId == streamId)
                 .OrderBy(e => e.SequenceNumber)
                 .Skip(start)
                 .Take(count)
@@ -127,15 +131,18 @@
                 // line below if you want to see the test(s) fail.
                 .ToArray()
                 .Select(e =>
-                    new StreamEvent(streamId,
+                    new StreamEvent(
+                        storeId,
+                        streamId,
                         e.EventId,
                         e.SequenceNumber,
                         e.Checkpoint.ToString(),
-                        e.Body,
+                        e.Data,
                         e.Metadata))
                 .ToArray();
 
             StreamEventsPage streamEventsPage = new StreamEventsPage(
+                storeId,
                 streamId: streamId,
                 status: PageReadStatus.Success,
                 fromSequenceNumber: start,
@@ -161,22 +168,26 @@
                 // line below if you want to see the test(s) fail.
                 .ToArray()
                 .Select(e =>
-                    new StreamEvent(streamId,
+                    new StreamEvent(
+                        storeId,
+                        streamId,
                         e.EventId,
                         e.SequenceNumber,
                         e.Checkpoint.ToString(),
-                        e.Body,
+                        e.Data,
                         e.Metadata))
                 .ToArray();
 
             StreamEventsPage streamEventsPage = new StreamEventsPage(
+                storeId: storeId,
                 streamId: streamId,
                 status: PageReadStatus.Success,
                 fromSequenceNumber: start,
                 nextSequenceNumber: results[0].SequenceNumber - 1,
                 lastSequenceNumber: results[0].SequenceNumber,
-                direction: ReadDirection.Backward, //TODO
-                isEndOfStream: true, events: results);
+                direction: ReadDirection.Backward,
+                isEndOfStream: true,
+                events: results);
 
             return Task.FromResult(streamEventsPage);
         }
@@ -210,7 +221,7 @@
             public byte[] Metadata { get; set; }
 
             [NotNull]
-            public byte[] Body { get; set; }
+            public string Data { get; set; }
         }
 
         /*private class StreamEventsPage : IStreamEventsPage

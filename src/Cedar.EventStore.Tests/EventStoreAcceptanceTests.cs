@@ -17,15 +17,15 @@
                 .Select(eventNumber =>
                 {
                     var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
-                    return new NewStreamEvent(eventId, new byte[] { 1, 2 }, new byte[] { 3, 4 });
+                    return new NewStreamEvent(eventId, "data", new byte[] { 3, 4 });
                 })
                 .ToArray();
         }
 
-        private static StreamEvent ExpectedStreamEvent(string streamId, int eventNumber, int sequenceNumber)
+        private static StreamEvent ExpectedStreamEvent(string storeId, string streamId, int eventNumber, int sequenceNumber)
         {
             var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
-            return new StreamEvent(streamId, eventId, sequenceNumber, null, new byte[] { 1, 2 }, new byte[] { 3, 4 });
+            return new StreamEvent(storeId, streamId, eventId, sequenceNumber, null, "\"data\"", new byte[] { 3, 4 });
         }
 
         private static async Task InitializeEventStore(IEventStore eventStore)
@@ -39,8 +39,9 @@
             var theories = new[]
             {
                 new ReadStreamTheory("stream-1", StreamPosition.Start, ReadDirection.Forward, 2, 
-                    new StreamEventsPage("stream-1", PageReadStatus.Success, 0, 2, 2, ReadDirection.Forward, false,
-                          ExpectedStreamEvent("stream-1", 1, 0), ExpectedStreamEvent("stream-1", 2, 1)))
+                    new StreamEventsPage(DefaultStore.StoreId, "stream-1", PageReadStatus.Success, 0, 2, 2, ReadDirection.Forward, false,
+                          ExpectedStreamEvent(DefaultStore.StoreId, "stream-1", 1, 0),
+                          ExpectedStreamEvent(DefaultStore.StoreId, "stream-1", 2, 1)))
             };
 
             return theories.Select(t => new object[] { t });

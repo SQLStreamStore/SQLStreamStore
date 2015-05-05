@@ -3,6 +3,7 @@
      using System;
      using System.Collections.Generic;
      using System.Linq;
+     using System.Text;
      using System.Threading.Tasks;
      using EnsureThat;
      using global::EventStore.ClientAPI;
@@ -22,7 +23,12 @@
          {
              StoreIdMustBeDefault(storeId);
 
-             var eventDatas = events.Select(e => new EventData(e.EventId, "type", false, e.Body.ToArray(), e.Metadata.ToArray()));
+             var eventDatas = events.Select(e =>
+             {
+                 var json = DefaultJsonSerializer.Serialize(e.Data);
+                 var data = Encoding.UTF8.GetBytes(json);
+                 return new EventData(e.EventId, "type", true, data, e.Metadata.ToArray());
+             });
 
              return _connection.AppendToStreamAsync(streamId, expectedVersion, eventDatas);
          }
@@ -77,6 +83,7 @@
              }
 
              return new StreamEventsPage(
+                 DefaultStore.StoreId,
                  streamId,
                  (PageReadStatus)Enum.Parse(typeof(PageReadStatus), streamEventsSlice.Status.ToString()),
                  streamEventsSlice.FromEventNumber,
@@ -86,11 +93,12 @@
                  streamEventsSlice.IsEndOfStream, streamEventsSlice
                      .Events
                      .Select(e => new StreamEvent(
+                         DefaultStore.StoreId,
                          streamId,
                          e.Event.EventId,
                          e.Event.EventNumber,
                          e.OriginalPosition.ToCheckpoint(),
-                         e.Event.Data,
+                         Encoding.UTF8.GetString(e.Event.Data),
                          e.Event.Metadata))
                      .ToArray());
          }

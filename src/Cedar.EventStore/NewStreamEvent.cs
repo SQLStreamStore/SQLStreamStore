@@ -2,16 +2,21 @@
 
 namespace Cedar.EventStore
 {
+    using EnsureThat;
+
     public sealed class NewStreamEvent
     {
         public readonly Guid EventId;
-        public readonly byte[] Body;
+        public readonly object Data;
         public readonly byte[] Metadata;
 
-        public NewStreamEvent(Guid eventId, byte[] body, byte[] metadata = null)
+        public NewStreamEvent(Guid eventId, object data, byte[] metadata = null)
         {
+            Ensure.That(eventId, "eventId").IsNotEmpty();
+            Ensure.That(data, "data").IsNotNull();
+
             EventId = eventId;
-            Body = body ?? new byte[0];
+            Data = data;
             Metadata = metadata ?? new byte[0];
         }
     }

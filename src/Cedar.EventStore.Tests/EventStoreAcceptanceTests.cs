@@ -36,18 +36,18 @@
 
         public static IEnumerable<object[]> GetReadStreamTheories()
         {
-            var stuff = new[]
+            var theories = new[]
             {
                 new ReadStreamTheory("stream-1", StreamPosition.Start, ReadDirection.Forward, 2, 
                     new StreamEventsPage("stream-1", PageReadStatus.Success, 0, 2, 2, ReadDirection.Forward, false,
                           ExpectedStreamEvent("stream-1", 1, 0), ExpectedStreamEvent("stream-1", 2, 1)))
             };
 
-            return stuff.Select(t => new object[] { t });
+            return theories.Select(t => new object[] { t });
         }
 
         [Theory]
-        [MemberData("GetTheories")]
+        [MemberData("GetReadStreamTheories")]
         public async Task Can_read_streams(ReadStreamTheory theory)
         {
             using(var fixture = GetFixture())
@@ -79,6 +79,7 @@
 
         public class ReadStreamTheory
         {
+            public readonly string StoreId;
             public readonly string StreamId;
             public readonly int Start;
             public readonly ReadDirection Direction;
@@ -86,12 +87,23 @@
             public readonly StreamEventsPage ExpectedStreamEventsPage;
 
             public ReadStreamTheory(
+               string streamId,
+               int start,
+               ReadDirection direction,
+               int pageSize,
+               StreamEventsPage expectedStreamEventsPage)
+                : this(DefaultStore.StoreId, streamId, start, direction, pageSize, expectedStreamEventsPage)
+            {}
+
+            public ReadStreamTheory(
+                string storeId,
                 string streamId,
                 int start,
                 ReadDirection direction,
                 int pageSize,
                 StreamEventsPage expectedStreamEventsPage)
             {
+                StoreId = storeId;
                 StreamId = streamId;
                 Start = start;
                 Direction = direction;

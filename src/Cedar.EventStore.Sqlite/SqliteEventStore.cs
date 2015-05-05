@@ -24,7 +24,7 @@
 
         }
 
-        public Task AppendToStream(string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events)
+        public Task AppendToStream(string storeId, string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events)
         {
             var connection = _getConnection();
             connection.BeginTransaction();
@@ -47,7 +47,7 @@
             var eventsToInsert = events.Select(e => new Event
             {
                 Body = e.Body.ToArray(),
-                BucketId = "default",
+                StoreId = "default",
                 EventId = e.EventId,
                 Metadata = e.Metadata,
                 IsDeleted = false,
@@ -66,14 +66,14 @@
             return Task.FromResult(0);
         }
 
-        public Task DeleteStream(string streamId, int expectedVersion = ExpectedVersion.Any, bool hardDelete = true)
+        public Task DeleteStream(string storeId, string streamId, int expectedVersion = ExpectedVersion.Any, bool hardDelete = true)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
-        public Task<AllEventsPage> ReadAll(string checkpoint, int maxCount, ReadDirection direction = ReadDirection.Forward)
+        public Task<AllEventsPage> ReadAll(string storeId, string checkpoint, int maxCount, ReadDirection direction = ReadDirection.Forward)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         /// <summary>
@@ -85,14 +85,15 @@
         /// <param name="direction">The direction.</param>
         /// <returns></returns>
         public Task<StreamEventsPage> ReadStream(
+            string storeId,
             string streamId,
             int start,
             int count,
             ReadDirection direction = ReadDirection.Forward)
         {
             return direction == ReadDirection.Forward
-                ? ReadSteamForwards(streamId, start, count)
-                : ReadSteamBackwards(streamId, start, count);
+                ? ReadSteamForwards(storeId, streamId, start, count)
+                : ReadSteamBackwards(storeId, streamId, start, count);
         }
 
         public void Initialize()
@@ -100,7 +101,7 @@
             var connection = _getConnection();
             connection.CreateTable<Event>();
             connection.CreateIndex("Events", "EventId", true);
-            connection.CreateIndex("Events", new []{ "BucketId", "StreamId", "SequenceNumber"} , true);
+            connection.CreateIndex("Events", new []{ "StoreId", "StreamId", "SequenceNumber"} , true);
         }
 
         public void Drop()
@@ -112,12 +113,12 @@
         public void Dispose()
         {}
 
-        private Task<StreamEventsPage> ReadSteamForwards(string streamId, int start, int count)
+        private Task<StreamEventsPage> ReadSteamForwards(string storeId, string streamId, int start, int count)
         {
             var connection = _getConnection();
 
             StreamEvent[] results = connection.Table<Event>()
-                .Where(e => e.BucketId == "default" && e.StreamId == streamId)
+                .Where(e => e.StoreId == "default" && e.StreamId == streamId)
                 .OrderBy(e => e.SequenceNumber)
                 .Skip(start)
                 .Take(count)
@@ -146,12 +147,12 @@
             return Task.FromResult(streamEventsPage);
         }
 
-        private Task<StreamEventsPage> ReadSteamBackwards(string streamId, int start, int count)
+        private Task<StreamEventsPage> ReadSteamBackwards(string storeId, string streamId, int start, int count)
         {
             var connection = _getConnection();
 
             StreamEvent[] results = connection.Table<Event>()
-                .Where(e => e.BucketId == "default" && e.StreamId == streamId)
+                .Where(e => e.StoreId == storeId && e.StreamId == streamId)
                 .OrderByDescending(e => e.SequenceNumber)
                 .Skip(start)
                 .Take(count)
@@ -184,7 +185,7 @@
         private class Event
         {
             [MaxLength(40), NotNull]
-            public string BucketId { get; set; }
+            public string StoreId { get; set; }
 
             [MaxLength(40), NotNull]
             public string StreamId { get; set; }

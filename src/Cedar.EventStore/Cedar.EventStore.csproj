@@ -39,6 +39,7 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="AllEventsPage.cs" />
+    <Compile Include="DefaultStore.cs" />
     <Compile Include="EventStoreExtensions.cs" />
     <Compile Include="ExpectedVersion.cs" />
     <Compile Include="GetUtcNow.cs" />

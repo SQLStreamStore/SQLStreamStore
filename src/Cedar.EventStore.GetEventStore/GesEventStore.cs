@@ -18,19 +18,20 @@
              _connection = createConnection();
          }
 
-         public Task AppendToStream(string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events)
+         public Task AppendToStream(string storeId, string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events)
          {
              var eventDatas = events.Select(e => new EventData(e.EventId, "type", false, e.Body.ToArray(), e.Metadata.ToArray()));
 
              return _connection.AppendToStreamAsync(streamId, expectedVersion, eventDatas);
          }
 
-         public Task DeleteStream(string streamId, int exptectedVersion = EventStore.ExpectedVersion.Any, bool hardDelete = true)
+         public Task DeleteStream(string storeId, string streamId, int exptectedVersion = ExpectedVersion.Any, bool hardDelete = true)
          {
              return _connection.DeleteStreamAsync(streamId, exptectedVersion, hardDelete);
          }
 
          public async Task<AllEventsPage> ReadAll(
+             string storeId,
              string checkpoint,
              int maxCount,
              ReadDirection direction = ReadDirection.Forward)
@@ -51,13 +52,14 @@
          }
 
          public async Task<StreamEventsPage> ReadStream(
+             string storeId,
              string streamId,
              int start,
              int count,
-             EventStore.ReadDirection direction = EventStore.ReadDirection.Forward)
+             ReadDirection direction = ReadDirection.Forward)
          {
              StreamEventsSlice streamEventsSlice;
-             if (direction == EventStore.ReadDirection.Forward)
+             if (direction == ReadDirection.Forward)
              {
                  streamEventsSlice = await _connection.ReadStreamEventsForwardAsync(streamId, start, count, true);
              }

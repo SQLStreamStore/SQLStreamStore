@@ -70,7 +70,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Cedar.EventStore.Sqlite\Cedar.EventStore.Sqlite.csproj">
       <Project>{B6D70596-5DD9-4B8D-AE3D-346CF980AD97}</Project>
-      <Name>Cedar.Sqlite</Name>
+      <Name>Cedar.EventStore.Sqlite</Name>
     </ProjectReference>
     <ProjectReference Include="..\Cedar.EventStore.Tests\Cedar.EventStore.Tests.csproj">
       <Project>{F3FB96CF-4A3D-448D-A25E-6BC66E370BF6}</Project>

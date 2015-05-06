@@ -11,37 +11,13 @@
     {
         protected abstract EventStoreAcceptanceTestFixture GetFixture();
 
-        private static NewStreamEvent[] EventId(params int[] eventNumbers)
-        {
-            return eventNumbers
-                .Select(eventNumber =>
-                {
-                    var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
-                    return new NewStreamEvent(eventId, "data", new byte[] { 3, 4 });
-                })
-                .ToArray();
-        }
-
-        private static StreamEvent ExpectedStreamEvent(string storeId, string streamId, int eventNumber, int sequenceNumber)
-        {
-            var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
-            return new StreamEvent(storeId, streamId, eventId, sequenceNumber, null, "\"data\"", new byte[] { 3, 4 });
-        }
-
-        private static async Task InitializeEventStore(IEventStore eventStore)
-        {
-            await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, EventId(1, 2, 3));
-            await eventStore.AppendToStream("stream-2", ExpectedVersion.NoStream, EventId(4, 5, 6));
-        }
-
         public static IEnumerable<object[]> GetReadStreamTheories()
         {
             var theories = new[]
             {
                 new ReadStreamTheory("stream-1", StreamPosition.Start, ReadDirection.Forward, 2, 
-                    new StreamEventsPage(DefaultStore.StoreId, "stream-1", PageReadStatus.Success, 0, 2, 2, ReadDirection.Forward, false,
-                          ExpectedStreamEvent(DefaultStore.StoreId, "stream-1", 1, 0),
-                          ExpectedStreamEvent(DefaultStore.StoreId, "stream-1", 2, 1)))
+                    new StreamEventsPage("stream-1", PageReadStatus.Success, 0, 2, 2, ReadDirection.Forward, false,
+                          ExpectedStreamEvent("stream-1", 1, 0), ExpectedStreamEvent("stream-1", 2, 1)))
             };
 
             return theories.Select(t => new object[] { t });
@@ -49,15 +25,21 @@
 
         [Theory]
         [MemberData("GetReadStreamTheories")]
-        public async Task Can_read_streams(ReadStreamTheory theory)
+        public async Task Can_append_and_read_streams(ReadStreamTheory theory)
         {
             using(var fixture = GetFixture())
             {
                 using(var eventStore = await fixture.GetEventStore())
                 {
-                    await InitializeEventStore(eventStore);
+                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, EventId(1, 2, 3));
+                    await eventStore.AppendToStream("stream-2", ExpectedVersion.NoStream, EventId(4, 5, 6));
 
-                    var streamEventsPage = await eventStore.ReadStream(theory.StreamId, theory.Start, 2, theory.Direction);
+                    var streamEventsPage = await eventStore.ReadStream(
+                        theory.StoreId,
+                        theory.StreamId,
+                        theory.Start, 
+                        theory.Count,
+                        theory.Direction);
 
                     var expectedStreamEventsPage = theory.ExpectedStreamEventsPage;
                     var expectedEvents = theory.ExpectedStreamEventsPage.Events;
@@ -84,7 +66,7 @@
             public readonly string StreamId;
             public readonly int Start;
             public readonly ReadDirection Direction;
-            public readonly int PageSize;
+            public readonly int Count;
             public readonly StreamEventsPage ExpectedStreamEventsPage;
 
             public ReadStreamTheory(
@@ -101,43 +83,33 @@
                 string streamId,
                 int start,
                 ReadDirection direction,
-                int pageSize,
+                int count,
                 StreamEventsPage expectedStreamEventsPage)
             {
                 StoreId = storeId;
                 StreamId = streamId;
                 Start = start;
                 Direction = direction;
-                PageSize = pageSize;
+                Count = count;
                 ExpectedStreamEventsPage = expectedStreamEventsPage;
             }
         }
 
-        [Fact]
-        public async Task Can_delete_a_stream()
+        private static NewStreamEvent[] EventId(params int[] eventNumbers)
         {
-            using(var fixture = GetFixture())
-            {
-                using(var eventStore = await fixture.GetEventStore())
+            return eventNumbers
+                .Select(eventNumber =>
                 {
-                    const string streamId = "stream";
-                    var events = new[]
-                    {
-                        new NewStreamEvent(Guid.NewGuid(),
-                            new byte[0],
-                            new byte[0]),
-                        new NewStreamEvent(Guid.NewGuid(), new byte[0])
-                    };
+                    var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
+                    return new NewStreamEvent(eventId, new byte[] { 1, 2 }, new byte[] { 3, 4 });
+                })
+                .ToArray();
+        }
 
-                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, events);
-                    await eventStore.DeleteStream(streamId);
-
-                    var streamEventsPage =
-                        await eventStore.ReadStream(streamId, StreamPosition.End, 10, ReadDirection.Backward);
-
-                    streamEventsPage.Status.Should().Be(PageReadStatus.StreamDeleted);
-                }
-            }
+        private static StreamEvent ExpectedStreamEvent(string streamId, int eventNumber, int sequenceNumber)
+        {
+            var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
+            return new StreamEvent(streamId, eventId, sequenceNumber, null, new byte[] { 1, 2 }, new byte[] { 3, 4 });
         }
     }
 }

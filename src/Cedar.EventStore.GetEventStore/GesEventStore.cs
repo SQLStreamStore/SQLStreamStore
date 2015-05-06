@@ -114,7 +114,7 @@
          {
              if (!storeId.Equals(DefaultStore.StoreId, StringComparison.Ordinal))
              {
-                 throw new NotSupportedException("Get EventStore doesn't support multi-tenancy (yet)");
+                 throw new NotSupportedException("Get EventStore v3.0 doesn't support multi-tenancy (yet)");
              }
          }
      }

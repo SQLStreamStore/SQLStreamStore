@@ -13,5 +13,7 @@ namespace Cedar.EventStore
         Task<AllEventsPage> ReadAll(string storeId, string checkpoint, int maxCount, ReadDirection direction = ReadDirection.Forward);
 
         Task<StreamEventsPage> ReadStream(string storeId, string streamId, int start, int count, ReadDirection direction = ReadDirection.Forward);
+
+        // TODO subscriptions
     }
 }

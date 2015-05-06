@@ -2,6 +2,7 @@
  {
      using System;
      using System.Collections.Generic;
+     using System.Collections.ObjectModel;
      using System.Linq;
      using System.Text;
      using System.Threading.Tasks;
@@ -55,14 +56,34 @@
              AllEventsSlice allEventsSlice;
              if (direction == ReadDirection.Forward)
              {
-                 allEventsSlice = await _connection.ReadAllEventsForwardAsync(position, maxCount, true);
+                 allEventsSlice = await _connection.ReadAllEventsForwardAsync(position, maxCount, false);
              }
              else
              {
-                 allEventsSlice = await _connection.ReadAllEventsBackwardAsync(position, maxCount, true);
+                 allEventsSlice = await _connection.ReadAllEventsBackwardAsync(position, maxCount, false);
              }
 
-             throw new NotImplementedException();
+             var events = allEventsSlice
+                 .Events
+                 .Where(@event => 
+                     !(@event.OriginalEvent.EventType.StartsWith("$") 
+                     || @event.OriginalStreamId.StartsWith("$")))
+                 .Select(@event =>
+                     new StreamEvent(storeId,
+                         @event.OriginalStreamId,
+                         @event.Event.EventId,
+                         @event.Event.EventNumber,
+                         @event.OriginalPosition.ToCheckpoint(),
+                         Encoding.UTF8.GetString(@event.Event.Data),
+                         new ReadOnlyCollection<byte>(@event.Event.Metadata)))
+                 .ToArray();
+
+             return new AllEventsPage(
+                 allEventsSlice.FromPosition.ToString(),
+                 allEventsSlice.NextPosition.ToString(),
+                 allEventsSlice.IsEndOfStream,
+                 GetReadDirection(allEventsSlice.ReadDirection),
+                 new ReadOnlyCollection<StreamEvent>(events));
          }
 
          public async Task<StreamEventsPage> ReadStream(
@@ -91,11 +112,11 @@
                  streamEventsSlice.FromEventNumber,
                  streamEventsSlice.NextEventNumber,
                  streamEventsSlice.LastEventNumber,
-                 (ReadDirection)Enum.Parse(typeof(ReadDirection), streamEventsSlice.ReadDirection.ToString()),
+                 GetReadDirection(streamEventsSlice.ReadDirection),
                  streamEventsSlice.IsEndOfStream, streamEventsSlice
                      .Events
                      .Select(e => new StreamEvent(
-                         DefaultStore.StoreId,
+                         storeId,
                          streamId,
                          e.Event.EventId,
                          e.Event.EventNumber,
@@ -108,6 +129,11 @@
          public void Dispose()
          {
              _connection.Dispose();
+         }
+
+         private ReadDirection GetReadDirection(global::EventStore.ClientAPI.ReadDirection readDirection)
+         {
+             return (ReadDirection)Enum.Parse(typeof(ReadDirection), readDirection.ToString());
          }
 
          private void StoreIdMustBeDefault(string storeId)

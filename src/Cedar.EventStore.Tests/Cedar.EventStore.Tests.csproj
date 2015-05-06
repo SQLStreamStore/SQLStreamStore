@@ -54,6 +54,7 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="EventStoreAcceptanceTests.cs" />
     <Compile Include="EventStoreAcceptanceTests.ReadAll.cs" />
     <Compile Include="EventStoreAcceptanceTests.DeleteStream.cs" />
     <Compile Include="EventStoreAcceptanceTestFixture.cs" />

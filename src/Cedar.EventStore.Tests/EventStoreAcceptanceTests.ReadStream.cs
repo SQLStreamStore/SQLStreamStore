@@ -1,6 +1,5 @@
 ﻿namespace Cedar.EventStore
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -9,37 +8,19 @@
 
     public abstract partial class EventStoreAcceptanceTests
     {
-        protected abstract EventStoreAcceptanceTestFixture GetFixture();
-
-        public static IEnumerable<object[]> GetReadStreamTheories()
-        {
-            var theories = new[]
-            {
-                new ReadStreamTheory("stream-1", StreamPosition.Start, ReadDirection.Forward, 2, 
-                    new StreamEventsPage("stream-1", PageReadStatus.Success, 0, 2, 2, ReadDirection.Forward, false,
-                          ExpectedStreamEvent("stream-1", 1, 0), ExpectedStreamEvent("stream-1", 2, 1)))
-            };
-
-            return theories.Select(t => new object[] { t });
-        }
-
         [Theory]
         [MemberData("GetReadStreamTheories")]
-        public async Task Can_append_and_read_streams(ReadStreamTheory theory)
+        public async Task Can_read_streams(ReadStreamTheory theory)
         {
             using(var fixture = GetFixture())
             {
                 using(var eventStore = await fixture.GetEventStore())
                 {
-                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, EventId(1, 2, 3));
-                    await eventStore.AppendToStream("stream-2", ExpectedVersion.NoStream, EventId(4, 5, 6));
+                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+                    await eventStore.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamEvents(4, 5, 6));
 
-                    var streamEventsPage = await eventStore.ReadStream(
-                        theory.StoreId,
-                        theory.StreamId,
-                        theory.Start, 
-                        theory.Count,
-                        theory.Direction);
+                    var streamEventsPage =
+                        await eventStore.ReadStream(theory.StoreId, theory.StreamId, theory.Start, theory.PageSize, theory.Direction);
 
                     var expectedStreamEventsPage = theory.ExpectedStreamEventsPage;
                     var expectedEvents = theory.ExpectedStreamEventsPage.Events;
@@ -60,13 +41,26 @@
             }
         }
 
+        public static IEnumerable<object[]> GetReadStreamTheories()
+        {
+            var theories = new[]
+            {
+                new ReadStreamTheory("stream-1", StreamPosition.Start, ReadDirection.Forward, 2, 
+                    new StreamEventsPage(DefaultStore.StoreId, "stream-1", PageReadStatus.Success, 0, 2, 2, ReadDirection.Forward, false,
+                          ExpectedStreamEvent(DefaultStore.StoreId, "stream-1", 1, 0),
+                          ExpectedStreamEvent(DefaultStore.StoreId, "stream-1", 2, 1)))
+            };
+
+            return theories.Select(t => new object[] { t });
+        }
+
         public class ReadStreamTheory
         {
             public readonly string StoreId;
             public readonly string StreamId;
             public readonly int Start;
             public readonly ReadDirection Direction;
-            public readonly int Count;
+            public readonly int PageSize;
             public readonly StreamEventsPage ExpectedStreamEventsPage;
 
             public ReadStreamTheory(
@@ -83,33 +77,16 @@
                 string streamId,
                 int start,
                 ReadDirection direction,
-                int count,
+                int pageSize,
                 StreamEventsPage expectedStreamEventsPage)
             {
                 StoreId = storeId;
                 StreamId = streamId;
                 Start = start;
                 Direction = direction;
-                Count = count;
+                PageSize = pageSize;
                 ExpectedStreamEventsPage = expectedStreamEventsPage;
             }
-        }
-
-        private static NewStreamEvent[] EventId(params int[] eventNumbers)
-        {
-            return eventNumbers
-                .Select(eventNumber =>
-                {
-                    var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
-                    return new NewStreamEvent(eventId, new byte[] { 1, 2 }, new byte[] { 3, 4 });
-                })
-                .ToArray();
-        }
-
-        private static StreamEvent ExpectedStreamEvent(string streamId, int eventNumber, int sequenceNumber)
-        {
-            var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
-            return new StreamEvent(streamId, eventId, sequenceNumber, null, new byte[] { 1, 2 }, new byte[] { 3, 4 });
         }
     }
 }

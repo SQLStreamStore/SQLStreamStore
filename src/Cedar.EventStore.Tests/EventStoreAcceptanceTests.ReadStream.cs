@@ -25,13 +25,14 @@
 
         [Theory]
         [MemberData("GetReadStreamTheories")]
-        public async Task Can_read_streams(ReadStreamTheory theory)
+        public async Task Can_append_and_read_streams(ReadStreamTheory theory)
         {
             using(var fixture = GetFixture())
             {
                 using(var eventStore = await fixture.GetEventStore())
                 {
-                    await InitializeEventStore(eventStore);
+                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, EventId(1, 2, 3));
+                    await eventStore.AppendToStream("stream-2", ExpectedVersion.NoStream, EventId(4, 5, 6));
 
                     var streamEventsPage = await eventStore.ReadStream(
                         theory.StoreId,
@@ -109,12 +110,6 @@
         {
             var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
             return new StreamEvent(streamId, eventId, sequenceNumber, null, new byte[] { 1, 2 }, new byte[] { 3, 4 });
-        }
-
-        private static async Task InitializeEventStore(IEventStore eventStore)
-        {
-            await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, EventId(1, 2, 3));
-            await eventStore.AppendToStream("stream-2", ExpectedVersion.NoStream, EventId(4, 5, 6));
         }
     }
 }

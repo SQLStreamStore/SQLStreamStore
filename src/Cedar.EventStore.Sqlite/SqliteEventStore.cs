@@ -106,11 +106,6 @@
                 : ReadSteamBackwards(storeId, streamId, start, count);
         }
 
-        public Task Scavange()
-        {
-            throw new NotImplementedException();
-        }
-
         public void Initialize()
         {
             var connection = _getConnection();

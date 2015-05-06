@@ -146,11 +146,6 @@
                      .ToArray());
          }
 
-         public Task Scavange()
-         {
-             throw new NotImplementedException();
-         }
-
          public void Dispose()
          {
              _connection.Dispose();

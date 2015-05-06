@@ -45,7 +45,7 @@
     <Compile Include="ExpectedVersion.cs" />
     <Compile Include="GetUtcNow.cs" />
     <Compile Include="IEventStore.cs" />
-    <Compile Include="ISerializer.cs" />
+    <Compile Include="IJsonSerializer.cs" />
     <Compile Include="NewStreamEvent.cs" />
     <Compile Include="PageReadStatus.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

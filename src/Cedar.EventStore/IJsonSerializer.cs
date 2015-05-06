@@ -1,6 +1,6 @@
 ﻿namespace Cedar.EventStore
 {
-    public interface ISerializer
+    public interface IJsonSerializer
     {
         string Serialize(object @object);
 

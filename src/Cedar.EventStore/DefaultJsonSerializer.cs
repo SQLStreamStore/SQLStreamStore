@@ -1,8 +1,8 @@
 ﻿namespace Cedar.EventStore
 {
-    public class DefaultJsonSerializer : ISerializer
+    public class DefaultJsonSerializer : IJsonSerializer
     {
-        public static ISerializer Instance = new DefaultJsonSerializer();
+        public static IJsonSerializer Instance = new DefaultJsonSerializer();
 
         public string Serialize(object @object)
         {

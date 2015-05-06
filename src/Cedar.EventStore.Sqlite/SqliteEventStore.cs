@@ -11,18 +11,18 @@
 
     public class SqliteEventStore : IEventStore
     {
-        private readonly ISerializer _serializer;
+        private readonly IJsonSerializer _jsonSerializer;
         private readonly GetUtcNow _getUtcNow;
         private readonly Func<SQLiteConnectionWithLock> _getConnection;
         private readonly SQLiteConnectionPool _connectionPool;
         private string _databasePath;
 
-        public SqliteEventStore(ISQLitePlatform sqLitePlatform, string databasePath, ISerializer serializer = null, GetUtcNow getUtcNow = null)
+        public SqliteEventStore(ISQLitePlatform sqLitePlatform, string databasePath, IJsonSerializer jsonSerializer = null, GetUtcNow getUtcNow = null)
         {
             Ensure.That(sqLitePlatform, "sqLitePlatform").IsNotNull();
             Ensure.That(databasePath, "databasePath").IsNotNull();
 
-            _serializer = serializer ?? DefaultJsonSerializer.Instance;
+            _jsonSerializer = jsonSerializer ?? DefaultJsonSerializer.Instance;
             _getUtcNow = getUtcNow ?? SystemClock.GetUtcNow;
             _connectionPool = new SQLiteConnectionPool(sqLitePlatform);
             var connectionString = new SQLiteConnectionString(databasePath, false);
@@ -52,7 +52,7 @@
             var sequence = 0;
             var eventsToInsert = events.Select(e =>
             {
-                var json = _serializer.Serialize(e.Data);
+                var json = _jsonSerializer.Serialize(e.Data);
                 return new Event
                 {
                     Data = json,

@@ -76,7 +76,7 @@
             return Task.FromResult(0);
         }
 
-        public Task DeleteStream(string storeId, string streamId, int expectedVersion = ExpectedVersion.Any, bool hardDelete = true)
+        public Task DeleteStream(string storeId, string streamId, int expectedVersion = ExpectedVersion.Any)
         {
             throw new NotImplementedException();
         }
@@ -104,6 +104,11 @@
             return direction == ReadDirection.Forward
                 ? ReadSteamForwards(storeId, streamId, start, count)
                 : ReadSteamBackwards(storeId, streamId, start, count);
+        }
+
+        public Task Scavange()
+        {
+            throw new NotImplementedException();
         }
 
         public void Initialize()

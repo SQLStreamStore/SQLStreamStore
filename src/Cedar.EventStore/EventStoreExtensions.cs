@@ -36,10 +36,9 @@
         public static Task DeleteStream(
             this IEventStore eventStore,
             string streamId,
-            int expectedVersion = ExpectedVersion.Any,
-            bool hardDelete = true)
+            int expectedVersion = ExpectedVersion.Any)
         {
-            return eventStore.DeleteStream(DefaultStore.StoreId, streamId, expectedVersion, hardDelete);
+            return eventStore.DeleteStream(DefaultStore.StoreId, streamId, expectedVersion);
         }
 
         public static Task<AllEventsPage> ReadAll(

@@ -33,5 +33,38 @@
                 }
             }
         }
+
+        [Fact]
+        public async Task When_delete_a_stream_and_append_then_should_throw()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    const string streamId = "stream";
+                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1));
+                    await eventStore.DeleteStream(streamId);
+
+                    await eventStore
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(2))
+                        .ShouldThrow<StreamDeletedException>();
+                }
+            }
+        }
+    }
+
+    internal static class TaskExtensions
+    {
+        internal static async Task ShouldThrow<T>(this Task task)
+        {
+            try
+            {
+                await task;
+            }
+            catch(Exception ex)
+            {
+                ex.Should().BeOfType<T>();
+            }
+        }
     }
 }

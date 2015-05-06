@@ -22,7 +22,7 @@
              _connection = createConnection();
          }
 
-         public Task AppendToStream(string storeId, string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events)
+         public async Task AppendToStream(string storeId, string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events)
          {
              StoreIdMustBeDefault(storeId);
 
@@ -33,14 +33,26 @@
                  return new EventData(e.EventId, "type", true, data, e.Metadata.ToArray());
              });
 
-             return _connection.AppendToStreamAsync(streamId, expectedVersion, eventDatas);
+             try
+             {
+                 await _connection
+                     .AppendToStreamAsync(streamId, expectedVersion, eventDatas)
+                     .NotOnCapturedContext();
+             }
+             catch(global::EventStore.ClientAPI.Exceptions.StreamDeletedException ex)
+             {
+                 throw new StreamDeletedException(storeId, streamId, ex);
+             }
          }
 
-         public Task DeleteStream(string storeId, string streamId, int exptectedVersion = ExpectedVersion.Any, bool hardDelete = true)
+         public Task DeleteStream(
+             string storeId,
+             string streamId,
+             int exptectedVersion = ExpectedVersion.Any)
          {
              StoreIdMustBeDefault(storeId);
 
-             return _connection.DeleteStreamAsync(streamId, exptectedVersion, hardDelete);
+             return _connection.DeleteStreamAsync(streamId, exptectedVersion, hardDelete: true);
          }
 
          public async Task<AllEventsPage> ReadAll(
@@ -56,11 +68,15 @@
              AllEventsSlice allEventsSlice;
              if (direction == ReadDirection.Forward)
              {
-                 allEventsSlice = await _connection.ReadAllEventsForwardAsync(position, maxCount, false);
+                 allEventsSlice = await _connection
+                     .ReadAllEventsForwardAsync(position, maxCount, resolveLinkTos: false)
+                     .NotOnCapturedContext();
              }
              else
              {
-                 allEventsSlice = await _connection.ReadAllEventsBackwardAsync(position, maxCount, false);
+                 allEventsSlice = await _connection
+                     .ReadAllEventsBackwardAsync(position, maxCount, resolveLinkTos: false)
+                     .NotOnCapturedContext();
              }
 
              var events = allEventsSlice
@@ -98,11 +114,15 @@
              StreamEventsSlice streamEventsSlice;
              if (direction == ReadDirection.Forward)
              {
-                 streamEventsSlice = await _connection.ReadStreamEventsForwardAsync(streamId, start, count, true);
+                 streamEventsSlice = await _connection
+                     .ReadStreamEventsForwardAsync(streamId, start, count, true)
+                     .NotOnCapturedContext();
              }
              else
              {
-                 streamEventsSlice = await _connection.ReadStreamEventsBackwardAsync(streamId, start, count, true);
+                 streamEventsSlice = await _connection
+                     .ReadStreamEventsBackwardAsync(streamId, start, count, true)
+                     .NotOnCapturedContext();
              }
 
              return new StreamEventsPage(
@@ -124,6 +144,11 @@
                          Encoding.UTF8.GetString(e.Event.Data),
                          e.Event.Metadata))
                      .ToArray());
+         }
+
+         public Task Scavange()
+         {
+             throw new NotImplementedException();
          }
 
          public void Dispose()

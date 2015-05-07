@@ -7,9 +7,6 @@ namespace Cedar.EventStore
     internal class SqliteEvent
     {
         [MaxLength(40), NotNull]
-        public string StoreId { get; set; }
-
-        [MaxLength(40), NotNull]
         public string StreamId { get; set; }
 
         [NotNull]
@@ -25,9 +22,6 @@ namespace Cedar.EventStore
 
         [NotNull]
         public bool IsDeleted { get; set; }
-
-        [NotNull]
-        public DateTimeOffset Stamp { get; set; }
 
         public string Type { get; set; }
 

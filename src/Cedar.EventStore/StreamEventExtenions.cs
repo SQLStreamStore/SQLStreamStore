@@ -11,7 +11,7 @@
             return SimpleJson.DeserializeObject<T>(streamEvent.JsonData);
         }
 
-        public static T JsonMetaDataAs<T>(this StreamEvent streamEvent)
+        public static T JsonMetadataAs<T>(this StreamEvent streamEvent)
         {
             Ensure.That(streamEvent, "streamEvent").IsNotNull();
 

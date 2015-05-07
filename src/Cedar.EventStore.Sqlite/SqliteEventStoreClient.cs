@@ -50,7 +50,6 @@
             var eventsToInsert = events.Select(e => new SqliteEvent
             {
                 JsonData = e.JsonData,
-                StoreId = "default",
                 EventId = e.EventId,
                 JsonMetadata = e.JsonMetadata,
                 IsDeleted = false,

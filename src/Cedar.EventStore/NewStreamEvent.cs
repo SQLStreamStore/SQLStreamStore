@@ -7,16 +7,19 @@
     {
         public readonly string JsonData;
         public readonly Guid EventId;
+        public readonly string Type;
         public readonly string JsonMetadata;
 
-        public NewStreamEvent(Guid eventId, string jsonData, string metadata = null)
+        public NewStreamEvent(Guid eventId, string type, string jsonData, string metadata = null)
         {
             Ensure.That(eventId, "eventId").IsNotEmpty();
-            Ensure.That(jsonData, "data").IsNotNull();
+            Ensure.That(type, "type").IsNotNullOrEmpty();
+            Ensure.That(jsonData, "data").IsNotNullOrEmpty();
 
             EventId = eventId;
+            Type = type;
             JsonData = jsonData;
-            JsonMetadata = metadata;
+            JsonMetadata = metadata ?? string.Empty;
         }
     }
 }

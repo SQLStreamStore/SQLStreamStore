@@ -14,6 +14,7 @@
                 Guid.NewGuid(),
                 1,
                 "cp",
+                "type",
                 "\"data\"",
                 "\"meta\"");
 

@@ -11,12 +11,11 @@
 
      public class GesEventStoreClient : IEventStoreClient
      {
-         private readonly IJsonSerializer _jsonSerializer;
          private readonly CreateEventStoreConnection _getConnection;
          private readonly InterlockedBoolean _isDisposed = new InterlockedBoolean();
          private readonly IEventStoreConnection _connection;
 
-         public GesEventStoreClient(CreateEventStoreConnection createConnection, IJsonSerializer jsonSerializer = null)
+         public GesEventStoreClient(CreateEventStoreConnection createConnection)
          {
              Ensure.That(createConnection, "connectionFactory").IsNotNull();
 
@@ -29,8 +28,6 @@
                  }
                  return _connection;
              };
-
-             _jsonSerializer = jsonSerializer ?? DefaultJsonSerializer.Instance;
          }
 
          public async Task AppendToStream(string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events)
@@ -42,7 +39,7 @@
                  var data = Encoding.UTF8.GetBytes(e.JsonData);
                  var metadata = Encoding.UTF8.GetBytes(e.JsonMetadata);
 
-                 return new EventData(e.EventId, "type", true, data, metadata);
+                 return new EventData(e.EventId, e.Type, true, data, metadata);
              });
 
              try
@@ -93,14 +90,15 @@
                  .Where(@event => 
                      !(@event.OriginalEvent.EventType.StartsWith("$") 
                      || @event.OriginalStreamId.StartsWith("$")))
-                 .Select(@event =>
+                 .Select(resolvedEvent =>
                      new StreamEvent(
-                         @event.OriginalStreamId,
-                         @event.Event.EventId,
-                         @event.Event.EventNumber,
-                         @event.OriginalPosition.ToCheckpoint(),
-                         Encoding.UTF8.GetString(@event.Event.Data),
-                         Encoding.UTF8.GetString(@event.Event.Metadata)))
+                         resolvedEvent.Event.EventStreamId,
+                         resolvedEvent.Event.EventId,
+                         resolvedEvent.Event.EventNumber,
+                         resolvedEvent.OriginalPosition.ToCheckpoint(),
+                         resolvedEvent.Event.EventType,
+                         Encoding.UTF8.GetString(resolvedEvent.Event.Data),
+                         Encoding.UTF8.GetString(resolvedEvent.Event.Metadata)))
                  .ToArray();
 
              return new AllEventsPage(
@@ -142,13 +140,14 @@
                  GetReadDirection(streamEventsSlice.ReadDirection),
                  streamEventsSlice.IsEndOfStream, streamEventsSlice
                      .Events
-                     .Select(e => new StreamEvent(
-                         streamId,
-                         e.Event.EventId,
-                         e.Event.EventNumber,
-                         e.OriginalPosition.ToCheckpoint(),
-                         Encoding.UTF8.GetString(e.Event.Data),
-                         Encoding.UTF8.GetString(e.Event.Metadata)))
+                     .Select(resolvedEvent => new StreamEvent(
+                         resolvedEvent.Event.EventStreamId,
+                         resolvedEvent.Event.EventId,
+                         resolvedEvent.Event.EventNumber,
+                         resolvedEvent.OriginalPosition.ToCheckpoint(),
+                         resolvedEvent.Event.EventType,
+                         Encoding.UTF8.GetString(resolvedEvent.Event.Data),
+                         Encoding.UTF8.GetString(resolvedEvent.Event.Metadata)))
                      .ToArray());
          }
 

@@ -43,13 +43,10 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="AllEventsPage.cs" />
-    <Compile Include="DefaultJsonSerializer.cs" />
     <Compile Include="EventStoreExtensions.cs" />
     <Compile Include="ExpectedVersion.cs" />
     <Compile Include="GetUtcNow.cs" />
     <Compile Include="IEventStoreClient.cs" />
-    <Compile Include="IJsonSerializer.cs" />
-    <Compile Include="Metadata.cs" />
     <Compile Include="NewStreamEvent.cs" />
     <Compile Include="PageReadStatus.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

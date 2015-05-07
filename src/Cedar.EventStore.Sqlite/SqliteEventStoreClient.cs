@@ -11,18 +11,16 @@
 
     public class SqliteEventStoreClient : IEventStoreClient
     {
-        private readonly IJsonSerializer _jsonSerializer;
         private readonly GetUtcNow _getUtcNow;
         private readonly Func<SQLiteConnectionWithLock> _getConnection;
         private readonly SQLiteConnectionPool _connectionPool;
         private string _databasePath;
 
-        public SqliteEventStoreClient(ISQLitePlatform sqLitePlatform, string databasePath, IJsonSerializer jsonSerializer = null, GetUtcNow getUtcNow = null)
+        public SqliteEventStoreClient(ISQLitePlatform sqLitePlatform, string databasePath, GetUtcNow getUtcNow = null)
         {
             Ensure.That(sqLitePlatform, "sqLitePlatform").IsNotNull();
             Ensure.That(databasePath, "databasePath").IsNotNull();
 
-            _jsonSerializer = jsonSerializer ?? DefaultJsonSerializer.Instance;
             _getUtcNow = getUtcNow ?? SystemClock.GetUtcNow;
             _connectionPool = new SQLiteConnectionPool(sqLitePlatform);
             var connectionString = new SQLiteConnectionString(databasePath, false);
@@ -50,21 +48,17 @@
             }*/
 
             var sequence = 0;
-            var eventsToInsert = events.Select(e =>
+            var eventsToInsert = events.Select(e => new Event
             {
-                var json = _jsonSerializer.Serialize(e.Data);
-                return new Event
-                {
-                    Data = json,
-                    StoreId = "default",
-                    EventId = e.EventId,
-                    Metadata = e.Metadata,
-                    IsDeleted = false,
-                    OriginalStreamId = streamId,
-                    SequenceNumber = sequence++,
-                    Stamp = _getUtcNow(),
-                    StreamId = streamId
-                };
+                JsonData = e.JsonData,
+                StoreId = "default",
+                EventId = e.EventId,
+                JsonMetadata = e.JsonMetadata,
+                IsDeleted = false,
+                OriginalStreamId = streamId,
+                SequenceNumber = sequence++,
+                Stamp = _getUtcNow(),
+                StreamId = streamId
             });
 
             foreach (var eventToInsert in eventsToInsert)
@@ -141,8 +135,9 @@
                         e.EventId,
                         e.SequenceNumber,
                         e.Checkpoint.ToString(),
-                        e.Data,
-                        e.Metadata))
+                        e.Type,
+                        e.JsonData,
+                        e.JsonMetadata))
                 .ToArray();
 
             StreamEventsPage streamEventsPage = new StreamEventsPage(
@@ -176,8 +171,9 @@
                         e.EventId,
                         e.SequenceNumber,
                         e.Checkpoint.ToString(),
-                        e.Data,
-                        e.Metadata))
+                        e.Type,
+                        e.JsonData,
+                        e.JsonMetadata))
                 .ToArray();
 
             StreamEventsPage streamEventsPage = new StreamEventsPage(
@@ -219,10 +215,12 @@
             [NotNull]
             public DateTimeOffset Stamp { get; set; }
 
-            public byte[] Metadata { get; set; }
+            public string Type { get; set; }
+
+            public string JsonMetadata { get; set; }
 
             [NotNull]
-            public string Data { get; set; }
+            public string JsonData { get; set; }
         }
 
         /*private class StreamEventsPage : IStreamEventsPage

@@ -16,7 +16,7 @@
                 .Select(eventNumber =>
                 {
                     var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
-                    return new NewStreamEvent(eventId, "data", "metadata");
+                    return new NewStreamEvent(eventId, "type", "data", "metadata");
                 })
                 .ToArray();
         }
@@ -27,7 +27,7 @@
             int sequenceNumber)
         {
             var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
-            return new StreamEvent(streamId, eventId, sequenceNumber, null, "data", "metadata");
+            return new StreamEvent(streamId, eventId, sequenceNumber, null, "type", "data", "metadata");
         }
 
         [Fact]

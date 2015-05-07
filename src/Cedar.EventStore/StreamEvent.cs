@@ -5,6 +5,7 @@
     public class StreamEvent
     {
         public readonly string Checkpoint;
+        public readonly string Type;
         public readonly string JsonData;
         public readonly Guid EventId;
         public readonly string JsonMetadata;
@@ -16,6 +17,7 @@
             Guid eventId,
             int sequenceNumber,
             string checkpoint,
+            string type,
             string jsonData,
             string jsonMetadata)
         {
@@ -23,6 +25,7 @@
             StreamId = streamId;
             SequenceNumber = sequenceNumber;
             Checkpoint = checkpoint;
+            Type = type;
             JsonData = jsonData;
             JsonMetadata = jsonMetadata;
         }

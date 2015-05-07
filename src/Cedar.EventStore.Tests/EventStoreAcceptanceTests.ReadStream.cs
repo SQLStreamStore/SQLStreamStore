@@ -20,7 +20,7 @@
                     await eventStore.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamEvents(4, 5, 6));
 
                     var streamEventsPage =
-                        await eventStore.ReadStream(theory.StoreId, theory.StreamId, theory.Start, theory.PageSize, theory.Direction);
+                        await eventStore.ReadStream(theory.StreamId, theory.Start, theory.PageSize, theory.Direction);
 
                     var expectedStreamEventsPage = theory.ExpectedStreamEventsPage;
                     var expectedEvents = theory.ExpectedStreamEventsPage.Events;
@@ -46,9 +46,9 @@
             var theories = new[]
             {
                 new ReadStreamTheory("stream-1", StreamPosition.Start, ReadDirection.Forward, 2, 
-                    new StreamEventsPage(DefaultStore.StoreId, "stream-1", PageReadStatus.Success, 0, 2, 2, ReadDirection.Forward, false,
-                          ExpectedStreamEvent(DefaultStore.StoreId, "stream-1", 1, 0),
-                          ExpectedStreamEvent(DefaultStore.StoreId, "stream-1", 2, 1)))
+                    new StreamEventsPage("stream-1", PageReadStatus.Success, 0, 2, 2, ReadDirection.Forward, false,
+                          ExpectedStreamEvent("stream-1", 1, 0),
+                          ExpectedStreamEvent("stream-1", 2, 1)))
             };
 
             return theories.Select(t => new object[] { t });
@@ -64,23 +64,12 @@
             public readonly StreamEventsPage ExpectedStreamEventsPage;
 
             public ReadStreamTheory(
-               string streamId,
-               int start,
-               ReadDirection direction,
-               int pageSize,
-               StreamEventsPage expectedStreamEventsPage)
-                : this(DefaultStore.StoreId, streamId, start, direction, pageSize, expectedStreamEventsPage)
-            {}
-
-            public ReadStreamTheory(
-                string storeId,
                 string streamId,
                 int start,
                 ReadDirection direction,
                 int pageSize,
                 StreamEventsPage expectedStreamEventsPage)
             {
-                StoreId = storeId;
                 StreamId = streamId;
                 Start = start;
                 Direction = direction;

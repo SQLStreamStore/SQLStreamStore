@@ -26,6 +26,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Debug\Cedar.EventStore.xml</DocumentationFile>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,6 +36,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\Cedar.EventStore.xml</DocumentationFile>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\SharedAssemblyInfo.cs">
@@ -42,11 +44,10 @@
     </Compile>
     <Compile Include="AllEventsPage.cs" />
     <Compile Include="DefaultJsonSerializer.cs" />
-    <Compile Include="DefaultStore.cs" />
     <Compile Include="EventStoreExtensions.cs" />
     <Compile Include="ExpectedVersion.cs" />
     <Compile Include="GetUtcNow.cs" />
-    <Compile Include="IEventStore.cs" />
+    <Compile Include="IEventStoreClient.cs" />
     <Compile Include="IJsonSerializer.cs" />
     <Compile Include="NewStreamEvent.cs" />
     <Compile Include="PageReadStatus.cs" />

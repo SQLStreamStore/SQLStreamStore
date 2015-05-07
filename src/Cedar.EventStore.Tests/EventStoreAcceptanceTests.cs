@@ -22,13 +22,12 @@
         }
 
         private static StreamEvent ExpectedStreamEvent(
-            string storeId,
             string streamId,
             int eventNumber,
             int sequenceNumber)
         {
             var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
-            return new StreamEvent(storeId, streamId, eventId, sequenceNumber, null, "\"data\"", new byte[] { 3, 4 });
+            return new StreamEvent(streamId, eventId, sequenceNumber, null, "\"data\"", new byte[] { 3, 4 });
         }
 
         [Fact]
@@ -39,7 +38,7 @@
                 var store = await fixture.GetEventStore();
                 store.Dispose();
 
-                Func<Task> act = () => store.ReadAll(DefaultStore.StoreId, null, 10);
+                Func<Task> act = () => store.ReadAll(null, 10);
 
                 act.ShouldThrow<ObjectDisposedException>();
             }

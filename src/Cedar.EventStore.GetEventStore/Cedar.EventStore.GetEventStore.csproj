@@ -45,7 +45,7 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="CreateEventStoreConnection.cs" />
-    <Compile Include="GesEventStore.cs" />
+    <Compile Include="GesEventStoreClient.cs" />
     <Compile Include="InterlockedBoolean.cs" />
     <Compile Include="InterlockedBooleanExtensions.cs" />
     <Compile Include="PositionHelper.cs" />

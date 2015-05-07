@@ -9,7 +9,7 @@
     using SQLite.Net.Attributes;
     using SQLite.Net.Interop;
 
-    public class SqliteEventStore : IEventStore
+    public class SqliteEventStoreClient : IEventStoreClient
     {
         private readonly IJsonSerializer _jsonSerializer;
         private readonly GetUtcNow _getUtcNow;
@@ -17,7 +17,7 @@
         private readonly SQLiteConnectionPool _connectionPool;
         private string _databasePath;
 
-        public SqliteEventStore(ISQLitePlatform sqLitePlatform, string databasePath, IJsonSerializer jsonSerializer = null, GetUtcNow getUtcNow = null)
+        public SqliteEventStoreClient(ISQLitePlatform sqLitePlatform, string databasePath, IJsonSerializer jsonSerializer = null, GetUtcNow getUtcNow = null)
         {
             Ensure.That(sqLitePlatform, "sqLitePlatform").IsNotNull();
             Ensure.That(databasePath, "databasePath").IsNotNull();
@@ -30,7 +30,7 @@
 
         }
 
-        public Task AppendToStream(string storeId, string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events)
+        public Task AppendToStream(string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events)
         {
             var connection = _getConnection();
             connection.BeginTransaction();
@@ -76,12 +76,12 @@
             return Task.FromResult(0);
         }
 
-        public Task DeleteStream(string storeId, string streamId, int expectedVersion = ExpectedVersion.Any)
+        public Task DeleteStream(string streamId, int expectedVersion = ExpectedVersion.Any)
         {
             throw new NotImplementedException();
         }
 
-        public Task<AllEventsPage> ReadAll(string storeId, string checkpoint, int maxCount, ReadDirection direction = ReadDirection.Forward)
+        public Task<AllEventsPage> ReadAll(string checkpoint, int maxCount, ReadDirection direction = ReadDirection.Forward)
         {
             throw new NotImplementedException();
         }
@@ -95,15 +95,14 @@
         /// <param name="direction">The direction.</param>
         /// <returns></returns>
         public Task<StreamEventsPage> ReadStream(
-            string storeId,
             string streamId,
             int start,
             int count,
             ReadDirection direction = ReadDirection.Forward)
         {
             return direction == ReadDirection.Forward
-                ? ReadSteamForwards(storeId, streamId, start, count)
-                : ReadSteamBackwards(storeId, streamId, start, count);
+                ? ReadSteamForwards(streamId, start, count)
+                : ReadSteamBackwards(streamId, start, count);
         }
 
         public void Initialize()
@@ -123,12 +122,12 @@
         public void Dispose()
         {}
 
-        private Task<StreamEventsPage> ReadSteamForwards(string storeId, string streamId, int start, int count)
+        private Task<StreamEventsPage> ReadSteamForwards(string streamId, int start, int count)
         {
             var connection = _getConnection();
 
             StreamEvent[] results = connection.Table<Event>()
-                .Where(e => e.StoreId == storeId && e.StreamId == streamId)
+                .Where(e => e.StreamId == streamId)
                 .OrderBy(e => e.SequenceNumber)
                 .Skip(start)
                 .Take(count)
@@ -138,7 +137,6 @@
                 .ToArray()
                 .Select(e =>
                     new StreamEvent(
-                        storeId,
                         streamId,
                         e.EventId,
                         e.SequenceNumber,
@@ -148,7 +146,6 @@
                 .ToArray();
 
             StreamEventsPage streamEventsPage = new StreamEventsPage(
-                storeId,
                 streamId: streamId,
                 status: PageReadStatus.Success,
                 fromSequenceNumber: start,
@@ -160,12 +157,12 @@
             return Task.FromResult(streamEventsPage);
         }
 
-        private Task<StreamEventsPage> ReadSteamBackwards(string storeId, string streamId, int start, int count)
+        private Task<StreamEventsPage> ReadSteamBackwards(string streamId, int start, int count)
         {
             var connection = _getConnection();
 
             StreamEvent[] results = connection.Table<Event>()
-                .Where(e => e.StoreId == storeId && e.StreamId == streamId)
+                .Where(e => e.StreamId == streamId)
                 .OrderByDescending(e => e.SequenceNumber)
                 .Skip(start)
                 .Take(count)
@@ -175,7 +172,6 @@
                 .ToArray()
                 .Select(e =>
                     new StreamEvent(
-                        storeId,
                         streamId,
                         e.EventId,
                         e.SequenceNumber,
@@ -185,7 +181,6 @@
                 .ToArray();
 
             StreamEventsPage streamEventsPage = new StreamEventsPage(
-                storeId: storeId,
                 streamId: streamId,
                 status: PageReadStatus.Success,
                 fromSequenceNumber: start,

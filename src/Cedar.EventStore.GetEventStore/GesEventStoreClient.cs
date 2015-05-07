@@ -1,7 +1,6 @@
 ﻿﻿namespace Cedar.EventStore
  {
      using System;
-     using System.Collections.Concurrent;
      using System.Collections.Generic;
      using System.Collections.ObjectModel;
      using System.Linq;
@@ -10,33 +9,33 @@
      using EnsureThat;
      using global::EventStore.ClientAPI;
 
-     public class GesEventStore : IEventStore
+     public class GesEventStoreClient : IEventStoreClient
      {
          private readonly IJsonSerializer _jsonSerializer;
-         private readonly ConcurrentDictionary<string, IEventStoreConnection> _connectionCache 
-             = new ConcurrentDictionary<string, IEventStoreConnection>(); 
          private readonly CreateEventStoreConnection _getConnection;
          private readonly InterlockedBoolean _isDisposed = new InterlockedBoolean();
+         private readonly IEventStoreConnection _connection;
 
-         public GesEventStore(CreateEventStoreConnection createConnection, IJsonSerializer jsonSerializer = null)
+         public GesEventStoreClient(CreateEventStoreConnection createConnection, IJsonSerializer jsonSerializer = null)
          {
              Ensure.That(createConnection, "connectionFactory").IsNotNull();
 
-             _getConnection = storeid =>
+             _connection = createConnection();
+             _getConnection = () =>
              {
                  if(_isDisposed.Value)
                  {
-                     throw new ObjectDisposedException("GesEventStore");
+                     throw new ObjectDisposedException("GesEventStoreClient");
                  }
-                 return _connectionCache.GetOrAdd(storeid, key => createConnection(key));
+                 return _connection;
              };
 
              _jsonSerializer = jsonSerializer ?? DefaultJsonSerializer.Instance;
          }
 
-         public async Task AppendToStream(string storeId, string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events)
+         public async Task AppendToStream(string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events)
          {
-             var connection = _getConnection(storeId);
+             var connection = _getConnection();
 
              var eventDatas = events.Select(e =>
              {
@@ -53,26 +52,24 @@
              }
              catch(global::EventStore.ClientAPI.Exceptions.StreamDeletedException ex)
              {
-                 throw new StreamDeletedException(storeId, streamId, ex);
+                 throw new StreamDeletedException(streamId, ex);
              }
          }
 
          public Task DeleteStream(
-             string storeId,
              string streamId,
              int exptectedVersion = ExpectedVersion.Any)
          {
-             var connection = _getConnection(storeId);
+             var connection = _getConnection();
              return connection.DeleteStreamAsync(streamId, exptectedVersion, hardDelete: true);
          }
 
          public async Task<AllEventsPage> ReadAll(
-             string storeId,
              string checkpoint,
              int maxCount,
              ReadDirection direction = ReadDirection.Forward)
          {
-             var connection = _getConnection(storeId);
+             var connection = _getConnection();
 
              var position = checkpoint.ParsePosition() ?? Position.Start;
 
@@ -96,7 +93,7 @@
                      !(@event.OriginalEvent.EventType.StartsWith("$") 
                      || @event.OriginalStreamId.StartsWith("$")))
                  .Select(@event =>
-                     new StreamEvent(storeId,
+                     new StreamEvent(
                          @event.OriginalStreamId,
                          @event.Event.EventId,
                          @event.Event.EventNumber,
@@ -114,13 +111,12 @@
          }
 
          public async Task<StreamEventsPage> ReadStream(
-             string storeId,
              string streamId,
              int start,
              int count,
              ReadDirection direction = ReadDirection.Forward)
          {
-             var connection = _getConnection(storeId);
+             var connection = _getConnection();
 
              StreamEventsSlice streamEventsSlice;
              if (direction == ReadDirection.Forward)
@@ -137,7 +133,6 @@
              }
 
              return new StreamEventsPage(
-                 DefaultStore.StoreId,
                  streamId,
                  (PageReadStatus)Enum.Parse(typeof(PageReadStatus), streamEventsSlice.Status.ToString()),
                  streamEventsSlice.FromEventNumber,
@@ -147,7 +142,6 @@
                  streamEventsSlice.IsEndOfStream, streamEventsSlice
                      .Events
                      .Select(e => new StreamEvent(
-                         storeId,
                          streamId,
                          e.Event.EventId,
                          e.Event.EventNumber,
@@ -163,11 +157,7 @@
              {
                  return;
              }
-             foreach(var eventStoreConnection in _connectionCache.Values)
-             {
-                 eventStoreConnection.Dispose();
-             }
-             _connectionCache.Clear();
+             _connection.Dispose();
          }
 
          private ReadDirection GetReadDirection(global::EventStore.ClientAPI.ReadDirection readDirection)

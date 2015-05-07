@@ -2,5 +2,5 @@
 {
     using global::EventStore.ClientAPI;
 
-    public delegate IEventStoreConnection CreateEventStoreConnection(string storeId);
+    public delegate IEventStoreConnection CreateEventStoreConnection();
 }

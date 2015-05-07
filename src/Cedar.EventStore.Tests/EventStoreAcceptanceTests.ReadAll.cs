@@ -18,12 +18,12 @@
                     await eventStore.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamEvents(4, 5, 6));
                     var expectedEvents = new[]
                     {
-                        ExpectedStreamEvent(DefaultStore.StoreId, "stream-1", 1, 0),
-                        ExpectedStreamEvent(DefaultStore.StoreId, "stream-1", 2, 1),
-                        ExpectedStreamEvent(DefaultStore.StoreId, "stream-1", 3, 2),
-                        ExpectedStreamEvent(DefaultStore.StoreId, "stream-2", 4, 0),
-                        ExpectedStreamEvent(DefaultStore.StoreId, "stream-2", 5, 1),
-                        ExpectedStreamEvent(DefaultStore.StoreId, "stream-2", 6, 2),
+                        ExpectedStreamEvent("stream-1", 1, 0),
+                        ExpectedStreamEvent("stream-1", 2, 1),
+                        ExpectedStreamEvent("stream-1", 3, 2),
+                        ExpectedStreamEvent("stream-2", 4, 0),
+                        ExpectedStreamEvent("stream-2", 5, 1),
+                        ExpectedStreamEvent("stream-2", 6, 2),
                     };
 
                     var allEventsPage = await eventStore.ReadAll(null, 10);

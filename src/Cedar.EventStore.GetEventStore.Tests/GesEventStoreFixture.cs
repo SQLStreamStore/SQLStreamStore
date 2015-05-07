@@ -11,11 +11,11 @@
     {
         private static readonly IPEndPoint s_noEndpoint = new IPEndPoint(IPAddress.None, 0);
 
-        public override async Task<IEventStore> GetEventStore()
+        public override async Task<IEventStoreClient> GetEventStore()
         {
             var node = await CreateClusterVNode();
-            var gesEventStore = new GesEventStore(_ => EmbeddedEventStoreConnection.Create(node));
-            return new EventStoreWrapper(gesEventStore, node);
+            var gesEventStore = new GesEventStoreClient(() => EmbeddedEventStoreConnection.Create(node));
+            return new EventStoreClientWrapper(gesEventStore, node);
         }
 
         private static Task<ClusterVNode> CreateClusterVNode()
@@ -44,12 +44,12 @@
             return tcs.Task;
         }
 
-        private class EventStoreWrapper : IEventStore
+        private class EventStoreClientWrapper : IEventStoreClient
         {
-            private readonly GesEventStore _inner;
+            private readonly GesEventStoreClient _inner;
             private readonly ClusterVNode _node;
 
-            public EventStoreWrapper(GesEventStore inner, ClusterVNode node)
+            public EventStoreClientWrapper(GesEventStoreClient inner, ClusterVNode node)
             {
                 _inner = inner;
                 _node = node;
@@ -61,37 +61,31 @@
                 _node.Stop();
             }
 
-            public Task AppendToStream(
-                string storeId,
-                string streamId,
-                int expectedVersion,
-                IEnumerable<NewStreamEvent> events)
+            public Task AppendToStream(string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events)
             {
-                return _inner.AppendToStream(storeId, streamId, expectedVersion, events);
+                return _inner.AppendToStream(streamId, expectedVersion, events);
             }
 
-            public Task DeleteStream(string storeId, string streamId, int expectedVersion = ExpectedVersion.Any)
+            public Task DeleteStream(string streamId, int expectedVersion = ExpectedVersion.Any)
             {
-                return _inner.DeleteStream(storeId, streamId, expectedVersion);
+                return _inner.DeleteStream(streamId, expectedVersion);
             }
 
             public Task<AllEventsPage> ReadAll(
-                string storeId,
                 string checkpoint,
                 int maxCount,
                 ReadDirection direction = ReadDirection.Forward)
             {
-                return _inner.ReadAll(storeId, checkpoint, maxCount, direction);
+                return _inner.ReadAll(checkpoint, maxCount, direction);
             }
 
             public Task<StreamEventsPage> ReadStream(
-                string storeId,
                 string streamId,
                 int start,
                 int count,
                 ReadDirection direction = ReadDirection.Forward)
             {
-                return _inner.ReadStream(storeId, streamId, start, count, direction);
+                return _inner.ReadStream(streamId, start, count, direction);
             }
         }
     }

@@ -1,9 +1,8 @@
 ﻿namespace Cedar.EventStore
 {
-    using System;
+    using System.Collections.Generic;
     using System.Net;
     using System.Threading.Tasks;
-    using global::EventStore.ClientAPI;
     using global::EventStore.ClientAPI.Embedded;
     using global::EventStore.Core;
     using global::EventStore.Core.Data;
@@ -11,42 +10,89 @@
     internal class GesEventStoreFixture : EventStoreAcceptanceTestFixture
     {
         private static readonly IPEndPoint s_noEndpoint = new IPEndPoint(IPAddress.None, 0);
-        private readonly Func<IEventStoreConnection> _createConnection;
-        private readonly ClusterVNode _node;
-        private readonly TaskCompletionSource<bool> _connected = new TaskCompletionSource<bool>();
 
-        public GesEventStoreFixture()
+        public override async Task<IEventStore> GetEventStore()
         {
-            _node = EmbeddedVNodeBuilder
+            var node = await CreateClusterVNode();
+            var gesEventStore = new GesEventStore(_ => EmbeddedEventStoreConnection.Create(node));
+            return new EventStoreWrapper(gesEventStore, node);
+        }
+
+        private static Task<ClusterVNode> CreateClusterVNode()
+        {
+            ClusterVNode node = EmbeddedVNodeBuilder
                 .AsSingleNode()
                 .WithExternalTcpOn(s_noEndpoint)
                 .WithInternalTcpOn(s_noEndpoint)
                 .WithExternalHttpOn(s_noEndpoint)
                 .WithInternalHttpOn(s_noEndpoint)
-                .RunProjections(ProjectionsMode.All);
+                .RunProjections(ProjectionsMode.All)
+                .RunInMemory();
 
-            _node.NodeStatusChanged += (_, e) =>
+            var tcs = new TaskCompletionSource<ClusterVNode>();
+
+            node.NodeStatusChanged += (_, e) =>
             {
                 if (e.NewVNodeState != VNodeState.Master)
                 {
                     return;
                 }
-                _connected.SetResult(true);
+                tcs.SetResult(node);
             };
-            _createConnection = () => EmbeddedEventStoreConnection.Create(_node);
+            node.Start();
 
-            _node.Start();
+            return tcs.Task;
         }
 
-        public override async Task<IEventStore> GetEventStore()
+        private class EventStoreWrapper : IEventStore
         {
-            await _connected.Task;
-            return new GesEventStore(_createConnection);
-        }
+            private readonly GesEventStore _inner;
+            private readonly ClusterVNode _node;
 
-        public override void Dispose()
-        {
-            _node.Stop();
+            public EventStoreWrapper(GesEventStore inner, ClusterVNode node)
+            {
+                _inner = inner;
+                _node = node;
+            }
+
+            public void Dispose()
+            {
+                _inner.Dispose();
+                _node.Stop();
+            }
+
+            public Task AppendToStream(
+                string storeId,
+                string streamId,
+                int expectedVersion,
+                IEnumerable<NewStreamEvent> events)
+            {
+                return _inner.AppendToStream(storeId, streamId, expectedVersion, events);
+            }
+
+            public Task DeleteStream(string storeId, string streamId, int expectedVersion = ExpectedVersion.Any)
+            {
+                return _inner.DeleteStream(storeId, streamId, expectedVersion);
+            }
+
+            public Task<AllEventsPage> ReadAll(
+                string storeId,
+                string checkpoint,
+                int maxCount,
+                ReadDirection direction = ReadDirection.Forward)
+            {
+                return _inner.ReadAll(storeId, checkpoint, maxCount, direction);
+            }
+
+            public Task<StreamEventsPage> ReadStream(
+                string storeId,
+                string streamId,
+                int start,
+                int count,
+                ReadDirection direction = ReadDirection.Forward)
+            {
+                return _inner.ReadStream(storeId, streamId, start, count, direction);
+            }
         }
     }
 }

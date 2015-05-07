@@ -7,6 +7,7 @@ namespace Cedar.EventStore
     {
         public abstract Task<IEventStore> GetEventStore();
 
-        public abstract void Dispose();
+        public virtual void Dispose()
+        { }
     }
 }

@@ -1,6 +1,7 @@
 ﻿﻿namespace Cedar.EventStore
  {
      using System;
+     using System.Collections.Concurrent;
      using System.Collections.Generic;
      using System.Collections.ObjectModel;
      using System.Linq;
@@ -12,19 +13,30 @@
      public class GesEventStore : IEventStore
      {
          private readonly IJsonSerializer _jsonSerializer;
-         private readonly IEventStoreConnection _connection;
+         private readonly ConcurrentDictionary<string, IEventStoreConnection> _connectionCache 
+             = new ConcurrentDictionary<string, IEventStoreConnection>(); 
+         private readonly CreateEventStoreConnection _getConnection;
+         private readonly InterlockedBoolean _isDisposed = new InterlockedBoolean();
 
-         public GesEventStore(Func<IEventStoreConnection> createConnection, IJsonSerializer jsonSerializer = null)
+         public GesEventStore(CreateEventStoreConnection createConnection, IJsonSerializer jsonSerializer = null)
          {
              Ensure.That(createConnection, "connectionFactory").IsNotNull();
 
+             _getConnection = storeid =>
+             {
+                 if(_isDisposed.Value)
+                 {
+                     throw new ObjectDisposedException("GesEventStore");
+                 }
+                 return _connectionCache.GetOrAdd(storeid, key => createConnection(key));
+             };
+
              _jsonSerializer = jsonSerializer ?? DefaultJsonSerializer.Instance;
-             _connection = createConnection();
          }
 
          public async Task AppendToStream(string storeId, string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events)
          {
-             StoreIdMustBeDefault(storeId);
+             var connection = _getConnection(storeId);
 
              var eventDatas = events.Select(e =>
              {
@@ -35,7 +47,7 @@
 
              try
              {
-                 await _connection
+                 await connection
                      .AppendToStreamAsync(streamId, expectedVersion, eventDatas)
                      .NotOnCapturedContext();
              }
@@ -50,9 +62,8 @@
              string streamId,
              int exptectedVersion = ExpectedVersion.Any)
          {
-             StoreIdMustBeDefault(storeId);
-
-             return _connection.DeleteStreamAsync(streamId, exptectedVersion, hardDelete: true);
+             var connection = _getConnection(storeId);
+             return connection.DeleteStreamAsync(streamId, exptectedVersion, hardDelete: true);
          }
 
          public async Task<AllEventsPage> ReadAll(
@@ -61,20 +72,20 @@
              int maxCount,
              ReadDirection direction = ReadDirection.Forward)
          {
-             StoreIdMustBeDefault(storeId);
+             var connection = _getConnection(storeId);
 
              var position = checkpoint.ParsePosition() ?? Position.Start;
 
              AllEventsSlice allEventsSlice;
              if (direction == ReadDirection.Forward)
              {
-                 allEventsSlice = await _connection
+                 allEventsSlice = await connection
                      .ReadAllEventsForwardAsync(position, maxCount, resolveLinkTos: false)
                      .NotOnCapturedContext();
              }
              else
              {
-                 allEventsSlice = await _connection
+                 allEventsSlice = await connection
                      .ReadAllEventsBackwardAsync(position, maxCount, resolveLinkTos: false)
                      .NotOnCapturedContext();
              }
@@ -109,18 +120,18 @@
              int count,
              ReadDirection direction = ReadDirection.Forward)
          {
-             StoreIdMustBeDefault(storeId);
+             var connection = _getConnection(storeId);
 
              StreamEventsSlice streamEventsSlice;
              if (direction == ReadDirection.Forward)
              {
-                 streamEventsSlice = await _connection
+                 streamEventsSlice = await connection
                      .ReadStreamEventsForwardAsync(streamId, start, count, true)
                      .NotOnCapturedContext();
              }
              else
              {
-                 streamEventsSlice = await _connection
+                 streamEventsSlice = await connection
                      .ReadStreamEventsBackwardAsync(streamId, start, count, true)
                      .NotOnCapturedContext();
              }
@@ -148,20 +159,20 @@
 
          public void Dispose()
          {
-             _connection.Dispose();
+             if(_isDisposed.EnsureCalledOnce())
+             {
+                 return;
+             }
+             foreach(var eventStoreConnection in _connectionCache.Values)
+             {
+                 eventStoreConnection.Dispose();
+             }
+             _connectionCache.Clear();
          }
 
          private ReadDirection GetReadDirection(global::EventStore.ClientAPI.ReadDirection readDirection)
          {
              return (ReadDirection)Enum.Parse(typeof(ReadDirection), readDirection.ToString());
-         }
-
-         private void StoreIdMustBeDefault(string storeId)
-         {
-             if (!storeId.Equals(DefaultStore.StoreId, StringComparison.Ordinal))
-             {
-                 throw new NotSupportedException("Get EventStore v3.0 doesn't support multi-tenancy (yet)");
-             }
          }
      }
  }

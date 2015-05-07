@@ -1,0 +1,26 @@
+﻿<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>Cedar.EventStore</id>
+        <version>0.0.0.0</version>
+        <authors>Damian Hickey</authors>
+        <owners>Damian Hickey</owners>
+        <projectUrl>https://github.com/damianh/Cedar.EventStore</projectUrl>
+        <licenseUrl>https://github.com/damianh/Cedar.EventStore/blob/master/LICENSE</licenseUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <title>Cedar - Event Store</title>
+        <description>
+            Yet another event sourcing library. This contains the core interfaces and abstractions.
+        </description>
+        <tags>cqrs event-sourcing domain-driven-design</tags>
+        <frameworkAssemblies />
+        <releaseNotes/>
+        <dependencies>
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="..\..\build\merged\Cedar.EventStore.dll" target="lib\Portable-Net45+Win8+WP8+WPA81" />
+        <file src="..\..\build\merged\Cedar.EventStore.pdb" target="lib\Portable-Net45+Win8+WP8+WPA81" />
+        <file src="bin\Release\Cedar.EventStore.xml" target="lib\Portable-Net45+Win8+WP8+WPA81" />
+    </files>
+</package>

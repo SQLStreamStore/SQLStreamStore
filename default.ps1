@@ -14,7 +14,7 @@ properties {
     $nugetPath              = "$srcDir\.nuget\nuget.exe"
 }
 
-task default -depends Clean, UpdateVersion, RunTests
+task default -depends Clean, UpdateVersion, CreateNuGetPackages, RunTests
 
 task Clean {
     Remove-Item $buildOutputDir -Force -Recurse -ErrorAction SilentlyContinue
@@ -51,9 +51,9 @@ task RunTests -depends Compile {
 task ILMerge -depends Compile {
     New-Item $mergedDir -Type Directory -ErrorAction SilentlyContinue
 
-    $mainDllName = "Cedar.Projections.dll"
-    $dllDir = "$srcDir\Cedar.Projections\bin\Release"
-    $inputDlls = "$dllDir\$mainDllName"
+    $mainDllName = "Cedar.EventStore"
+    $dllDir = "$srcDir\$mainDllName\bin\Release"
+    $inputDlls = "$dllDir\$mainDllName.dll"
     @(  "EnsureThat" ) |% { $inputDlls = "$inputDlls $dllDir\$_.dll" }
     Invoke-Expression "$ilmergePath /targetplatform:v4 /internalize /allowDup /target:library /log /out:$mergedDir\$mainDllName.dll $inputDlls"
 }

@@ -11,7 +11,7 @@
         [Fact]
         public void Can_deserialize()
         {
-            var streamEvent = new StreamEvent(DefaultStore.StoreId,
+            var streamEvent = new StreamEvent(
                 "stream",
                 Guid.NewGuid(),
                 1,

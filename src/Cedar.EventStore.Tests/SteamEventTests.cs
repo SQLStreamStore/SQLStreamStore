@@ -1,8 +1,6 @@
 ﻿namespace Cedar.EventStore
 {
     using System;
-    using System.Collections.Generic;
-    using System.Collections.ObjectModel;
     using FluentAssertions;
     using Xunit;
 
@@ -17,9 +15,10 @@
                 1,
                 "cp",
                 "\"data\"",
-                new ReadOnlyCollection<byte>(new List<byte>()));
+                "\"meta\"");
 
-            streamEvent.JsonAs<string>().Should().Be("data");
+            streamEvent.JsonDataAs<string>().Should().Be("data");
+            streamEvent.JsonMetaDataAs<string>().Should().Be("meta");
         }
     }
 }

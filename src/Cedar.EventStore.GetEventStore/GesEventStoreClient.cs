@@ -39,9 +39,10 @@
 
              var eventDatas = events.Select(e =>
              {
-                 var json = _jsonSerializer.Serialize(e.Data);
-                 var data = Encoding.UTF8.GetBytes(json);
-                 return new EventData(e.EventId, "type", true, data, e.Metadata.ToArray());
+                 var data = Encoding.UTF8.GetBytes(e.JsonData);
+                 var metadata = Encoding.UTF8.GetBytes(e.JsonMetadata);
+
+                 return new EventData(e.EventId, "type", true, data, metadata);
              });
 
              try
@@ -99,7 +100,7 @@
                          @event.Event.EventNumber,
                          @event.OriginalPosition.ToCheckpoint(),
                          Encoding.UTF8.GetString(@event.Event.Data),
-                         new ReadOnlyCollection<byte>(@event.Event.Metadata)))
+                         Encoding.UTF8.GetString(@event.Event.Metadata)))
                  .ToArray();
 
              return new AllEventsPage(
@@ -147,7 +148,7 @@
                          e.Event.EventNumber,
                          e.OriginalPosition.ToCheckpoint(),
                          Encoding.UTF8.GetString(e.Event.Data),
-                         e.Event.Metadata))
+                         Encoding.UTF8.GetString(e.Event.Metadata)))
                      .ToArray());
          }
 

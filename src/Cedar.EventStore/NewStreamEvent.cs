@@ -5,18 +5,18 @@
 
     public sealed class NewStreamEvent
     {
-        public readonly object Data;
+        public readonly string JsonData;
         public readonly Guid EventId;
-        public readonly byte[] Metadata;
+        public readonly string JsonMetadata;
 
-        public NewStreamEvent(Guid eventId, object data, byte[] metadata = null) // TODO metadata dictionary
+        public NewStreamEvent(Guid eventId, string jsonData, string metadata = null)
         {
             Ensure.That(eventId, "eventId").IsNotEmpty();
-            Ensure.That(data, "data").IsNotNull();
+            Ensure.That(jsonData, "data").IsNotNull();
 
             EventId = eventId;
-            Data = data;
-            Metadata = metadata ?? new byte[0];
+            JsonData = jsonData;
+            JsonMetadata = metadata;
         }
     }
 }

@@ -17,10 +17,8 @@
                     const string streamId = "stream";
                     var events = new[]
                     {
-                        new NewStreamEvent(Guid.NewGuid(),
-                            new byte[0],
-                            new byte[0]),
-                        new NewStreamEvent(Guid.NewGuid(), new byte[0])
+                        new NewStreamEvent(Guid.NewGuid(), "data", "meta"),
+                        new NewStreamEvent(Guid.NewGuid(), "data", "meta")
                     };
 
                     await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, events);

@@ -1,14 +1,13 @@
 ﻿namespace Cedar.EventStore
 {
     using System;
-    using System.Collections.Generic;
 
-    public sealed class StreamEvent
+    public class StreamEvent
     {
         public readonly string Checkpoint;
-        public readonly string Json;
+        public readonly string JsonData;
         public readonly Guid EventId;
-        public readonly IReadOnlyCollection<byte> Metadata;
+        public readonly string JsonMetadata;
         public readonly int SequenceNumber;
         public readonly string StreamId;
 
@@ -17,15 +16,15 @@
             Guid eventId,
             int sequenceNumber,
             string checkpoint,
-            string json,
-            IReadOnlyCollection<byte> metadata)
+            string jsonData,
+            string jsonMetadata)
         {
             EventId = eventId;
             StreamId = streamId;
             SequenceNumber = sequenceNumber;
             Checkpoint = checkpoint;
-            Json = json;
-            Metadata = metadata;
+            JsonData = jsonData;
+            JsonMetadata = jsonMetadata;
         }
     }
 }

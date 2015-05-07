@@ -56,6 +56,12 @@ task ILMerge -depends Compile {
     $inputDlls = "$dllDir\$mainDllName.dll"
     @(  "EnsureThat" ) |% { $inputDlls = "$inputDlls $dllDir\$_.dll" }
     Invoke-Expression "$ilmergePath /targetplatform:v4 /internalize /allowDup /target:library /log /out:$mergedDir\$mainDllName.dll $inputDlls"
+
+    $mainDllName = "Cedar.EventStore.GetEventStore"
+    $dllDir = "$srcDir\$mainDllName\bin\Release"
+    $inputDlls = "$dllDir\$mainDllName.dll"
+    @(  "EnsureThat" ) |% { $inputDlls = "$inputDlls $dllDir\$_.dll" }
+    Invoke-Expression "$ilmergePath /targetplatform:v4 /internalize /allowDup /target:library /log /out:$mergedDir\$mainDllName.dll $inputDlls"
 }
 
 task CreateNuGetPackages -depends ILMerge {

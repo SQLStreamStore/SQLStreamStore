@@ -90,15 +90,7 @@
                  .Where(@event => 
                      !(@event.OriginalEvent.EventType.StartsWith("$") 
                      || @event.OriginalStreamId.StartsWith("$")))
-                 .Select(resolvedEvent =>
-                     new StreamEvent(
-                         resolvedEvent.Event.EventStreamId,
-                         resolvedEvent.Event.EventId,
-                         resolvedEvent.Event.EventNumber,
-                         resolvedEvent.OriginalPosition.ToCheckpoint(),
-                         resolvedEvent.Event.EventType,
-                         Encoding.UTF8.GetString(resolvedEvent.Event.Data),
-                         Encoding.UTF8.GetString(resolvedEvent.Event.Metadata)))
+                 .Select(resolvedEvent =>resolvedEvent.ToSteamEvent())
                  .ToArray();
 
              return new AllEventsPage(
@@ -140,14 +132,7 @@
                  GetReadDirection(streamEventsSlice.ReadDirection),
                  streamEventsSlice.IsEndOfStream, streamEventsSlice
                      .Events
-                     .Select(resolvedEvent => new StreamEvent(
-                         resolvedEvent.Event.EventStreamId,
-                         resolvedEvent.Event.EventId,
-                         resolvedEvent.Event.EventNumber,
-                         resolvedEvent.OriginalPosition.ToCheckpoint(),
-                         resolvedEvent.Event.EventType,
-                         Encoding.UTF8.GetString(resolvedEvent.Event.Data),
-                         Encoding.UTF8.GetString(resolvedEvent.Event.Metadata)))
+                     .Select(resolvedEvent => resolvedEvent.ToSteamEvent())
                      .ToArray());
          }
 

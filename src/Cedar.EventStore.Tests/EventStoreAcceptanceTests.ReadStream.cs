@@ -36,7 +36,12 @@
 
                     streamEventsPage.Events.ShouldAllBeEquivalentTo(
                         expectedEvents,
-                        options => options.Excluding(@event => @event.Checkpoint));
+                        options =>
+                        {
+                            options.Excluding(streamEvent => streamEvent.Checkpoint);
+                            options.Excluding(streamEvent => streamEvent.Created);
+                            return options;
+                        });
                 }
             }
         }
@@ -47,8 +52,8 @@
             {
                 new ReadStreamTheory("stream-1", StreamPosition.Start, ReadDirection.Forward, 2, 
                     new StreamEventsPage("stream-1", PageReadStatus.Success, 0, 2, 2, ReadDirection.Forward, false,
-                          ExpectedStreamEvent("stream-1", 1, 0),
-                          ExpectedStreamEvent("stream-1", 2, 1)))
+                          ExpectedStreamEvent("stream-1", 1, 0, SystemClock.GetUtcNow().UtcDateTime),
+                          ExpectedStreamEvent("stream-1", 2, 1, SystemClock.GetUtcNow().UtcDateTime)))
             };
 
             return theories.Select(t => new object[] { t });
@@ -56,7 +61,6 @@
 
         public class ReadStreamTheory
         {
-            public readonly string StoreId;
             public readonly string StreamId;
             public readonly int Start;
             public readonly ReadDirection Direction;

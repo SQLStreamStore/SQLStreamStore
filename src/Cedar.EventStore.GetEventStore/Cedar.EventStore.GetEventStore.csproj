@@ -50,6 +50,7 @@
     <Compile Include="InterlockedBooleanExtensions.cs" />
     <Compile Include="PositionHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="ResolvedEventExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

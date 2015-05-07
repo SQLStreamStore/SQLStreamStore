@@ -46,6 +46,8 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="SqliteEvent.cs" />
+    <Compile Include="SqliteEventExtensions.cs" />
     <Compile Include="SqliteEventStoreClient.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

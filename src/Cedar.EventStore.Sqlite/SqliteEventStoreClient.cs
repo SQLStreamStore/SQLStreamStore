@@ -6,7 +6,6 @@
     using System.Threading.Tasks;
     using EnsureThat;
     using SQLite.Net;
-    using SQLite.Net.Attributes;
     using SQLite.Net.Interop;
 
     public class SqliteEventStoreClient : IEventStoreClient
@@ -48,7 +47,7 @@
             }*/
 
             var sequence = 0;
-            var eventsToInsert = events.Select(e => new Event
+            var eventsToInsert = events.Select(e => new SqliteEvent
             {
                 JsonData = e.JsonData,
                 StoreId = "default",
@@ -102,7 +101,7 @@
         public void Initialize()
         {
             var connection = _getConnection();
-            connection.CreateTable<Event>();
+            connection.CreateTable<SqliteEvent>();
             connection.CreateIndex("Events", "EventId", true);
             connection.CreateIndex("Events", new []{ "StoreId", "StreamId", "SequenceNumber"} , true);
         }
@@ -110,7 +109,7 @@
         public void Drop()
         {
             var connection = _getConnection();
-            connection.DropTable<Event>();
+            connection.DropTable<SqliteEvent>();
         }
 
         public void Dispose()
@@ -120,7 +119,7 @@
         {
             var connection = _getConnection();
 
-            StreamEvent[] results = connection.Table<Event>()
+            StreamEvent[] results = connection.Table<SqliteEvent>()
                 .Where(e => e.StreamId == streamId)
                 .OrderBy(e => e.SequenceNumber)
                 .Skip(start)
@@ -129,15 +128,7 @@
                 // exception from Sqlite.Net trying create a StreamEvent. Comment out the 
                 // line below if you want to see the test(s) fail.
                 .ToArray()
-                .Select(e =>
-                    new StreamEvent(
-                        streamId,
-                        e.EventId,
-                        e.SequenceNumber,
-                        e.Checkpoint.ToString(),
-                        e.Type,
-                        e.JsonData,
-                        e.JsonMetadata))
+                .Select(@event => @event.ToStreamEvent())
                 .ToArray();
 
             StreamEventsPage streamEventsPage = new StreamEventsPage(
@@ -156,7 +147,7 @@
         {
             var connection = _getConnection();
 
-            StreamEvent[] results = connection.Table<Event>()
+            StreamEvent[] results = connection.Table<SqliteEvent>()
                 .Where(e => e.StreamId == streamId)
                 .OrderByDescending(e => e.SequenceNumber)
                 .Skip(start)
@@ -165,15 +156,7 @@
                 // exception from Sqlite.Net trying create a StreamEvent. Comment out the 
                 // line below if you want to see the test(s) fail.
                 .ToArray()
-                .Select(e =>
-                    new StreamEvent(
-                        streamId,
-                        e.EventId,
-                        e.SequenceNumber,
-                        e.Checkpoint.ToString(),
-                        e.Type,
-                        e.JsonData,
-                        e.JsonMetadata))
+                .Select(@event => @event.ToStreamEvent())
                 .ToArray();
 
             StreamEventsPage streamEventsPage = new StreamEventsPage(
@@ -187,40 +170,6 @@
                 events: results);
 
             return Task.FromResult(streamEventsPage);
-        }
-
-        [Table("Events")]
-        private class Event
-        {
-            [MaxLength(40), NotNull]
-            public string StoreId { get; set; }
-
-            [MaxLength(40), NotNull]
-            public string StreamId { get; set; }
-
-            [NotNull]
-            public Guid EventId { get; set; }
-
-            public int SequenceNumber { get; set; }
-
-            [PrimaryKey, AutoIncrement]
-            public int Checkpoint { get; set; }
-
-            [NotNull]
-            public string OriginalStreamId { get; set; }
-
-            [NotNull]
-            public bool IsDeleted { get; set; }
-
-            [NotNull]
-            public DateTimeOffset Stamp { get; set; }
-
-            public string Type { get; set; }
-
-            public string JsonMetadata { get; set; }
-
-            [NotNull]
-            public string JsonData { get; set; }
         }
 
         /*private class StreamEventsPage : IStreamEventsPage

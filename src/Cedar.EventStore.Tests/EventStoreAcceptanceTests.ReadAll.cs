@@ -18,12 +18,12 @@
                     await eventStore.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamEvents(4, 5, 6));
                     var expectedEvents = new[]
                     {
-                        ExpectedStreamEvent("stream-1", 1, 0),
-                        ExpectedStreamEvent("stream-1", 2, 1),
-                        ExpectedStreamEvent("stream-1", 3, 2),
-                        ExpectedStreamEvent("stream-2", 4, 0),
-                        ExpectedStreamEvent("stream-2", 5, 1),
-                        ExpectedStreamEvent("stream-2", 6, 2),
+                        ExpectedStreamEvent("stream-1", 1, 0, fixture.GetUtcNow().UtcDateTime),
+                        ExpectedStreamEvent("stream-1", 2, 1, fixture.GetUtcNow().UtcDateTime),
+                        ExpectedStreamEvent("stream-1", 3, 2, fixture.GetUtcNow().UtcDateTime),
+                        ExpectedStreamEvent("stream-2", 4, 0, fixture.GetUtcNow().UtcDateTime),
+                        ExpectedStreamEvent("stream-2", 5, 1, fixture.GetUtcNow().UtcDateTime),
+                        ExpectedStreamEvent("stream-2", 6, 2, fixture.GetUtcNow().UtcDateTime)
                     };
 
                     var allEventsPage = await eventStore.ReadAll(null, 10);
@@ -42,7 +42,12 @@
 
                     streamEvents.ShouldAllBeEquivalentTo(
                         expectedEvents,
-                        options => options.Excluding(@event => @event.Checkpoint));
+                         options =>
+                         {
+                             options.Excluding(streamEvent => streamEvent.Checkpoint);
+                             options.Excluding(streamEvent => streamEvent.Created);
+                             return options;
+                         });
                 }
             }
         }

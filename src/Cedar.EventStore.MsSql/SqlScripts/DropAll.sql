@@ -1,2 +1,2 @@
-DROP TABLE [dbo].[Events]
-DROP TABLE [dbo].[Streams]
+DROP TABLE dbo.Events
+DROP TABLE dbo.Streams

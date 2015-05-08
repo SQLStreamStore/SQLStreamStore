@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 
 namespace Cedar.EventStore
 {
-    public interface IEventStoreClient : IDisposable
+    public interface IEventStore : IDisposable
     {
         Task AppendToStream(string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events);
 

@@ -7,18 +7,18 @@
     {
         readonly string databaseFile = @"c:\temp\test.sdb";
 
-        public override Task<IEventStoreClient> GetEventStore()
+        public override Task<IEventStore> GetEventStore()
         {
             /*if(File.Exists(databaseFile))
             {
                 File.Delete(databaseFile);
             }*/
-            var eventStore = new SqliteEventStoreClient(new SQLitePlatformWin32(), databaseFile);
+            var eventStore = new SqliteEventStore(new SQLitePlatformWin32(), databaseFile);
             
             eventStore.Drop();
             eventStore.Initialize();
 
-            return Task.FromResult((IEventStoreClient)eventStore);
+            return Task.FromResult((IEventStore)eventStore);
         }
 
         public override void Dispose()

@@ -5,7 +5,7 @@ namespace Cedar.EventStore
 
     public abstract class EventStoreAcceptanceTestFixture : IDisposable
     {
-        public abstract Task<IEventStoreClient> GetEventStore();
+        public abstract Task<IEventStore> GetEventStore();
 
         public virtual GetUtcNow GetUtcNow
         {

@@ -9,13 +9,13 @@
      using EnsureThat;
      using global::EventStore.ClientAPI;
 
-     public class GesEventStoreClient : IEventStoreClient
+     public class GesEventStore : IEventStore
      {
          private readonly CreateEventStoreConnection _getConnection;
          private readonly InterlockedBoolean _isDisposed = new InterlockedBoolean();
          private readonly IEventStoreConnection _connection;
 
-         public GesEventStoreClient(CreateEventStoreConnection createConnection)
+         public GesEventStore(CreateEventStoreConnection createConnection)
          {
              Ensure.That(createConnection, "connectionFactory").IsNotNull();
 
@@ -24,7 +24,7 @@
              {
                  if(_isDisposed.Value)
                  {
-                     throw new ObjectDisposedException("GesEventStoreClient");
+                     throw new ObjectDisposedException("GesEventStore");
                  }
                  return _connection;
              };

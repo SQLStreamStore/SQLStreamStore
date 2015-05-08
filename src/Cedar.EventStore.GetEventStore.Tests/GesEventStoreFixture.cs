@@ -11,11 +11,11 @@
     {
         private static readonly IPEndPoint s_noEndpoint = new IPEndPoint(IPAddress.None, 0);
 
-        public override async Task<IEventStoreClient> GetEventStore()
+        public override async Task<IEventStore> GetEventStore()
         {
             var node = await CreateClusterVNode();
-            var gesEventStore = new GesEventStoreClient(() => EmbeddedEventStoreConnection.Create(node));
-            return new EventStoreClientWrapper(gesEventStore, node);
+            var gesEventStore = new GesEventStore(() => EmbeddedEventStoreConnection.Create(node));
+            return new EventStoreWrapper(gesEventStore, node);
         }
 
         private static Task<ClusterVNode> CreateClusterVNode()
@@ -44,12 +44,12 @@
             return tcs.Task;
         }
 
-        private class EventStoreClientWrapper : IEventStoreClient
+        private class EventStoreWrapper : IEventStore
         {
-            private readonly GesEventStoreClient _inner;
+            private readonly GesEventStore _inner;
             private readonly ClusterVNode _node;
 
-            public EventStoreClientWrapper(GesEventStoreClient inner, ClusterVNode node)
+            public EventStoreWrapper(GesEventStore inner, ClusterVNode node)
             {
                 _inner = inner;
                 _node = node;

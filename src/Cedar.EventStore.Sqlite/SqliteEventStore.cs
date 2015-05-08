@@ -8,14 +8,14 @@
     using SQLite.Net;
     using SQLite.Net.Interop;
 
-    public class SqliteEventStoreClient : IEventStoreClient
+    public class SqliteEventStore : IEventStore
     {
         private readonly GetUtcNow _getUtcNow;
         private readonly Func<SQLiteConnectionWithLock> _getConnection;
         private readonly SQLiteConnectionPool _connectionPool;
         private string _databasePath;
 
-        public SqliteEventStoreClient(ISQLitePlatform sqLitePlatform, string databasePath, GetUtcNow getUtcNow = null)
+        public SqliteEventStore(ISQLitePlatform sqLitePlatform, string databasePath, GetUtcNow getUtcNow = null)
         {
             Ensure.That(sqLitePlatform, "sqLitePlatform").IsNotNull();
             Ensure.That(databasePath, "databasePath").IsNotNull();

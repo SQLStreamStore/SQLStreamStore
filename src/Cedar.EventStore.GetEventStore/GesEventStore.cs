@@ -17,7 +17,7 @@
 
          public GesEventStore(CreateEventStoreConnection createConnection)
          {
-             Ensure.That(createConnection, "connectionFactory").IsNotNull();
+             Ensure.That(createConnection, "createConnection").IsNotNull();
 
              _connection = createConnection();
              _getConnection = () =>

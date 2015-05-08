@@ -59,6 +59,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="SqlScripts\CreateStream.sql" />
     <Content Include="SqlScripts\Dev.sql" />
     <EmbeddedResource Include="SqlScripts\DropAll.sql" />
     <EmbeddedResource Include="SqlScripts\InitializeStore.sql" />

@@ -10,25 +10,34 @@
 
         public static string InitializeStore
         {
-            get { return s_scripts.GetOrAdd("InitializeStore", ReadResource); }
+            get { return GetScript("InitializeStore"); }
         }
 
         public static string DropAll
         {
-            get { return s_scripts.GetOrAdd("DropAll", ReadResource); }
+            get { return GetScript("DropAll"); }
         }
 
-        private static string ReadResource(string name)
+        public static string CreateStream
         {
-            using(Stream stream = typeof(Scripts)
-                .Assembly
-                .GetManifestResourceStream("Cedar.EventStore.SqlScripts." + name + ".sql"))
-            {
-                using (StreamReader reader = new StreamReader(stream))
+            get { return GetScript("CreateStream"); }
+        }
+
+        private static string GetScript(string name)
+        {
+            return s_scripts.GetOrAdd(name,
+                key =>
                 {
-                    return reader.ReadToEnd();
-                }
-            }
+                    using(Stream stream = typeof(Scripts)
+                        .Assembly
+                        .GetManifestResourceStream("Cedar.EventStore.SqlScripts." + key + ".sql"))
+                    {
+                        using(StreamReader reader = new StreamReader(stream))
+                        {
+                            return reader.ReadToEnd();
+                        }
+                    }
+                });
         }
     }
 }

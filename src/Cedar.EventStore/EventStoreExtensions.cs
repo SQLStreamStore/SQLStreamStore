@@ -6,21 +6,21 @@
     public static class EventStoreExtensions
     {
         public static Task AppendToStream(
-            this IEventStoreClient eventStoreClient,
+            this IEventStore eventStore,
             string streamId,
             int expectedVersion,
             NewStreamEvent newStreamEvent)
         {
-            return eventStoreClient.AppendToStream(streamId, expectedVersion, new[] { newStreamEvent });
+            return eventStore.AppendToStream(streamId, expectedVersion, new[] { newStreamEvent });
         }
 
         public static Task AppendToStream(
-            this IEventStoreClient eventStoreClient,
+            this IEventStore eventStore,
             string streamId,
             int expectedVersion,
             IEnumerable<NewStreamEvent> events)
         {
-            return eventStoreClient.AppendToStream(streamId, expectedVersion, events);
+            return eventStore.AppendToStream(streamId, expectedVersion, events);
         }
     }
 }

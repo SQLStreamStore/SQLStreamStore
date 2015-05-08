@@ -1,6 +1,6 @@
 DROP TABLE dbo.Events
 DROP TABLE dbo.Streams
-
+ 
 CREATE TABLE dbo.Streams(
 	StreamId CHAR(40) NOT NULL,
 	StreamIdOriginal NVARCHAR(1000) NOT NULL,
@@ -8,9 +8,9 @@ CREATE TABLE dbo.Streams(
 	IsDeleted BIT NOT NULL DEFAULT ((0)),
 	CONSTRAINT PK_Streams PRIMARY KEY CLUSTERED (StreamIdInternal)
 );
-
+ 
 CREATE UNIQUE NONCLUSTERED INDEX IX_Streams_StreamId ON dbo.Streams (StreamId);
-
+ 
 CREATE TABLE dbo.Events(
 	StreamIdInternal INT NOT NULL,
 	[Checkpoint] int IDENTITY(1,1) NOT NULL,
@@ -23,56 +23,61 @@ CREATE TABLE dbo.Events(
 	CONSTRAINT PK_Events PRIMARY KEY CLUSTERED ([Checkpoint]),
 	CONSTRAINT FK_Events_Streams FOREIGN KEY (StreamIdInternal) REFERENCES dbo.Streams(StreamIdInternal)
 );
-
+ 
 CREATE UNIQUE NONCLUSTERED INDEX [IX_Events_StreamIdInternal_SequenceNumber] ON [dbo].[Events] ([StreamIdInternal], [SequenceNumber]);
-
+ 
 -- ExpectedVersion.NoStream
+-- Will be inserting 1 - N events(row) in a transactions. Just using 3 here for demo.
+ 
 DECLARE @sequenceNumber INT = 0;
 DECLARE @streamId CHAR(40) = 'stream-1';
-
-DECLARE @eventId_1 UNIQUEIDENTIFIER = NEWID();
-DECLARE @created_1 DATETIME = GETDATE();
-DECLARE @type_1 NVARCHAR(128) = 'type1';
-DECLARE @jsonData_1 NVARCHAR(max) = '\"data1\"';
-DECLARE @jsonMetadata_1 NVARCHAR(max) = '\"meta1\"';
-
-DECLARE @eventId_2 UNIQUEIDENTIFIER = NEWID();
-DECLARE @created_2 DATETIME = GETDATE();
-DECLARE @type_2 NVARCHAR(128) = 'type2';
-DECLARE @jsonData_2 NVARCHAR(max) = '\"data2\"';
-DECLARE @jsonMetadata_2 NVARCHAR(max) = '\"meta2\"';
-
-DECLARE @eventId_3 UNIQUEIDENTIFIER = NEWID();
-DECLARE @created_3 DATETIME = GETDATE();
-DECLARE @type_3 NVARCHAR(128) = 'type3';
-DECLARE @jsonData_3 NVARCHAR(max) = '\"data3\"';
-DECLARE @jsonMetadata_3 NVARCHAR(max) = '\"meta3\"';
-
+ 
+CREATE TABLE #Events (
+    EventId         UNIQUEIDENTIFIER    default(NEWID())    NULL        ,
+    SequenceNumber  int identity(0,1)                       NOT NULL    ,
+    Created         DATETIME            default(GETDATE())  NULL        ,
+    [Type]          NVARCHAR(128)                           NOT NULL    ,
+    JsonData        NVARCHAR(max)                           NULL        ,
+    JsonMetadata    NVARCHAR(max)                           NULL
+)
+ 
+INSERT INTO #Events
+    (
+        [Type]          ,
+        JsonData        ,
+        JsonMetadata
+    ) VALUES
+    ('type1',    '\"data1\"',    '\"meta1\"'),
+    ('type2',    '\"data2\"',    '\"meta2\"'),
+    ('type3',    '\"data3\"',    '\"meta3\"')
+ 
+-- Actual SQL statement of interest
 SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 BEGIN TRANSACTION CreateStream
 	DECLARE @count AS INT;
 	DECLARE @streamIdInternal AS INT;
-	SELECT @count = COUNT(*) FROM [dbo].[Streams] WHERE [StreamId]=@streamId;
-	PRINT @count;
+	--SELECT @count = COUNT(*) FROM [dbo].[Streams] WHERE [StreamId]=@streamId;
+	--IF @count = 0
 	BEGIN
+		-- Could generate this at runtime ; but the paramaterization feels icky
 		INSERT INTO dbo.Streams (StreamId, StreamIdOriginal) VALUES (@streamId, @streamId);
 		SELECT @streamIdInternal = SCOPE_IDENTITY();
 		
 		INSERT INTO dbo.Events (StreamIdInternal, SequenceNumber, EventId, Created, [Type], JsonData, JsonMetadata)
-			VALUES (@streamIdInternal, @sequenceNumber, @eventId_1, @created_1, @type_1, @jsonData_1, @jsonMetadata_1);
-		
-		SET @sequenceNumber = @sequenceNumber + 1
-		INSERT INTO dbo.Events (StreamIdInternal, SequenceNumber, EventId, Created, [Type], JsonData, JsonMetadata)
-			VALUES (@streamIdInternal, @sequenceNumber, @eventId_2, @created_2, @type_2, @jsonData_2, @jsonMetadata_2)
-
-		SET @sequenceNumber = @sequenceNumber + 1
-		INSERT INTO dbo.Events (StreamIdInternal, SequenceNumber, EventId, Created, [Type], JsonData, JsonMetadata)
-			VALUES (@streamIdInternal, @sequenceNumber, @eventId_3, @created_3, @type_3, @jsonData_3, @jsonMetadata_3)
-		-- This can continue for N inserts of N events.. Is there a better way?
-
+			SELECT  @streamIdInternal,
+                    SequenceNumber,
+                    EventId,
+                    Created,
+                    [Type],
+                    JsonData,
+                    JsonMetadata
+                FROM #Events
+ 
     END
     SELECT @streamIdInternal
 COMMIT TRANSACTION CreateStream
-
+ 
+DROP TABLE #Events
+ 
 SELECT * FROM dbo.Streams
 SELECT * FROM dbo.Events

@@ -20,7 +20,7 @@
                 "\"meta\"");
 
             streamEvent.JsonDataAs<string>().Should().Be("data");
-            streamEvent.JsonMetaDataAs<string>().Should().Be("meta");
+            streamEvent.JsonMetadataAs<string>().Should().Be("meta");
         }
     }
 }

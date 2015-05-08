@@ -55,7 +55,7 @@
                 IsDeleted = false,
                 OriginalStreamId = streamId,
                 SequenceNumber = sequence++,
-                Stamp = _getUtcNow(),
+                Created = _getUtcNow().UtcDateTime,
                 StreamId = streamId
             });
 

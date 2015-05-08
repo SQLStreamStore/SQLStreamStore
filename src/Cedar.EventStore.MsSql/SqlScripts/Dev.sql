@@ -38,9 +38,15 @@ DECLARE @jsonMetadata_1 NVARCHAR(max) = '\"meta1\"';
 
 DECLARE @eventId_2 UNIQUEIDENTIFIER = NEWID();
 DECLARE @created_2 DATETIME = GETDATE();
-DECLARE @type_2 NVARCHAR(128) = 'type1';
+DECLARE @type_2 NVARCHAR(128) = 'type2';
 DECLARE @jsonData_2 NVARCHAR(max) = '\"data2\"';
 DECLARE @jsonMetadata_2 NVARCHAR(max) = '\"meta2\"';
+
+DECLARE @eventId_3 UNIQUEIDENTIFIER = NEWID();
+DECLARE @created_3 DATETIME = GETDATE();
+DECLARE @type_3 NVARCHAR(128) = 'type3';
+DECLARE @jsonData_3 NVARCHAR(max) = '\"data3\"';
+DECLARE @jsonMetadata_3 NVARCHAR(max) = '\"meta3\"';
 
 SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 BEGIN TRANSACTION CreateStream
@@ -58,7 +64,11 @@ BEGIN TRANSACTION CreateStream
 		SET @sequenceNumber = @sequenceNumber + 1
 		INSERT INTO dbo.Events (StreamIdInternal, SequenceNumber, EventId, Created, [Type], JsonData, JsonMetadata)
 			VALUES (@streamIdInternal, @sequenceNumber, @eventId_2, @created_2, @type_2, @jsonData_2, @jsonMetadata_2)
-		-- This can continue for N inserts of N events
+
+		SET @sequenceNumber = @sequenceNumber + 1
+		INSERT INTO dbo.Events (StreamIdInternal, SequenceNumber, EventId, Created, [Type], JsonData, JsonMetadata)
+			VALUES (@streamIdInternal, @sequenceNumber, @eventId_3, @created_3, @type_3, @jsonData_3, @jsonMetadata_3)
+		-- This can continue for N inserts of N events.. Is there a better way?
 
     END
     SELECT @streamIdInternal

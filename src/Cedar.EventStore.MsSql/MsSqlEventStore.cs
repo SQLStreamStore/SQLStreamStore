@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Data;
     using System.Data.SqlClient;
     using System.Threading;
     using System.Threading.Tasks;
@@ -18,11 +19,32 @@
             Ensure.That(createConnection, "createConnection").IsNotNull();
 
             _connection = createConnection();
+            _connection.Open();
         }
 
-        public Task AppendToStream(string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events)
+        public async Task AppendToStream(string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events)
         {
-            throw new System.NotImplementedException();
+            if(expectedVersion == ExpectedVersion.NoStream)
+            {
+                var dataTable = new DataTable("Events");
+                dataTable.Columns.Add("Type", typeof(string));
+                dataTable.Columns.Add("JsonData", typeof(string));
+                dataTable.Columns.Add("JsonMetadata", typeof(string));
+
+                foreach(var @event in events)
+                {
+                    dataTable.Rows.Add(@event.Type, @event.JsonData, @event.JsonMetadata);
+                }
+
+                using(var command = new SqlCommand(Scripts.CreateStream, _connection))
+                {
+                    command.Parameters.AddWithValue("streamId", streamId);
+                    SqlParameter eventsParam = command.Parameters.AddWithValue("events", dataTable);
+                    eventsParam.TypeName = "dbo.#Events";
+                    eventsParam.SqlDbType = SqlDbType.Structured;
+                    await command.ExecuteNonQueryAsync();
+                }
+            }
         }
 
         public Task DeleteStream(string streamId, int expectedVersion = ExpectedVersion.Any)

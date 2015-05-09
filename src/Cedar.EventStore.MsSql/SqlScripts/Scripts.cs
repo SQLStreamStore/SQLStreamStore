@@ -1,6 +1,7 @@
 ﻿namespace Cedar.EventStore.SqlScripts
 {
     using System.Collections.Concurrent;
+    using System.Diagnostics;
     using System.IO;
 
     public static class Scripts
@@ -32,6 +33,7 @@
                         .Assembly
                         .GetManifestResourceStream("Cedar.EventStore.SqlScripts." + key + ".sql"))
                     {
+                        Debug.Assert(stream != null, "stream != null");
                         using(StreamReader reader = new StreamReader(stream))
                         {
                             return reader.ReadToEnd();

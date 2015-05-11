@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Net;
+    using System.Threading;
     using System.Threading.Tasks;
     using global::EventStore.ClientAPI.Embedded;
     using global::EventStore.Core;
@@ -33,7 +34,7 @@
 
             node.NodeStatusChanged += (_, e) =>
             {
-                if (e.NewVNodeState != VNodeState.Master)
+                if(e.NewVNodeState != VNodeState.Master)
                 {
                     return;
                 }
@@ -61,12 +62,19 @@
                 _node.Stop();
             }
 
-            public Task AppendToStream(string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events)
+            public Task AppendToStream(
+                string streamId,
+                int expectedVersion,
+                IEnumerable<NewStreamEvent> events,
+                CancellationToken cancellationToken = default(CancellationToken))
             {
                 return _inner.AppendToStream(streamId, expectedVersion, events);
             }
 
-            public Task DeleteStream(string streamId, int expectedVersion = ExpectedVersion.Any)
+            public Task DeleteStream(
+                string streamId,
+                int expectedVersion = ExpectedVersion.Any,
+                CancellationToken cancellationToken = default(CancellationToken))
             {
                 return _inner.DeleteStream(streamId, expectedVersion);
             }
@@ -74,7 +82,8 @@
             public Task<AllEventsPage> ReadAll(
                 string checkpoint,
                 int maxCount,
-                ReadDirection direction = ReadDirection.Forward)
+                ReadDirection direction = ReadDirection.Forward,
+                CancellationToken cancellationToken = default(CancellationToken))
             {
                 return _inner.ReadAll(checkpoint, maxCount, direction);
             }
@@ -83,7 +92,8 @@
                 string streamId,
                 int start,
                 int count,
-                ReadDirection direction = ReadDirection.Forward)
+                ReadDirection direction = ReadDirection.Forward,
+                CancellationToken cancellationToken = default(CancellationToken))
             {
                 return _inner.ReadStream(streamId, start, count, direction);
             }

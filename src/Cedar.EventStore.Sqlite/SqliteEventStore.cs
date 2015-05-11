@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using EnsureThat;
     using SQLite.Net;
@@ -27,7 +28,7 @@
 
         }
 
-        public Task AppendToStream(string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events)
+        public Task AppendToStream(string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events, CancellationToken cancellationToken = default(CancellationToken))
         {
             var connection = _getConnection();
             connection.BeginTransaction();
@@ -68,12 +69,12 @@
             return Task.FromResult(0);
         }
 
-        public Task DeleteStream(string streamId, int expectedVersion = ExpectedVersion.Any)
+        public Task DeleteStream(string streamId, int expectedVersion = ExpectedVersion.Any, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
-        public Task<AllEventsPage> ReadAll(string checkpoint, int maxCount, ReadDirection direction = ReadDirection.Forward)
+        public Task<AllEventsPage> ReadAll(string checkpoint, int maxCount, ReadDirection direction = ReadDirection.Forward, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
@@ -90,7 +91,8 @@
             string streamId,
             int start,
             int count,
-            ReadDirection direction = ReadDirection.Forward)
+            ReadDirection direction = ReadDirection.Forward,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             return direction == ReadDirection.Forward
                 ? ReadSteamForwards(streamId, start, count)

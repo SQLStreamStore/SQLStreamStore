@@ -20,8 +20,8 @@
         </dependencies>
     </metadata>
     <files>
-        <file src="..\..\build\merged\Cedar.EventStore.GetEventStore.dll" target="net45" />
-        <file src="..\..\build\merged\Cedar.EventStore.GetEventStore.pdb" target="net45" />
-        <file src="bin\Release\Cedar.EventStore.xml" target="net45" />
+        <file src="..\..\build\merged\Cedar.EventStore.GetEventStore.dll" target="lib\net45" />
+        <file src="..\..\build\merged\Cedar.EventStore.GetEventStore.pdb" target="lib\net45" />
+        <file src="bin\Release\Cedar.EventStore.xml" target="lib\net45" />
     </files>
 </package>

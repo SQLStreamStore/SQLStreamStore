@@ -5,6 +5,7 @@
      using System.Collections.ObjectModel;
      using System.Linq;
      using System.Text;
+     using System.Threading;
      using System.Threading.Tasks;
      using EnsureThat;
      using global::EventStore.ClientAPI;
@@ -22,7 +23,7 @@
              _connection = createConnection();
              _getConnection = () =>
              {
-                 if(_isDisposed.Value)
+                 if(_isDisposed.Value) 
                  {
                      throw new ObjectDisposedException("GesEventStore");
                  }
@@ -30,7 +31,7 @@
              };
          }
 
-         public async Task AppendToStream(string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events)
+         public async Task AppendToStream(string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events, CancellationToken cancellationToken = default(CancellationToken))
          {
              var connection = _getConnection();
 
@@ -56,7 +57,8 @@
 
          public Task DeleteStream(
              string streamId,
-             int exptectedVersion = ExpectedVersion.Any)
+             int exptectedVersion = ExpectedVersion.Any,
+             CancellationToken cancellationToken = default(CancellationToken))
          {
              var connection = _getConnection();
              return connection.DeleteStreamAsync(streamId, exptectedVersion, hardDelete: true);
@@ -65,7 +67,8 @@
          public async Task<AllEventsPage> ReadAll(
              string checkpoint,
              int maxCount,
-             ReadDirection direction = ReadDirection.Forward)
+             ReadDirection direction = ReadDirection.Forward,
+              CancellationToken cancellationToken = default(CancellationToken))
          {
              var connection = _getConnection();
 
@@ -105,7 +108,8 @@
              string streamId,
              int start,
              int count,
-             ReadDirection direction = ReadDirection.Forward)
+             ReadDirection direction = ReadDirection.Forward,
+             CancellationToken cancellationToken = default(CancellationToken))
          {
              var connection = _getConnection();
 

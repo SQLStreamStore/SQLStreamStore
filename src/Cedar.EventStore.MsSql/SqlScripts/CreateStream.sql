@@ -1,20 +1,3 @@
-CREATE TYPE NewEvents AS TABLE (
-    StreamRevision      INT IDENTITY(0,1)                       NOT NULL,
-    Id                  UNIQUEIDENTIFIER    DEFAULT(NEWID())    NULL    ,
-    Created             DATETIME            DEFAULT(GETDATE())  NULL    ,
-    [Type]              NVARCHAR(128)                           NOT NULL,
-    JsonData            NVARCHAR(max)                           NULL    ,
-    JsonMetadata        NVARCHAR(max)                           NULL
-)
-GO
- 
-INSERT INTO #Events
-    (
-        [Type]          ,
-        JsonData        ,
-        JsonMetadata
-    ) VALUES @events
- 
 SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 BEGIN TRANSACTION CreateStream
     DECLARE @count AS INT;
@@ -31,10 +14,8 @@ BEGIN TRANSACTION CreateStream
                     [Type],
                     JsonData,
                     JsonMetadata
-                FROM #Events
+                FROM @events
  
     END
     SELECT @streamIdInternal
 COMMIT TRANSACTION CreateStream
- 
-DROP TABLE #Events

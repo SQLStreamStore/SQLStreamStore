@@ -53,6 +53,7 @@
     <Compile Include="ResolvedEventExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Cedar.EventStore.GetEventStore.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

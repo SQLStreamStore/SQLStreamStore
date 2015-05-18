@@ -1,5 +1,5 @@
 SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
-BEGIN TRANSACTION CreateStream
+BEGIN TRANSACTION CreateStream;
     DECLARE @count AS INT;
     DECLARE @streamIdInternal AS INT;
     BEGIN
@@ -7,15 +7,15 @@ BEGIN TRANSACTION CreateStream
         SELECT @streamIdInternal = SCOPE_IDENTITY();
 
         INSERT INTO dbo.Events (StreamIdInternal, StreamRevision, Id, Created, [Type], JsonData, JsonMetadata)
-            SELECT  @streamIdInternal,
+             SELECT @streamIdInternal,
                     StreamRevision,
                     Id,
                     Created,
                     [Type],
                     JsonData,
                     JsonMetadata
-                FROM @events
+               FROM @events;
  
-    END
-    SELECT @streamIdInternal
-COMMIT TRANSACTION CreateStream
+    END;
+    SELECT @streamIdInternal;
+COMMIT TRANSACTION CreateStream;

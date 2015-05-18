@@ -60,6 +60,7 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="SqlScripts\ReadAllBackwards.sql" />
     <EmbeddedResource Include="SqlScripts\GetVersion.sql" />
     <EmbeddedResource Include="SqlScripts\CreateStream.sql" />
     <EmbeddedResource Include="SqlScripts\ReadAllForward.sql" />

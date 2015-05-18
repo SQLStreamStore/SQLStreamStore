@@ -29,4 +29,4 @@ CREATE TYPE dbo.NewStreamEvents AS TABLE (
     [Type]              NVARCHAR(128)                           NOT NULL,
     JsonData            NVARCHAR(max)                           NULL    ,
     JsonMetadata        NVARCHAR(max)                           NULL
-)
+);

@@ -28,8 +28,8 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Events_StreamIdInternal_Revision ON dbo.Even
 
 CREATE TYPE dbo.NewStreamEvents AS TABLE (
     StreamRevision      INT IDENTITY(0,1)                       NOT NULL,
-    Id                  UNIQUEIDENTIFIER    DEFAULT(NEWID())    NULL    ,
-    Created             DATETIME            DEFAULT(GETDATE())  NULL    ,
+    Id                  UNIQUEIDENTIFIER                        NOT NULL,
+    Created             DATETIME            DEFAULT(GETDATE())  NOT NULL,
     [Type]              NVARCHAR(128)                           NOT NULL,
     JsonData            NVARCHAR(max)                           NULL    ,
     JsonMetadata        NVARCHAR(max)                           NULL
@@ -44,14 +44,15 @@ DECLARE @streamId CHAR(40) = 'stream-1';
  
 INSERT INTO @newEvents
     (
+        Id              ,
         [Type]          ,
         JsonData        ,
         JsonMetadata
     ) VALUES
-    ('type1',    '\"data1\"',    '\"meta1\"'),
-    ('type2',    '\"data2\"',    '\"meta2\"'),
-    ('type3',    '\"data3\"',    '\"meta3\"'),
-    ('type4',    '\"data4\"',    '\"meta4\"');
+    ('00000000-0000-0000-0000-000000000001', 'type1', '\"data1\"', '\"meta1\"'),
+    ('00000000-0000-0000-0000-000000000002', 'type2', '\"data2\"', '\"meta2\"'),
+    ('00000000-0000-0000-0000-000000000003', 'type3', '\"data3\"', '\"meta3\"'),
+    ('00000000-0000-0000-0000-000000000004', 'type4', '\"data4\"', '\"meta4\"');
  
 -- Actual SQL statement of interest
 SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
@@ -146,3 +147,23 @@ SET @rowspPage = 5;
          ON StreamIdInternal=Streams.IdInternal
       WHERE NUMBER BETWEEN ((@pageNumber - 1) * @RowspPage + 1) AND (@pageNumber * @rowspPage)
    ORDER BY NUMBER;
+
+DECLARE @ordinal AS INT, @count1 AS INT;
+SET @ordinal = 2;
+SET @count1 = 5
+
+/* SQL Server 2008+ */
+     SELECT TOP(@count1)
+            Streams.IdOriginal As StreamId,
+            Events.StreamRevision,
+            Events.Ordinal,
+            Events.Id AS EventId,
+            Events.Created,
+            Events.Type,
+            Events.JsonData,
+            Events.JsonMetadata
+       FROM Events
+ INNER JOIN Streams
+         ON Events.StreamIdInternal=Streams.IdInternal
+      WHERE Events.Ordinal >= @ordinal
+   ORDER BY Events.Ordinal;

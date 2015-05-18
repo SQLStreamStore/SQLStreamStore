@@ -15,7 +15,7 @@ CREATE TABLE dbo.Events(
     Created             DATETIME                                NOT NULL,
     [Type]              NVARCHAR(128)                           NOT NULL,
     JsonData            NVARCHAR(max)                           NOT NULL,
-    JsonMetadata        NVARCHAR(max)                                  ,
+    JsonMetadata        NVARCHAR(max)                                   ,
     CONSTRAINT PK_Events PRIMARY KEY CLUSTERED (Ordinal),
     CONSTRAINT FK_Events_Streams FOREIGN KEY (StreamIdInternal) REFERENCES dbo.Streams(IdInternal)
 );
@@ -24,8 +24,8 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Events_StreamIdInternal_Revision ON dbo.Even
 
 CREATE TYPE dbo.NewStreamEvents AS TABLE (
     StreamRevision      INT IDENTITY(0,1)                       NOT NULL,
-    Id                  UNIQUEIDENTIFIER    DEFAULT(NEWID())    NULL    ,
-    Created             DATETIME            DEFAULT(GETDATE())  NULL    ,
+    Id                  UNIQUEIDENTIFIER                        NOT NULL,
+    Created             DATETIME            DEFAULT(GETDATE())  NOT NULL,
     [Type]              NVARCHAR(128)                           NOT NULL,
     JsonData            NVARCHAR(max)                           NULL    ,
     JsonMetadata        NVARCHAR(max)                           NULL

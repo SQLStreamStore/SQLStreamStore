@@ -36,8 +36,8 @@
             //TODO Idempotency check
             /*var sequence = connection.Table<Event>()
                 .Where(e => e.BucketId == "default" && e.StreamId == streamId)
-                .OrderByDescending(e => e.SequenceNumber)
-                .Select(e => e.SequenceNumber)
+                .OrderByDescending(e => e.StreamRevision)
+                .Select(e => e.StreamRevision)
                 .Take(1)
                 .ToList()
                 .FirstOrDefault();
@@ -104,7 +104,7 @@
             var connection = _getConnection();
             connection.CreateTable<SqliteEvent>();
             connection.CreateIndex("Events", "EventId", true);
-            connection.CreateIndex("Events", new []{ "StoreId", "StreamId", "SequenceNumber"} , true);
+            connection.CreateIndex("Events", new []{ "StoreId", "StreamId", "StreamRevision"} , true);
         }
 
         public void Drop()
@@ -136,8 +136,8 @@
                 streamId: streamId,
                 status: PageReadStatus.Success,
                 fromSequenceNumber: start,
-                nextSequenceNumber: results[results.Length - 1].SequenceNumber + 1,
-                lastSequenceNumber: results[results.Length - 1].SequenceNumber,
+                nextSequenceNumber: results[results.Length - 1].StreamRevision + 1,
+                lastSequenceNumber: results[results.Length - 1].StreamRevision,
                 direction: ReadDirection.Forward, //TODO
                 isEndOfStream: true, events: results);
 
@@ -164,8 +164,8 @@
                 streamId: streamId,
                 status: PageReadStatus.Success,
                 fromSequenceNumber: start,
-                nextSequenceNumber: results[0].SequenceNumber - 1,
-                lastSequenceNumber: results[0].SequenceNumber,
+                nextSequenceNumber: results[0].StreamRevision - 1,
+                lastSequenceNumber: results[0].StreamRevision,
                 direction: ReadDirection.Backward,
                 isEndOfStream: true,
                 events: results);
@@ -262,7 +262,7 @@
                 {
                     _eventId = @event.EventId;
                     _body = @event.Body;
-                    _sequenceNumber = @event.SequenceNumber;
+                    _sequenceNumber = @event.StreamRevision;
                     _streamId = @event.StreamId;
                     _headers = @event.Headers;
                 }
@@ -282,7 +282,7 @@
                     get { return _headers; }
                 }
 
-                public int SequenceNumber
+                public int StreamRevision
                 {
                     get { return _sequenceNumber; }
                 }

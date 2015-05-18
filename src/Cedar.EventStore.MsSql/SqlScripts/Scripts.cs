@@ -1,7 +1,7 @@
 ﻿namespace Cedar.EventStore.SqlScripts
 {
+    using System;
     using System.Collections.Concurrent;
-    using System.Diagnostics;
     using System.IO;
 
     public static class Scripts
@@ -24,6 +24,11 @@
             get { return GetScript("CreateStream"); }
         }
 
+        public static string ReadAllForward
+        {
+            get { return GetScript("ReadAllForward"); }
+        }
+
         private static string GetScript(string name)
         {
             return s_scripts.GetOrAdd(name,
@@ -33,7 +38,10 @@
                         .Assembly
                         .GetManifestResourceStream("Cedar.EventStore.SqlScripts." + key + ".sql"))
                     {
-                        Debug.Assert(stream != null, "stream != null");
+                        if(stream == null)
+                        {
+                            throw new Exception("Embedded resource not found. BUG!");
+                        }
                         using(StreamReader reader = new StreamReader(stream))
                         {
                             return reader.ReadToEnd();

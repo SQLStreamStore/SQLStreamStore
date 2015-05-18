@@ -1,6 +1,6 @@
-DROP TABLE dbo.Events
-DROP TABLE dbo.Streams
-DROP TYPE dbo.NewStreamEvents
+DROP TABLE dbo.Events;
+DROP TABLE dbo.Streams;
+DROP TYPE dbo.NewStreamEvents;
 
 CREATE TABLE dbo.Streams(
     Id                  CHAR(40)                                NOT NULL,
@@ -33,12 +33,12 @@ CREATE TYPE dbo.NewStreamEvents AS TABLE (
     [Type]              NVARCHAR(128)                           NOT NULL,
     JsonData            NVARCHAR(max)                           NULL    ,
     JsonMetadata        NVARCHAR(max)                           NULL
-)
+);
 GO
  
 -- ExpectedVersion.NoStream
 
-DECLARE @newEvents dbo.NewStreamEvents
+DECLARE @newEvents dbo.NewStreamEvents;
 
 DECLARE @streamId CHAR(40) = 'stream-1';
  
@@ -51,11 +51,11 @@ INSERT INTO @newEvents
     ('type1',    '\"data1\"',    '\"meta1\"'),
     ('type2',    '\"data2\"',    '\"meta2\"'),
     ('type3',    '\"data3\"',    '\"meta3\"'),
-    ('type4',    '\"data4\"',    '\"meta4\"')
+    ('type4',    '\"data4\"',    '\"meta4\"');
  
 -- Actual SQL statement of interest
 SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
-BEGIN TRANSACTION CreateStream
+BEGIN TRANSACTION CreateStream;
     DECLARE @count AS INT;
     DECLARE @streamIdInternal AS INT;
     BEGIN
@@ -63,40 +63,86 @@ BEGIN TRANSACTION CreateStream
         SELECT @streamIdInternal = SCOPE_IDENTITY();
 
         INSERT INTO dbo.Events (StreamIdInternal, StreamRevision, Id, Created, [Type], JsonData, JsonMetadata)
-            SELECT  @streamIdInternal,
+             SELECT @streamIdInternal,
                     StreamRevision,
                     Id,
                     Created,
                     [Type],
                     JsonData,
                     JsonMetadata
-                FROM @newEvents
+               FROM @newEvents;
  
-    END
-    SELECT @streamIdInternal
-COMMIT TRANSACTION CreateStream
+    END;
+    SELECT @streamIdInternal;
+COMMIT TRANSACTION CreateStream;
 
 
-SET @streamId = 'stream-2'
+SET @streamId = 'stream-2';
 SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
-BEGIN TRANSACTION CreateStream
+BEGIN TRANSACTION CreateStream;
     BEGIN
         INSERT INTO dbo.Streams (Id, IdOriginal) VALUES (@streamId, @streamId);
         SELECT @streamIdInternal = SCOPE_IDENTITY();
 
         INSERT INTO dbo.Events (StreamIdInternal, StreamRevision, Id, Created, [Type], JsonData, JsonMetadata)
-            SELECT  @streamIdInternal,
+             SELECT @streamIdInternal,
                     StreamRevision,
                     Id,
                     Created,
                     [Type],
                     JsonData,
                     JsonMetadata
-                FROM @newEvents
+               FROM @newEvents
  
-    END
-    SELECT @streamIdInternal
-COMMIT TRANSACTION CreateStream
+    END;
+    SELECT @streamIdInternal;
+COMMIT TRANSACTION CreateStream;
  
-SELECT * FROM dbo.Streams
-SELECT * FROM dbo.Events
+SELECT * FROM dbo.Streams;
+SELECT * FROM dbo.Events;
+
+DECLARE @pageNumber AS INT, @rowspPage AS INT;
+SET @pageNumber = 2;
+SET @rowspPage = 5;
+
+/* SQL Server 2012+ */
+     SELECT Streams.IdOriginal As StreamId,
+            Events.StreamRevision,
+            Events.Ordinal,
+            Events.Id AS EventId,
+            Events.Created,
+            Events.Type,
+            Events.JsonData,
+            Events.JsonMetadata
+       FROM Events
+ INNER JOIN Streams
+         ON Events.StreamIdInternal=Streams.IdInternal
+   ORDER BY Events.Ordinal
+     OFFSET ((@pageNumber - 1) * @rowspPage) ROWS
+ FETCH NEXT @rowspPage ROWS ONLY;
+
+ /* SQL Server 2000+ */
+     SELECT Id As StreamId,
+            StreamRevision,
+            Ordinal,
+            EventId,
+            Created,
+            [Type],
+            JsonData,
+            JsonMetadata
+       FROM (
+             SELECT ROW_NUMBER() OVER(ORDER BY Events.Ordinal) AS NUMBER,
+                    Events.StreamIdInternal,
+                    Events.StreamRevision,
+                    Events.Ordinal,
+                    Events.Id AS EventId,
+                    Events.Created,
+                    Events.Type,
+                    Events.JsonData,
+                    Events.JsonMetadata
+               FROM Events
+               ) AS PageTable
+ INNER JOIN Streams
+         ON StreamIdInternal=Streams.IdInternal
+      WHERE NUMBER BETWEEN ((@pageNumber - 1) * @RowspPage + 1) AND (@pageNumber * @rowspPage)
+   ORDER BY NUMBER;

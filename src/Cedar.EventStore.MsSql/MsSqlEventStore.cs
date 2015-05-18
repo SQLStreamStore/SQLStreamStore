@@ -81,8 +81,12 @@
             ReadDirection direction = ReadDirection.Forward,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            int ordinal;
-            if(int.TryParse(checkpoint, out ordinal))
+            if(_isDisposed.Value)
+            {
+                throw new ObjectDisposedException("MsSqlEventStore");
+            }
+            int ordinal = 0;
+            if(!string.IsNullOrWhiteSpace(checkpoint) && !int.TryParse(checkpoint, out ordinal))
             {
                 throw new InvalidOperationException("Cannot parse checkpoint");
             }
@@ -131,7 +135,7 @@
                 if(streamEvents.Count == maxCount + 1)
                 {
                     isEnd = false;
-                    nextCheckpoint = streamEvents[maxCount + 1].Checkpoint;
+                    nextCheckpoint = streamEvents[maxCount].Checkpoint;
                     streamEvents.RemoveAt(maxCount);
                 }
 

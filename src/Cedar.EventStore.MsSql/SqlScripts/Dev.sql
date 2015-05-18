@@ -167,3 +167,19 @@ SET @count1 = 5
          ON Events.StreamIdInternal=Streams.IdInternal
       WHERE Events.Ordinal >= @ordinal
    ORDER BY Events.Ordinal;
+
+   /* SQL Server 2008+ */
+     SELECT TOP(@count1)
+            Streams.IdOriginal As StreamId,
+            Events.StreamRevision,
+            Events.Ordinal,
+            Events.Id AS EventId,
+            Events.Created,
+            Events.Type,
+            Events.JsonData,
+            Events.JsonMetadata
+       FROM Events
+ INNER JOIN Streams
+         ON Events.StreamIdInternal=Streams.IdInternal
+      WHERE Events.Ordinal <= @ordinal
+   ORDER BY Events.Ordinal DESC;

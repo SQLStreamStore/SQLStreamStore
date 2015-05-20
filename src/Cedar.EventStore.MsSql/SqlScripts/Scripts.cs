@@ -29,6 +29,11 @@
             get { return GetScript("ReadAllForward"); }
         }
 
+        public static string ReadAllBackward
+        {
+            get { return GetScript("ReadAllBackward"); }
+        }
+
         private static string GetScript(string name)
         {
             return s_scripts.GetOrAdd(name,

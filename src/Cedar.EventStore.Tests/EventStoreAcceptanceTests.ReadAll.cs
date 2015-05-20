@@ -71,7 +71,7 @@
                         ExpectedStreamEvent("stream-2", 6, 2, fixture.GetUtcNow().UtcDateTime)
                     };
 
-                    var allEventsPage = await eventStore.ReadAll(Checkpoint.End, 4);
+                    var allEventsPage = await eventStore.ReadAll(Checkpoint.End, 4, ReadDirection.Backward);
                     List<StreamEvent> streamEvents = new List<StreamEvent>(allEventsPage.StreamEvents);
                     int count = 0;
                     while (!allEventsPage.IsEnd && count < 20) //should not take more than 20 iterations.

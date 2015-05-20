@@ -89,14 +89,11 @@
                 throw new ObjectDisposedException("MsSqlEventStore");
             }
 
+            long ordinal = checkpoint.GetOrdinal();
 
-            int ordinal = 0;
-            if(!string.IsNullOrWhiteSpace(checkpoint.Value) && !int.TryParse(checkpoint.Value, out ordinal))
-            {
-                throw new InvalidOperationException("Cannot parse checkpoint");
-            }
+            var commandText = direction == ReadDirection.Forward ? Scripts.ReadAllForward : Scripts.ReadAllBackward;
 
-            using(var command = new SqlCommand(Scripts.ReadAllForward, _connection))
+            using (var command = new SqlCommand(commandText, _connection))
             {
                 command.Parameters.AddWithValue("ordinal", ordinal);
                 command.Parameters.AddWithValue("count", maxCount + 1); //Read extra row to see if at end or not
@@ -115,7 +112,7 @@
                 {
                     var streamId = reader.GetString(0);
                     var streamRevision = reader.GetInt32(1);
-                    ordinal = reader.GetInt32(2);
+                    ordinal = reader.GetInt64(2);
                     var eventId = reader.GetGuid(3);
                     var created = reader.GetDateTime(4);
                     var type = reader.GetString(5);

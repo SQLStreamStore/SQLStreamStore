@@ -39,7 +39,7 @@
                 var store = await fixture.GetEventStore();
                 store.Dispose();
 
-                Func<Task> act = () => store.ReadAll(null, 10);
+                Func<Task> act = () => store.ReadAll(Checkpoint.Start, 10);
 
                 act.ShouldThrow<ObjectDisposedException>();
             }

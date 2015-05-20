@@ -10,7 +10,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Streams_Id ON dbo.Streams (Id);
 CREATE TABLE dbo.Events(
     StreamIdInternal    INT                                     NOT NULL,
     StreamRevision      INT                                     NOT NULL,
-    Ordinal             INT                 IDENTITY(0,1)       NOT NULL,
+    Ordinal             BIGINT                 IDENTITY(0,1)       NOT NULL,
     Id                  UNIQUEIDENTIFIER                        NOT NULL,
     Created             DATETIME                                NOT NULL,
     [Type]              NVARCHAR(128)                           NOT NULL,

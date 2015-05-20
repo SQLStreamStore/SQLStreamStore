@@ -2,7 +2,6 @@
  {
      using System;
      using System.Collections.Generic;
-     using System.Collections.ObjectModel;
      using System.Linq;
      using System.Text;
      using System.Threading;
@@ -103,7 +102,7 @@
                  allEventsSlice.NextPosition.ToString(),
                  allEventsSlice.IsEndOfStream,
                  GetReadDirection(allEventsSlice.ReadDirection),
-                 new ReadOnlyCollection<StreamEvent>(events));
+                 events);
          }
 
          public async Task<StreamEventsPage> ReadStream(

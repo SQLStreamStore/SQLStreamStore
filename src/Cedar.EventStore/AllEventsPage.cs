@@ -15,7 +15,7 @@ namespace Cedar.EventStore
             string nextCheckpoint,
             bool isEnd,
             ReadDirection direction,
-            IReadOnlyCollection<StreamEvent> streamEvents)
+            params StreamEvent[] streamEvents)
         {
             FromCheckpoint = fromCheckpoint;
             NextCheckpoint = nextCheckpoint;

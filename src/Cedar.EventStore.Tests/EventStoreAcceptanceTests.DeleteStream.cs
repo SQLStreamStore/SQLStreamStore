@@ -25,7 +25,7 @@
                     await eventStore.DeleteStream(streamId);
 
                     var streamEventsPage =
-                        await eventStore.ReadStream(streamId, StreamPosition.End, 10, ReadDirection.Backward);
+                        await eventStore.ReadStream(streamId, StreamPosition.Start, 10);
 
                     streamEventsPage.Status.Should().Be(PageReadStatus.StreamDeleted);
                 }

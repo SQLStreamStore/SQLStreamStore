@@ -14,12 +14,12 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Streams_Id ON dbo.Streams (Id);
 CREATE TABLE dbo.Events(
     StreamIdInternal    INT                                     NOT NULL,
     StreamRevision      INT                                     NOT NULL,
-    Ordinal             INT                 IDENTITY(0,1)       NOT NULL,
+    Ordinal             BIGINT                 IDENTITY(0,1)    NOT NULL,
     Id                  UNIQUEIDENTIFIER                        NOT NULL,
     Created             DATETIME                                NOT NULL,
     [Type]              NVARCHAR(128)                           NOT NULL,
     JsonData            NVARCHAR(max)                           NOT NULL,
-    JsonMetadata        NVARCHAR(max)                                  ,
+    JsonMetadata        NVARCHAR(max)                                   ,
     CONSTRAINT PK_Events PRIMARY KEY CLUSTERED (Ordinal),
     CONSTRAINT FK_Events_Streams FOREIGN KEY (StreamIdInternal) REFERENCES dbo.Streams(IdInternal)
 );
@@ -182,4 +182,55 @@ SET @count1 = 5
  INNER JOIN Streams
          ON Events.StreamIdInternal=Streams.IdInternal
       WHERE Events.Ordinal <= @ordinal
+   ORDER BY Events.Ordinal DESC;
+
+/* Delete Streeam*/
+BEGIN TRANSACTION DeleteStream
+         SELECT @streamIdInternal = Streams.IdInternal
+           FROM Streams
+          WHERE Streams.Id = @streamId;
+
+    DELETE FROM Events
+          WHERE Events.StreamIdInternal = @streamIdInternal;
+       
+         UPDATE Streams
+            SET IsDeleted = '1'
+          WHERE Streams.Id = @streamId;
+COMMIT TRANSACTION DeleteStream
+
+SELECT * FROM dbo.Streams;
+SELECT * FROM dbo.Events;
+
+/* ReadStreamForward */
+
+SET @count = 5;
+SET @streamId = 'stream-3';
+DECLARE @streamRevision AS INT = 0
+DECLARE @isDeleted AS BIT;
+
+     SELECT @streamIdInternal = Streams.IdInternal,
+            @isDeleted = Streams.IsDeleted
+       FROM Streams
+      WHERE Streams.Id = @streamId
+
+     SELECT @isDeleted AS IsDeleted
+
+     SELECT TOP(@count)
+            Events.StreamRevision,
+            Events.Ordinal,
+            Events.Id AS EventId,
+            Events.Created,
+            Events.Type,
+            Events.JsonData,
+            Events.JsonMetadata
+       FROM Events
+      INNER JOIN Streams
+         ON Events.StreamIdInternal=Streams.IdInternal
+      WHERE Events.StreamIDInternal = @streamIDInternal AND Events.StreamRevision >= @streamRevision
+   ORDER BY Events.Ordinal;
+
+     SELECT TOP(1)
+            Events.StreamRevision
+       FROM Events
+      WHERE Events.StreamIDInternal = @streamIDInternal
    ORDER BY Events.Ordinal DESC;

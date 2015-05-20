@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Collections.ObjectModel;
     using System.Data;
     using System.Data.SqlClient;
     using System.Linq;
@@ -72,6 +71,32 @@
             int expectedVersion = ExpectedVersion.Any,
             CancellationToken cancellationToken = default(CancellationToken))
         {
+            Ensure.That(streamId, "streamId").IsNotNullOrWhiteSpace();
+
+            return expectedVersion == ExpectedVersion.Any
+                ? DeleteStreamAnyVersion(streamId, cancellationToken)
+                : DeleteStreamExpectedVersion(streamId, expectedVersion, cancellationToken);
+        }
+
+        private async Task DeleteStreamAnyVersion(
+            string streamId,
+            CancellationToken cancellationToken)
+        {
+            Ensure.That(streamId, "streamId").IsNotNullOrWhiteSpace();
+
+            using (var command = new SqlCommand(Scripts.DeleteStreamAnyVersion, _connection))
+            {
+                command.Parameters.AddWithValue("streamId", streamId);
+                await command.ExecuteNonQueryAsync(cancellationToken);
+            }
+        }
+
+
+        private Task DeleteStreamExpectedVersion(
+            string streamId,
+            int expectedVersion,
+            CancellationToken cancellationToken)
+        {
             throw new NotImplementedException();
         }
 
@@ -106,7 +131,7 @@
                         null,
                         true,
                         direction,
-                        new ReadOnlyCollection<StreamEvent>(streamEvents));
+                        streamEvents.ToArray());
                 }
                 while(await reader.ReadAsync(cancellationToken))
                 {
@@ -145,18 +170,106 @@
                     nextCheckpoint,
                     isEnd,
                     direction,
-                    new ReadOnlyCollection<StreamEvent>(streamEvents));
+                    streamEvents.ToArray());
             }
         }
 
-        public Task<StreamEventsPage> ReadStream(
+        public async Task<StreamEventsPage> ReadStream(
             string streamId,
             int start,
             int count,
             ReadDirection direction = ReadDirection.Forward,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException();
+            Ensure.That(streamId, "streamId").IsNotNull();
+            Ensure.That(start, "start").IsGte(0);
+            Ensure.That(count, "count").IsGte(0);
+
+            var commandText = direction == ReadDirection.Forward ? Scripts.ReadStreamForward : Scripts.ReadStreamBackward;
+
+            using (var command = new SqlCommand(commandText, _connection))
+            {
+                command.Parameters.AddWithValue("streamId", streamId);
+                command.Parameters.AddWithValue("count", count + 1); //Read extra row to see if at end or not
+                command.Parameters.AddWithValue("streamRevision", start);
+
+                List<StreamEvent> streamEvents = new List<StreamEvent>();
+
+                var reader = await command.ExecuteReaderAsync(cancellationToken);
+                await reader.ReadAsync(cancellationToken);
+                bool doesNotExist = reader.IsDBNull(0);
+                if (doesNotExist)
+                {
+                    return new StreamEventsPage(streamId,
+                        PageReadStatus.StreamNotFound, 
+                        start,
+                        -1,
+                        -1,
+                        direction,
+                        isEndOfStream: true);
+                }
+
+                // Read IsDeleted result set
+                var isDeleted = reader.GetBoolean(0);
+                if(isDeleted)
+                {
+                    return new StreamEventsPage(streamId,
+                        PageReadStatus.StreamDeleted,
+                        0,
+                        0,
+                        0,
+                        direction,
+                        isEndOfStream: true);
+                }
+
+
+                // Read Events result set
+                await reader.NextResultAsync(cancellationToken);
+                while (await reader.ReadAsync(cancellationToken))
+                {
+                    var streamRevision = reader.GetInt32(0);
+                    var ordinal = reader.GetInt64(1);
+                    var eventId = reader.GetGuid(2);
+                    var created = reader.GetDateTime(3);
+                    var type = reader.GetString(4);
+                    var jsonData = reader.GetString(5);
+                    var jsonMetadata = reader.GetString(6);
+
+                    var streamEvent = new StreamEvent(streamId,
+                        eventId,
+                        streamRevision,
+                        ordinal.ToString(),
+                        created,
+                        type,
+                        jsonData,
+                        jsonMetadata);
+
+                    streamEvents.Add(streamEvent);
+                }
+
+                // Read last event revision result set
+                await reader.NextResultAsync(cancellationToken);
+                await reader.ReadAsync(cancellationToken);
+                var lastStreamRevision = reader.GetInt32(0);
+
+
+                bool isEnd = true;
+                if(streamEvents.Count == count + 1)
+                {
+                    isEnd = false;
+                    streamEvents.RemoveAt(count);
+                }
+
+                return new StreamEventsPage(
+                    streamId,
+                    PageReadStatus.Success,
+                    streamEvents.First().StreamRevision,
+                    streamEvents.Last().StreamRevision + 1,
+                    lastStreamRevision,
+                    direction,
+                    isEnd,
+                    streamEvents.ToArray());
+            }
         }
 
         public void Dispose()

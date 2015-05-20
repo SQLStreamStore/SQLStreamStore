@@ -32,7 +32,7 @@
         }
 
         [Fact]
-        public async Task When_dispose_and_read_then_should_throw_ObjectDisposedException()
+        public async Task When_dispose_and_read_then_should_throw()
         {
             using(var fixture = GetFixture())
             {

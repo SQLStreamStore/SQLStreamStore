@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-
-namespace Cedar.EventStore
+﻿namespace Cedar.EventStore
 {
+    using System.Collections.Generic;
+
     public class StreamEventsPage
     {
         public readonly IReadOnlyCollection<StreamEvent> Events;

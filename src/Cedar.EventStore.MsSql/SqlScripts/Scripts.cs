@@ -24,6 +24,16 @@
             get { return GetScript("CreateStream"); }
         }
 
+        public static string DeleteStreamAnyVersion
+        {
+            get { return GetScript("DeleteStreamAnyVersion"); }
+        }
+
+        public static string DeleteStreamExpectedVersion
+        {
+            get { return GetScript("DeleteStreamExpectedVersion"); }
+        }
+
         public static string ReadAllForward
         {
             get { return GetScript("ReadAllForward"); }
@@ -32,6 +42,16 @@
         public static string ReadAllBackward
         {
             get { return GetScript("ReadAllBackward"); }
+        }
+
+        public static string ReadStreamForward
+        {
+            get { return GetScript("ReadStreamForward"); }
+        }
+
+        public static string ReadStreamBackward
+        {
+            get { return GetScript("ReadStreamBackward"); }
         }
 
         private static string GetScript(string name)

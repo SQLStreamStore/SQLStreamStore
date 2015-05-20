@@ -76,17 +76,22 @@
         }
 
         public async Task<AllEventsPage> ReadAll(
-            string checkpoint,
+            Checkpoint checkpoint,
             int maxCount,
             ReadDirection direction = ReadDirection.Forward,
             CancellationToken cancellationToken = default(CancellationToken))
         {
+            Ensure.That(checkpoint, "checkpoint").IsNotNull();
+            Ensure.That(maxCount, "maxCount").IsGt(0);
+
             if(_isDisposed.Value)
             {
                 throw new ObjectDisposedException("MsSqlEventStore");
             }
+
+
             int ordinal = 0;
-            if(!string.IsNullOrWhiteSpace(checkpoint) && !int.TryParse(checkpoint, out ordinal))
+            if(!string.IsNullOrWhiteSpace(checkpoint.Value) && !int.TryParse(checkpoint.Value, out ordinal))
             {
                 throw new InvalidOperationException("Cannot parse checkpoint");
             }
@@ -100,7 +105,7 @@
                 List<StreamEvent> streamEvents = new List<StreamEvent>();
                 if(!reader.HasRows)
                 {
-                    return new AllEventsPage(checkpoint,
+                    return new AllEventsPage(checkpoint.Value,
                         null,
                         true,
                         direction,
@@ -139,7 +144,7 @@
                     streamEvents.RemoveAt(maxCount);
                 }
 
-                return new AllEventsPage(checkpoint,
+                return new AllEventsPage(checkpoint.Value,
                     nextCheckpoint,
                     isEnd,
                     direction,

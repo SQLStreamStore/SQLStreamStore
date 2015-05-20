@@ -19,7 +19,7 @@
             CancellationToken cancellationToken = default(CancellationToken));
 
         Task<AllEventsPage> ReadAll(
-            string checkpoint,
+            Checkpoint checkpoint,
             int maxCount,
             ReadDirection direction = ReadDirection.Forward,
             CancellationToken cancellationToken = default(CancellationToken));

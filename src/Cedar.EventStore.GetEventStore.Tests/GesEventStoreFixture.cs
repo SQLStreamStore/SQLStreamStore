@@ -68,7 +68,7 @@
                 IEnumerable<NewStreamEvent> events,
                 CancellationToken cancellationToken = default(CancellationToken))
             {
-                return _inner.AppendToStream(streamId, expectedVersion, events);
+                return _inner.AppendToStream(streamId, expectedVersion, events, cancellationToken);
             }
 
             public Task DeleteStream(
@@ -76,16 +76,16 @@
                 int expectedVersion = ExpectedVersion.Any,
                 CancellationToken cancellationToken = default(CancellationToken))
             {
-                return _inner.DeleteStream(streamId, expectedVersion);
+                return _inner.DeleteStream(streamId, expectedVersion, cancellationToken);
             }
 
             public Task<AllEventsPage> ReadAll(
-                string checkpoint,
+                Checkpoint checkpoint,
                 int maxCount,
                 ReadDirection direction = ReadDirection.Forward,
                 CancellationToken cancellationToken = default(CancellationToken))
             {
-                return _inner.ReadAll(checkpoint, maxCount, direction);
+                return _inner.ReadAll(checkpoint, maxCount, direction, cancellationToken);
             }
 
             public Task<StreamEventsPage> ReadStream(
@@ -95,7 +95,7 @@
                 ReadDirection direction = ReadDirection.Forward,
                 CancellationToken cancellationToken = default(CancellationToken))
             {
-                return _inner.ReadStream(streamId, start, count, direction);
+                return _inner.ReadStream(streamId, start, count, direction, cancellationToken);
             }
         }
     }

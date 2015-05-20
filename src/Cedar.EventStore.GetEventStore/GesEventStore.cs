@@ -65,14 +65,16 @@
          }
 
          public async Task<AllEventsPage> ReadAll(
-             string checkpoint,
+             Checkpoint checkpoint,
              int maxCount,
              ReadDirection direction = ReadDirection.Forward,
-              CancellationToken cancellationToken = default(CancellationToken))
+             CancellationToken cancellationToken = default(CancellationToken))
          {
+             Ensure.That(checkpoint, "checkpoint").IsNotNull();
+
              var connection = _getConnection();
 
-             var position = checkpoint.ParsePosition() ?? Position.Start;
+             var position = checkpoint.ParsePosition();
 
              AllEventsSlice allEventsSlice;
              if (direction == ReadDirection.Forward)

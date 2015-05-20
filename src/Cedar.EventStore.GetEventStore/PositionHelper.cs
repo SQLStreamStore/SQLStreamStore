@@ -14,17 +14,20 @@ namespace Cedar.EventStore
                 : null;
         }
 
-        internal static Position? ParsePosition(this string checkpointToken)
+        internal static Position ParsePosition(this Checkpoint checkpoint)
         {
-            if (string.IsNullOrWhiteSpace(checkpointToken))
+            if(ReferenceEquals(checkpoint, Checkpoint.Start))
             {
-                return default(Position?);
+                return Position.Start;
             }
-
-            var positions = checkpointToken.Split(new[] { '/' }, 2).Select(s => s.Trim()).ToArray();
+            if(ReferenceEquals(checkpoint, Checkpoint.End))
+            {
+                return Position.End;
+            }
+            var positions = checkpoint.Value.Split(new[] { '/' }, 2).Select(s => s.Trim()).ToArray();
             if (positions.Length != 2)
             {
-                throw new ArgumentException();
+                throw new ArgumentException("Unable to parse checkpoint");
             }
 
             return new Position(long.Parse(positions[0]), long.Parse(positions[1])); ;

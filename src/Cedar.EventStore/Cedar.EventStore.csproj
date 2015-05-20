@@ -46,7 +46,7 @@
     <Compile Include="EventStoreExtensions.cs" />
     <Compile Include="ExpectedVersion.cs" />
     <Compile Include="GetUtcNow.cs" />
-    <Compile Include="ICheckpoint.cs" />
+    <Compile Include="Checkpoint.cs" />
     <Compile Include="IEventStore.cs" />
     <Compile Include="NewStreamEvent.cs" />
     <Compile Include="PageReadStatus.cs" />

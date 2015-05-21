@@ -1,3 +1,4 @@
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 BEGIN TRANSACTION DeleteStream
         DECLARE @streamIdInternal AS INT
 
@@ -7,7 +8,7 @@ BEGIN TRANSACTION DeleteStream
 
     DELETE FROM Events
           WHERE Events.StreamIdInternal = @streamIdInternal;
-       
+
          UPDATE Streams
             SET IsDeleted = '1'
           WHERE Streams.Id = @streamId;

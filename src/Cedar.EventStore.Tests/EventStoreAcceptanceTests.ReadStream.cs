@@ -25,11 +25,11 @@
                     var expectedStreamEventsPage = theory.ExpectedStreamEventsPage;
                     var expectedEvents = theory.ExpectedStreamEventsPage.Events;
 
-                    streamEventsPage.FromSequenceNumber.Should().Be(expectedStreamEventsPage.FromSequenceNumber);
-                    streamEventsPage.IsEndOfStream.Should().Be(expectedStreamEventsPage.IsEndOfStream);
-                    streamEventsPage.LastSequenceNumber.Should().Be(expectedStreamEventsPage.LastSequenceNumber);
-                    streamEventsPage.NextSequenceNumber.Should().Be(expectedStreamEventsPage.NextSequenceNumber);
+                    streamEventsPage.FromStreamRevision.Should().Be(expectedStreamEventsPage.FromStreamRevision);
+                    streamEventsPage.LastStreamRevision.Should().Be(expectedStreamEventsPage.LastStreamRevision);
+                    streamEventsPage.NextStreamRevision.Should().Be(expectedStreamEventsPage.NextStreamRevision);
                     streamEventsPage.ReadDirection.Should().Be(expectedStreamEventsPage.ReadDirection);
+                    streamEventsPage.IsEndOfStream.Should().Be(expectedStreamEventsPage.IsEndOfStream);
                     streamEventsPage.Status.Should().Be(expectedStreamEventsPage.Status);
                     streamEventsPage.StreamId.Should().Be(expectedStreamEventsPage.StreamId);
                     streamEventsPage.Events.Count.Should().Be(expectedStreamEventsPage.Events.Count);
@@ -62,6 +62,17 @@
                     new StreamEventsPage("stream-2", PageReadStatus.Success, 1, 3, 2, ReadDirection.Forward, true,
                           ExpectedStreamEvent("stream-2", 5, 1, SystemClock.GetUtcNow().UtcDateTime),
                           ExpectedStreamEvent("stream-2", 6, 2, SystemClock.GetUtcNow().UtcDateTime))),
+
+                new ReadStreamTheory("stream-1", StreamPosition.End, ReadDirection.Backward, 2, 
+                    new StreamEventsPage("stream-1", PageReadStatus.Success, -1, 0, 2, ReadDirection.Backward, false,
+                          ExpectedStreamEvent("stream-1", 3, 2, SystemClock.GetUtcNow().UtcDateTime),
+                          ExpectedStreamEvent("stream-1", 2, 1, SystemClock.GetUtcNow().UtcDateTime))),
+
+                 new ReadStreamTheory("stream-1", StreamPosition.End, ReadDirection.Backward, 4, 
+                    new StreamEventsPage("stream-1", PageReadStatus.Success, -1, -1, 2, ReadDirection.Backward, true,
+                          ExpectedStreamEvent("stream-1", 3, 2, SystemClock.GetUtcNow().UtcDateTime),
+                          ExpectedStreamEvent("stream-1", 2, 1, SystemClock.GetUtcNow().UtcDateTime),
+                          ExpectedStreamEvent("stream-1", 1, 0, SystemClock.GetUtcNow().UtcDateTime)))
             };
 
             return theories.Select(t => new object[] { t });

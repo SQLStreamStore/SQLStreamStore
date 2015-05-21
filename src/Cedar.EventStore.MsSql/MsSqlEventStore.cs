@@ -182,16 +182,28 @@
             CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.That(streamId, "streamId").IsNotNull();
-            Ensure.That(start, "start").IsGte(0);
+            Ensure.That(start, "start").IsGte(-1);
             Ensure.That(count, "count").IsGte(0);
 
-            var commandText = direction == ReadDirection.Forward ? Scripts.ReadStreamForward : Scripts.ReadStreamBackward;
+            var streamRevision = start == StreamPosition.End ? int.MaxValue : start;
+            string commandText;
+            Func<List<StreamEvent>, int> getNextSequenceNumber;
+            if(direction == ReadDirection.Forward)
+            {
+                commandText = Scripts.ReadStreamForward;
+                getNextSequenceNumber = events => events.Last().StreamRevision + 1;
+            }
+            else
+            {
+                commandText = Scripts.ReadStreamBackward;
+                getNextSequenceNumber = events => events.Last().StreamRevision - 1;
+            }
 
             using (var command = new SqlCommand(commandText, _connection))
             {
                 command.Parameters.AddWithValue("streamId", streamId);
                 command.Parameters.AddWithValue("count", count + 1); //Read extra row to see if at end or not
-                command.Parameters.AddWithValue("streamRevision", start);
+                command.Parameters.AddWithValue("streamRevision", streamRevision);
 
                 List<StreamEvent> streamEvents = new List<StreamEvent>();
 
@@ -227,7 +239,7 @@
                 await reader.NextResultAsync(cancellationToken);
                 while (await reader.ReadAsync(cancellationToken))
                 {
-                    var streamRevision = reader.GetInt32(0);
+                    var streamRevision1 = reader.GetInt32(0);
                     var ordinal = reader.GetInt64(1);
                     var eventId = reader.GetGuid(2);
                     var created = reader.GetDateTime(3);
@@ -237,7 +249,7 @@
 
                     var streamEvent = new StreamEvent(streamId,
                         eventId,
-                        streamRevision,
+                        streamRevision1,
                         ordinal.ToString(),
                         created,
                         type,
@@ -263,8 +275,8 @@
                 return new StreamEventsPage(
                     streamId,
                     PageReadStatus.Success,
-                    streamEvents.First().StreamRevision,
-                    streamEvents.Last().StreamRevision + 1,
+                    start,
+                    getNextSequenceNumber(streamEvents),
                     lastStreamRevision,
                     direction,
                     isEnd,

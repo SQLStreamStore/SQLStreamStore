@@ -204,7 +204,7 @@ SELECT * FROM dbo.Events;
 /* ReadStreamForward */
 
 SET @count = 5;
-SET @streamId = 'stream-3';
+SET @streamId = 'stream-1';
 DECLARE @streamRevision AS INT = 0
 DECLARE @isDeleted AS BIT;
 
@@ -225,9 +225,42 @@ DECLARE @isDeleted AS BIT;
             Events.JsonMetadata
        FROM Events
       INNER JOIN Streams
-         ON Events.StreamIdInternal=Streams.IdInternal
+         ON Events.StreamIdInternal = Streams.IdInternal
       WHERE Events.StreamIDInternal = @streamIDInternal AND Events.StreamRevision >= @streamRevision
    ORDER BY Events.Ordinal;
+
+     SELECT TOP(1)
+            Events.StreamRevision
+       FROM Events
+      WHERE Events.StreamIDInternal = @streamIDInternal
+   ORDER BY Events.Ordinal DESC;
+
+/* ReadStreamBackward */
+
+SET @streamRevision = 5;
+
+     SELECT @streamIdInternal = Streams.IdInternal,
+            @isDeleted = Streams.IsDeleted
+       FROM Streams
+      WHERE Streams.Id = @streamId
+
+     SELECT @isDeleted;
+
+     SELECT TOP(@count)
+            Streams.IdOriginal As StreamId,
+            Streams.IsDeleted as IsDeleted,
+            Events.StreamRevision,
+            Events.Ordinal,
+            Events.Id AS EventId,
+            Events.Created,
+            Events.Type,
+            Events.JsonData,
+            Events.JsonMetadata
+       FROM Events
+ INNER JOIN Streams
+         ON Events.StreamIdInternal = Streams.IdInternal
+      WHERE Events.StreamIDInternal = @streamIDInternal AND Events.StreamRevision <= @streamRevision
+   ORDER BY Events.Ordinal DESC
 
      SELECT TOP(1)
             Events.StreamRevision

@@ -145,9 +145,9 @@
             var streamEventsPage = new StreamEventsPage(
                 streamId: streamId,
                 status: PageReadStatus.Success,
-                fromSequenceNumber: start,
-                nextSequenceNumber: results[results.Length - 1].StreamRevision + 1,
-                lastSequenceNumber: results[results.Length - 1].StreamRevision,
+                fromStreamRevision: start,
+                nextStreamRevision: results[results.Length - 1].StreamRevision + 1,
+                lastStreamRevision: results[results.Length - 1].StreamRevision,
                 direction: ReadDirection.Forward,
                 //TODO
                 isEndOfStream: true,
@@ -175,9 +175,9 @@
             var streamEventsPage = new StreamEventsPage(
                 streamId: streamId,
                 status: PageReadStatus.Success,
-                fromSequenceNumber: start,
-                nextSequenceNumber: results[0].StreamRevision - 1,
-                lastSequenceNumber: results[0].StreamRevision,
+                fromStreamRevision: start,
+                nextStreamRevision: results[0].StreamRevision - 1,
+                lastStreamRevision: results[0].StreamRevision,
                 direction: ReadDirection.Backward,
                 isEndOfStream: true,
                 events: results);

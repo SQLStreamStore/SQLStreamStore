@@ -5,6 +5,8 @@
     using System.Data;
     using System.Data.SqlClient;
     using System.Linq;
+    using System.Security.Cryptography;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.SqlScripts;
@@ -30,6 +32,12 @@
             IEnumerable<NewStreamEvent> events,
             CancellationToken cancellationToken = default(CancellationToken))
         {
+            Ensure.That(streamId, "streamId").IsNotNullOrWhiteSpace();
+            Ensure.That(expectedVersion, "expectedVersion").IsGte(-2);
+            Ensure.That(events, "events").IsNotNull();
+
+            var streamIdInfo = HashStreamId(streamId);
+
             if(expectedVersion == ExpectedVersion.NoStream)
             {
                 var sqlMetadata = new[]
@@ -54,7 +62,8 @@
 
                 using(var command = new SqlCommand(Scripts.CreateStream, _connection))
                 {
-                    command.Parameters.AddWithValue("streamId", streamId);
+                    command.Parameters.AddWithValue("streamId", streamIdInfo.StreamId);
+                    command.Parameters.AddWithValue("streamIdOriginal", streamIdInfo.StreamIdOriginal);
                     var eventsParam = new SqlParameter("events", SqlDbType.Structured)
                     {
                         TypeName = "dbo.NewStreamEvents",
@@ -72,18 +81,19 @@
             CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.That(streamId, "streamId").IsNotNullOrWhiteSpace();
+            Ensure.That(expectedVersion, "expectedVersion").IsGte(-2);
+
+            var streamIdInfo = HashStreamId(streamId);
 
             return expectedVersion == ExpectedVersion.Any
-                ? DeleteStreamAnyVersion(streamId, cancellationToken)
-                : DeleteStreamExpectedVersion(streamId, expectedVersion, cancellationToken);
+                ? DeleteStreamAnyVersion(streamIdInfo.StreamId, cancellationToken)
+                : DeleteStreamExpectedVersion(streamIdInfo.StreamId, expectedVersion, cancellationToken);
         }
 
         private async Task DeleteStreamAnyVersion(
             string streamId,
             CancellationToken cancellationToken)
         {
-            Ensure.That(streamId, "streamId").IsNotNullOrWhiteSpace();
-
             using (var command = new SqlCommand(Scripts.DeleteStreamAnyVersion, _connection))
             {
                 command.Parameters.AddWithValue("streamId", streamId);
@@ -185,6 +195,8 @@
             Ensure.That(start, "start").IsGte(-1);
             Ensure.That(count, "count").IsGte(0);
 
+            var streamIdInfo = HashStreamId(streamId);
+
             var streamRevision = start == StreamPosition.End ? int.MaxValue : start;
             string commandText;
             Func<List<StreamEvent>, int> getNextSequenceNumber;
@@ -201,7 +213,7 @@
 
             using (var command = new SqlCommand(commandText, _connection))
             {
-                command.Parameters.AddWithValue("streamId", streamId);
+                command.Parameters.AddWithValue("streamId", streamIdInfo.StreamId);
                 command.Parameters.AddWithValue("count", count + 1); //Read extra row to see if at end or not
                 command.Parameters.AddWithValue("streamRevision", streamRevision);
 
@@ -332,6 +344,33 @@
             catch
             {
                 return default(T);
+            }
+        }
+
+        private static StreamIdInfo HashStreamId(string streamId)
+        {
+            Ensure.That(streamId, "streamId").IsNotNullOrWhiteSpace();
+
+            Guid _;
+            if(Guid.TryParse(streamId, out _))
+            {
+                return new StreamIdInfo(streamId, streamId);
+            }
+
+            byte[] hashBytes = SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(streamId));
+            var hashedStreamId = BitConverter.ToString(hashBytes).Replace("-", "");
+            return new StreamIdInfo(hashedStreamId, streamId);
+        }
+
+        private class StreamIdInfo
+        {
+            public readonly string StreamId;
+            public readonly string StreamIdOriginal;
+
+            public StreamIdInfo(string streamId, string streamIdOriginal)
+            {
+                StreamId = streamId;
+                StreamIdOriginal = streamIdOriginal;
             }
         }
     }

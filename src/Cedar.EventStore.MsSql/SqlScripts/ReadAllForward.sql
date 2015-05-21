@@ -10,6 +10,6 @@
             Events.JsonMetadata
        FROM Events
  INNER JOIN Streams
-         ON Events.StreamIdInternal=Streams.IdInternal
+         ON Events.StreamIdInternal = Streams.IdInternal
       WHERE Events.Ordinal >= @ordinal
    ORDER BY Events.Ordinal;

@@ -6,6 +6,7 @@
      using System.Text;
      using System.Threading;
      using System.Threading.Tasks;
+     using Cedar.EventStore.Exceptions;
      using EnsureThat;
      using global::EventStore.ClientAPI;
 
@@ -54,13 +55,21 @@
              }
          }
 
-         public Task DeleteStream(
+         public async Task DeleteStream(
              string streamId,
              int exptectedVersion = ExpectedVersion.Any,
              CancellationToken cancellationToken = default(CancellationToken))
          {
              var connection = _getConnection();
-             return connection.DeleteStreamAsync(streamId, exptectedVersion, hardDelete: true);
+
+             try
+             {
+                 await connection.DeleteStreamAsync(streamId, exptectedVersion, hardDelete: true);
+             }
+             catch(global::EventStore.ClientAPI.Exceptions.WrongExpectedVersionException ex)
+             {
+                 throw new WrongExpectedVersionException(streamId, exptectedVersion, ex);
+             }
          }
 
          public async Task<AllEventsPage> ReadAll(

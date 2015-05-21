@@ -2,7 +2,7 @@
 {
     using EnsureThat;
 
-    public static class StreamEventExtenions
+    public static class StreamEventExtensions
     {
         public static T JsonDataAs<T>(this StreamEvent streamEvent)
         {

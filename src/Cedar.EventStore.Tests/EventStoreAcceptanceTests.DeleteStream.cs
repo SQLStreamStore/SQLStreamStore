@@ -2,13 +2,14 @@
 {
     using System;
     using System.Threading.Tasks;
+    using Cedar.EventStore.Exceptions;
     using FluentAssertions;
     using Xunit;
 
     public abstract partial class EventStoreAcceptanceTests
     {
         [Fact]
-        public async Task Can_delete_a_stream()
+        public async Task When_delete_stream_with_no_expected_version_then_should_be_deleted()
         {
             using(var fixture = GetFixture())
             {
@@ -28,6 +29,61 @@
                         await eventStore.ReadStream(streamId, StreamPosition.Start, 10);
 
                     streamEventsPage.Status.Should().Be(PageReadStatus.StreamDeleted);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_delete_stream_with_a_matching_expected_version_then_should_be_deleted()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    const string streamId = "stream";
+                    var events = new[]
+                    {
+                        new NewStreamEvent(Guid.NewGuid(), "data", "meta"),
+                        new NewStreamEvent(Guid.NewGuid(), "data", "meta")
+                    };
+
+                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, events);
+                    await eventStore.DeleteStream(streamId, 1);
+
+                    var streamEventsPage =
+                        await eventStore.ReadStream(streamId, StreamPosition.Start, 10);
+
+                    streamEventsPage.Status.Should().Be(PageReadStatus.StreamDeleted);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_delete_stream_with_a_matching_expected_version_then_should_throw()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    const string streamId = "stream";
+                    var events = new[]
+                    {
+                        new NewStreamEvent(Guid.NewGuid(), "data", "meta"),
+                        new NewStreamEvent(Guid.NewGuid(), "data", "meta")
+                    };
+
+                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, events);
+
+                    Exception exception = null;
+                    try
+                    {
+                        await eventStore.DeleteStream(streamId, 2);
+                    }
+                    catch(Exception ex)
+                    {
+                        exception = ex;
+                    }
+                    exception.Should().BeOfType<WrongExpectedVersionException>();
                 }
             }
         }

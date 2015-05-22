@@ -45,6 +45,7 @@ task RunTests -depends Compile {
 
     Run-Tests "Cedar.EventStore.Tests"
     Run-Tests "Cedar.EventStore.GetEventStore.Tests"
+    Run-Tests "Cedar.EventStore.MsSql2008.Tests"
     Run-Tests "Cedar.EventStore.Sqlite.Tests"
 }
 
@@ -58,6 +59,12 @@ task ILMerge -depends Compile {
     Invoke-Expression "$ilmergePath /targetplatform:v4 /internalize /allowDup /target:library /log /out:$mergedDir\$mainDllName.dll $inputDlls"
 
     $mainDllName = "Cedar.EventStore.GetEventStore"
+    $dllDir = "$srcDir\$mainDllName\bin\Release"
+    $inputDlls = "$dllDir\$mainDllName.dll"
+    @(  "EnsureThat" ) |% { $inputDlls = "$inputDlls $dllDir\$_.dll" }
+    Invoke-Expression "$ilmergePath /targetplatform:v4 /internalize /allowDup /target:library /log /out:$mergedDir\$mainDllName.dll $inputDlls"
+
+    $mainDllName = "Cedar.EventStore.MsSql2008"
     $dllDir = "$srcDir\$mainDllName\bin\Release"
     $inputDlls = "$dllDir\$mainDllName.dll"
     @(  "EnsureThat" ) |% { $inputDlls = "$inputDlls $dllDir\$_.dll" }

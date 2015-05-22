@@ -63,9 +63,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Cedar.EventStore.MsSql\Cedar.EventStore.MsSql.csproj">
+    <ProjectReference Include="..\Cedar.EventStore.MsSql2008\Cedar.EventStore.MsSql2008.csproj">
       <Project>{40510896-D9A1-4E22-8D11-E718857611F8}</Project>
-      <Name>Cedar.EventStore.MsSql</Name>
+      <Name>Cedar.EventStore.MsSql2008</Name>
     </ProjectReference>
     <ProjectReference Include="..\Cedar.EventStore.Tests\Cedar.EventStore.Tests.csproj">
       <Project>{f3fb96cf-4a3d-448d-a25e-6bc66e370bf6}</Project>

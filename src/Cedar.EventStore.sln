@@ -6,10 +6,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore", "Cedar.E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.Tests", "Cedar.EventStore.Tests\Cedar.EventStore.Tests.csproj", "{F3FB96CF-4A3D-448D-A25E-6BC66E370BF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.MsSql", "Cedar.EventStore.MsSql\Cedar.EventStore.MsSql.csproj", "{40510896-D9A1-4E22-8D11-E718857611F8}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.MsSql.Tests", "Cedar.EventStore.MsSql.Tests\Cedar.EventStore.MsSql.Tests.csproj", "{97AA016B-0B9F-44C2-8228-A13B4E251FB0}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.GetEventStore.Tests", "Cedar.EventStore.GetEventStore.Tests\Cedar.EventStore.GetEventStore.Tests.csproj", "{B3FD2834-6062-46A4-BA50-8C9F00C7F716}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.GetEventStore", "Cedar.EventStore.GetEventStore\Cedar.EventStore.GetEventStore.csproj", "{1E5E90BF-6481-4EDD-B6E2-560E617B35A9}"
@@ -17,6 +13,10 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.Sqlite", "Cedar.EventStore.Sqlite\Cedar.EventStore.Sqlite.csproj", "{B6D70596-5DD9-4B8D-AE3D-346CF980AD97}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.Sqlite.Tests", "Cedar.EventStore.Sqlite.Tests\Cedar.EventStore.Sqlite.Tests.csproj", "{ADD767B3-B24E-4F72-BCC0-433E9C0C4AC9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.MsSql2008", "Cedar.EventStore.MsSql2008\Cedar.EventStore.MsSql2008.csproj", "{40510896-D9A1-4E22-8D11-E718857611F8}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.MsSql2008.Tests", "Cedar.EventStore.MsSql2008.Tests\Cedar.EventStore.MsSql2008.Tests.csproj", "{97AA016B-0B9F-44C2-8228-A13B4E251FB0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -32,14 +32,6 @@ Global
 		{F3FB96CF-4A3D-448D-A25E-6BC66E370BF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F3FB96CF-4A3D-448D-A25E-6BC66E370BF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3FB96CF-4A3D-448D-A25E-6BC66E370BF6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{40510896-D9A1-4E22-8D11-E718857611F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{40510896-D9A1-4E22-8D11-E718857611F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{40510896-D9A1-4E22-8D11-E718857611F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{40510896-D9A1-4E22-8D11-E718857611F8}.Release|Any CPU.Build.0 = Release|Any CPU
-		{97AA016B-0B9F-44C2-8228-A13B4E251FB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{97AA016B-0B9F-44C2-8228-A13B4E251FB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{97AA016B-0B9F-44C2-8228-A13B4E251FB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{97AA016B-0B9F-44C2-8228-A13B4E251FB0}.Release|Any CPU.Build.0 = Release|Any CPU
 		{B3FD2834-6062-46A4-BA50-8C9F00C7F716}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{B3FD2834-6062-46A4-BA50-8C9F00C7F716}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B3FD2834-6062-46A4-BA50-8C9F00C7F716}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -56,6 +48,14 @@ Global
 		{ADD767B3-B24E-4F72-BCC0-433E9C0C4AC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ADD767B3-B24E-4F72-BCC0-433E9C0C4AC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ADD767B3-B24E-4F72-BCC0-433E9C0C4AC9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40510896-D9A1-4E22-8D11-E718857611F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40510896-D9A1-4E22-8D11-E718857611F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40510896-D9A1-4E22-8D11-E718857611F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40510896-D9A1-4E22-8D11-E718857611F8}.Release|Any CPU.Build.0 = Release|Any CPU
+		{97AA016B-0B9F-44C2-8228-A13B4E251FB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{97AA016B-0B9F-44C2-8228-A13B4E251FB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{97AA016B-0B9F-44C2-8228-A13B4E251FB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{97AA016B-0B9F-44C2-8228-A13B4E251FB0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

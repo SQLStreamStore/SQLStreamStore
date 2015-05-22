@@ -14,4 +14,6 @@ Key design considerations:
  - Levarge RDBMS specific notifications for low latency catch-up subscriptions
  - No support for `System.Transaction` enforcing the stream as the consistency / transaction boundary.
 
-See wiki for feature implementation status.
+TODO See wiki for feature implementation status.
+
+[CI Feed](https://www.myget.org/F/cedar/api/v2) - note very unstable.

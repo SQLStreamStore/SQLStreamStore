@@ -9,7 +9,7 @@
     public abstract partial class EventStoreAcceptanceTests
     {
         [Fact]
-        public async Task When_delete_stream_with_no_expected_version_then_should_be_deleted()
+        public async Task When_delete_existing_stream_with_no_expected_version_then_should_be_deleted()
         {
             using(var fixture = GetFixture())
             {
@@ -29,6 +29,21 @@
                         await eventStore.ReadStream(streamId, StreamPosition.Start, 10);
 
                     streamEventsPage.Status.Should().Be(PageReadStatus.StreamDeleted);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_delete_stream_that_does_not_exist()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    const string streamId = "stream";
+                    Func<Task> act = () => eventStore.DeleteStream(streamId);
+
+                    act.ShouldNotThrow();
                 }
             }
         }
@@ -59,7 +74,22 @@
         }
 
         [Fact]
-        public async Task When_delete_stream_with_a_matching_expected_version_then_should_throw()
+        public async Task When_delete_stream_that_does_not_exist_with_expected_version_then_should_throw()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    const string streamId = "notexist";
+
+                    await eventStore.DeleteStream(streamId, 10)
+                        .ShouldThrow<WrongExpectedVersionException>();
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_delete_stream_with_a_non_matching_expected_version_then_should_throw()
         {
             using (var fixture = GetFixture())
             {
@@ -74,16 +104,8 @@
 
                     await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, events);
 
-                    Exception exception = null;
-                    try
-                    {
-                        await eventStore.DeleteStream(streamId, 2);
-                    }
-                    catch(Exception ex)
-                    {
-                        exception = ex;
-                    }
-                    exception.Should().BeOfType<WrongExpectedVersionException>();
+                    await eventStore.DeleteStream(streamId, 100)
+                        .ShouldThrow<WrongExpectedVersionException>();
                 }
             }
         }
@@ -106,6 +128,7 @@
             }
         }
     }
+
 
     internal static class TaskExtensions
     {

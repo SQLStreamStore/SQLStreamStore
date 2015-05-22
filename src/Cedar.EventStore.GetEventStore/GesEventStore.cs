@@ -31,7 +31,11 @@
              };
          }
 
-         public async Task AppendToStream(string streamId, int expectedVersion, IEnumerable<NewStreamEvent> events, CancellationToken cancellationToken = default(CancellationToken))
+         public async Task AppendToStream(
+             string streamId,
+             int expectedVersion,
+             IEnumerable<NewStreamEvent> events,
+             CancellationToken cancellationToken = default(CancellationToken))
          {
              var connection = _getConnection();
 
@@ -39,7 +43,7 @@
              {
                  var data = Encoding.UTF8.GetBytes(e.JsonData);
                  var metadata = Encoding.UTF8.GetBytes(e.JsonMetadata);
-
+                 
                  return new EventData(e.EventId, e.Type, true, data, metadata);
              });
 
@@ -64,7 +68,9 @@
 
              try
              {
-                 await connection.DeleteStreamAsync(streamId, exptectedVersion, hardDelete: true);
+                 await connection
+                     .DeleteStreamAsync(streamId, exptectedVersion, hardDelete: true)
+                     .NotOnCapturedContext();
              }
              catch(global::EventStore.ClientAPI.Exceptions.WrongExpectedVersionException ex)
              {

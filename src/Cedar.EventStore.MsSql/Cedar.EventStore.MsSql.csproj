@@ -68,6 +68,7 @@
     <EmbeddedResource Include="SqlScripts\CreateStream.sql" />
     <EmbeddedResource Include="SqlScripts\ReadAllForward.sql" />
     <EmbeddedResource Include="SqlScripts\DeleteStreamAnyVersion.sql" />
+    <EmbeddedResource Include="SqlScripts\DeleteStreamExpectedVersion.sql" />
     <Content Include="SqlScripts\Dev.sql" />
     <EmbeddedResource Include="SqlScripts\DropAll.sql" />
     <EmbeddedResource Include="SqlScripts\InitializeStore.sql" />

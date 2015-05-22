@@ -267,3 +267,42 @@ SET @streamRevision = 5;
        FROM Events
       WHERE Events.StreamIDInternal = @streamIDInternal
    ORDER BY Events.Ordinal DESC;
+
+/* Delete Stream with expected version */ 
+SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
+BEGIN TRANSACTION DeleteStream
+        DECLARE @streamIdInternal2 AS INT;
+        DECLARE @expectedStreamRevision AS INT = 3;
+        DECLARE @latestStreamRevision  AS INT;
+        SET @streamId = 'stream-1';
+
+         SELECT @streamIdInternal2 = Streams.IdInternal
+           FROM Streams
+          WHERE Streams.Id = @streamId;
+
+          IF @streamIdInternal2 IS NULL
+          BEGIN
+             ROLLBACK TRANSACTION DeleteStream;
+             RAISERROR('WrongExpectedVersion', 12,1);
+          END
+
+          SELECT TOP(1)
+                @latestStreamRevision = Events.StreamRevision
+           FROM Events
+          WHERE Events.StreamIDInternal = @streamIdInternal2
+       ORDER BY Events.Ordinal DESC;
+
+         IF @latestStreamRevision != @expectedStreamRevision
+         BEGIN
+            ROLLBACK TRANSACTION DeleteStream;
+            RAISERROR('WrongExpectedVersion', 12,2);
+         END
+
+         UPDATE Streams
+            SET IsDeleted = '1'
+          WHERE Streams.Id = @streamId ;
+
+         DELETE FROM Events
+          WHERE Events.StreamIdInternal = @streamIdInternal2;
+
+COMMIT TRANSACTION DeleteStream

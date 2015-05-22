@@ -9,6 +9,7 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Cedar.EventStore.Exceptions;
     using Cedar.EventStore.SqlScripts;
     using EnsureThat;
     using Microsoft.SqlServer.Server;
@@ -70,7 +71,8 @@
                         Value = sqlDataRecords
                     };
                     command.Parameters.Add(eventsParam);
-                    await command.ExecuteNonQueryAsync(cancellationToken);
+                    await command.ExecuteNonQueryAsync(cancellationToken)
+                        .NotOnCapturedContext();
                 }
             }
         }
@@ -97,17 +99,37 @@
             using (var command = new SqlCommand(Scripts.DeleteStreamAnyVersion, _connection))
             {
                 command.Parameters.AddWithValue("streamId", streamId);
-                await command.ExecuteNonQueryAsync(cancellationToken);
+                await command
+                    .ExecuteNonQueryAsync(cancellationToken)
+                    .NotOnCapturedContext();
             }
         }
 
 
-        private Task DeleteStreamExpectedVersion(
+        private async Task DeleteStreamExpectedVersion(
             string streamId,
             int expectedVersion,
             CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            using (var command = new SqlCommand(Scripts.DeleteStreamExpectedVersion, _connection))
+            {
+                command.Parameters.AddWithValue("streamId", streamId);
+                command.Parameters.AddWithValue("expectedStreamRevision", expectedVersion);
+                try
+                {
+                    await command
+                        .ExecuteNonQueryAsync(cancellationToken)
+                        .NotOnCapturedContext();
+                }
+                catch(SqlException ex)
+                {
+                    if(ex.Message == "WrongExpectedVersion")
+                    {
+                        throw new WrongExpectedVersionException(streamId, expectedVersion, ex);
+                    }
+                    throw;
+                }
+            }
         }
 
         public async Task<AllEventsPage> ReadAll(
@@ -132,7 +154,9 @@
             {
                 command.Parameters.AddWithValue("ordinal", ordinal);
                 command.Parameters.AddWithValue("count", maxCount + 1); //Read extra row to see if at end or not
-                var reader = await command.ExecuteReaderAsync(cancellationToken);
+                var reader = await command
+                    .ExecuteReaderAsync(cancellationToken)
+                    .NotOnCapturedContext();
 
                 List<StreamEvent> streamEvents = new List<StreamEvent>();
                 if(!reader.HasRows)
@@ -143,7 +167,7 @@
                         direction,
                         streamEvents.ToArray());
                 }
-                while(await reader.ReadAsync(cancellationToken))
+                while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                 {
                     var streamId = reader.GetString(0);
                     var streamRevision = reader.GetInt32(1);
@@ -219,8 +243,8 @@
 
                 List<StreamEvent> streamEvents = new List<StreamEvent>();
 
-                var reader = await command.ExecuteReaderAsync(cancellationToken);
-                await reader.ReadAsync(cancellationToken);
+                var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext();
+                await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
                 bool doesNotExist = reader.IsDBNull(0);
                 if (doesNotExist)
                 {
@@ -248,8 +272,8 @@
 
 
                 // Read Events result set
-                await reader.NextResultAsync(cancellationToken);
-                while (await reader.ReadAsync(cancellationToken))
+                await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
+                while (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                 {
                     var streamRevision1 = reader.GetInt32(0);
                     var ordinal = reader.GetInt64(1);
@@ -272,8 +296,8 @@
                 }
 
                 // Read last event revision result set
-                await reader.NextResultAsync(cancellationToken);
-                await reader.ReadAsync(cancellationToken);
+                await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
+                await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
                 var lastStreamRevision = reader.GetInt32(0);
 
 
@@ -312,11 +336,13 @@
             var cmd = new SqlCommand(Scripts.InitializeStore, _connection);
             if(ignoreErrors)
             {
-                await ExecuteAndIgnoreErrors(() => cmd.ExecuteNonQueryAsync(cancellationToken));
+                await ExecuteAndIgnoreErrors(() => cmd.ExecuteNonQueryAsync(cancellationToken))
+                    .NotOnCapturedContext();
             }
             else
             {
-                await cmd.ExecuteNonQueryAsync(cancellationToken);
+                await cmd.ExecuteNonQueryAsync(cancellationToken)
+                    .NotOnCapturedContext();
             }
         }
 
@@ -327,11 +353,13 @@
             var cmd = new SqlCommand(Scripts.DropAll, _connection);
             if(ignoreErrors)
             {
-                await ExecuteAndIgnoreErrors(() => cmd.ExecuteNonQueryAsync(cancellationToken));
+                await ExecuteAndIgnoreErrors(() => cmd.ExecuteNonQueryAsync(cancellationToken))
+                    .NotOnCapturedContext();
             }
             else
             {
-                await cmd.ExecuteNonQueryAsync(cancellationToken);
+                await cmd.ExecuteNonQueryAsync(cancellationToken)
+                    .NotOnCapturedContext();
             }
         }
 
@@ -339,7 +367,7 @@
         {
             try
             {
-                return await operation();
+                return await operation().NotOnCapturedContext();
             }
             catch
             {

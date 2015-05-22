@@ -11,7 +11,7 @@ Key design considerations:
  - dnxcore50 support will be available as soon as dnxcore50 is rtm
  - JSON only event and metadata payloads
  - No in-built snapshot support; can be implemented externally
- - Levarge RDBMS specific notifications for low latency catch-up subscriptions
+ - Leverage RDBMS specific notifications for low latency catch-up subscriptions
  - No support for `System.Transaction` enforcing the stream as the consistency / transaction boundary.
 
 TODO See wiki for feature implementation status.

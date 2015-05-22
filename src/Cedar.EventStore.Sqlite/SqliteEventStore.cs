@@ -39,8 +39,8 @@
             //TODO Idempotency check
             /*var sequence = connection.Table<Event>()
                 .Where(e => e.BucketId == "default" && e.StreamId == streamId)
-                .OrderByDescending(e => e.StreamRevision)
-                .Select(e => e.StreamRevision)
+                .OrderByDescending(e => e.StreamVersion)
+                .Select(e => e.StreamVersion)
                 .Take(1)
                 .ToList()
                 .FirstOrDefault();
@@ -117,7 +117,7 @@
             var connection = _getConnection();
             connection.CreateTable<SqliteEvent>();
             connection.CreateIndex("Events", "EventId", true);
-            connection.CreateIndex("Events", new[] { "StoreId", "StreamId", "StreamRevision" }, true);
+            connection.CreateIndex("Events", new[] { "StoreId", "StreamId", "StreamVersion" }, true);
         }
 
         public void Drop()
@@ -145,9 +145,9 @@
             var streamEventsPage = new StreamEventsPage(
                 streamId: streamId,
                 status: PageReadStatus.Success,
-                fromStreamRevision: start,
-                nextStreamRevision: results[results.Length - 1].StreamRevision + 1,
-                lastStreamRevision: results[results.Length - 1].StreamRevision,
+                fromStreamVersion: start,
+                nextStreamVersion: results[results.Length - 1].StreamVersion + 1,
+                lastStreamVersion: results[results.Length - 1].StreamVersion,
                 direction: ReadDirection.Forward,
                 //TODO
                 isEndOfStream: true,
@@ -175,9 +175,9 @@
             var streamEventsPage = new StreamEventsPage(
                 streamId: streamId,
                 status: PageReadStatus.Success,
-                fromStreamRevision: start,
-                nextStreamRevision: results[0].StreamRevision - 1,
-                lastStreamRevision: results[0].StreamRevision,
+                fromStreamVersion: start,
+                nextStreamVersion: results[0].StreamVersion - 1,
+                lastStreamVersion: results[0].StreamVersion,
                 direction: ReadDirection.Backward,
                 isEndOfStream: true,
                 events: results);

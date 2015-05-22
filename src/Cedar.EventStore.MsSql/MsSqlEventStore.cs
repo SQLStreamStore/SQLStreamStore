@@ -227,12 +227,12 @@
             if(direction == ReadDirection.Forward)
             {
                 commandText = Scripts.ReadStreamForward;
-                getNextSequenceNumber = events => events.Last().StreamRevision + 1;
+                getNextSequenceNumber = events => events.Last().StreamVersion + 1;
             }
             else
             {
                 commandText = Scripts.ReadStreamBackward;
-                getNextSequenceNumber = events => events.Last().StreamRevision - 1;
+                getNextSequenceNumber = events => events.Last().StreamVersion - 1;
             }
 
             using (var command = new SqlCommand(commandText, _connection))

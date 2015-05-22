@@ -5,10 +5,10 @@
     public class StreamEventsPage
     {
         public readonly IReadOnlyCollection<StreamEvent> Events;
-        public readonly int FromStreamRevision;
+        public readonly int FromStreamVersion;
         public readonly bool IsEndOfStream;
-        public readonly int LastStreamRevision;
-        public readonly int NextStreamRevision;
+        public readonly int LastStreamVersion;
+        public readonly int NextStreamVersion;
         public readonly ReadDirection ReadDirection;
         public readonly PageReadStatus Status;
         public readonly string StreamId;
@@ -16,18 +16,18 @@
         public StreamEventsPage(
             string streamId,
             PageReadStatus status,
-            int fromStreamRevision,
-            int nextStreamRevision,
-            int lastStreamRevision,
+            int fromStreamVersion,
+            int nextStreamVersion,
+            int lastStreamVersion,
             ReadDirection direction,
             bool isEndOfStream,
             params StreamEvent[] events)
         {
             StreamId = streamId;
             Status = status;
-            FromStreamRevision = fromStreamRevision;
-            LastStreamRevision = lastStreamRevision;
-            NextStreamRevision = nextStreamRevision;
+            FromStreamVersion = fromStreamVersion;
+            LastStreamVersion = lastStreamVersion;
+            NextStreamVersion = nextStreamVersion;
             ReadDirection = direction;
             IsEndOfStream = isEndOfStream;
             Events = events;

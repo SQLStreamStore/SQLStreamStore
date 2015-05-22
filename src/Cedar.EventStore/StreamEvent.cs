@@ -9,14 +9,14 @@
         public readonly Guid EventId;
         public readonly string JsonData;
         public readonly string JsonMetadata;
-        public readonly int StreamRevision;
+        public readonly int StreamVersion;
         public readonly string StreamId;
         public readonly string Type;
 
         public StreamEvent(
             string streamId,
             Guid eventId,
-            int streamRevision,
+            int streamVersion,
             string checkpoint,
             DateTime created,
             string type,
@@ -25,7 +25,7 @@
         {
             EventId = eventId;
             StreamId = streamId;
-            StreamRevision = streamRevision;
+            StreamVersion = streamVersion;
             Checkpoint = checkpoint;
             Created = created;
             Type = type;

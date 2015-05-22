@@ -10,7 +10,7 @@
     {
         [Theory]
         [MemberData("GetReadStreamTheories")]
-        public async Task Can_read_streams(ReadStreamTheory theory)
+        public async Task Can_read_streams_forwards_and_backwards(ReadStreamTheory theory)
         {
             using(var fixture = GetFixture())
             {
@@ -25,9 +25,9 @@
                     var expectedStreamEventsPage = theory.ExpectedStreamEventsPage;
                     var expectedEvents = theory.ExpectedStreamEventsPage.Events;
 
-                    streamEventsPage.FromStreamRevision.Should().Be(expectedStreamEventsPage.FromStreamRevision);
-                    streamEventsPage.LastStreamRevision.Should().Be(expectedStreamEventsPage.LastStreamRevision);
-                    streamEventsPage.NextStreamRevision.Should().Be(expectedStreamEventsPage.NextStreamRevision);
+                    streamEventsPage.FromStreamVersion.Should().Be(expectedStreamEventsPage.FromStreamVersion);
+                    streamEventsPage.LastStreamVersion.Should().Be(expectedStreamEventsPage.LastStreamVersion);
+                    streamEventsPage.NextStreamVersion.Should().Be(expectedStreamEventsPage.NextStreamVersion);
                     streamEventsPage.ReadDirection.Should().Be(expectedStreamEventsPage.ReadDirection);
                     streamEventsPage.IsEndOfStream.Should().Be(expectedStreamEventsPage.IsEndOfStream);
                     streamEventsPage.Status.Should().Be(expectedStreamEventsPage.Status);

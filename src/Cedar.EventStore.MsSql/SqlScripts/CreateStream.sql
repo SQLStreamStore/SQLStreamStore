@@ -5,9 +5,9 @@ BEGIN TRANSACTION CreateStream;
         INSERT INTO dbo.Streams (Id, IdOriginal) VALUES (@streamId, @streamIdOriginal);
         SELECT @streamIdInternal = SCOPE_IDENTITY();
 
-        INSERT INTO dbo.Events (StreamIdInternal, StreamRevision, Id, Created, [Type], JsonData, JsonMetadata)
+        INSERT INTO dbo.Events (StreamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata)
              SELECT @streamIdInternal,
-                    StreamRevision,
+                    StreamVersion,
                     Id,
                     Created,
                     [Type],

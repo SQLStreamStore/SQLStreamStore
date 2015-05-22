@@ -1,7 +1,7 @@
 SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 BEGIN TRANSACTION DeleteStream
         DECLARE @streamIdInternal AS INT;
-        DECLARE @latestStreamRevision  AS INT;
+        DECLARE @latestStreamVersion  AS INT;
 
          SELECT @streamIdInternal = Streams.IdInternal
            FROM Streams
@@ -15,12 +15,12 @@ BEGIN TRANSACTION DeleteStream
           END
 
           SELECT TOP(1)
-                @latestStreamRevision = Events.StreamRevision
+                @latestStreamVersion = Events.StreamVersion
            FROM Events
           WHERE Events.StreamIDInternal = @streamIdInternal
        ORDER BY Events.Ordinal DESC;
 
-         IF @latestStreamRevision != @expectedStreamRevision
+         IF @latestStreamVersion != @expectedStreamVersion
          BEGIN
             ROLLBACK TRANSACTION DeleteStream;
             RAISERROR('WrongExpectedVersion', 1,2);

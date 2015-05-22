@@ -13,7 +13,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Streams_Id ON dbo.Streams (Id);
  
 CREATE TABLE dbo.Events(
     StreamIdInternal    INT                                     NOT NULL,
-    StreamRevision      INT                                     NOT NULL,
+    StreamVersion      INT                                     NOT NULL,
     Ordinal             BIGINT                 IDENTITY(0,1)    NOT NULL,
     Id                  UNIQUEIDENTIFIER                        NOT NULL,
     Created             DATETIME                                NOT NULL,
@@ -24,10 +24,10 @@ CREATE TABLE dbo.Events(
     CONSTRAINT FK_Events_Streams FOREIGN KEY (StreamIdInternal) REFERENCES dbo.Streams(IdInternal)
 );
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Events_StreamIdInternal_Revision ON dbo.Events (StreamIdInternal, StreamRevision);
+CREATE UNIQUE NONCLUSTERED INDEX IX_Events_StreamIdInternal_Revision ON dbo.Events (StreamIdInternal, StreamVersion);
 
 CREATE TYPE dbo.NewStreamEvents AS TABLE (
-    StreamRevision      INT IDENTITY(0,1)                       NOT NULL,
+    StreamVersion      INT IDENTITY(0,1)                       NOT NULL,
     Id                  UNIQUEIDENTIFIER                        NOT NULL,
     Created             DATETIME            DEFAULT(GETDATE())  NOT NULL,
     [Type]              NVARCHAR(128)                           NOT NULL,
@@ -63,9 +63,9 @@ BEGIN TRANSACTION CreateStream;
         INSERT INTO dbo.Streams (Id, IdOriginal) VALUES (@streamId, @streamId);
         SELECT @streamIdInternal = SCOPE_IDENTITY();
 
-        INSERT INTO dbo.Events (StreamIdInternal, StreamRevision, Id, Created, [Type], JsonData, JsonMetadata)
+        INSERT INTO dbo.Events (StreamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata)
              SELECT @streamIdInternal,
-                    StreamRevision,
+                    StreamVersion,
                     Id,
                     Created,
                     [Type],
@@ -85,9 +85,9 @@ BEGIN TRANSACTION CreateStream;
         INSERT INTO dbo.Streams (Id, IdOriginal) VALUES (@streamId, @streamId);
         SELECT @streamIdInternal = SCOPE_IDENTITY();
 
-        INSERT INTO dbo.Events (StreamIdInternal, StreamRevision, Id, Created, [Type], JsonData, JsonMetadata)
+        INSERT INTO dbo.Events (StreamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata)
              SELECT @streamIdInternal,
-                    StreamRevision,
+                    StreamVersion,
                     Id,
                     Created,
                     [Type],
@@ -108,7 +108,7 @@ SET @rowspPage = 5;
 
 /* SQL Server 2012+ */
      SELECT Streams.IdOriginal As StreamId,
-            Events.StreamRevision,
+            Events.StreamVersion,
             Events.Ordinal,
             Events.Id AS EventId,
             Events.Created,
@@ -124,7 +124,7 @@ SET @rowspPage = 5;
 
  /* SQL Server 2000+ */
      SELECT Id As StreamId,
-            StreamRevision,
+            StreamVersion,
             Ordinal,
             EventId,
             Created,
@@ -134,7 +134,7 @@ SET @rowspPage = 5;
        FROM (
              SELECT ROW_NUMBER() OVER(ORDER BY Events.Ordinal) AS NUMBER,
                     Events.StreamIdInternal,
-                    Events.StreamRevision,
+                    Events.StreamVersion,
                     Events.Ordinal,
                     Events.Id AS EventId,
                     Events.Created,
@@ -155,7 +155,7 @@ SET @count1 = 5
 /* SQL Server 2008+ */
      SELECT TOP(@count1)
             Streams.IdOriginal As StreamId,
-            Events.StreamRevision,
+            Events.StreamVersion,
             Events.Ordinal,
             Events.Id AS EventId,
             Events.Created,
@@ -171,7 +171,7 @@ SET @count1 = 5
    /* SQL Server 2008+ */
      SELECT TOP(@count1)
             Streams.IdOriginal As StreamId,
-            Events.StreamRevision,
+            Events.StreamVersion,
             Events.Ordinal,
             Events.Id AS EventId,
             Events.Created,
@@ -205,7 +205,7 @@ SELECT * FROM dbo.Events;
 
 SET @count = 5;
 SET @streamId = 'stream-1';
-DECLARE @streamRevision AS INT = 0
+DECLARE @StreamVersion AS INT = 0
 DECLARE @isDeleted AS BIT;
 
      SELECT @streamIdInternal = Streams.IdInternal,
@@ -216,7 +216,7 @@ DECLARE @isDeleted AS BIT;
      SELECT @isDeleted AS IsDeleted
 
      SELECT TOP(@count)
-            Events.StreamRevision,
+            Events.StreamVersion,
             Events.Ordinal,
             Events.Id AS EventId,
             Events.Created,
@@ -226,18 +226,18 @@ DECLARE @isDeleted AS BIT;
        FROM Events
       INNER JOIN Streams
          ON Events.StreamIdInternal = Streams.IdInternal
-      WHERE Events.StreamIDInternal = @streamIDInternal AND Events.StreamRevision >= @streamRevision
+      WHERE Events.StreamIDInternal = @streamIDInternal AND Events.StreamVersion >= @StreamVersion
    ORDER BY Events.Ordinal;
 
      SELECT TOP(1)
-            Events.StreamRevision
+            Events.StreamVersion
        FROM Events
       WHERE Events.StreamIDInternal = @streamIDInternal
    ORDER BY Events.Ordinal DESC;
 
 /* ReadStreamBackward */
 
-SET @streamRevision = 5;
+SET @StreamVersion = 5;
 
      SELECT @streamIdInternal = Streams.IdInternal,
             @isDeleted = Streams.IsDeleted
@@ -249,7 +249,7 @@ SET @streamRevision = 5;
      SELECT TOP(@count)
             Streams.IdOriginal As StreamId,
             Streams.IsDeleted as IsDeleted,
-            Events.StreamRevision,
+            Events.StreamVersion,
             Events.Ordinal,
             Events.Id AS EventId,
             Events.Created,
@@ -259,11 +259,11 @@ SET @streamRevision = 5;
        FROM Events
  INNER JOIN Streams
          ON Events.StreamIdInternal = Streams.IdInternal
-      WHERE Events.StreamIDInternal = @streamIDInternal AND Events.StreamRevision <= @streamRevision
+      WHERE Events.StreamIDInternal = @streamIDInternal AND Events.StreamVersion <= @StreamVersion
    ORDER BY Events.Ordinal DESC
 
      SELECT TOP(1)
-            Events.StreamRevision
+            Events.StreamVersion
        FROM Events
       WHERE Events.StreamIDInternal = @streamIDInternal
    ORDER BY Events.Ordinal DESC;
@@ -272,8 +272,8 @@ SET @streamRevision = 5;
 SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 BEGIN TRANSACTION DeleteStream
         DECLARE @streamIdInternal2 AS INT;
-        DECLARE @expectedStreamRevision AS INT = 3;
-        DECLARE @latestStreamRevision  AS INT;
+        DECLARE @expectedStreamVersion AS INT = 3;
+        DECLARE @latestStreamVersion  AS INT;
         SET @streamId = 'stream-1';
 
          SELECT @streamIdInternal2 = Streams.IdInternal
@@ -287,12 +287,12 @@ BEGIN TRANSACTION DeleteStream
           END
 
           SELECT TOP(1)
-                @latestStreamRevision = Events.StreamRevision
+                @latestStreamVersion = Events.StreamVersion
            FROM Events
           WHERE Events.StreamIDInternal = @streamIdInternal2
        ORDER BY Events.Ordinal DESC;
 
-         IF @latestStreamRevision != @expectedStreamRevision
+         IF @latestStreamVersion != @expectedStreamVersion
          BEGIN
             ROLLBACK TRANSACTION DeleteStream;
             RAISERROR('WrongExpectedVersion', 12,2);

@@ -1,7 +1,7 @@
 /* SQL Server 2008+ */
      SELECT TOP(@count)
             Streams.IdOriginal As StreamId,
-            Events.StreamRevision,
+            Events.StreamVersion,
             Events.Ordinal,
             Events.Id AS EventId,
             Events.Created,

@@ -43,7 +43,7 @@
             {
                 var sqlMetadata = new[]
                 {
-                    new SqlMetaData("StreamRevision", SqlDbType.Int, true, false, SortOrder.Unspecified, -1),
+                    new SqlMetaData("StreamVersion", SqlDbType.Int, true, false, SortOrder.Unspecified, -1),
                     new SqlMetaData("Id", SqlDbType.UniqueIdentifier),
                     new SqlMetaData("Created", SqlDbType.DateTime, true, false, SortOrder.Unspecified, -1),
                     new SqlMetaData("Type", SqlDbType.NVarChar, 128),
@@ -114,7 +114,7 @@
             using (var command = new SqlCommand(Scripts.DeleteStreamExpectedVersion, _connection))
             {
                 command.Parameters.AddWithValue("streamId", streamId);
-                command.Parameters.AddWithValue("expectedStreamRevision", expectedVersion);
+                command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
                 try
                 {
                     await command
@@ -170,7 +170,7 @@
                 while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                 {
                     var streamId = reader.GetString(0);
-                    var streamRevision = reader.GetInt32(1);
+                    var StreamVersion = reader.GetInt32(1);
                     ordinal = reader.GetInt64(2);
                     var eventId = reader.GetGuid(3);
                     var created = reader.GetDateTime(4);
@@ -180,7 +180,7 @@
 
                     var streamEvent = new StreamEvent(streamId,
                         eventId,
-                        streamRevision,
+                        StreamVersion,
                         ordinal.ToString(),
                         created,
                         type,
@@ -221,7 +221,7 @@
 
             var streamIdInfo = HashStreamId(streamId);
 
-            var streamRevision = start == StreamPosition.End ? int.MaxValue : start;
+            var StreamVersion = start == StreamPosition.End ? int.MaxValue : start;
             string commandText;
             Func<List<StreamEvent>, int> getNextSequenceNumber;
             if(direction == ReadDirection.Forward)
@@ -239,7 +239,7 @@
             {
                 command.Parameters.AddWithValue("streamId", streamIdInfo.StreamId);
                 command.Parameters.AddWithValue("count", count + 1); //Read extra row to see if at end or not
-                command.Parameters.AddWithValue("streamRevision", streamRevision);
+                command.Parameters.AddWithValue("StreamVersion", StreamVersion);
 
                 List<StreamEvent> streamEvents = new List<StreamEvent>();
 
@@ -275,7 +275,7 @@
                 await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
                 while (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                 {
-                    var streamRevision1 = reader.GetInt32(0);
+                    var StreamVersion1 = reader.GetInt32(0);
                     var ordinal = reader.GetInt64(1);
                     var eventId = reader.GetGuid(2);
                     var created = reader.GetDateTime(3);
@@ -285,7 +285,7 @@
 
                     var streamEvent = new StreamEvent(streamId,
                         eventId,
-                        streamRevision1,
+                        StreamVersion1,
                         ordinal.ToString(),
                         created,
                         type,
@@ -298,7 +298,7 @@
                 // Read last event revision result set
                 await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
                 await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
-                var lastStreamRevision = reader.GetInt32(0);
+                var lastStreamVersion = reader.GetInt32(0);
 
 
                 bool isEnd = true;
@@ -313,7 +313,7 @@
                     PageReadStatus.Success,
                     start,
                     getNextSequenceNumber(streamEvents),
-                    lastStreamRevision,
+                    lastStreamVersion,
                     direction,
                     isEnd,
                     streamEvents.ToArray());

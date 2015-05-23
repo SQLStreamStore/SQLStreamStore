@@ -57,6 +57,10 @@
              {
                  throw new StreamDeletedException(streamId, ex);
              }
+             catch (global::EventStore.ClientAPI.Exceptions.WrongExpectedVersionException ex)
+             {
+                 throw new WrongExpectedVersionException(streamId, expectedVersion, ex);
+             }
          }
 
          public async Task DeleteStream(

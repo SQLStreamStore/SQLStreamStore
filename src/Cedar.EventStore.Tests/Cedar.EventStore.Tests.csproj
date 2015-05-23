@@ -58,6 +58,7 @@
     <Compile Include="EventStoreAcceptanceTests.ReadAll.cs" />
     <Compile Include="EventStoreAcceptanceTests.DeleteStream.cs" />
     <Compile Include="EventStoreAcceptanceTestFixture.cs" />
+    <Compile Include="EventStoreAcceptanceTests.AppendStream..cs" />
     <Compile Include="EventStoreAcceptanceTests.ReadStream.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SteamEventTests.cs" />

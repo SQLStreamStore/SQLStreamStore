@@ -43,5 +43,21 @@
                 }
             }
         }
+
+        [Fact]
+        public async Task Can_append_stream_with_correct_expected_version()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    const string streamId = "stream-1";
+                    await eventStore
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+
+                    await eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(4, 5, 6));
+                }
+            }
+        }
     }
 }

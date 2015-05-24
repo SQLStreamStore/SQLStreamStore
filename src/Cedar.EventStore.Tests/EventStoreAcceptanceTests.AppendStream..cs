@@ -22,5 +22,22 @@
                 }
             }
         }
+
+        [Fact]
+        public async Task When_append_with_wrong_expected_version_then_should_throw()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    await eventStore
+                        .AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+
+                    await eventStore
+                        .AppendToStream("stream-1", 1, CreateNewStreamEvents(4, 5, 6))
+                        .ShouldThrow<WrongExpectedVersionException>();
+                }
+            }
+        }
     }
 }

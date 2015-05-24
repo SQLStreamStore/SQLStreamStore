@@ -13,12 +13,14 @@
             {
                 using(var eventStore = await fixture.GetEventStore())
                 {
+                    const string streamId = "stream-1";
                     await eventStore
-                        .AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
 
                     await eventStore
-                        .AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamEvents(4, 5, 6))
-                        .ShouldThrow<WrongExpectedVersionException>();
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3))
+                        .ShouldThrow<WrongExpectedVersionException>(
+                            Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, ExpectedVersion.NoStream));
                 }
             }
         }
@@ -30,12 +32,14 @@
             {
                 using (var eventStore = await fixture.GetEventStore())
                 {
+                    const string streamId = "stream-1";
                     await eventStore
-                        .AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
 
                     await eventStore
-                        .AppendToStream("stream-1", 1, CreateNewStreamEvents(4, 5, 6))
-                        .ShouldThrow<WrongExpectedVersionException>();
+                        .AppendToStream(streamId, 1, CreateNewStreamEvents(4, 5, 6))
+                        .ShouldThrow<WrongExpectedVersionException>(
+                            Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, 1));
                 }
             }
         }

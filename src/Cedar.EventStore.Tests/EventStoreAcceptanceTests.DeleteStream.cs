@@ -74,6 +74,24 @@
         }
 
         [Fact]
+        public async Task When_delete_a_stream_and_append_then_should_throw()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    const string streamId = "stream";
+                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1));
+                    await eventStore.DeleteStream(streamId);
+
+                    await eventStore
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(2))
+                        .ShouldThrow<StreamDeletedException>(Messages.EventStreamIsDeleted.FormatWith(streamId));
+                }
+            }
+        }
+
+        [Fact]
         public async Task When_delete_stream_that_does_not_exist_with_expected_version_then_should_throw()
         {
             using (var fixture = GetFixture())
@@ -81,9 +99,11 @@
                 using (var eventStore = await fixture.GetEventStore())
                 {
                     const string streamId = "notexist";
+                    const int expectedVersion = 1;
 
-                    await eventStore.DeleteStream(streamId, 10)
-                        .ShouldThrow<WrongExpectedVersionException>();
+                    await eventStore.DeleteStream(streamId, 1)
+                        .ShouldThrow<WrongExpectedVersionException>(
+                            Messages.DeleteStreamFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion));
                 }
             }
         }
@@ -105,25 +125,8 @@
                     await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, events);
 
                     await eventStore.DeleteStream(streamId, 100)
-                        .ShouldThrow<WrongExpectedVersionException>();
-                }
-            }
-        }
-
-        [Fact]
-        public async Task When_delete_a_stream_and_append_then_should_throw()
-        {
-            using (var fixture = GetFixture())
-            {
-                using (var eventStore = await fixture.GetEventStore())
-                {
-                    const string streamId = "stream";
-                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1));
-                    await eventStore.DeleteStream(streamId);
-
-                    await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(2))
-                        .ShouldThrow<StreamDeletedException>();
+                        .ShouldThrow<WrongExpectedVersionException>(
+                        Messages.DeleteStreamFailedWrongExpectedVersion.FormatWith(streamId, 100));
                 }
             }
         }
@@ -132,7 +135,7 @@
 
     internal static class TaskExtensions
     {
-        internal static async Task ShouldThrow<T>(this Task task)
+        internal static async Task ShouldThrow<T>(this Task task, string message)
         {
             try
             {
@@ -140,7 +143,8 @@
             }
             catch(Exception ex)
             {
-                ex.Should().BeOfType<T>(ex.Message);
+                ex.Should().BeOfType<T>();
+                ex.Message.Should().Be(message);
             }
         }
     }

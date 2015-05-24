@@ -71,8 +71,22 @@
                         Value = sqlDataRecords
                     };
                     command.Parameters.Add(eventsParam);
-                    await command.ExecuteNonQueryAsync(cancellationToken)
-                        .NotOnCapturedContext();
+
+                    try
+                    {
+                        await command.ExecuteNonQueryAsync(cancellationToken)
+                            .NotOnCapturedContext();
+                    }
+                    catch(SqlException ex)
+                    {
+                        // Check for unique constraint violation on 
+                        // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
+                        /*if(ex.Number == 2601)
+                        {
+                            throw new WrongExpectedVersionException(streamId, ExpectedVersion.NoStream, ex);
+                        }*/
+                        throw;
+                    }
                 }
             }
             else
@@ -129,7 +143,8 @@
                 {
                     if(ex.Message == "WrongExpectedVersion")
                     {
-                        throw new WrongExpectedVersionException(streamId, expectedVersion, ex);
+                        throw new WrongExpectedVersionException(
+                            string.Format(Messages.EventStreamIsDeleted,streamId), ex);
                     }
                     throw;
                 }

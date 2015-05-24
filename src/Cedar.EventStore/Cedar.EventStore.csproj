@@ -49,6 +49,11 @@
     <Compile Include="GetUtcNow.cs" />
     <Compile Include="Checkpoint.cs" />
     <Compile Include="IEventStore.cs" />
+    <Compile Include="Exceptions\Messages.Designer.cs">
+      <AutoGen>True</AutoGen>
+      <DesignTime>True</DesignTime>
+      <DependentUpon>Messages.resx</DependentUpon>
+    </Compile>
     <Compile Include="NewStreamEvent.cs" />
     <Compile Include="PageReadStatus.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -59,6 +64,7 @@
     <Compile Include="StreamEventExtensions.cs" />
     <Compile Include="StreamEventsPage.cs" />
     <Compile Include="StreamPosition.cs" />
+    <Compile Include="StringExtensions.cs" />
     <Compile Include="SystemClock.cs" />
     <Compile Include="TaskExtensions.cs" />
   </ItemGroup>
@@ -70,6 +76,13 @@
   <ItemGroup>
     <None Include="Cedar.EventStore.nuspec" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Exceptions\Messages.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>Messages.Designer.cs</LastGenOutput>
+      <SubType>Designer</SubType>
+    </EmbeddedResource>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

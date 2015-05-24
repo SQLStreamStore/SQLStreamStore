@@ -5,10 +5,17 @@
     using System.Threading.Tasks;
     using FluentAssertions;
     using Xunit;
+    using Xunit.Abstractions;
 
     public abstract partial class EventStoreAcceptanceTests
     {
+        private readonly ITestOutputHelper _testOutputHelper;
         protected abstract EventStoreAcceptanceTestFixture GetFixture();
+
+        protected EventStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
+        {
+            _testOutputHelper = testOutputHelper;
+        }
 
         private static NewStreamEvent[] CreateNewStreamEvents(params int[] eventNumbers)
         {

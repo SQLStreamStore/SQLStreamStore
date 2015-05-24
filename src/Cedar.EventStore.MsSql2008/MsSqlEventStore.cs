@@ -61,7 +61,7 @@
                     return record;
                 }).ToArray();
 
-                using(var command = new SqlCommand(Scripts.CreateStream, _connection))
+                using(var command = new SqlCommand(Scripts.AppendStreamNoVersion, _connection))
                 {
                     command.Parameters.AddWithValue("streamId", streamIdInfo.StreamId);
                     command.Parameters.AddWithValue("streamIdOriginal", streamIdInfo.StreamIdOriginal);
@@ -74,6 +74,10 @@
                     await command.ExecuteNonQueryAsync(cancellationToken)
                         .NotOnCapturedContext();
                 }
+            }
+            else
+            {
+                throw new NotImplementedException();
             }
         }
 

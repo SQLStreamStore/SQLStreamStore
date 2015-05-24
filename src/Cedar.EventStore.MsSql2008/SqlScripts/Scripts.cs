@@ -7,21 +7,16 @@
     public static class Scripts
     {
         private static readonly ConcurrentDictionary<string, string> s_scripts 
-            = new ConcurrentDictionary<string, string>(); 
+            = new ConcurrentDictionary<string, string>();
 
-        public static string InitializeStore
+        public static string AppendStreamExpectedVersion
         {
-            get { return GetScript("InitializeStore"); }
+            get { return GetScript("AppendStreamExpectedVersion"); }
         }
 
-        public static string DropAll
+        public static string AppendStreamNoVersion
         {
-            get { return GetScript("DropAll"); }
-        }
-
-        public static string CreateStream
-        {
-            get { return GetScript("CreateStream"); }
+            get { return GetScript("AppendStreamNoStream"); }
         }
 
         public static string DeleteStreamAnyVersion
@@ -32,6 +27,16 @@
         public static string DeleteStreamExpectedVersion
         {
             get { return GetScript("DeleteStreamExpectedVersion"); }
+        }
+
+        public static string DropAll
+        {
+            get { return GetScript("DropAll"); }
+        }
+
+        public static string InitializeStore
+        {
+            get { return GetScript("InitializeStore"); }
         }
 
         public static string ReadAllForward

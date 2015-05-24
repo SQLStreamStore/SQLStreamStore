@@ -140,7 +140,7 @@
             }
             catch(Exception ex)
             {
-                ex.Should().BeOfType<T>();
+                ex.Should().BeOfType<T>(ex.Message);
             }
         }
     }

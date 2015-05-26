@@ -81,10 +81,11 @@
                     {
                         // Check for unique constraint violation on 
                         // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
-                        /*if(ex.Number == 2601)
+                        if(ex.Number == 2601)
                         {
-                            throw new WrongExpectedVersionException(streamId, ExpectedVersion.NoStream, ex);
-                        }*/
+                            throw new WrongExpectedVersionException(
+                                Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion), ex);
+                        }
                         throw;
                     }
                 }

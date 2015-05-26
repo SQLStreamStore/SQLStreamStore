@@ -13,7 +13,7 @@ BEGIN TRANSACTION CreateStream;
                     [Type],
                     JsonData,
                     JsonMetadata
-               FROM @events;
+               FROM @newEvents;
  
     END;
     SELECT @streamIdInternal;

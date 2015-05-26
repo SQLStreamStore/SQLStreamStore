@@ -65,7 +65,7 @@
                 {
                     command.Parameters.AddWithValue("streamId", streamIdInfo.StreamId);
                     command.Parameters.AddWithValue("streamIdOriginal", streamIdInfo.StreamIdOriginal);
-                    var eventsParam = new SqlParameter("events", SqlDbType.Structured)
+                    var eventsParam = new SqlParameter("newEvents", SqlDbType.Structured)
                     {
                         TypeName = "dbo.NewStreamEvents",
                         Value = sqlDataRecords
@@ -92,7 +92,59 @@
             }
             else
             {
-                throw new NotImplementedException();
+                var sqlMetadata = new[]
+                {
+                    new SqlMetaData("StreamVersion", SqlDbType.Int, true, false, SortOrder.Unspecified, -1),
+                    new SqlMetaData("Id", SqlDbType.UniqueIdentifier),
+                    new SqlMetaData("Created", SqlDbType.DateTime, true, false, SortOrder.Unspecified, -1),
+                    new SqlMetaData("Type", SqlDbType.NVarChar, 128),
+                    new SqlMetaData("JsonData", SqlDbType.NVarChar, SqlMetaData.Max),
+                    new SqlMetaData("JsonMetadata", SqlDbType.NVarChar, SqlMetaData.Max),
+                };
+
+                var sqlDataRecords = events.Select(@event =>
+                {
+                    var record = new SqlDataRecord(sqlMetadata);
+                    record.SetGuid(1, @event.EventId);
+                    record.SetString(3, @event.Type);
+                    record.SetString(4, @event.JsonData);
+                    record.SetString(5, @event.JsonMetadata);
+                    return record;
+                }).ToArray();
+
+                using (var command = new SqlCommand(Scripts.AppendStreamExpectedVersion, _connection))
+                {
+                    command.Parameters.AddWithValue("streamId", streamIdInfo.StreamId);
+                    command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
+                    var eventsParam = new SqlParameter("newEvents", SqlDbType.Structured)
+                    {
+                        TypeName = "dbo.NewStreamEvents",
+                        Value = sqlDataRecords
+                    };
+                    command.Parameters.Add(eventsParam);
+
+                    try
+                    {
+                        await command.ExecuteNonQueryAsync(cancellationToken)
+                            .NotOnCapturedContext();
+                    }
+                    catch(SqlException ex)
+                    {
+                        // Check for unique constraint violation on 
+                        // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
+                        if(ex.Number == 2601)
+                        {
+                            throw new WrongExpectedVersionException(
+                                Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
+                                ex);
+                        }
+                        throw;
+                    }
+                    catch(Exception ex)
+                    {
+                        throw;
+                    }
+                }
             }
         }
 

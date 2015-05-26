@@ -145,7 +145,10 @@
             {
                 ex.Should().BeOfType<T>();
                 ex.Message.Should().Be(message);
+
+                return;
             }
+            throw new Exception("Exeception not thrown");
         }
     }
 }

@@ -18,8 +18,8 @@
                     const string streamId = "stream";
                     var events = new[]
                     {
-                        new NewStreamEvent(Guid.NewGuid(), "data", "meta"),
-                        new NewStreamEvent(Guid.NewGuid(), "data", "meta")
+                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\""),
+                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\"")
                     };
 
                     await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, events);
@@ -40,7 +40,7 @@
             {
                 using (var eventStore = await fixture.GetEventStore())
                 {
-                    const string streamId = "stream";
+                    const string streamId = "notexist";
                     Func<Task> act = () => eventStore.DeleteStream(streamId);
 
                     act.ShouldNotThrow();
@@ -58,8 +58,8 @@
                     const string streamId = "stream";
                     var events = new[]
                     {
-                        new NewStreamEvent(Guid.NewGuid(), "data", "meta"),
-                        new NewStreamEvent(Guid.NewGuid(), "data", "meta")
+                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\""),
+                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\"")
                     };
 
                     await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, events);
@@ -80,7 +80,14 @@
             {
                 using (var eventStore = await fixture.GetEventStore())
                 {
-                    const string streamId = "notexist";
+                    const string streamId = "stream";
+                    var events = new[]
+                    {
+                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\""),
+                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\"")
+                    };
+
+                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, events);
 
                     await eventStore.DeleteStream(streamId, 10)
                         .ShouldThrow<WrongExpectedVersionException>();
@@ -98,8 +105,8 @@
                     const string streamId = "stream";
                     var events = new[]
                     {
-                        new NewStreamEvent(Guid.NewGuid(), "data", "meta"),
-                        new NewStreamEvent(Guid.NewGuid(), "data", "meta")
+                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\""),
+                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\"")
                     };
 
                     await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, events);

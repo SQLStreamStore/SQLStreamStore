@@ -19,19 +19,9 @@
             get { return GetScript("DropAll"); }
         }
 
-        public static string CreateStream
+        public static string BulkCopyEvents
         {
-            get { return GetScript("CreateStream"); }
-        }
-
-        public static string DeleteStreamAnyVersion
-        {
-            get { return GetScript("DeleteStreamAnyVersion"); }
-        }
-
-        public static string DeleteStreamExpectedVersion
-        {
-            get { return GetScript("DeleteStreamExpectedVersion"); }
+            get { return GetScript("BulkCopyEvents"); }
         }
 
         public static string ReadAllForward
@@ -42,16 +32,6 @@
         public static string ReadAllBackward
         {
             get { return GetScript("ReadAllBackward"); }
-        }
-
-        public static string ReadStreamForward
-        {
-            get { return GetScript("ReadStreamForward"); }
-        }
-
-        public static string ReadStreamBackward
-        {
-            get { return GetScript("ReadStreamBackward"); }
         }
 
         private static string GetScript(string name)
@@ -73,6 +53,49 @@
                         }
                     }
                 });
+        }
+
+        public static class Functions
+        {
+            public static string CreateStream
+            {
+                get { return "create_stream"; }
+            }
+
+            public static string GetStream
+            {
+                get { return "get_stream"; }
+            }
+
+            public static string ReadAllForward
+            {
+                get { return "read_all_forward"; }
+            }
+
+            public static string ReadAllBackward
+            {
+                get { return "read_all_backward"; }
+            }
+
+            public static string ReadStreamForward
+            {
+                get { return "read_stream_forward"; }
+            }
+
+            public static string ReadStreamBackward
+            {
+                get { return "read_stream_backward"; }
+            }
+
+            public static string DeleteStreamAnyVersion
+            {
+                get { return "delete_stream_any_version"; }
+            }
+
+            public static string DeleteStreamExpectedVersion
+            {
+                get { return "delete_stream_expected_version"; }
+            }
         }
     }
 }

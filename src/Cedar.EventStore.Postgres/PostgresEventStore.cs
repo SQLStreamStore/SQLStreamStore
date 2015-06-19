@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Data;
-    using System.Data.SqlClient;
     using System.Linq;
     using System.Security.Cryptography;
     using System.Text;
@@ -47,7 +46,6 @@
 
             var streamIdInfo = HashStreamId(streamId);
 
-            //using(var connection = await this.OpenConnection(cancellationToken))
             using(var tx = connection.BeginTransaction(IsolationLevel.Serializable))
             {
                 int streamIdInternal = -1;
@@ -56,12 +54,7 @@
 
                 if(expectedVersion == ExpectedVersion.NoStream)
                 {
-                    using(
-                        var command =
-                            new NpgsqlCommand(
-                                "INSERT INTO streams(id, id_original) VALUES (:stream_id, :stream_id_original) RETURNING id_internal;",
-                                connection,
-                                tx))
+                    using(var command = new NpgsqlCommand(Scripts.Functions.CreateStream, connection, tx){ CommandType =  CommandType.StoredProcedure})
                     {
                         command.Parameters.AddWithValue(":stream_id", streamIdInfo.StreamId);
                         command.Parameters.AddWithValue(":stream_id_original", streamIdInfo.StreamIdOriginal);
@@ -72,16 +65,7 @@
                 }
                 else
                 {
-                    using(var command = new NpgsqlCommand(@"
-SELECT streams.id_internal,
-       streams.is_deleted,
-       events.stream_version
-FROM streams
-LEFT JOIN events
-      ON events.stream_id_internal = streams.id_internal
-WHERE streams.id = :stream_id
-ORDER BY events.ordinal
-LIMIT 1;", connection, tx))
+                    using (var command = new NpgsqlCommand(Scripts.Functions.GetStream, connection, tx) { CommandType = CommandType.StoredProcedure })
                     {
                         command.Parameters.AddWithValue(":stream_id", streamIdInfo.StreamId);
 
@@ -101,21 +85,18 @@ LIMIT 1;", connection, tx))
 
                     if(isDeleted)
                     {
-                        tx.Rollback();
                         throw new StreamDeletedException(streamId);
                     }
 
                     if(expectedVersion != ExpectedVersion.Any && currentVersion != expectedVersion)
                     {
-                        tx.Rollback();
                         throw new WrongExpectedVersionException(streamId, expectedVersion);
                     }
                 }
 
                 using(
                     var writer =
-                        connection.BeginBinaryImport(
-                            "COPY events (stream_id_internal, stream_version, id, created, type, json_data, json_metadata) FROM STDIN BINARY")
+                        connection.BeginBinaryImport(Scripts.BulkCopyEvents)
                     )
                 {
                     foreach(var @event in events)
@@ -161,10 +142,8 @@ LIMIT 1;", connection, tx))
             string streamId,
             CancellationToken cancellationToken)
         {
-            //using (var connection = await this.OpenConnection(cancellationToken))
-            using (var command = new NpgsqlCommand("delete_stream_any_version", connection))
+            using (var command = new NpgsqlCommand(Scripts.Functions.DeleteStreamAnyVersion, connection) { CommandType = CommandType.StoredProcedure })
             {
-                command.CommandType = CommandType.StoredProcedure;
                 command.Parameters.AddWithValue("stream_id", streamId);
                 await command
                     .ExecuteNonQueryAsync(cancellationToken)
@@ -178,10 +157,8 @@ LIMIT 1;", connection, tx))
             int expectedVersion,
             CancellationToken cancellationToken)
         {
-            //using (var connection = await this.OpenConnection(cancellationToken))
-            using (var command = new NpgsqlCommand("delete_stream_expected_version", connection))
+            using (var command = new NpgsqlCommand(Scripts.Functions.DeleteStreamExpectedVersion, connection) { CommandType = CommandType.StoredProcedure })
             {
-                command.CommandType = CommandType.StoredProcedure;
                 command.Parameters.AddWithValue("stream_id", streamId);
                 command.Parameters.AddWithValue("expected_version", expectedVersion);
                 try
@@ -219,11 +196,10 @@ LIMIT 1;", connection, tx))
 
             var commandText = direction == ReadDirection.Forward ? Scripts.ReadAllForward : Scripts.ReadAllBackward;
 
-            //using (var connection = await this.OpenConnection(cancellationToken))
-            using (var command = new NpgsqlCommand(commandText, connection))
+            using (var command = new NpgsqlCommand(commandText, connection))// { CommandType = CommandType.StoredProcedure })
             {
-                command.Parameters.AddWithValue(":ordinal", ordinal);
-                command.Parameters.AddWithValue(":count", maxCount + 1); //Read extra row to see if at end or not
+                command.Parameters.AddWithValue(":ordinal", NpgsqlDbType.Bigint, ordinal);
+                command.Parameters.AddWithValue(":count", NpgsqlDbType.Integer, maxCount + 1); //Read extra row to see if at end or not
 
                 List<StreamEvent> streamEvents = new List<StreamEvent>();
 
@@ -298,23 +274,21 @@ LIMIT 1;", connection, tx))
             Func<List<StreamEvent>, int> getNextSequenceNumber;
             if(direction == ReadDirection.Forward)
             {
-                commandText = "read_stream_forward"; //Scripts.ReadStreamForward;
+                commandText = Scripts.Functions.ReadStreamForward;
                 getNextSequenceNumber = events => events.Last().StreamVersion + 1;
             }
             else
             {
-                commandText = "read_stream_backward"; //Scripts.ReadStreamBackward;
+                commandText = Scripts.Functions.ReadStreamBackward;
                 getNextSequenceNumber = events => events.Last().StreamVersion - 1;
             }
 
-            //using (var connection = await this.OpenConnection(cancellationToken))
             using (var tx = connection.BeginTransaction())
-            using (var command = new NpgsqlCommand(commandText, connection, tx))
+            using (var command = new NpgsqlCommand(commandText, connection, tx) { CommandType = CommandType.StoredProcedure })
             {
-                command.CommandType = CommandType.StoredProcedure;
-                command.Parameters.AddWithValue(":stream_id", streamIdInfo.StreamId);
-                command.Parameters.AddWithValue(":count", count + 1); //Read extra row to see if at end or not
-                command.Parameters.AddWithValue(":stream_version", StreamVersion);
+                command.Parameters.AddWithValue(":stream_id", NpgsqlDbType.Text, streamIdInfo.StreamId);
+                command.Parameters.AddWithValue(":count", NpgsqlDbType.Integer, count + 1); //Read extra row to see if at end or not
+                command.Parameters.AddWithValue(":stream_version", NpgsqlDbType.Integer, StreamVersion);
 
                 List<StreamEvent> streamEvents = new List<StreamEvent>();
 
@@ -395,8 +369,6 @@ LIMIT 1;", connection, tx))
             bool ignoreErrors = false,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            
-            //using (var connection = await this.OpenConnection(cancellationToken))
             using(var cmd = new NpgsqlCommand(Scripts.InitializeStore, connection))
             {
                 if (ignoreErrors)
@@ -416,7 +388,6 @@ LIMIT 1;", connection, tx))
             bool ignoreErrors = false,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            //using (var connection = await this.OpenConnection(cancellationToken))
             using(var cmd = new NpgsqlCommand(Scripts.DropAll, connection))
             {
                 if (ignoreErrors)
@@ -457,13 +428,6 @@ LIMIT 1;", connection, tx))
             byte[] hashBytes = SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(streamId));
             var hashedStreamId = BitConverter.ToString(hashBytes).Replace("-", "");
             return new StreamIdInfo(hashedStreamId, streamId);
-        }
-
-        private async Task<NpgsqlConnection> OpenConnection(CancellationToken cancellationToken = default(CancellationToken))
-        {
-            var connection = _createConnection();
-            await connection.OpenAsync(cancellationToken);
-            return connection;
         }
 
         private class StreamIdInfo

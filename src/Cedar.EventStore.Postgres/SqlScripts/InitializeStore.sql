@@ -4,7 +4,9 @@ CREATE TABLE streams(
     id_original text NOT NULL,
     is_deleted boolean DEFAULT (false) NOT NULL
 );
-CREATE UNIQUE INDEX ix_streams_id ON streams USING btree(id);
+CREATE UNIQUE INDEX ix_streams_id
+ON streams
+USING btree(id);
 
 CREATE TABLE events(
     stream_id_internal integer NOT NULL,
@@ -18,16 +20,93 @@ CREATE TABLE events(
     CONSTRAINT fk_events_streams FOREIGN KEY (stream_id_internal) REFERENCES streams(id_internal)
 );
 
-CREATE UNIQUE INDEX ix_events_stream_id_internal_revision ON events USING btree(stream_id_internal, stream_version);
+CREATE UNIQUE INDEX ix_events_stream_id_internal_revision
+ON events
+USING btree(stream_id_internal, stream_version);
 
-CREATE TYPE new_stream_events AS (
-    stream_version integer,
-    id uuid,
-    created timestamp,
-    type text,
-    json_data json,
-    json_metadata json
-);
+CREATE OR REPLACE FUNCTION create_stream(_stream_id text, _stream_id_original text)
+RETURNS integer AS
+$BODY$
+DECLARE
+    _result integer;
+BEGIN
+    INSERT INTO streams(id, id_original)
+    VALUES (_stream_id, _stream_id_original)
+    RETURNING id_internal
+    INTO _result;
+
+    RETURN _result;
+END;
+$BODY$
+LANGUAGE plpgsql;
+
+
+CREATE OR REPLACE FUNCTION get_stream(_stream_id text)
+RETURNS TABLE(id_internal integer, is_deleted boolean, stream_version integer) AS
+$BODY$
+BEGIN
+    RETURN QUERY
+    SELECT streams.id_internal,
+           streams.is_deleted,
+           events.stream_version
+    FROM streams
+    LEFT JOIN events
+          ON events.stream_id_internal = streams.id_internal
+    WHERE streams.id = _stream_id
+    ORDER BY events.ordinal
+    LIMIT 1;
+END;
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION read_all_forward(_ordinal bigint, _count integer)
+RETURNS TABLE(stream_id integer, stream_version integer, ordinal bigint, event_id uuid, created timestamp, type text, json_data json, json_metadata json) AS
+$BODY$
+BEGIN
+    RETURN QUERY
+    SELECT 
+                streams.id_original As stream_id,
+                events.stream_version,
+                events.ordinal,
+                events.id AS event_id,
+                events.created,
+                events.type,
+                events.json_data,
+                events.json_metadata
+           FROM events
+     INNER JOIN streams
+             ON events.stream_id_internal = streams.id_internal
+          WHERE events.ordinal >= _ordinal
+       ORDER BY events.ordinal
+    LIMIT _count;
+END;
+$BODY$
+LANGUAGE plpgsql;
+
+CREATE OR REPLACE FUNCTION read_all_backward(_ordinal bigint, _count integer)
+RETURNS TABLE(stream_id integer, stream_version integer, ordinal bigint, event_id uuid, created timestamp, type text, json_data json, json_metadata json) AS
+$BODY$
+BEGIN
+    RETURN QUERY
+    SELECT 
+                streams.id_original As stream_id,
+                events.stream_version,
+                events.ordinal,
+                events.id AS event_id,
+                events.created,
+                events.type,
+                events.json_data,
+                events.json_metadata
+           FROM events
+     INNER JOIN streams
+             ON events.stream_id_internal = streams.id_internal
+          WHERE events.ordinal <= _ordinal
+       ORDER BY events.ordinal DESC
+    LIMIT _count;
+END;
+$BODY$
+LANGUAGE plpgsql;
+
 
 CREATE OR REPLACE FUNCTION read_stream_forward(_stream_id text, _count integer, _stream_version integer) RETURNS SETOF refcursor AS
 $BODY$
@@ -38,7 +117,6 @@ DECLARE
   _stream_id_internal integer;
   _is_deleted boolean;
 BEGIN
-
 SELECT streams.id_internal, streams.is_deleted
  INTO _stream_id_internal, _is_deleted
  FROM streams
@@ -169,7 +247,8 @@ BEGIN
  WHERE streams.id = stream_id;
 
  IF _stream_id_internal IS NULL THEN
-    RAISE EXCEPTION  'WrongExpectedVersion';
+    RAISE EXCEPTION  'WrongExpectedVersion'
+    USING HINT = 'The Stream ' || stream_id || ' does not exist.';
  END IF;
 
  SELECT stream_version
@@ -180,7 +259,8 @@ BEGIN
  LIMIT 1; 
 
  IF (_lastest_stream_version <> expected_version) THEN
-    RAISE EXCEPTION  'WrongExpectedVersion';
+    RAISE EXCEPTION  'WrongExpectedVersion'
+    USING HINT = 'The Stream ' || stream_id || 'version was expected to be' || expected_version::text || ' but was version ' || _lastest_stream_version::text || '.' ;
  END IF;
 
  DELETE FROM events

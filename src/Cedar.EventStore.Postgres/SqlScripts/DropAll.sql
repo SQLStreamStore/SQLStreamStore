@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS events;
+DROP TABLE IF EXISTS streams;
+DROP TYPE IF EXISTS new_stream_events;

@@ -47,6 +47,7 @@ task RunTests -depends Compile {
     Run-Tests "Cedar.EventStore.GetEventStore.Tests"
     Run-Tests "Cedar.EventStore.MsSql2008.Tests"
     Run-Tests "Cedar.EventStore.Sqlite.Tests"
+    Run-Tests "Cedar.EventStore.Postgres.Tests"
 }
 
 task ILMerge -depends Compile {
@@ -68,6 +69,12 @@ task ILMerge -depends Compile {
     $dllDir = "$srcDir\$mainDllName\bin\Release"
     $inputDlls = "$dllDir\$mainDllName.dll"
     @(  "EnsureThat" ) |% { $inputDlls = "$inputDlls $dllDir\$_.dll" }
+    Invoke-Expression "$ilmergePath /targetplatform:v4 /internalize /allowDup /target:library /log /out:$mergedDir\$mainDllName.dll $inputDlls"
+
+    $mainDllName = "Cedar.EventStore.Postgres"
+    $dllDir = "$srcDir\$mainDllName\bin\Release"
+    $inputDlls = "$dllDir\$mainDllName.dll"
+    @(  "EnsureThat", "Npgsql" ) |% { $inputDlls = "$inputDlls $dllDir\$_.dll" }
     Invoke-Expression "$ilmergePath /targetplatform:v4 /internalize /allowDup /target:library /log /out:$mergedDir\$mainDllName.dll $inputDlls"
 }
 

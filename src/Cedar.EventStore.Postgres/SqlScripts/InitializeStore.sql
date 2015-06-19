@@ -179,10 +179,9 @@ BEGIN
  ORDER BY events.ordinal DESC
  LIMIT 1; 
 
- --IF (_lastest_stream_version <> expected_version) THEN
- --BEGIN
- --   RAISE EXCEPTION  'WrongExpectedVersion';
- --END IF;
+ IF (_lastest_stream_version <> expected_version) THEN
+    RAISE EXCEPTION  'WrongExpectedVersion';
+ END IF;
 
  DELETE FROM events
  WHERE events.stream_id_internal = _stream_id_internal;

@@ -83,6 +83,8 @@
                     const string streamId = "stream";
                     await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1));
                     await eventStore.DeleteStream(streamId);
+
+                    var events = new[]{
                         new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\""),
                         new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\"")
                     };
@@ -105,7 +107,7 @@
                 {
                     const string streamId = "notexist";
                     const int expectedVersion = 1;
-                    const string streamId = "stream";
+
                     var events = new[]
                     {
                         new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\""),
@@ -131,8 +133,8 @@
                     const string streamId = "stream";
                     var events = new[]
                     {
-                        new NewStreamEvent(Guid.NewGuid(), "data", "meta"),
-                        new NewStreamEvent(Guid.NewGuid(), "data", "meta")
+                        new NewStreamEvent(Guid.NewGuid(), "\"data\"", "\"meta\""),
+                        new NewStreamEvent(Guid.NewGuid(), "\"data\"", "\"meta\"")
                     };
 
                     await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, events);

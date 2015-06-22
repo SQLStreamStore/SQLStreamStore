@@ -54,13 +54,35 @@
 
                 if(expectedVersion == ExpectedVersion.NoStream)
                 {
-                    using(var command = new NpgsqlCommand(Scripts.Functions.CreateStream, connection, tx){ CommandType =  CommandType.StoredProcedure})
+                    try
                     {
-                        command.Parameters.AddWithValue(":stream_id", streamIdInfo.StreamId);
-                        command.Parameters.AddWithValue(":stream_id_original", streamIdInfo.StreamIdOriginal);
+                        using(
+                            var command = new NpgsqlCommand(Scripts.Functions.CreateStream, connection, tx)
+                                              {
+                                                  CommandType
+                                                      =
+                                                      CommandType
+                                                      .StoredProcedure
+                                              })
+                        {
+                            command.Parameters.AddWithValue(":stream_id", streamIdInfo.StreamId);
+                            command.Parameters.AddWithValue(":stream_id_original", streamIdInfo.StreamIdOriginal);
 
-                        streamIdInternal =
-                            (int)await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                            streamIdInternal =
+                                (int)await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                        }
+                    }
+                    catch(NpgsqlException ex)
+                    {
+                        tx.Rollback();
+
+                        if(ex.Code == "23505")
+                        {
+                            throw new WrongExpectedVersionException(
+                            Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion));
+                        }
+
+                        throw;
                     }
                 }
                 else
@@ -85,7 +107,7 @@
 
                     if(isDeleted)
                     {
-                        throw new StreamDeletedException(streamId);
+                        throw new StreamDeletedException(Messages.EventStreamIsDeleted.FormatWith(streamId));
                     }
 
                     if(expectedVersion != ExpectedVersion.Any && currentVersion != expectedVersion)
@@ -135,17 +157,17 @@
             var streamIdInfo = HashStreamId(streamId);
 
             return expectedVersion == ExpectedVersion.Any
-                ? this.DeleteStreamAnyVersion(streamIdInfo.StreamId, cancellationToken)
-                : this.DeleteStreamExpectedVersion(streamIdInfo.StreamId, expectedVersion, cancellationToken);
+                ? this.DeleteStreamAnyVersion(streamIdInfo, cancellationToken)
+                : this.DeleteStreamExpectedVersion(streamIdInfo, expectedVersion, cancellationToken);
         }
 
         private async Task DeleteStreamAnyVersion(
-            string streamId,
+            StreamIdInfo streamIdInfo,
             CancellationToken cancellationToken)
         {
             using (var command = new NpgsqlCommand(Scripts.Functions.DeleteStreamAnyVersion, connection) { CommandType = CommandType.StoredProcedure })
             {
-                command.Parameters.AddWithValue("stream_id", streamId);
+                command.Parameters.AddWithValue("stream_id", streamIdInfo.StreamId);
                 await command
                     .ExecuteNonQueryAsync(cancellationToken)
                     .NotOnCapturedContext();
@@ -154,13 +176,13 @@
 
 
         private async Task DeleteStreamExpectedVersion(
-            string streamId,
+            StreamIdInfo streamIdInfo,
             int expectedVersion,
             CancellationToken cancellationToken)
         {
             using (var command = new NpgsqlCommand(Scripts.Functions.DeleteStreamExpectedVersion, connection) { CommandType = CommandType.StoredProcedure })
             {
-                command.Parameters.AddWithValue("stream_id", streamId);
+                command.Parameters.AddWithValue("stream_id", streamIdInfo.StreamId);
                 command.Parameters.AddWithValue("expected_version", expectedVersion);
                 try
                 {
@@ -172,8 +194,7 @@
                 {
                     if(ex.MessageText == "WrongExpectedVersion")
                     {
-                        throw new WrongExpectedVersionException(
-                                Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion), ex);
+                        throw new WrongExpectedVersionException(Messages.DeleteStreamFailedWrongExpectedVersion.FormatWith(streamIdInfo.StreamIdOriginal, expectedVersion));
                     }
                     throw;
                 }

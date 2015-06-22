@@ -90,7 +90,8 @@
 
                     if(expectedVersion != ExpectedVersion.Any && currentVersion != expectedVersion)
                     {
-                        throw new WrongExpectedVersionException(streamId, expectedVersion);
+                        throw new WrongExpectedVersionException(
+                            Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion));
                     }
                 }
 
@@ -171,7 +172,8 @@
                 {
                     if(ex.MessageText == "WrongExpectedVersion")
                     {
-                        throw new WrongExpectedVersionException(streamId, expectedVersion, ex);
+                        throw new WrongExpectedVersionException(
+                                Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion), ex);
                     }
                     throw;
                 }

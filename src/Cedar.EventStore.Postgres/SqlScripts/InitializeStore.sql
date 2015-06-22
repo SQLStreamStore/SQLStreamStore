@@ -53,7 +53,7 @@ BEGIN
     LEFT JOIN events
           ON events.stream_id_internal = streams.id_internal
     WHERE streams.id = _stream_id
-    ORDER BY events.ordinal
+    ORDER BY events.ordinal DESC
     LIMIT 1;
 END;
 $BODY$

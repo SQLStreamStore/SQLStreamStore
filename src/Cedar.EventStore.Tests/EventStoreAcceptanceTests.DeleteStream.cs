@@ -11,9 +11,9 @@
         [Fact]
         public async Task When_delete_existing_stream_with_no_expected_version_then_should_be_deleted()
         {
-            using(var fixture = GetFixture())
+            using (var fixture = GetFixture())
             {
-                using(var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetEventStore())
                 {
                     const string streamId = "stream";
                     var events = new[]
@@ -81,15 +81,9 @@
                 using (var eventStore = await fixture.GetEventStore())
                 {
                     const string streamId = "stream";
+
                     await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1));
                     await eventStore.DeleteStream(streamId);
-
-                    var events = new[]{
-                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\""),
-                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\"")
-                    };
-
-                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, events);
 
                     await eventStore
                         .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(2))
@@ -108,14 +102,6 @@
                     const string streamId = "notexist";
                     const int expectedVersion = 1;
 
-                    var events = new[]
-                    {
-                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\""),
-                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\"")
-                    };
-
-                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, events);
-
                     await eventStore.DeleteStream(streamId, 1)
                         .ShouldThrow<WrongExpectedVersionException>(
                             Messages.DeleteStreamFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion));
@@ -133,8 +119,8 @@
                     const string streamId = "stream";
                     var events = new[]
                     {
-                        new NewStreamEvent(Guid.NewGuid(), "\"data\"", "\"meta\""),
-                        new NewStreamEvent(Guid.NewGuid(), "\"data\"", "\"meta\"")
+                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\""),
+                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\"")
                     };
 
                     await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, events);

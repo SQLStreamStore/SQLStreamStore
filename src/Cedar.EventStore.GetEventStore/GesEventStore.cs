@@ -55,7 +55,11 @@
              }
              catch(global::EventStore.ClientAPI.Exceptions.StreamDeletedException ex)
              {
-                 throw new StreamDeletedException(streamId, ex);
+                 throw new StreamDeletedException(ex.Message, ex);
+             }
+             catch (global::EventStore.ClientAPI.Exceptions.WrongExpectedVersionException ex)
+             {
+                 throw new WrongExpectedVersionException(ex.Message, ex);
              }
          }
 
@@ -74,7 +78,7 @@
              }
              catch(global::EventStore.ClientAPI.Exceptions.WrongExpectedVersionException ex)
              {
-                 throw new WrongExpectedVersionException(streamId, exptectedVersion, ex);
+                 throw new WrongExpectedVersionException(ex.Message, ex);
              }
          }
 

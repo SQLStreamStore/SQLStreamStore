@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Configuration;
     using System.Data;
     using System.Linq;
     using System.Security.Cryptography;
@@ -20,18 +21,31 @@
 
     public class PostgresEventStore : IEventStore
     {
-        private readonly Func<NpgsqlConnection> _createConnection;
+        private readonly Func<Task<NpgsqlConnection>> _createAndOpenConnection;
 
-        private readonly NpgsqlConnection connection;
         private readonly InterlockedBoolean _isDisposed = new InterlockedBoolean();
 
-        public PostgresEventStore(Func<NpgsqlConnection> createConnection)
+        public PostgresEventStore(string connectionStringOrConnectionStringName)
         {
-            Ensure.That(createConnection, "createConnection").IsNotNull();
-
-            _createConnection = createConnection;
-            connection = createConnection();
-            connection.Open();
+            if(connectionStringOrConnectionStringName.IndexOf(';') > -1)
+            {
+                var builder = new NpgsqlConnectionStringBuilder(connectionStringOrConnectionStringName);
+                _createAndOpenConnection = async () =>
+                    {  
+                        var connection = new NpgsqlConnection(builder);
+                        await connection.OpenAsync();
+                        return connection;
+                    };
+            }
+            else
+            {
+                _createAndOpenConnection = async () =>
+                {
+                    var connection = new NpgsqlConnection(ConfigurationManager.ConnectionStrings[connectionStringOrConnectionStringName].ConnectionString);
+                    await connection.OpenAsync();
+                    return connection;
+                };
+            }
         }
 
         public async Task AppendToStream(
@@ -46,6 +60,7 @@
 
             var streamIdInfo = HashStreamId(streamId);
 
+            using(var connection = await _createAndOpenConnection())
             using(var tx = connection.BeginTransaction(IsolationLevel.Serializable))
             {
                 int streamIdInternal = -1;
@@ -165,6 +180,7 @@
             StreamIdInfo streamIdInfo,
             CancellationToken cancellationToken)
         {
+            using (var connection = await _createAndOpenConnection())
             using (var command = new NpgsqlCommand(Scripts.Functions.DeleteStreamAnyVersion, connection) { CommandType = CommandType.StoredProcedure })
             {
                 command.Parameters.AddWithValue("stream_id", streamIdInfo.StreamId);
@@ -180,6 +196,7 @@
             int expectedVersion,
             CancellationToken cancellationToken)
         {
+            using (var connection = await _createAndOpenConnection())
             using (var command = new NpgsqlCommand(Scripts.Functions.DeleteStreamExpectedVersion, connection) { CommandType = CommandType.StoredProcedure })
             {
                 command.Parameters.AddWithValue("stream_id", streamIdInfo.StreamId);
@@ -219,6 +236,7 @@
 
             var commandText = direction == ReadDirection.Forward ? Scripts.ReadAllForward : Scripts.ReadAllBackward;
 
+            using (var connection = await _createAndOpenConnection())
             using (var command = new NpgsqlCommand(commandText, connection))// { CommandType = CommandType.StoredProcedure })
             {
                 command.Parameters.AddWithValue(":ordinal", NpgsqlDbType.Bigint, ordinal);
@@ -306,6 +324,7 @@
                 getNextSequenceNumber = events => events.Last().StreamVersion - 1;
             }
 
+            using (var connection = await _createAndOpenConnection())
             using (var tx = connection.BeginTransaction())
             using (var command = new NpgsqlCommand(commandText, connection, tx) { CommandType = CommandType.StoredProcedure })
             {
@@ -385,13 +404,14 @@
             {
                 return;
             }
-            this.connection.Dispose();
+            //no clean up to do, lean on Npgsql connection pooling
         }
 
         public async Task InitializeStore(
             bool ignoreErrors = false,
             CancellationToken cancellationToken = default(CancellationToken))
         {
+            using (var connection = await _createAndOpenConnection())
             using(var cmd = new NpgsqlCommand(Scripts.InitializeStore, connection))
             {
                 if (ignoreErrors)
@@ -411,6 +431,7 @@
             bool ignoreErrors = false,
             CancellationToken cancellationToken = default(CancellationToken))
         {
+            using (var connection = await _createAndOpenConnection())
             using(var cmd = new NpgsqlCommand(Scripts.DropAll, connection))
             {
                 if (ignoreErrors)

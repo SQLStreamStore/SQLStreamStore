@@ -22,7 +22,7 @@ CREATE TABLE events(
 
 CREATE UNIQUE INDEX ix_events_stream_id_internal_revision
 ON events
-USING btree(stream_id_internal, stream_version);
+USING btree(stream_id_internal, ordinal, stream_version);
 
 CREATE OR REPLACE FUNCTION create_stream(_stream_id text, _stream_id_original text)
 RETURNS integer AS

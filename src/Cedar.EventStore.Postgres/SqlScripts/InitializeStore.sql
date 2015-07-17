@@ -22,7 +22,7 @@ CREATE TABLE events(
 
 CREATE UNIQUE INDEX ix_events_stream_id_internal_revision
 ON events
-USING btree(stream_id_internal, ordinal, stream_version);
+USING btree(stream_id_internal, ordinal DESC, stream_version);
 
 CREATE OR REPLACE FUNCTION create_stream(_stream_id text, _stream_id_original text)
 RETURNS integer AS
@@ -40,8 +40,7 @@ END;
 $BODY$
 LANGUAGE plpgsql;
 
-
-CREATE OR REPLACE FUNCTION get_stream(_stream_id text)
+CREATE OR REPLACE FUNCTION get_stream(_stream_id text, _expected_version integer)
 RETURNS TABLE(id_internal integer, is_deleted boolean, stream_version integer) AS
 $BODY$
 BEGIN
@@ -52,6 +51,7 @@ BEGIN
     FROM streams
     LEFT JOIN events
           ON events.stream_id_internal = streams.id_internal
+          AND (events.stream_version >= _expected_version OR _expected_version < 0)
     WHERE streams.id = _stream_id
     ORDER BY events.ordinal DESC
     LIMIT 1;

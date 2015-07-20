@@ -105,7 +105,6 @@
                     using (var command = new NpgsqlCommand(Scripts.Functions.GetStream, connection, tx) { CommandType = CommandType.StoredProcedure })
                     {
                         command.Parameters.AddWithValue(":stream_id", streamIdInfo.StreamId);
-                        command.Parameters.AddWithValue(":expected_version", expectedVersion);
 
                         using(var dr = await command.ExecuteReaderAsync().NotOnCapturedContext())
                         {
@@ -113,17 +112,9 @@
                             {
                                 streamIdInternal = dr.GetInt32(0);
                                 isDeleted = dr.GetBoolean(1);
-
+                                
                                 if (!isDeleted)
                                 {
-                                    if (expectedVersion != ExpectedVersion.Any && dr.IsDBNull(2))
-                                    {
-                                        /* optimisation: getting the stream revision on a large stream is costly.
-                                         * we're joining on (events.stream_version >= _expected_version OR _expected_version < 0)
-                                         * if current version is null then it's less than the expected version and we can short circuit */
-                                        throw new WrongExpectedVersionException(Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion));
-                                    }
-
                                     currentVersion = dr.GetInt32(2);
                                 }
                             }

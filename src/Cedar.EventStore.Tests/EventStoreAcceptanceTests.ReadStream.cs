@@ -46,6 +46,42 @@
             }
         }
 
+        [Theory]
+        [InlineData(ReadDirection.Forward, 0, 10)]
+        [InlineData(ReadDirection.Backward, StreamPosition.End, 10)]
+        public async Task Empty_Streams_return_StreamNotFound(ReadDirection direction, int start, int pageSize)
+        {
+            using(var fixture = GetFixture())
+            {
+                using(var eventStore = await fixture.GetEventStore())
+                {
+                    var streamEventsPage =
+                        await eventStore.ReadStream("stream-does-not-exist", start, pageSize, direction);
+
+                    streamEventsPage.Status.Should().Be(PageReadStatus.StreamNotFound);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData(ReadDirection.Forward, 0, 10)]
+        [InlineData(ReadDirection.Backward, StreamPosition.End, 10)]
+        public async Task Deleted_Streams_return_StreamDeleted(ReadDirection direction, int start, int pageSize)
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+                    await eventStore.DeleteStream("stream-1", ExpectedVersion.Any);
+
+                    var streamEventsPage =
+                        await eventStore.ReadStream("stream-1", start, pageSize, direction);
+
+                    streamEventsPage.Status.Should().Be(PageReadStatus.StreamDeleted);
+                }
+            }
+        }
         public static IEnumerable<object[]> GetReadStreamTheories()
         {
             var theories = new[]

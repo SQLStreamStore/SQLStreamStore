@@ -21,5 +21,17 @@
             }
             throw new Exception("Exception not thrown");
         }
+
+        internal static async Task ShouldNotThrow(this Task task)
+        {
+            try
+            {
+                await task;
+            }
+            catch (Exception ex)
+            {
+                throw new Exception("Exception throw but was not expected", ex);
+            }
+        }
     }
 }

@@ -4,7 +4,8 @@
 
     public class MsSqlEventStoreTests : EventStoreAcceptanceTests
     {
-        public MsSqlEventStoreTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        public MsSqlEventStoreTests(ITestOutputHelper testOutputHelper)
+            : base(testOutputHelper)
         {}
 
         protected override EventStoreAcceptanceTestFixture GetFixture()

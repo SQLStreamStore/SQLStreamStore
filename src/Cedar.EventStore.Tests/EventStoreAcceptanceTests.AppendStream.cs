@@ -7,7 +7,7 @@
     public abstract partial class EventStoreAcceptanceTests
     {
         [Fact]
-        public async Task When_append_stream_second_time_with_no_stream_expected_then_should_throw()
+        public async Task When_append_stream_second_time_with_no_stream_expected_and_different_event_then_should_throw()
         {
             using(var fixture = GetFixture())
             {
@@ -18,9 +18,28 @@
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
 
                     await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3))
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(2, 3, 4))
                         .ShouldThrow<WrongExpectedVersionException>(
                             Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, ExpectedVersion.NoStream));
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_append_stream_second_time_with_no_stream_expected_and_same_events_then_should_not_throw()
+        {
+            // Idempotency
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    const string streamId = "stream-1";
+                    await eventStore
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+
+                    await eventStore
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3))
+                        .ShouldNotThrow();
                 }
             }
         }

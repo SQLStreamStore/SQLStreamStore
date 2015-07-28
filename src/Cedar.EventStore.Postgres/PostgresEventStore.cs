@@ -115,7 +115,7 @@
                                 
                                 if (!isDeleted)
                                 {
-                                    currentVersion = dr.GetInt32(2);
+                                    currentVersion = dr.IsDBNull(2) ? -1 : dr.GetInt32(2);
                                 }
                             }
                         }
@@ -245,16 +245,19 @@
 
                 List<StreamEvent> streamEvents = new List<StreamEvent>();
 
+                long latestCheckpoint = ordinal;
+
                 using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
                 {
                     if (!reader.HasRows)
                     {
                         return new AllEventsPage(checkpoint.Value,
-                            null,
+                            checkpoint.Value,
                             true,
                             direction,
                             streamEvents.ToArray());
                     }
+
 
                     while (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                     {
@@ -266,6 +269,8 @@
                         var type = reader.GetString(5);
                         var jsonData = reader.GetString(6);
                         var jsonMetadata = reader.GetString(7);
+
+                        latestCheckpoint = ordinal;
 
                         var streamEvent = new StreamEvent(streamId,
                             eventId,
@@ -281,14 +286,18 @@
                 }
 
                 bool isEnd = true;
-                string nextCheckpoint = null;
+                string nextCheckpoint = latestCheckpoint.ToString();
 
                 if(streamEvents.Count == maxCount + 1)
                 {
                     isEnd = false;
-                    nextCheckpoint = streamEvents[maxCount].Checkpoint;
                     streamEvents.RemoveAt(maxCount);
                 }
+                else
+                {
+                    nextCheckpoint = (latestCheckpoint + 1).ToString();
+                }
+
 
                 return new AllEventsPage(checkpoint.Value,
                     nextCheckpoint,
@@ -317,12 +326,12 @@
             if(direction == ReadDirection.Forward)
             {
                 commandText = Scripts.Functions.ReadStreamForward;
-                getNextSequenceNumber = events => events.Last().StreamVersion + 1;
+                getNextSequenceNumber = events => events.Count > 0 ? events.Last().StreamVersion + 1 : -1; //todo: review this
             }
             else
             {
                 commandText = Scripts.Functions.ReadStreamBackward;
-                getNextSequenceNumber = events => events.Last().StreamVersion - 1;
+                getNextSequenceNumber = events => events.Count > 0 ? events.Last().StreamVersion - 1 : -1; //todo: review this
             }
 
             using (var connection = await _createAndOpenConnection())
@@ -376,7 +385,7 @@
                     // Read last event revision result set
                     await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
                     await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
-                    var lastStreamVersion = reader.GetInt32(0);
+                    var lastStreamVersion = reader.HasRows ? reader.GetInt32(0) : -1; //todo: figure out wtf going on here
 
 
                     bool isEnd = true;

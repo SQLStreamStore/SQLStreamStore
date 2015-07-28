@@ -5,30 +5,16 @@
     using System.Threading.Tasks;
     using FluentAssertions;
     using Xunit;
+    using Xunit.Abstractions;
 
     public abstract partial class EventStoreAcceptanceTests
     {
+        private readonly ITestOutputHelper _testOutputHelper;
         protected abstract EventStoreAcceptanceTestFixture GetFixture();
 
-        private static NewStreamEvent[] CreateNewStreamEvents(params int[] eventNumbers)
+        protected EventStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
         {
-            return eventNumbers
-                .Select(eventNumber =>
-                {
-                    var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
-                    return new NewStreamEvent(eventId, "type", "data", "metadata");
-                })
-                .ToArray();
-        }
-
-        private static StreamEvent ExpectedStreamEvent(
-            string streamId,
-            int eventNumber,
-            int sequenceNumber,
-            DateTime created)
-        {
-            var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
-            return new StreamEvent(streamId, eventId, sequenceNumber, null, created, "type", "data", "metadata");
+            _testOutputHelper = testOutputHelper;
         }
 
         [Fact]
@@ -57,6 +43,26 @@
 
                 act.ShouldNotThrow();
             }
+        }
+        private static NewStreamEvent[] CreateNewStreamEvents(params int[] eventNumbers)
+        {
+            return eventNumbers
+                .Select(eventNumber =>
+                {
+                    var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
+                    return new NewStreamEvent(eventId, "type", "data", "metadata");
+                })
+                .ToArray();
+        }
+
+        private static StreamEvent ExpectedStreamEvent(
+            string streamId,
+            int eventNumber,
+            int sequenceNumber,
+            DateTime created)
+        {
+            var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
+            return new StreamEvent(streamId, eventId, sequenceNumber, null, created, "type", "data", "metadata");
         }
     }
 }

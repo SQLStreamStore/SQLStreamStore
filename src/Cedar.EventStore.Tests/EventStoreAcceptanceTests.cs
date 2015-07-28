@@ -17,27 +17,6 @@
             _testOutputHelper = testOutputHelper;
         }
 
-        private static NewStreamEvent[] CreateNewStreamEvents(params int[] eventNumbers)
-        {
-            return eventNumbers
-                .Select(eventNumber =>
-                {
-                    var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
-                    return new NewStreamEvent(eventId, "type", "data", "metadata");
-                })
-                .ToArray();
-        }
-
-        private static StreamEvent ExpectedStreamEvent(
-            string streamId,
-            int eventNumber,
-            int sequenceNumber,
-            DateTime created)
-        {
-            var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
-            return new StreamEvent(streamId, eventId, sequenceNumber, null, created, "type", "data", "metadata");
-        }
-
         [Fact]
         public async Task When_dispose_and_read_then_should_throw()
         {
@@ -64,6 +43,26 @@
 
                 act.ShouldNotThrow();
             }
+        }
+        private static NewStreamEvent[] CreateNewStreamEvents(params int[] eventNumbers)
+        {
+            return eventNumbers
+                .Select(eventNumber =>
+                {
+                    var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
+                    return new NewStreamEvent(eventId, "type", "data", "metadata");
+                })
+                .ToArray();
+        }
+
+        private static StreamEvent ExpectedStreamEvent(
+            string streamId,
+            int eventNumber,
+            int sequenceNumber,
+            DateTime created)
+        {
+            var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
+            return new StreamEvent(streamId, eventId, sequenceNumber, null, created, "type", "data", "metadata");
         }
     }
 }

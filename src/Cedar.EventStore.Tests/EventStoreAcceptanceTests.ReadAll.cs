@@ -64,9 +64,13 @@
 
                     // read to the end of the stream
                     var allEventsPage = await eventStore.ReadAll(Checkpoint.Start, 4);
-                    while (!allEventsPage.IsEnd)
+
+                    int count = 0; //counter is used to short circuit bad implementations that never return IsEnd = true
+
+                    while (!allEventsPage.IsEnd && count < 20)
                     {
                         allEventsPage = await eventStore.ReadAll(allEventsPage.NextCheckpoint, 10);
+                        count++;
                     }
 
                     allEventsPage.IsEnd.Should().BeTrue();
@@ -76,22 +80,28 @@
 
                     // read end of stream again, should be empty, should return same checkpoint
                     allEventsPage = await eventStore.ReadAll(currentCheckpoint, 10);
-                    while (!allEventsPage.IsEnd)
+                    count = 0;
+                    while (!allEventsPage.IsEnd && count < 20)
                     {
                         allEventsPage = await eventStore.ReadAll(allEventsPage.NextCheckpoint, 10);
+                        count++;
                     }
 
                     allEventsPage.StreamEvents.Should().BeEmpty();
                     allEventsPage.IsEnd.Should().BeTrue();
                     allEventsPage.NextCheckpoint.Should().NotBeNull();
 
+                    currentCheckpoint = allEventsPage.NextCheckpoint;
+
                     // append some events then read again from the saved checkpoint, the next checkpoint should have moved
                     await eventStore.AppendToStream("stream-1", ExpectedVersion.Any, CreateNewStreamEvents(7, 8, 9));
 
                     allEventsPage = await eventStore.ReadAll(currentCheckpoint, 10);
-                    while (!allEventsPage.IsEnd)
+                    count = 0;
+                    while (!allEventsPage.IsEnd && count < 20)
                     {
                         allEventsPage = await eventStore.ReadAll(allEventsPage.NextCheckpoint, 10);
+                        count++;
                     }
 
                     allEventsPage.IsEnd.Should().BeTrue();

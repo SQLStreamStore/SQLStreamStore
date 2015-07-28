@@ -45,6 +45,25 @@
         }
 
         [Fact]
+        public async Task When_append_stream_second_time_with_no_stream_expected_and_same_inital_event_then_should_not_throw()
+        {
+            // Idempotency
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    const string streamId = "stream-1";
+                    await eventStore
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+
+                    await eventStore
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2))
+                        .ShouldNotThrow();
+                }
+            }
+        }
+
+        [Fact]
         public async Task When_append_with_wrong_expected_version_then_should_throw()
         {
             using (var fixture = GetFixture())

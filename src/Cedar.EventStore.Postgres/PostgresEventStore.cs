@@ -71,14 +71,14 @@
                 {
                     try
                     {
-                        using(
+                        using (
                             var command = new NpgsqlCommand(Scripts.Functions.CreateStream, connection, tx)
-                                              {
-                                                  CommandType
+                            {
+                                CommandType
                                                       =
                                                       CommandType
                                                       .StoredProcedure
-                                              })
+                            })
                         {
                             command.Parameters.AddWithValue(":stream_id", streamIdInfo.StreamId);
                             command.Parameters.AddWithValue(":stream_id_original", streamIdInfo.StreamIdOriginal);
@@ -93,8 +93,9 @@
 
                         if(ex.Code == "23505")
                         {
+                            //not found
                             throw new WrongExpectedVersionException(
-                            Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion));
+                            Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion), ex);
                         }
 
                         throw;
@@ -133,29 +134,45 @@
                     }
                 }
 
-                using(
-                    var writer =
-                        connection.BeginBinaryImport(Scripts.BulkCopyEvents)
-                    )
+                try
                 {
-                    foreach(var @event in events)
+                    using (
+                                var writer =
+                                    connection.BeginBinaryImport(Scripts.BulkCopyEvents)
+                                )
                     {
-                        if(cancellationToken.IsCancellationRequested)
+                        foreach (var @event in events)
                         {
-                            writer.Cancel();
-                            tx.Rollback();
-                        }
+                            if (cancellationToken.IsCancellationRequested)
+                            {
+                                writer.Cancel();
+                                tx.Rollback();
+                            }
 
-                        currentVersion++;
-                        writer.StartRow();
-                        writer.Write(streamIdInternal, NpgsqlDbType.Integer);
-                        writer.Write(currentVersion, NpgsqlDbType.Integer);
-                        writer.Write(@event.EventId, NpgsqlDbType.Uuid);
-                        writer.Write(SystemClock.GetUtcNow(), NpgsqlDbType.TimestampTZ);
-                        writer.Write(@event.Type);
-                        writer.Write(@event.JsonData, NpgsqlDbType.Json);
-                        writer.Write(@event.JsonMetadata, NpgsqlDbType.Json);
+                            currentVersion++;
+                            writer.StartRow();
+                            writer.Write(streamIdInternal, NpgsqlDbType.Integer);
+                            writer.Write(currentVersion, NpgsqlDbType.Integer);
+                            writer.Write(@event.EventId, NpgsqlDbType.Uuid);
+                            writer.Write(SystemClock.GetUtcNow(), NpgsqlDbType.TimestampTZ);
+                            writer.Write(@event.Type);
+                            writer.Write(@event.JsonData, NpgsqlDbType.Json);
+                            writer.Write(@event.JsonMetadata, NpgsqlDbType.Json);
+                        }
                     }
+                }
+                catch (NpgsqlException ex) 
+                {
+                    tx.Rollback();
+
+                    if (ex.Code == "40001")
+                    {
+                        // could not serialize access due to read/write dependencies among transactions
+                        throw new WrongExpectedVersionException(
+                        Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion), ex);
+                    }
+
+                    throw;
                 }
 
                 tx.Commit();

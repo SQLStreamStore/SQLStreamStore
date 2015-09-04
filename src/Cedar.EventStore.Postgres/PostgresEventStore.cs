@@ -132,6 +132,27 @@
                         throw new WrongExpectedVersionException(
                             Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion));
                     }
+
+                    if(streamIdInternal == -1)
+                    {
+                        // create the stream as it doesn't exist
+
+                        using (
+                            var command = new NpgsqlCommand(Scripts.Functions.CreateStream, connection, tx)
+                            {
+                                CommandType
+                                                      =
+                                                      CommandType
+                                                      .StoredProcedure
+                            })
+                        {
+                            command.Parameters.AddWithValue(":stream_id", streamIdInfo.StreamId);
+                            command.Parameters.AddWithValue(":stream_id_original", streamIdInfo.StreamIdOriginal);
+
+                            streamIdInternal =
+                                (int)await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                        }
+                    }
                 }
 
                 try

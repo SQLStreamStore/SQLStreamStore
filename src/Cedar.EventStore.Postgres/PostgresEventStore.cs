@@ -25,7 +25,9 @@
 
         private readonly InterlockedBoolean _isDisposed = new InterlockedBoolean();
 
-        public PostgresEventStore(string connectionStringOrConnectionStringName)
+        private readonly int _concurrencyFailureRetryAttempts;
+
+        public PostgresEventStore(string connectionStringOrConnectionStringName, int concurrencyFailureRetryAttempts = 20)
         {
             if(connectionStringOrConnectionStringName.IndexOf(';') > -1)
             {
@@ -46,6 +48,8 @@
                     return connection;
                 };
             }
+
+            _concurrencyFailureRetryAttempts = concurrencyFailureRetryAttempts;
         }
 
         public async Task AppendToStream(
@@ -154,7 +158,7 @@
                         }
                     }
                 }
-
+                
                 try
                 {
                     using (
@@ -181,6 +185,8 @@
                             writer.Write(@event.JsonMetadata, NpgsqlDbType.Json);
                         }
                     }
+
+                    tx.Commit();
                 }
                 catch (NpgsqlException ex) 
                 {
@@ -195,8 +201,6 @@
 
                     throw;
                 }
-
-                tx.Commit();
             }
         }
 

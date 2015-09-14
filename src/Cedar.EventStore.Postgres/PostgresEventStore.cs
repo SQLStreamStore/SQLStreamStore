@@ -25,9 +25,9 @@
 
         private readonly InterlockedBoolean _isDisposed = new InterlockedBoolean();
 
-        private readonly int _concurrencyFailureRetryAttempts;
+        private readonly Scripts _scripts;
 
-        public PostgresEventStore(string connectionStringOrConnectionStringName, int concurrencyFailureRetryAttempts = 20)
+        public PostgresEventStore(string connectionStringOrConnectionStringName, string schema = "public")
         {
             if(connectionStringOrConnectionStringName.IndexOf(';') > -1)
             {
@@ -49,7 +49,7 @@
                 };
             }
 
-            _concurrencyFailureRetryAttempts = concurrencyFailureRetryAttempts;
+            _scripts = new Scripts(schema);
         }
 
         public async Task AppendToStream(
@@ -76,7 +76,7 @@
                     try
                     {
                         using (
-                            var command = new NpgsqlCommand(Scripts.Functions.CreateStream, connection, tx)
+                            var command = new NpgsqlCommand(_scripts.Functions.CreateStream, connection, tx)
                             {
                                 CommandType
                                                       =
@@ -107,7 +107,7 @@
                 }
                 else
                 {
-                    using (var command = new NpgsqlCommand(Scripts.Functions.GetStream, connection, tx) { CommandType = CommandType.StoredProcedure })
+                    using (var command = new NpgsqlCommand(_scripts.Functions.GetStream, connection, tx) { CommandType = CommandType.StoredProcedure })
                     {
                         command.Parameters.AddWithValue(":stream_id", streamIdInfo.StreamId);
 
@@ -142,7 +142,7 @@
                         // create the stream as it doesn't exist
 
                         using (
-                            var command = new NpgsqlCommand(Scripts.Functions.CreateStream, connection, tx)
+                            var command = new NpgsqlCommand(_scripts.Functions.CreateStream, connection, tx)
                             {
                                 CommandType
                                                       =
@@ -163,7 +163,7 @@
                 {
                     using (
                                 var writer =
-                                    connection.BeginBinaryImport(Scripts.BulkCopyEvents)
+                                    connection.BeginBinaryImport(_scripts.BulkCopyEvents)
                                 )
                     {
                         foreach (var @event in events)
@@ -224,7 +224,7 @@
             CancellationToken cancellationToken)
         {
             using (var connection = await _createAndOpenConnection())
-            using (var command = new NpgsqlCommand(Scripts.Functions.DeleteStreamAnyVersion, connection) { CommandType = CommandType.StoredProcedure })
+            using (var command = new NpgsqlCommand(_scripts.Functions.DeleteStreamAnyVersion, connection) { CommandType = CommandType.StoredProcedure })
             {
                 command.Parameters.AddWithValue("stream_id", streamIdInfo.StreamId);
                 await command
@@ -240,7 +240,7 @@
             CancellationToken cancellationToken)
         {
             using (var connection = await _createAndOpenConnection())
-            using (var command = new NpgsqlCommand(Scripts.Functions.DeleteStreamExpectedVersion, connection) { CommandType = CommandType.StoredProcedure })
+            using (var command = new NpgsqlCommand(_scripts.Functions.DeleteStreamExpectedVersion, connection) { CommandType = CommandType.StoredProcedure })
             {
                 command.Parameters.AddWithValue("stream_id", streamIdInfo.StreamId);
                 command.Parameters.AddWithValue("expected_version", expectedVersion);
@@ -277,7 +277,7 @@
 
             long ordinal = checkpoint.GetOrdinal();
 
-            var commandText = direction == ReadDirection.Forward ? Scripts.ReadAllForward : Scripts.ReadAllBackward;
+            var commandText = direction == ReadDirection.Forward ? _scripts.ReadAllForward : _scripts.ReadAllBackward;
 
             using (var connection = await _createAndOpenConnection())
             using (var command = new NpgsqlCommand(commandText, connection))// { CommandType = CommandType.StoredProcedure })
@@ -367,12 +367,12 @@
             Func<List<StreamEvent>, int> getNextSequenceNumber;
             if(direction == ReadDirection.Forward)
             {
-                commandText = Scripts.Functions.ReadStreamForward;
+                commandText = _scripts.Functions.ReadStreamForward;
                 getNextSequenceNumber = events => events.Count > 0 ? events.Last().StreamVersion + 1 : -1; //todo: review this
             }
             else
             {
-                commandText = Scripts.Functions.ReadStreamBackward;
+                commandText = _scripts.Functions.ReadStreamBackward;
                 getNextSequenceNumber = events => events.Count > 0 ? events.Last().StreamVersion - 1 : -1; //todo: review this
             }
 
@@ -464,7 +464,7 @@
             CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var connection = await _createAndOpenConnection())
-            using(var cmd = new NpgsqlCommand(Scripts.InitializeStore, connection))
+            using(var cmd = new NpgsqlCommand(_scripts.InitializeStore, connection))
             {
                 if (ignoreErrors)
                 {
@@ -484,7 +484,7 @@
             CancellationToken cancellationToken = default(CancellationToken))
         {
             using (var connection = await _createAndOpenConnection())
-            using(var cmd = new NpgsqlCommand(Scripts.DropAll, connection))
+            using(var cmd = new NpgsqlCommand(_scripts.DropAll, connection))
             {
                 if (ignoreErrors)
                 {

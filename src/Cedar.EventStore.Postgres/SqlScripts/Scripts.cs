@@ -4,37 +4,47 @@
     using System.Collections.Concurrent;
     using System.IO;
 
-    public static class Scripts
+    public class Scripts
     {
-        private static readonly ConcurrentDictionary<string, string> s_scripts 
-            = new ConcurrentDictionary<string, string>(); 
+        private static readonly ConcurrentDictionary<string, string> s_scripts
+            = new ConcurrentDictionary<string, string>();
 
-        public static string InitializeStore
+        private readonly string _schema;
+
+        public Scripts(string schema = "public")
         {
-            get { return GetScript("InitializeStore"); }
+            _schema = schema;
+            Functions = new GetFunctions(_schema);
         }
 
-        public static string DropAll
+        public string InitializeStore
         {
-            get { return GetScript("DropAll"); }
+            get { return GetScript("InitializeStore").Replace("$schema$", _schema); }
         }
 
-        public static string BulkCopyEvents
+        public string DropAll
         {
-            get { return GetScript("BulkCopyEvents"); }
+            get { return GetScript("DropAll").Replace("$schema$", _schema); }
         }
 
-        public static string ReadAllForward
+        public string BulkCopyEvents
         {
-            get { return GetScript("ReadAllForward"); }
+            get { return GetScript("BulkCopyEvents").Replace("$schema$", _schema); }
         }
 
-        public static string ReadAllBackward
+        public string ReadAllForward
         {
-            get { return GetScript("ReadAllBackward"); }
+            get { return GetScript("ReadAllForward").Replace("$schema$", _schema); }
         }
 
-        private static string GetScript(string name)
+        public string ReadAllBackward
+        {
+            get { return GetScript("ReadAllBackward").Replace("$schema$", _schema); }
+        }
+
+        public GetFunctions Functions { get; private set; }
+
+        private string GetScript(string name)
         {
             return s_scripts.GetOrAdd(name,
                 key =>
@@ -55,46 +65,53 @@
                 });
         }
 
-        public static class Functions
+        public class GetFunctions
         {
-            public static string CreateStream
+            private readonly string _schema;
+
+            public GetFunctions(string schema)
             {
-                get { return "create_stream"; }
+                _schema = schema;
             }
 
-            public static string GetStream
+            public string CreateStream
             {
-                get { return "get_stream"; }
+                get { return string.Concat(_schema, ".", "create_stream"); }
             }
 
-            public static string ReadAllForward
+            public string GetStream
             {
-                get { return "read_all_forward"; }
+                get { return string.Concat(_schema, ".", "get_stream"); }
             }
 
-            public static string ReadAllBackward
+            public string ReadAllForward
             {
-                get { return "read_all_backward"; }
+                get { return string.Concat(_schema, ".", "read_all_forward"); }
             }
 
-            public static string ReadStreamForward
+            public string ReadAllBackward
             {
-                get { return "read_stream_forward"; }
+                get { return string.Concat(_schema, ".", "read_all_backward"); }
             }
 
-            public static string ReadStreamBackward
+            public string ReadStreamForward
             {
-                get { return "read_stream_backward"; }
+                get { return string.Concat(_schema, ".", "read_stream_forward"); }
             }
 
-            public static string DeleteStreamAnyVersion
+            public string ReadStreamBackward
             {
-                get { return "delete_stream_any_version"; }
+                get { return string.Concat(_schema, ".", "read_stream_backward"); }
             }
 
-            public static string DeleteStreamExpectedVersion
+            public string DeleteStreamAnyVersion
             {
-                get { return "delete_stream_expected_version"; }
+                get { return string.Concat(_schema, ".", "delete_stream_any_version"); }
+            }
+
+            public string DeleteStreamExpectedVersion
+            {
+                get { return string.Concat(_schema, ".", "delete_stream_expected_version"); }
             }
         }
     }

@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="PostgresEventStoreFixture.cs" />
+    <Compile Include="SecondarySchemaTests.cs" />
     <Compile Include="PostgresEventStoreTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

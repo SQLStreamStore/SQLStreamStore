@@ -7,8 +7,8 @@ SELECT
             events.type,
             events.json_data,
             events.json_metadata
-       FROM events
- INNER JOIN streams
+       FROM $schema$.events
+ INNER JOIN $schema$.streams
          ON events.stream_id_internal = streams.id_internal
       WHERE events.ordinal >= :ordinal
    ORDER BY events.ordinal

@@ -4,9 +4,20 @@ namespace Cedar.EventStore.Postgres.Tests
 
     public class PostgresEventStoreFixture : EventStoreAcceptanceTestFixture
     {
-        public override async Task<IEventStore> GetEventStore()
+        private readonly string _schema;
+        public PostgresEventStoreFixture(string schema = "public")
         {
-            var eventStore = new PostgresEventStore(@"Server=127.0.0.1;Port=5432;Database=cedar_tests;User Id=postgres;Password=postgres;");
+            _schema = schema;
+        }
+
+        public override Task<IEventStore> GetEventStore()
+        {
+            return GetEventStore(_schema);
+        }
+
+        private async Task<IEventStore> GetEventStore(string schema)
+        {
+            var eventStore = new PostgresEventStore(@"Server=127.0.0.1;Port=5432;Database=cedar_tests;User Id=postgres;Password=postgres;", schema);
 
             await eventStore.DropAll(ignoreErrors: true);
             await eventStore.InitializeStore();

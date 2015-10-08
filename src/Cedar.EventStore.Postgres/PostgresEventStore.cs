@@ -182,8 +182,7 @@
                             writer.Write(@event.JsonData, NpgsqlDbType.Json);
                             writer.Write(@event.JsonMetadata, NpgsqlDbType.Json);
                         }
-
-                        writer.Close();
+                        
                         tx.Commit();
                     }                    
                 }

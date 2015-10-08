@@ -161,10 +161,7 @@
                 
                 try
                 {
-                    using (
-                                var writer =
-                                    connection.BeginBinaryImport(_scripts.BulkCopyEvents)
-                                )
+                    using (var writer = connection.BeginBinaryImport(_scripts.BulkCopyEvents)                                )
                     {
                         foreach (var @event in events)
                         {
@@ -172,6 +169,7 @@
                             {
                                 writer.Cancel();
                                 tx.Rollback();
+                                break;
                             }
 
                             currentVersion++;
@@ -184,20 +182,22 @@
                             writer.Write(@event.JsonData, NpgsqlDbType.Json);
                             writer.Write(@event.JsonMetadata, NpgsqlDbType.Json);
                         }
-                    }
 
-                    tx.Commit();
+                        writer.Close();
+                        tx.Commit();
+                    }                    
                 }
                 catch (NpgsqlException ex) 
                 {
-                    tx.Rollback();
-
                     if (ex.Code == "40001")
                     {
                         // could not serialize access due to read/write dependencies among transactions
                         throw new WrongExpectedVersionException(
                         Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion), ex);
                     }
+
+                    //if error code is 40001 the transaction is already rolled back
+                    tx.Rollback();
 
                     throw;
                 }

@@ -61,10 +61,12 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ConcurrentLoadTests.cs" />
     <Compile Include="PostgresEventStoreFixture.cs" />
     <Compile Include="SecondarySchemaTests.cs" />
     <Compile Include="PostgresEventStoreTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="TaskExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />

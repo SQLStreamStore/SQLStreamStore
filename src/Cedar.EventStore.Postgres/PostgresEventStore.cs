@@ -141,7 +141,9 @@
                     {
                         // create the stream as it doesn't exist
 
-                        using (
+                        try
+                        {
+                            using (
                             var command = new NpgsqlCommand(_scripts.Functions.CreateStream, connection, tx)
                             {
                                 CommandType
@@ -149,12 +151,27 @@
                                                       CommandType
                                                       .StoredProcedure
                             })
-                        {
-                            command.Parameters.AddWithValue(":stream_id", streamIdInfo.StreamId);
-                            command.Parameters.AddWithValue(":stream_id_original", streamIdInfo.StreamIdOriginal);
+                            {
+                                command.Parameters.AddWithValue(":stream_id", streamIdInfo.StreamId);
+                                command.Parameters.AddWithValue(":stream_id_original", streamIdInfo.StreamIdOriginal);
 
-                            streamIdInternal =
-                                (int)await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                                streamIdInternal =
+                                    (int)await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                            }
+                        }
+                        catch (NpgsqlException ex)
+                        {
+                            if (ex.Code == "40001")
+                            {
+                                // could not serialize access due to read/write dependencies among transactions
+                                throw new WrongExpectedVersionException(
+                                Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion), ex);
+                            }
+
+                            //if error code is 40001 the transaction is already rolled back
+                            tx.Rollback();
+
+                            throw;
                         }
                     }
                 }

@@ -1,0 +1,29 @@
+﻿<?xml version="1.0"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
+    <metadata>
+        <id>Cedar.EventStore.Postgres</id>
+        <version>0.0.0.0</version>
+        <authors>Damian Hickey</authors>
+        <owners>Damian Hickey</owners>
+        <projectUrl>https://github.com/damianh/Cedar.EventStore</projectUrl>
+        <licenseUrl>https://github.com/damianh/Cedar.EventStore/blob/master/LICENSE</licenseUrl>
+        <requireLicenseAcceptance>false</requireLicenseAcceptance>
+        <title>Cedar - Event Store - PostgreSQL</title>
+        <description>
+            PostgreSQL plugin for Cedar EventStore
+        </description>
+        <tags>cqrs event-sourcing domain-driven-design postgres postgresql pgsql</tags>
+        <frameworkAssemblies>
+            <frameworkAssembly assemblyName="System.Data" targetFramework="net45" />
+        </frameworkAssemblies>
+        <releaseNotes/>
+        <dependencies>
+            <dependency id="Cedar.EventStore" version="[0.0, 0.2)" />
+        </dependencies>
+    </metadata>
+    <files>
+        <file src="..\..\build\merged\Cedar.EventStore.Postgres.dll" target="lib\net45" />
+        <file src="..\..\build\merged\Cedar.EventStore.Postgres.pdb" target="lib\net45" />
+        <file src="bin\Release\Cedar.EventStore.Postgres.xml" target="lib\net45" />
+    </files>
+</package>

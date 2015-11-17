@@ -1,5 +1,6 @@
 ﻿namespace Cedar.EventStore
 {
+    using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using FluentAssertions;
@@ -48,6 +49,100 @@
                              options.Excluding(streamEvent => streamEvent.Created);
                              return options;
                          });
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Read_forwards_to_the_end_should_return_a_valid_Checkpoint()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3, 4, 5, 6));
+
+                    // read to the end of the stream
+                    var allEventsPage = await eventStore.ReadAll(Checkpoint.Start, 4);
+
+                    int count = 0; //counter is used to short circuit bad implementations that never return IsEnd = true
+
+                    while (!allEventsPage.IsEnd && count < 20)
+                    {
+                        allEventsPage = await eventStore.ReadAll(allEventsPage.NextCheckpoint, 10);
+                        count++;
+                    }
+
+                    allEventsPage.IsEnd.Should().BeTrue();
+
+                    Checkpoint currentCheckpoint = allEventsPage.NextCheckpoint;
+                    currentCheckpoint.Should().NotBeNull();
+
+                    // read end of stream again, should be empty, should return same checkpoint
+                    allEventsPage = await eventStore.ReadAll(currentCheckpoint, 10);
+                    count = 0;
+                    while (!allEventsPage.IsEnd && count < 20)
+                    {
+                        allEventsPage = await eventStore.ReadAll(allEventsPage.NextCheckpoint, 10);
+                        count++;
+                    }
+
+                    allEventsPage.StreamEvents.Should().BeEmpty();
+                    allEventsPage.IsEnd.Should().BeTrue();
+                    allEventsPage.NextCheckpoint.Should().NotBeNull();
+
+                    currentCheckpoint = allEventsPage.NextCheckpoint;
+
+                    // append some events then read again from the saved checkpoint, the next checkpoint should have moved
+                    await eventStore.AppendToStream("stream-1", ExpectedVersion.Any, CreateNewStreamEvents(7, 8, 9));
+
+                    allEventsPage = await eventStore.ReadAll(currentCheckpoint, 10);
+                    count = 0;
+                    while (!allEventsPage.IsEnd && count < 20)
+                    {
+                        allEventsPage = await eventStore.ReadAll(allEventsPage.NextCheckpoint, 10);
+                        count++;
+                    }
+
+                    allEventsPage.IsEnd.Should().BeTrue();
+                    allEventsPage.NextCheckpoint.Should().NotBeNull();
+                    allEventsPage.NextCheckpoint.Should().NotBe(currentCheckpoint.Value);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_read_past_end_of_all()
+        {
+            using(var fixture = GetFixture())
+            {
+                using(var eventStore = await fixture.GetEventStore())
+                {
+                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+
+                    bool isEnd = false;
+                    int count = 0;
+                    Checkpoint checkpoint = Checkpoint.Start;
+                    while (!isEnd)
+                    {
+                        _testOutputHelper.WriteLine($"Loop {count}");
+
+                        var streamEventsPage = await eventStore.ReadAll(checkpoint, 10);
+                        _testOutputHelper.WriteLine($"FromCheckpoint     = {streamEventsPage.FromCheckpoint}");
+                        _testOutputHelper.WriteLine($"NextCheckpoint     = {streamEventsPage.NextCheckpoint}");
+                        _testOutputHelper.WriteLine($"IsEnd              = {streamEventsPage.IsEnd}");
+                        _testOutputHelper.WriteLine($"StreamEvents.Count = {streamEventsPage.StreamEvents.Count}");
+                        _testOutputHelper.WriteLine("");
+
+                        checkpoint = streamEventsPage.NextCheckpoint;
+                        isEnd = streamEventsPage.IsEnd;
+                        count++;
+
+                        if(count > 100)
+                        {
+                            throw new Exception("omg wtf");
+                        }
+                    }
                 }
             }
         }

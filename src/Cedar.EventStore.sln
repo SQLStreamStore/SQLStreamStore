@@ -18,6 +18,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.MsSql2008"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.MsSql2008.Tests", "Cedar.EventStore.MsSql2008.Tests\Cedar.EventStore.MsSql2008.Tests.csproj", "{97AA016B-0B9F-44C2-8228-A13B4E251FB0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.Postgres", "Cedar.EventStore.Postgres\Cedar.EventStore.Postgres.csproj", "{148C90E9-0EA1-482E-94A9-F178294EFAC2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.Postgres.Tests", "Cedar.EventStore.Postgres.Tests\Cedar.EventStore.Postgres.Tests.csproj", "{453FB5DB-99DC-42D3-9DFE-F81EDF98F5E3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -56,6 +60,14 @@ Global
 		{97AA016B-0B9F-44C2-8228-A13B4E251FB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{97AA016B-0B9F-44C2-8228-A13B4E251FB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{97AA016B-0B9F-44C2-8228-A13B4E251FB0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{148C90E9-0EA1-482E-94A9-F178294EFAC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{148C90E9-0EA1-482E-94A9-F178294EFAC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{148C90E9-0EA1-482E-94A9-F178294EFAC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{148C90E9-0EA1-482E-94A9-F178294EFAC2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{453FB5DB-99DC-42D3-9DFE-F81EDF98F5E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{453FB5DB-99DC-42D3-9DFE-F81EDF98F5E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{453FB5DB-99DC-42D3-9DFE-F81EDF98F5E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{453FB5DB-99DC-42D3-9DFE-F81EDF98F5E3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

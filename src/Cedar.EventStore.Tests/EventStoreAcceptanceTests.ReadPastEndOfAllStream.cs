@@ -1,5 +1,6 @@
 ﻿namespace Cedar.EventStore
 {
+    using System;
     using System.Threading.Tasks;
     using FluentAssertions;
     using Xunit;
@@ -51,7 +52,7 @@
             LogAllEventsPage(allEventsPage);
             while (!allEventsPage.IsEnd && count < 10)
             {
-                _testOutputHelper.WriteLine($"Loop {count}");
+                _testOutputHelper.WriteLine(String.Format("Loop {0}", count));
                 allEventsPage = await eventStore.ReadAll(allEventsPage.NextCheckpoint, pageSize);
                 LogAllEventsPage(allEventsPage);
                 count++;
@@ -61,10 +62,10 @@
 
         private void LogAllEventsPage(AllEventsPage allEventsPage)
         {
-            _testOutputHelper.WriteLine($"FromCheckpoint     = {allEventsPage.FromCheckpoint}");
-            _testOutputHelper.WriteLine($"NextCheckpoint     = {allEventsPage.NextCheckpoint}");
-            _testOutputHelper.WriteLine($"IsEnd              = {allEventsPage.IsEnd}");
-            _testOutputHelper.WriteLine($"StreamEvents.Count = {allEventsPage.StreamEvents.Count}");
+            _testOutputHelper.WriteLine(String.Format("FromCheckpoint     = {0}", allEventsPage.FromCheckpoint));
+            _testOutputHelper.WriteLine(String.Format("NextCheckpoint     = {0}", allEventsPage.NextCheckpoint));
+            _testOutputHelper.WriteLine(String.Format("IsEnd              = {0}", allEventsPage.IsEnd));
+            _testOutputHelper.WriteLine(String.Format("StreamEvents.Count = {0}", allEventsPage.StreamEvents.Count));
             _testOutputHelper.WriteLine("");
         }
     }

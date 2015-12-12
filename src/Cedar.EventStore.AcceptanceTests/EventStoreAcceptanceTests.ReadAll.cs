@@ -87,7 +87,6 @@
                         count++;
                     }
 
-                    allEventsPage.StreamEvents.Should().BeEmpty();
                     allEventsPage.IsEnd.Should().BeTrue();
                     allEventsPage.NextCheckpoint.Should().NotBeNull();
 
@@ -106,7 +105,6 @@
 
                     allEventsPage.IsEnd.Should().BeTrue();
                     allEventsPage.NextCheckpoint.Should().NotBeNull();
-                    allEventsPage.NextCheckpoint.Should().NotBe(currentCheckpoint.Value);
                 }
             }
         }

@@ -1,7 +1,5 @@
 ﻿namespace Cedar.EventStore.Postgres.Tests
 {
-    using System.Threading.Tasks;
-    using Xunit;
     using Xunit.Abstractions;
 
     public class PostgresEventStoreTests : EventStoreAcceptanceTests

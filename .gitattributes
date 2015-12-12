@@ -1,6 +1,16 @@
 # Set default behaviour, in case users don't have core.autocrlf set.
 * text=atuo
 
+[attr]utf16 diff merge -lf
+*.ncrunchproject utf16 eol=lf
+
+# Custom for Visual Studio
+*.sln text eol=crlf merge=union
+*.csproj merge=union
+*.vbproj merge=union
+*.fsproj merge=union
+*.dbproj merge=union
+
 # Explicitly declare text files we want to always be normalized and converted 
 # to native line endings on checkout.
 *.c text

@@ -263,7 +263,7 @@
                 }
 
                 bool isEnd = true;
-                string nextCheckpoint = null;
+                string nextCheckpoint = checkpoint.Value;
 
                 if(streamEvents.Count == maxCount + 1)
                 {
@@ -293,7 +293,7 @@
 
             var streamIdInfo = HashStreamId(streamId);
 
-            var StreamVersion = start == StreamPosition.End ? int.MaxValue : start;
+            var streamVersion = start == StreamPosition.End ? int.MaxValue : start;
             string commandText;
             Func<List<StreamEvent>, int> getNextSequenceNumber;
             if(direction == ReadDirection.Forward)
@@ -311,7 +311,7 @@
             {
                 command.Parameters.AddWithValue("streamId", streamIdInfo.StreamId);
                 command.Parameters.AddWithValue("count", count + 1); //Read extra row to see if at end or not
-                command.Parameters.AddWithValue("StreamVersion", StreamVersion);
+                command.Parameters.AddWithValue("StreamVersion", streamVersion);
 
                 List<StreamEvent> streamEvents = new List<StreamEvent>();
 

@@ -44,7 +44,8 @@
                 act.ShouldNotThrow();
             }
         }
-        public static NewStreamEvent[] CreateNewStreamEvents(params int[] eventNumbers)
+
+        protected static NewStreamEvent[] CreateNewStreamEvents(params int[] eventNumbers)
         {
             return eventNumbers
                 .Select(eventNumber =>
@@ -55,7 +56,7 @@
                 .ToArray();
         }
 
-        public static StreamEvent ExpectedStreamEvent(
+        private static StreamEvent ExpectedStreamEvent(
             string streamId,
             int eventNumber,
             int sequenceNumber,

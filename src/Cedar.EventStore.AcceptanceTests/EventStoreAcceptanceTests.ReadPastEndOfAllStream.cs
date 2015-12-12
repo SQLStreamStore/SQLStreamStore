@@ -17,7 +17,6 @@
 
                     var lastAllEventPage = await ReadAllStreamToEnd(eventStore);
 
-                    lastAllEventPage.StreamEvents.Should().BeEmpty();
                     lastAllEventPage.IsEnd.Should().BeTrue();
                     lastAllEventPage.NextCheckpoint.Should().Be(lastAllEventPage.FromCheckpoint);
                 }
@@ -49,7 +48,7 @@
             int pageSize = 4, count = 0;
             var allEventsPage = await eventStore.ReadAll(Checkpoint.Start, pageSize);
             LogAllEventsPage(allEventsPage);
-            while (!allEventsPage.IsEnd && count < 10)
+            while (!allEventsPage.IsEnd && count < 20)
             {
                 _testOutputHelper.WriteLine($"Loop {count}");
                 allEventsPage = await eventStore.ReadAll(allEventsPage.NextCheckpoint, pageSize);

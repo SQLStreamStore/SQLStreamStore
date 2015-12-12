@@ -4,7 +4,7 @@
     using FluentAssertions;
     using Xunit;
 
-    public abstract partial class EventStoreAcceptanceTests
+    public partial class EventStoreAcceptanceTests
     {
         [Fact]
         public async Task Can_read_to_end_of_allstream()

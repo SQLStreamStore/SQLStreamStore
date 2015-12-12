@@ -4,7 +4,7 @@
     using Cedar.EventStore.Exceptions;
     using Xunit;
 
-    public abstract partial class EventStoreAcceptanceTests
+    public partial class EventStoreAcceptanceTests
     {
         [Fact]
         public async Task When_append_stream_second_time_with_no_stream_expected_and_different_event_then_should_throw()

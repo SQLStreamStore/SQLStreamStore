@@ -1,10 +1,11 @@
-﻿namespace Cedar.EventStore.Postgres.Tests
+﻿/*namespace Cedar.EventStore
 {
     using System.Threading.Tasks;
+    using Cedar.EventStore.Postgres.Tests;
     using Xunit;
     using Xunit.Abstractions;
 
-    public class SecondarySchemaTests : EventStoreAcceptanceTests
+    /*public class SecondarySchemaTests : EventStoreAcceptanceTests
     {
         public SecondarySchemaTests(ITestOutputHelper testOutputHelper)
             : base(testOutputHelper)
@@ -26,5 +27,5 @@
                 await secondaryStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
             }
         }
-    }
-}
+    }#1#
+}*/

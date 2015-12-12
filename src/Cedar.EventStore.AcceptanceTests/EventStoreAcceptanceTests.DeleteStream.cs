@@ -6,7 +6,7 @@
     using FluentAssertions;
     using Xunit;
 
-    public abstract partial class EventStoreAcceptanceTests
+    public partial class EventStoreAcceptanceTests
     {
         [Fact]
         public async Task When_delete_existing_stream_with_no_expected_version_then_should_be_deleted()

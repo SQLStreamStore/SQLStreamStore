@@ -1,14 +1,10 @@
-﻿namespace Cedar.EventStore.Postgres.Tests
+﻿namespace Cedar.EventStore
 {
-    using Xunit.Abstractions;
+    using Cedar.EventStore.Postgres.Tests;
 
-    public class PostgresEventStoreTests : EventStoreAcceptanceTests
+    public partial class EventStoreAcceptanceTests
     {
-        public PostgresEventStoreTests(ITestOutputHelper testOutputHelper)
-            : base(testOutputHelper)
-        {}
-
-        protected override EventStoreAcceptanceTestFixture GetFixture()
+        private EventStoreAcceptanceTestFixture GetFixture()
         {
             return new PostgresEventStoreFixture();
         }

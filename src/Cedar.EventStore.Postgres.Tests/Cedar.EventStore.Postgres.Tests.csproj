@@ -8,7 +8,7 @@
     <ProjectGuid>{453FB5DB-99DC-42D3-9DFE-F81EDF98F5E3}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Cedar.EventStore.Postgres.Tests</RootNamespace>
+    <RootNamespace>Cedar.EventStore</RootNamespace>
     <AssemblyName>Cedar.EventStore.Postgres.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -61,6 +61,30 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTestFixture.cs">
+      <Link>EventStoreAcceptanceTestFixture.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.AppendStream.cs">
+      <Link>EventStoreAcceptanceTests.AppendStream.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.cs">
+      <Link>EventStoreAcceptanceTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.DeleteStream.cs">
+      <Link>EventStoreAcceptanceTests.DeleteStream.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadAll.cs">
+      <Link>EventStoreAcceptanceTests.ReadAll.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadPastEndOfAllStream.cs">
+      <Link>EventStoreAcceptanceTests.ReadPastEndOfAllStream.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadStream.cs">
+      <Link>EventStoreAcceptanceTests.ReadStream.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\TaskExtensions.cs">
+      <Link>TaskExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
@@ -69,7 +93,7 @@
     <Compile Include="SecondarySchemaTests.cs" />
     <Compile Include="PostgresEventStoreTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="TaskExtensions.cs" />
+    <Compile Include="TaskExtensions.MightThrow.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
@@ -78,10 +102,6 @@
     <ProjectReference Include="..\Cedar.EventStore.Postgres\Cedar.EventStore.Postgres.csproj">
       <Project>{148C90E9-0EA1-482E-94A9-F178294EFAC2}</Project>
       <Name>Cedar.EventStore.Postgres</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Cedar.EventStore.Tests\Cedar.EventStore.Tests.csproj">
-      <Project>{F3FB96CF-4A3D-448D-A25E-6BC66E370BF6}</Project>
-      <Name>Cedar.EventStore.Tests</Name>
     </ProjectReference>
     <ProjectReference Include="..\Cedar.EventStore\Cedar.EventStore.csproj">
       <Project>{3553E8E7-2C2A-45D5-BCB1-9AC7E5A209B2}</Project>

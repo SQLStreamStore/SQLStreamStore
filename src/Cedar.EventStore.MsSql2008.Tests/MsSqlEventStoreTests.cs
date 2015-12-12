@@ -1,14 +1,8 @@
-﻿namespace Cedar.EventStore.MsSql.Tests
+﻿namespace Cedar.EventStore
 {
-    using Xunit.Abstractions;
-
-    public class MsSqlEventStoreTests : EventStoreAcceptanceTests
+    public partial class EventStoreAcceptanceTests
     {
-        public MsSqlEventStoreTests(ITestOutputHelper testOutputHelper)
-            : base(testOutputHelper)
-        {}
-
-        protected override EventStoreAcceptanceTestFixture GetFixture()
+        public EventStoreAcceptanceTestFixture GetFixture()
         {
             return new MsSqlEventStoreFixture();
         }

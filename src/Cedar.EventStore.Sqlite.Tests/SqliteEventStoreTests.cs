@@ -1,9 +1,8 @@
 ﻿namespace Cedar.EventStore
 {
-    public class SqliteEventStoreTests : EventStoreAcceptanceTests
+    public partial class EventStoreAcceptanceTests
     {
-
-        protected override EventStoreAcceptanceTestFixture GetFixture()
+        private EventStoreAcceptanceTestFixture GetFixture()
         {
             return new SqliteEventStoreFixture();
         }

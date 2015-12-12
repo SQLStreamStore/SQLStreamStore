@@ -8,7 +8,7 @@
     <ProjectGuid>{97AA016B-0B9F-44C2-8228-A13B4E251FB0}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Cedar.EventStore.MsSql.Tests</RootNamespace>
+    <RootNamespace>Cedar.EventStore</RootNamespace>
     <AssemblyName>Cedar.EventStore.MsSql.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
@@ -52,6 +52,30 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTestFixture.cs">
+      <Link>EventStoreAcceptanceTestFixture.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.AppendStream.cs">
+      <Link>EventStoreAcceptanceTests.AppendStream.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.cs">
+      <Link>EventStoreAcceptanceTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.DeleteStream.cs">
+      <Link>EventStoreAcceptanceTests.DeleteStream.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadAll.cs">
+      <Link>EventStoreAcceptanceTests.ReadAll.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadPastEndOfAllStream.cs">
+      <Link>EventStoreAcceptanceTests.ReadPastEndOfAllStream.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadStream.cs">
+      <Link>EventStoreAcceptanceTests.ReadStream.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\TaskExtensions.cs">
+      <Link>TaskExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
@@ -66,10 +90,6 @@
     <ProjectReference Include="..\Cedar.EventStore.MsSql2008\Cedar.EventStore.MsSql2008.csproj">
       <Project>{40510896-D9A1-4E22-8D11-E718857611F8}</Project>
       <Name>Cedar.EventStore.MsSql2008</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Cedar.EventStore.Tests\Cedar.EventStore.Tests.csproj">
-      <Project>{f3fb96cf-4a3d-448d-a25e-6bc66e370bf6}</Project>
-      <Name>Cedar.EventStore.Tests</Name>
     </ProjectReference>
     <ProjectReference Include="..\Cedar.EventStore\Cedar.EventStore.csproj">
       <Project>{3553E8E7-2C2A-45D5-BCB1-9AC7E5A209B2}</Project>

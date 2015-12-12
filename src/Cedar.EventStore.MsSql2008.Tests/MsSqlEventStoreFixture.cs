@@ -1,4 +1,4 @@
-namespace Cedar.EventStore.MsSql.Tests
+namespace Cedar.EventStore
 {
     using System;
     using System.Data.SqlClient;

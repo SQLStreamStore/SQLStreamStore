@@ -6,7 +6,7 @@
     using FluentAssertions;
     using Xunit;
 
-    public abstract partial class EventStoreAcceptanceTests
+    public partial class EventStoreAcceptanceTests
     {
         [Theory]
         [MemberData("GetReadStreamTheories")]

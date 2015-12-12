@@ -7,12 +7,11 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public abstract partial class EventStoreAcceptanceTests
+    public partial class EventStoreAcceptanceTests
     {
         private readonly ITestOutputHelper _testOutputHelper;
-        protected abstract EventStoreAcceptanceTestFixture GetFixture();
 
-        protected EventStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
+        public EventStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
         }

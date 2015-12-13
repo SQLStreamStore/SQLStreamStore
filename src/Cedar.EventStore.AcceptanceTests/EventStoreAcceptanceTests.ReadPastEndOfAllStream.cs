@@ -36,7 +36,6 @@
 
                     var lastAllEventPage = await ReadAllStreamToEnd(eventStore);
 
-                    lastAllEventPage.StreamEvents.Should().BeEmpty();
                     lastAllEventPage.IsEnd.Should().BeTrue();
                     lastAllEventPage.NextCheckpoint.Should().Be(lastAllEventPage.NextCheckpoint);
                 }

@@ -10,8 +10,6 @@
 
     internal class GesEventStoreFixture : EventStoreAcceptanceTestFixture
     {
-        private static readonly IPEndPoint s_noEndpoint = new IPEndPoint(IPAddress.None, 0);
-
         public override async Task<IEventStore> GetEventStore()
         {
             var node = await CreateClusterVNode();
@@ -21,12 +19,14 @@
 
         private static Task<ClusterVNode> CreateClusterVNode()
         {
+            IPEndPoint noEndpoint = new IPEndPoint(IPAddress.None, 0);
+
             ClusterVNode node = EmbeddedVNodeBuilder
                 .AsSingleNode()
-                .WithExternalTcpOn(s_noEndpoint)
-                .WithInternalTcpOn(s_noEndpoint)
-                .WithExternalHttpOn(s_noEndpoint)
-                .WithInternalHttpOn(s_noEndpoint)
+                .WithExternalTcpOn(noEndpoint)
+                .WithInternalTcpOn(noEndpoint)
+                .WithExternalHttpOn(noEndpoint)
+                .WithInternalHttpOn(noEndpoint)
                 .RunProjections(ProjectionsMode.All)
                 .RunInMemory();
 

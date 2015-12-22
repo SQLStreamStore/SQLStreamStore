@@ -1,7 +1,7 @@
 ﻿namespace Cedar.EventStore
 {
     using System;
-    using FluentAssertions;
+    using Shouldly;
     using Xunit;
 
     public class SteamEventTests
@@ -19,8 +19,8 @@
                 "\"data\"",
                 "\"meta\"");
 
-            streamEvent.JsonDataAs<string>().Should().Be("data");
-            streamEvent.JsonMetadataAs<string>().Should().Be("meta");
+            streamEvent.JsonDataAs<string>().ShouldBe("data");
+            streamEvent.JsonMetadataAs<string>().ShouldBe("meta");
         }
     }
 }

@@ -2,9 +2,9 @@
 {
     using System;
     using System.Threading.Tasks;
-    using FluentAssertions;
+    using Shouldly;
 
-    internal static class TaskExtensions
+    internal static partial class TaskExtensions
     {
         internal static async Task ShouldThrow<T>(this Task task, string message)
         {
@@ -14,8 +14,8 @@
             }
             catch(Exception ex)
             {
-                ex.Should().BeOfType<T>();
-                ex.Message.Should().Be(message);
+                ex.ShouldBeOfType<T>();
+                ex.Message.ShouldBe(message);
 
                 return;
             }

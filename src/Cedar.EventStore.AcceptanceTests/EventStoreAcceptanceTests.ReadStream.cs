@@ -3,7 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using FluentAssertions;
+    using Shouldly;
     using Xunit;
 
     public partial class EventStoreAcceptanceTests
@@ -25,23 +25,22 @@
                     var expectedStreamEventsPage = theory.ExpectedStreamEventsPage;
                     var expectedEvents = theory.ExpectedStreamEventsPage.Events;
 
-                    streamEventsPage.FromStreamVersion.Should().Be(expectedStreamEventsPage.FromStreamVersion);
-                    streamEventsPage.LastStreamVersion.Should().Be(expectedStreamEventsPage.LastStreamVersion);
-                    streamEventsPage.NextStreamVersion.Should().Be(expectedStreamEventsPage.NextStreamVersion);
-                    streamEventsPage.ReadDirection.Should().Be(expectedStreamEventsPage.ReadDirection);
-                    streamEventsPage.IsEndOfStream.Should().Be(expectedStreamEventsPage.IsEndOfStream);
-                    streamEventsPage.Status.Should().Be(expectedStreamEventsPage.Status);
-                    streamEventsPage.StreamId.Should().Be(expectedStreamEventsPage.StreamId);
-                    streamEventsPage.Events.Count.Should().Be(expectedStreamEventsPage.Events.Count);
+                    streamEventsPage.FromStreamVersion.ShouldBe(expectedStreamEventsPage.FromStreamVersion);
+                    streamEventsPage.LastStreamVersion.ShouldBe(expectedStreamEventsPage.LastStreamVersion);
+                    streamEventsPage.NextStreamVersion.ShouldBe(expectedStreamEventsPage.NextStreamVersion);
+                    streamEventsPage.ReadDirection.ShouldBe(expectedStreamEventsPage.ReadDirection);
+                    streamEventsPage.IsEndOfStream.ShouldBe(expectedStreamEventsPage.IsEndOfStream);
+                    streamEventsPage.Status.ShouldBe(expectedStreamEventsPage.Status);
+                    streamEventsPage.StreamId.ShouldBe(expectedStreamEventsPage.StreamId);
+                    streamEventsPage.Events.Count.ShouldBe(expectedStreamEventsPage.Events.Count);
 
-                    streamEventsPage.Events.ShouldAllBeEquivalentTo(
-                        expectedEvents,
-                        options =>
+                    streamEventsPage.Events.ShouldBe(expectedEvents);
+                   /*     options =>
                         {
                             options.Excluding(streamEvent => streamEvent.Checkpoint);
                             options.Excluding(streamEvent => streamEvent.Created);
                             return options;
-                        });
+                        });*/
                 }
             }
         }
@@ -58,7 +57,7 @@
                     var streamEventsPage =
                         await eventStore.ReadStream("stream-does-not-exist", start, pageSize, direction);
 
-                    streamEventsPage.Status.Should().Be(PageReadStatus.StreamNotFound);
+                    streamEventsPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
                 }
             }
         }
@@ -78,7 +77,7 @@
                     var streamEventsPage =
                         await eventStore.ReadStream("stream-1", start, pageSize, direction);
 
-                    streamEventsPage.Status.Should().Be(PageReadStatus.StreamDeleted);
+                    streamEventsPage.Status.ShouldBe(PageReadStatus.StreamDeleted);
                 }
             }
         }

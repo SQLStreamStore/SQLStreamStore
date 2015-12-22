@@ -3,7 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using Cedar.EventStore.Exceptions;
-    using FluentAssertions;
+    using Shouldly;
     using Xunit;
 
     public partial class EventStoreAcceptanceTests
@@ -28,7 +28,7 @@
                     var streamEventsPage =
                         await eventStore.ReadStream(streamId, StreamPosition.Start, 10);
 
-                    streamEventsPage.Status.Should().Be(PageReadStatus.StreamDeleted);
+                    streamEventsPage.Status.ShouldBe(PageReadStatus.StreamDeleted);
                 }
             }
         }
@@ -68,7 +68,7 @@
                     var streamEventsPage =
                         await eventStore.ReadStream(streamId, StreamPosition.Start, 10);
 
-                    streamEventsPage.Status.Should().Be(PageReadStatus.StreamDeleted);
+                    streamEventsPage.Status.ShouldBe(PageReadStatus.StreamDeleted);
                 }
             }
         }

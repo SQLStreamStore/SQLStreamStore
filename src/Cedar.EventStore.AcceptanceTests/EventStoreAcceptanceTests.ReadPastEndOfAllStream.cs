@@ -1,7 +1,7 @@
 ﻿namespace Cedar.EventStore
 {
     using System.Threading.Tasks;
-    using FluentAssertions;
+    using Shouldly;
     using Xunit;
 
     public partial class EventStoreAcceptanceTests
@@ -17,8 +17,8 @@
 
                     var lastAllEventPage = await ReadAllStreamToEnd(eventStore);
 
-                    lastAllEventPage.IsEnd.Should().BeTrue();
-                    lastAllEventPage.NextCheckpoint.Should().Be(lastAllEventPage.FromCheckpoint);
+                    lastAllEventPage.IsEnd.ShouldBeTrue();
+                    lastAllEventPage.NextCheckpoint.ShouldBe(lastAllEventPage.FromCheckpoint);
                 }
             }
         }
@@ -36,8 +36,8 @@
 
                     var lastAllEventPage = await ReadAllStreamToEnd(eventStore);
 
-                    lastAllEventPage.IsEnd.Should().BeTrue();
-                    lastAllEventPage.NextCheckpoint.Should().Be(lastAllEventPage.NextCheckpoint);
+                    lastAllEventPage.IsEnd.ShouldBeTrue();
+                    lastAllEventPage.NextCheckpoint.ShouldBe(lastAllEventPage.NextCheckpoint);
                 }
             }
         }

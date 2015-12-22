@@ -1,10 +1,10 @@
-﻿namespace Cedar.EventStore.Postgres.Tests
+﻿namespace Cedar.EventStore
 {
-    using FluentAssertions;
     using System;
     using System.Threading.Tasks;
+    using Shouldly;
 
-    internal static class TaskExtensions
+    internal static partial class TaskExtensions
     {
         internal static async Task MightThrow<T>(this Task task, string message)
         {
@@ -14,8 +14,8 @@
             }
             catch (Exception ex)
             {
-                ex.Should().BeOfType<T>();
-                ex.Message.Should().Be(message);
+                ex.ShouldBeOfType<T>();
+                ex.Message.ShouldBe(message);
 
                 return;
             }

@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
-    using FluentAssertions;
+    using Shouldly;
     using Xunit;
 
     public partial class EventStoreAcceptanceTests
@@ -37,18 +37,17 @@
                         count++;
                     }
 
-                    count.Should().BeLessThan(20);
-                    allEventsPage.Direction.Should().Be(ReadDirection.Forward);
-                    allEventsPage.IsEnd.Should().BeTrue();
+                    count.ShouldBeLessThan(20);
+                    allEventsPage.Direction.ShouldBe(ReadDirection.Forward);
+                    allEventsPage.IsEnd.ShouldBeTrue();
 
-                    streamEvents.ShouldAllBeEquivalentTo(
-                        expectedEvents,
-                         options =>
+                    streamEvents.ShouldBe(expectedEvents);
+                         /*options =>
                          {
                              options.Excluding(streamEvent => streamEvent.Checkpoint);
                              options.Excluding(streamEvent => streamEvent.Created);
                              return options;
-                         });
+                         });*/
                 }
             }
         }
@@ -73,10 +72,10 @@
                         count++;
                     }
 
-                    allEventsPage.IsEnd.Should().BeTrue();
+                    allEventsPage.IsEnd.ShouldBeTrue();
 
                     Checkpoint currentCheckpoint = allEventsPage.NextCheckpoint;
-                    currentCheckpoint.Should().NotBeNull();
+                    currentCheckpoint.ShouldNotBeNull();
 
                     // read end of stream again, should be empty, should return same checkpoint
                     allEventsPage = await eventStore.ReadAll(currentCheckpoint, 10);
@@ -87,8 +86,8 @@
                         count++;
                     }
 
-                    allEventsPage.IsEnd.Should().BeTrue();
-                    allEventsPage.NextCheckpoint.Should().NotBeNull();
+                    allEventsPage.IsEnd.ShouldBeTrue();
+                    allEventsPage.NextCheckpoint.ShouldNotBeNull();
 
                     currentCheckpoint = allEventsPage.NextCheckpoint;
 
@@ -103,8 +102,8 @@
                         count++;
                     }
 
-                    allEventsPage.IsEnd.Should().BeTrue();
-                    allEventsPage.NextCheckpoint.Should().NotBeNull();
+                    allEventsPage.IsEnd.ShouldBeTrue();
+                    allEventsPage.NextCheckpoint.ShouldNotBeNull();
                 }
             }
         }
@@ -174,18 +173,18 @@
                         count++;
                     }
 
-                    count.Should().BeLessThan(20);
-                    allEventsPage.Direction.Should().Be(ReadDirection.Backward);
-                    allEventsPage.IsEnd.Should().BeTrue();
+                    count.ShouldBeLessThan(20);
+                    allEventsPage.Direction.ShouldBe(ReadDirection.Backward);
+                    allEventsPage.IsEnd.ShouldBeTrue();
 
-                    streamEvents.ShouldAllBeEquivalentTo(
-                        expectedEvents,
+                    streamEvents.ShouldBe(expectedEvents);
+                        /*expectedEvents,
                          options =>
                          {
                              options.Excluding(streamEvent => streamEvent.Checkpoint);
                              options.Excluding(streamEvent => streamEvent.Created);
                              return options;
-                         });
+                         });*/
                 }
             }
         }

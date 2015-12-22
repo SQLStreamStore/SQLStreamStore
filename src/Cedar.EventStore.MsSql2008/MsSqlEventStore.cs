@@ -242,7 +242,7 @@
                 while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                 {
                     var streamId = reader.GetString(0);
-                    var StreamVersion = reader.GetInt32(1);
+                    var streamVersion = reader.GetInt32(1);
                     ordinal = reader.GetInt64(2);
                     var eventId = reader.GetGuid(3);
                     var created = reader.GetDateTime(4);
@@ -252,7 +252,7 @@
 
                     var streamEvent = new StreamEvent(streamId,
                         eventId,
-                        StreamVersion,
+                        streamVersion,
                         ordinal.ToString(),
                         created,
                         type,
@@ -263,7 +263,7 @@
                 }
 
                 bool isEnd = true;
-                string nextCheckpoint = checkpoint.Value;
+                var nextCheckpoint = Checkpoint.End;
 
                 if(streamEvents.Count == maxCount + 1)
                 {
@@ -273,7 +273,7 @@
                 }
 
                 return new AllEventsPage(checkpoint.Value,
-                    nextCheckpoint,
+                    nextCheckpoint.Value,
                     isEnd,
                     direction,
                     streamEvents.ToArray());

@@ -15,12 +15,18 @@
         public override async Task<IEventStore> GetEventStore()
         {
             var node = await CreateClusterVNode();
-            var connectionSettingsBuilder = ConnectionSettings
-                .Create()
-                //.SetDefaultUserCredentials(new UserCredentials("admin", "changeit"))
-                .KeepReconnecting();
+
+            using(var eventStoreConnection = EmbeddedEventStoreConnection.Create(node))
+            {
+                await eventStoreConnection.SetStreamMetadataAsync(
+                    "$all",
+                    ExpectedVersion.Any,
+                    global::EventStore.ClientAPI.StreamMetadata.Build().SetReadRole("$all"),
+                    new UserCredentials("admin", "changeit"));
+            }
+
             var gesEventStore = new GesEventStore(
-                () => EmbeddedEventStoreConnection.Create(node, connectionSettingsBuilder));
+                () => EmbeddedEventStoreConnection.Create(node));
             return new EventStoreWrapper(gesEventStore, node);
         }
 

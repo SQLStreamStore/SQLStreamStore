@@ -4,7 +4,9 @@
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
+    using global::EventStore.ClientAPI;
     using global::EventStore.ClientAPI.Embedded;
+    using global::EventStore.ClientAPI.SystemData;
     using global::EventStore.Core;
     using global::EventStore.Core.Data;
 
@@ -13,7 +15,12 @@
         public override async Task<IEventStore> GetEventStore()
         {
             var node = await CreateClusterVNode();
-            var gesEventStore = new GesEventStore(() => EmbeddedEventStoreConnection.Create(node));
+            var connectionSettingsBuilder = ConnectionSettings
+                .Create()
+                //.SetDefaultUserCredentials(new UserCredentials("admin", "changeit"))
+                .KeepReconnecting();
+            var gesEventStore = new GesEventStore(
+                () => EmbeddedEventStoreConnection.Create(node, connectionSettingsBuilder));
             return new EventStoreWrapper(gesEventStore, node);
         }
 

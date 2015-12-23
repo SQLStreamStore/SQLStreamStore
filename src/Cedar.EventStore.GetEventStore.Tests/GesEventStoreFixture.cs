@@ -4,7 +4,6 @@
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
-    using global::EventStore.ClientAPI;
     using global::EventStore.ClientAPI.Embedded;
     using global::EventStore.ClientAPI.SystemData;
     using global::EventStore.Core;
@@ -16,14 +15,14 @@
         {
             var node = await CreateClusterVNode();
 
-            using(var eventStoreConnection = EmbeddedEventStoreConnection.Create(node))
+            /*using(var eventStoreConnection = EmbeddedEventStoreConnection.Create(node))
             {
                 await eventStoreConnection.SetStreamMetadataAsync(
                     "$all",
                     ExpectedVersion.Any,
                     global::EventStore.ClientAPI.StreamMetadata.Build().SetReadRole("$all"),
                     new UserCredentials("admin", "changeit"));
-            }
+            }*/
 
             var gesEventStore = new GesEventStore(
                 () => EmbeddedEventStoreConnection.Create(node));

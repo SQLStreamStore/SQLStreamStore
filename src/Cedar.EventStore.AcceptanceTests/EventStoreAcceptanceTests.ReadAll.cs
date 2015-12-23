@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Threading;
     using System.Threading.Tasks;
     using Shouldly;
     using Xunit;
@@ -163,7 +162,7 @@
                         ExpectedStreamEvent("stream-2", 5, 1, fixture.GetUtcNow().UtcDateTime),
                         ExpectedStreamEvent("stream-2", 6, 2, fixture.GetUtcNow().UtcDateTime)
                     };
-                    Thread.Sleep(3000);
+
                     var allEventsPage = await eventStore.ReadAll(Checkpoint.End, 4, ReadDirection.Backward);
                     List<StreamEvent> streamEvents = new List<StreamEvent>(allEventsPage.StreamEvents);
                     int count = 0;

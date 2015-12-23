@@ -8,7 +8,8 @@
     using global::EventStore.ClientAPI.Embedded;
     using global::EventStore.ClientAPI.SystemData;
     using global::EventStore.Core;
-    using global::EventStore.Core.Data;
+    using global::EventStore.Core.Bus;
+    using global::EventStore.Core.Messages;
 
     internal class GesEventStoreFixture : EventStoreAcceptanceTestFixture
     {
@@ -16,23 +17,13 @@
         {
             var node = await CreateClusterVNode();
 
-            /*using(var eventStoreConnection = EmbeddedEventStoreConnection.Create(node))
-            {
-                await eventStoreConnection.SetStreamMetadataAsync(
-                    "$all",
-                    ExpectedVersion.Any,
-                    global::EventStore.ClientAPI.StreamMetadata.Build().SetReadRole("$all"),
-                    new UserCredentials("admin", "changeit"));
-            }*/
-
-            /*ConnectionSettings connectionSettings = ConnectionSettings
+            var connectionSettingsBuilder = ConnectionSettings
                 .Create()
                 .SetDefaultUserCredentials(new UserCredentials("admin", "changeit"))
-                .KeepReconnecting()
-                .Build();*/
+                .KeepReconnecting();
 
             var gesEventStore = new GesEventStore(
-                () => EmbeddedEventStoreConnection.Create(node));
+                () => EmbeddedEventStoreConnection.Create(node, connectionSettingsBuilder));
             return new EventStoreWrapper(gesEventStore, node);
         }
 
@@ -51,14 +42,10 @@
 
             var tcs = new TaskCompletionSource<ClusterVNode>();
 
-            node.NodeStatusChanged += (_, e) =>
-            {
-                if(e.NewVNodeState != VNodeState.Master)
-                {
-                    return;
-                }
-                tcs.SetResult(node);
-            };
+            node.MainBus
+                .Subscribe(new AdHocHandler<UserManagementMessage.UserManagementServiceInitialized>(
+                    _ => tcs.SetResult(node)));
+
             node.Start();
 
             return tcs.Task;

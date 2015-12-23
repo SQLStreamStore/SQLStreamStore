@@ -4,6 +4,7 @@
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
+    using global::EventStore.ClientAPI;
     using global::EventStore.ClientAPI.Embedded;
     using global::EventStore.ClientAPI.SystemData;
     using global::EventStore.Core;
@@ -23,6 +24,12 @@
                     global::EventStore.ClientAPI.StreamMetadata.Build().SetReadRole("$all"),
                     new UserCredentials("admin", "changeit"));
             }*/
+
+            /*ConnectionSettings connectionSettings = ConnectionSettings
+                .Create()
+                .SetDefaultUserCredentials(new UserCredentials("admin", "changeit"))
+                .KeepReconnecting()
+                .Build();*/
 
             var gesEventStore = new GesEventStore(
                 () => EmbeddedEventStoreConnection.Create(node));

@@ -3,12 +3,14 @@
      using System;
      using System.Collections.Generic;
      using System.Linq;
+     using System.Linq.Expressions;
      using System.Text;
      using System.Threading;
      using System.Threading.Tasks;
      using Cedar.EventStore.Exceptions;
      using EnsureThat;
      using global::EventStore.ClientAPI;
+     using global::EventStore.ClientAPI.SystemData;
 
      public class GesEventStore : IEventStore
      {
@@ -104,7 +106,8 @@
              else
              {
                  allEventsSlice = await connection
-                     .ReadAllEventsBackwardAsync(position, maxCount, resolveLinkTos: false)
+                     .ReadAllEventsBackwardAsync(position, maxCount, resolveLinkTos: false, 
+                        userCredentials: new UserCredentials("admin","changeit"))
                      .NotOnCapturedContext();
              }
 

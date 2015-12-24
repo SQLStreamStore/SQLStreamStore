@@ -8,8 +8,6 @@
     using global::EventStore.ClientAPI.Embedded;
     using global::EventStore.ClientAPI.SystemData;
     using global::EventStore.Core;
-    using global::EventStore.Core.Bus;
-    using global::EventStore.Core.Messages;
 
     internal class GesEventStoreFixture : EventStoreAcceptanceTestFixture
     {
@@ -40,15 +38,7 @@
                 .RunProjections(ProjectionsMode.All)
                 .RunInMemory();
 
-            var tcs = new TaskCompletionSource<ClusterVNode>();
-
-            node.MainBus
-                .Subscribe(new AdHocHandler<UserManagementMessage.UserManagementServiceInitialized>(
-                    _ => tcs.SetResult(node)));
-
-            node.Start();
-
-            return tcs.Task;
+            return node.StartAndWaitUntilInitialized();
         }
 
         private class EventStoreWrapper : IEventStore

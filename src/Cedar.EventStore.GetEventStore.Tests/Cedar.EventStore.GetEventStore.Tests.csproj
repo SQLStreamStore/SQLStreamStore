@@ -89,6 +89,7 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="ClusterVNodeExtensions.cs" />
     <Compile Include="GesEventStoreFixture.cs" />
     <Compile Include="GesEventStoreTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

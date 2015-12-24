@@ -23,7 +23,7 @@
                         await eventStore.ReadStream(theory.StreamId, theory.Start, theory.PageSize, theory.Direction);
 
                     var expectedStreamEventsPage = theory.ExpectedStreamEventsPage;
-                    var expectedEvents = theory.ExpectedStreamEventsPage.Events;
+                    var expectedEvents = theory.ExpectedStreamEventsPage.Events.ToArray();
 
                     streamEventsPage.FromStreamVersion.ShouldBe(expectedStreamEventsPage.FromStreamVersion);
                     streamEventsPage.LastStreamVersion.ShouldBe(expectedStreamEventsPage.LastStreamVersion);
@@ -34,13 +34,23 @@
                     streamEventsPage.StreamId.ShouldBe(expectedStreamEventsPage.StreamId);
                     streamEventsPage.Events.Count.ShouldBe(expectedStreamEventsPage.Events.Count);
 
-                    streamEventsPage.Events.ShouldBe(expectedEvents);
-                   /*     options =>
-                        {
-                            options.Excluding(streamEvent => streamEvent.Checkpoint);
-                            options.Excluding(streamEvent => streamEvent.Created);
-                            return options;
-                        });*/
+
+                    for (int i = 0; i < streamEventsPage.Events.Count; i++)
+                    {
+                        var streamEvent = streamEventsPage.Events.ToArray()[i];
+                        var expectedEvent = expectedEvents[i];
+
+
+                        streamEvent.EventId.ShouldBe(expectedEvent.EventId);
+                        streamEvent.JsonData.ShouldBe(expectedEvent.JsonData);
+                        streamEvent.JsonMetadata.ShouldBe(expectedEvent.JsonMetadata);
+                        streamEvent.StreamId.ShouldBe(expectedEvent.StreamId);
+                        streamEvent.StreamVersion.ShouldBe(expectedEvent.StreamVersion);
+                        streamEvent.Type.ShouldBe(expectedEvent.Type);
+
+                        // We don't care about streamEvent.Checkpoint and streamEvent.Checkpoint
+                        // as they are non-deterministic
+                    }
                 }
             }
         }

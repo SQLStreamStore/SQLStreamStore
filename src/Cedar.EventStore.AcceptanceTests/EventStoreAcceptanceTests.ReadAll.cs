@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Shouldly;
     using Xunit;
@@ -41,13 +42,23 @@
                     allEventsPage.Direction.ShouldBe(ReadDirection.Forward);
                     allEventsPage.IsEnd.ShouldBeTrue();
 
-                    streamEvents.ShouldBe(expectedEvents);
-                         /*options =>
-                         {
-                             options.Excluding(streamEvent => streamEvent.Checkpoint);
-                             options.Excluding(streamEvent => streamEvent.Created);
-                             return options;
-                         });*/
+
+                    for (int i = 0; i < streamEvents.Count; i++)
+                    {
+                        var streamEvent = streamEvents[i];
+                        var expectedEvent = expectedEvents[i];
+
+
+                        streamEvent.EventId.ShouldBe(expectedEvent.EventId);
+                        streamEvent.JsonData.ShouldBe(expectedEvent.JsonData);
+                        streamEvent.JsonMetadata.ShouldBe(expectedEvent.JsonMetadata);
+                        streamEvent.StreamId.ShouldBe(expectedEvent.StreamId);
+                        streamEvent.StreamVersion.ShouldBe(expectedEvent.StreamVersion);
+                        streamEvent.Type.ShouldBe(expectedEvent.Type);
+
+                        // We don't care about streamEvent.Checkpoint and streamEvent.Checkpoint
+                        // as they are non-deterministic
+                    }
                 }
             }
         }
@@ -161,7 +172,7 @@
                         ExpectedStreamEvent("stream-2", 4, 0, fixture.GetUtcNow().UtcDateTime),
                         ExpectedStreamEvent("stream-2", 5, 1, fixture.GetUtcNow().UtcDateTime),
                         ExpectedStreamEvent("stream-2", 6, 2, fixture.GetUtcNow().UtcDateTime)
-                    };
+                    }.Reverse().ToArray();
 
                     var allEventsPage = await eventStore.ReadAll(Checkpoint.End, 4, ReadDirection.Backward);
                     List<StreamEvent> streamEvents = new List<StreamEvent>(allEventsPage.StreamEvents);
@@ -177,14 +188,24 @@
                     allEventsPage.Direction.ShouldBe(ReadDirection.Backward);
                     allEventsPage.IsEnd.ShouldBeTrue();
 
-                    streamEvents.ShouldBe(expectedEvents);
-                        /*expectedEvents,
-                         options =>
-                         {
-                             options.Excluding(streamEvent => streamEvent.Checkpoint);
-                             options.Excluding(streamEvent => streamEvent.Created);
-                             return options;
-                         });*/
+                    streamEvents.Count.ShouldBe(expectedEvents.Length);
+
+                    for(int i = 0; i < streamEvents.Count; i++)
+                    {
+                        var streamEvent = streamEvents[i];
+                        var expectedEvent = expectedEvents[i];
+
+
+                        streamEvent.EventId.ShouldBe(expectedEvent.EventId);
+                        streamEvent.JsonData.ShouldBe(expectedEvent.JsonData);
+                        streamEvent.JsonMetadata.ShouldBe(expectedEvent.JsonMetadata);
+                        streamEvent.StreamId.ShouldBe(expectedEvent.StreamId);
+                        streamEvent.StreamVersion.ShouldBe(expectedEvent.StreamVersion);
+                        streamEvent.Type.ShouldBe(expectedEvent.Type);
+
+                        // We don't care about streamEvent.Checkpoint and streamEvent.Checkpoint
+                        // as they are non-deterministic
+                    }
                 }
             }
         }

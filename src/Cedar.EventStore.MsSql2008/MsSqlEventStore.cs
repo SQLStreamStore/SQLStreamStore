@@ -58,6 +58,7 @@
                     record.SetString(5, @event.JsonMetadata);
                     return record;
                 }).ToArray();
+
                 using(var connection = _createConnection())
                 {
                     await connection.OpenAsync(cancellationToken).NotOnCapturedContext();

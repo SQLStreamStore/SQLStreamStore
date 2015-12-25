@@ -1,7 +1,7 @@
 SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 BEGIN TRANSACTION AppendStream;
     DECLARE @streamIdInternal AS INT;
-    DECLARE @latestStreamVersion  AS INT;
+    DECLARE @latestStreamVersion AS INT;
 
      SELECT @streamIdInternal = Streams.IdInternal
        FROM Streams

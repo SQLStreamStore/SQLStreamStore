@@ -4,60 +4,30 @@
     using System.Collections.Concurrent;
     using System.IO;
 
-    public static class Scripts
+    internal static class Scripts
     {
         private static readonly ConcurrentDictionary<string, string> s_scripts 
             = new ConcurrentDictionary<string, string>();
 
-        public static string AppendStreamExpectedVersion
-        {
-            get { return GetScript("AppendStreamExpectedVersion"); }
-        }
+        internal static string AppendStreamExpectedVersion => GetScript("AppendStreamExpectedVersion");
 
-        public static string AppendStreamNoVersion
-        {
-            get { return GetScript("AppendStreamNoStream"); }
-        }
+        internal static string AppendStreamNoStream => GetScript("AppendStreamNoStream");
 
-        public static string DeleteStreamAnyVersion
-        {
-            get { return GetScript("DeleteStreamAnyVersion"); }
-        }
+        internal static string DeleteStreamAnyVersion => GetScript("DeleteStreamAnyVersion");
 
-        public static string DeleteStreamExpectedVersion
-        {
-            get { return GetScript("DeleteStreamExpectedVersion"); }
-        }
+        internal static string DeleteStreamExpectedVersion => GetScript("DeleteStreamExpectedVersion");
 
-        public static string DropAll
-        {
-            get { return GetScript("DropAll"); }
-        }
+        internal static string DropAll => GetScript("DropAll");
 
-        public static string InitializeStore
-        {
-            get { return GetScript("InitializeStore"); }
-        }
+        internal static string InitializeStore => GetScript("InitializeStore");
 
-        public static string ReadAllForward
-        {
-            get { return GetScript("ReadAllForward"); }
-        }
+        internal static string ReadAllForward => GetScript("ReadAllForward");
 
-        public static string ReadAllBackward
-        {
-            get { return GetScript("ReadAllBackward"); }
-        }
+        internal static string ReadAllBackward => GetScript("ReadAllBackward");
 
-        public static string ReadStreamForward
-        {
-            get { return GetScript("ReadStreamForward"); }
-        }
+        internal static string ReadStreamForward => GetScript("ReadStreamForward");
 
-        public static string ReadStreamBackward
-        {
-            get { return GetScript("ReadStreamBackward"); }
-        }
+        internal static string ReadStreamBackward => GetScript("ReadStreamBackward");
 
         private static string GetScript(string name)
         {

@@ -61,7 +61,7 @@
                     return record;
                 }).ToArray();
 
-                using(var command = new SqlCommand(Scripts.AppendStreamNoVersion, _connection))
+                using(var command = new SqlCommand(Scripts.AppendStreamNoStream, _connection))
                 {
                     command.Parameters.AddWithValue("streamId", streamIdInfo.StreamId);
                     command.Parameters.AddWithValue("streamIdOriginal", streamIdInfo.StreamIdOriginal);

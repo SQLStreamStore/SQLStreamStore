@@ -25,7 +25,7 @@
             return new EventStoreWrapper(gesEventStore, node);
         }
 
-        private static Task<ClusterVNode> CreateClusterVNode()
+        private static async Task<ClusterVNode> CreateClusterVNode()
         {
             IPEndPoint noEndpoint = new IPEndPoint(IPAddress.None, 0);
 
@@ -38,7 +38,9 @@
                 .RunProjections(ProjectionsMode.All)
                 .RunInMemory();
 
-            return node.StartAndWaitUntilInitialized();
+            await node.StartAndWaitUntilInitialized();
+
+            return node;
         }
 
         private class EventStoreWrapper : IEventStore

@@ -14,7 +14,7 @@
     using EnsureThat;
     using Microsoft.SqlServer.Server;
 
-    public class MsSqlEventStore : IEventStore
+    public sealed class MsSqlEventStore : IEventStore
     {
         private readonly SqlConnection _connection;
         private readonly InterlockedBoolean _isDisposed = new InterlockedBoolean();

@@ -6,19 +6,25 @@
 
     public partial class EventStoreAcceptanceTests
     {
-        [Fact]
-        public async Task Can_read_to_end_of_allstream()
+        [Theory]
+        [InlineData(1)]
+        [InlineData(2)]
+        [InlineData(3)]
+        [InlineData(4)]
+        public async Task Can_read_to_end_of_allstream(int numberOfStreams)
         {
             using(var fixture = GetFixture())
             {
                 using(var eventStore = await fixture.GetEventStore())
                 {
-                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
-
+                    for(int i = 0; i < numberOfStreams; i++)
+                    {
+                        await eventStore.AppendToStream($"stream-{i}", ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+                    }
+                    
                     var lastAllEventPage = await ReadAllStreamToEnd(eventStore);
 
                     lastAllEventPage.IsEnd.ShouldBeTrue();
-                    lastAllEventPage.NextCheckpoint.ShouldBe(lastAllEventPage.FromCheckpoint);
                 }
             }
         }

@@ -263,9 +263,9 @@
                 }
 
                 bool isEnd = true;
-                var nextCheckpoint = Checkpoint.End;
+                var nextCheckpoint = streamEvents.Last().Checkpoint;
 
-                if(streamEvents.Count == maxCount + 1)
+                if(streamEvents.Count == maxCount + 1) // An extra row was read, we're not at the end
                 {
                     isEnd = false;
                     nextCheckpoint = streamEvents[maxCount].Checkpoint;
@@ -273,7 +273,7 @@
                 }
 
                 return new AllEventsPage(checkpoint.Value,
-                    nextCheckpoint.Value,
+                    nextCheckpoint,
                     isEnd,
                     direction,
                     streamEvents.ToArray());

@@ -79,7 +79,7 @@
 
                     while (!allEventsPage.IsEnd && count < 20)
                     {
-                        allEventsPage = await eventStore.ReadAll(allEventsPage.NextCheckpoint, 10);
+                        allEventsPage = await eventStore.ReadAll(allEventsPage.NextCheckpoint, 4);
                         count++;
                     }
 

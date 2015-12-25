@@ -14,9 +14,9 @@
     using EnsureThat;
     using Microsoft.SqlServer.Server;
 
-    public sealed class MsSqlEventStore : IEventStore
+    public class MsSqlEventStore
     {
-        private readonly SqlConnection _connection;
+        private readonly Func<SqlConnection> _createConnection;
         private readonly InterlockedBoolean _isDisposed = new InterlockedBoolean();
         private readonly SqlMetaData[] _appendToStreamSqlMetadata =
         {
@@ -32,8 +32,7 @@
         {
             Ensure.That(createConnection, "createConnection").IsNotNull();
 
-            _connection = createConnection();
-            _connection.Open();
+            _createConnection = createConnection;
         }
 
         public async Task AppendToStream(
@@ -59,33 +58,38 @@
                     record.SetString(5, @event.JsonMetadata);
                     return record;
                 }).ToArray();
-
-                using(var command = new SqlCommand(Scripts.AppendStreamNoStream, _connection))
+                using(var connection = _createConnection())
                 {
-                    command.Parameters.AddWithValue("streamId", streamIdInfo.StreamId);
-                    command.Parameters.AddWithValue("streamIdOriginal", streamIdInfo.StreamIdOriginal);
-                    var eventsParam = new SqlParameter("newEvents", SqlDbType.Structured)
-                    {
-                        TypeName = "dbo.NewStreamEvents",
-                        Value = sqlDataRecords
-                    };
-                    command.Parameters.Add(eventsParam);
+                    await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                    try
+                    using(var command = new SqlCommand(Scripts.AppendStreamNoStream, connection))
                     {
-                        await command.ExecuteNonQueryAsync(cancellationToken)
-                            .NotOnCapturedContext();
-                    }
-                    catch(SqlException ex)
-                    {
-                        // Check for unique constraint violation on 
-                        // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
-                        if(ex.Number == 2601)
+                        command.Parameters.AddWithValue("streamId", streamIdInfo.StreamId);
+                        command.Parameters.AddWithValue("streamIdOriginal", streamIdInfo.StreamIdOriginal);
+                        var eventsParam = new SqlParameter("newEvents", SqlDbType.Structured)
                         {
-                            throw new WrongExpectedVersionException(
-                                Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion), ex);
+                            TypeName = "dbo.NewStreamEvents",
+                            Value = sqlDataRecords
+                        };
+                        command.Parameters.Add(eventsParam);
+
+                        try
+                        {
+                            await command.ExecuteNonQueryAsync(cancellationToken)
+                                .NotOnCapturedContext();
                         }
-                        throw;
+                        catch(SqlException ex)
+                        {
+                            // Check for unique constraint violation on 
+                            // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
+                            if(ex.Number == 2601)
+                            {
+                                throw new WrongExpectedVersionException(
+                                    Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
+                                    ex);
+                            }
+                            throw;
+                        }
                     }
                 }
             }
@@ -101,33 +105,38 @@
                     return record;
                 }).ToArray();
 
-                using (var command = new SqlCommand(Scripts.AppendStreamExpectedVersion, _connection))
+                using(var connection = _createConnection())
                 {
-                    command.Parameters.AddWithValue("streamId", streamIdInfo.StreamId);
-                    command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
-                    var eventsParam = new SqlParameter("newEvents", SqlDbType.Structured)
-                    {
-                        TypeName = "dbo.NewStreamEvents",
-                        Value = sqlDataRecords
-                    };
-                    command.Parameters.Add(eventsParam);
+                    await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                    try
+                    using(var command = new SqlCommand(Scripts.AppendStreamExpectedVersion, connection))
                     {
-                        await command.ExecuteNonQueryAsync(cancellationToken)
-                            .NotOnCapturedContext();
-                    }
-                    catch(SqlException ex)
-                    {
-                        // Check for unique constraint violation on 
-                        // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
-                        if(ex.Number == 2601)
+                        command.Parameters.AddWithValue("streamId", streamIdInfo.StreamId);
+                        command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
+                        var eventsParam = new SqlParameter("newEvents", SqlDbType.Structured)
                         {
-                            throw new WrongExpectedVersionException(
-                                Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
-                                ex);
+                            TypeName = "dbo.NewStreamEvents",
+                            Value = sqlDataRecords
+                        };
+                        command.Parameters.Add(eventsParam);
+
+                        try
+                        {
+                            await command.ExecuteNonQueryAsync(cancellationToken)
+                                .NotOnCapturedContext();
                         }
-                        throw;
+                        catch(SqlException ex)
+                        {
+                            // Check for unique constraint violation on 
+                            // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
+                            if(ex.Number == 2601)
+                            {
+                                throw new WrongExpectedVersionException(
+                                    Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
+                                    ex);
+                            }
+                            throw;
+                        }
                     }
                 }
             }
@@ -152,12 +161,17 @@
             string streamId,
             CancellationToken cancellationToken)
         {
-            using (var command = new SqlCommand(Scripts.DeleteStreamAnyVersion, _connection))
+            using(var connection = _createConnection())
             {
-                command.Parameters.AddWithValue("streamId", streamId);
-                await command
-                    .ExecuteNonQueryAsync(cancellationToken)
-                    .NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken);
+
+                using(var command = new SqlCommand(Scripts.DeleteStreamAnyVersion, connection))
+                {
+                    command.Parameters.AddWithValue("streamId", streamId);
+                    await command
+                        .ExecuteNonQueryAsync(cancellationToken)
+                        .NotOnCapturedContext();
+                }
             }
         }
 
@@ -166,24 +180,30 @@
             int expectedVersion,
             CancellationToken cancellationToken)
         {
-            using (var command = new SqlCommand(Scripts.DeleteStreamExpectedVersion, _connection))
+            using(var connection = _createConnection())
             {
-                command.Parameters.AddWithValue("streamId", streamId);
-                command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
-                try
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                using(var command = new SqlCommand(Scripts.DeleteStreamExpectedVersion, connection))
                 {
-                    await command
-                        .ExecuteNonQueryAsync(cancellationToken)
-                        .NotOnCapturedContext();
-                }
-                catch(SqlException ex)
-                {
-                    if(ex.Message == "WrongExpectedVersion")
+                    command.Parameters.AddWithValue("streamId", streamId);
+                    command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
+                    try
                     {
-                        throw new WrongExpectedVersionException(
-                            string.Format(Messages.EventStreamIsDeleted,streamId), ex);
+                        await command
+                            .ExecuteNonQueryAsync(cancellationToken)
+                            .NotOnCapturedContext();
                     }
-                    throw;
+                    catch(SqlException ex)
+                    {
+                        if(ex.Message == "WrongExpectedVersion")
+                        {
+                            throw new WrongExpectedVersionException(
+                                string.Format(Messages.EventStreamIsDeleted, streamId),
+                                ex);
+                        }
+                        throw;
+                    }
                 }
             }
         }
@@ -206,61 +226,66 @@
 
             var commandText = direction == ReadDirection.Forward ? Scripts.ReadAllForward : Scripts.ReadAllBackward;
 
-            using (var command = new SqlCommand(commandText, _connection))
+            using(var connection = _createConnection())
             {
-                command.Parameters.AddWithValue("ordinal", ordinal);
-                command.Parameters.AddWithValue("count", maxCount + 1); //Read extra row to see if at end or not
-                var reader = await command
-                    .ExecuteReaderAsync(cancellationToken)
-                    .NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                List<StreamEvent> streamEvents = new List<StreamEvent>();
-                if(!reader.HasRows)
+                using(var command = new SqlCommand(commandText, connection))
                 {
+                    command.Parameters.AddWithValue("ordinal", ordinal);
+                    command.Parameters.AddWithValue("count", maxCount + 1); //Read extra row to see if at end or not
+                    var reader = await command
+                        .ExecuteReaderAsync(cancellationToken)
+                        .NotOnCapturedContext();
+
+                    List<StreamEvent> streamEvents = new List<StreamEvent>();
+                    if(!reader.HasRows)
+                    {
+                        return new AllEventsPage(checkpoint.Value,
+                            null,
+                            true,
+                            direction,
+                            streamEvents.ToArray());
+                    }
+                    while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                    {
+                        var streamId = reader.GetString(0);
+                        var streamVersion = reader.GetInt32(1);
+                        ordinal = reader.GetInt64(2);
+                        var eventId = reader.GetGuid(3);
+                        var created = reader.GetDateTime(4);
+                        var type = reader.GetString(5);
+                        var jsonData = reader.GetString(6);
+                        var jsonMetadata = reader.GetString(7);
+
+                        var streamEvent = new StreamEvent(streamId,
+                            eventId,
+                            streamVersion,
+                            ordinal.ToString(),
+                            created,
+                            type,
+                            jsonData,
+                            jsonMetadata);
+
+                        streamEvents.Add(streamEvent);
+                    }
+
+                    bool isEnd = true;
+                    var nextCheckpoint = streamEvents.Last().Checkpoint;
+
+                    if(streamEvents.Count == maxCount + 1) // An extra row was read, we're not at the end
+                    {
+                        isEnd = false;
+                        nextCheckpoint = streamEvents[maxCount].Checkpoint;
+                        streamEvents.RemoveAt(maxCount);
+                    }
+
                     return new AllEventsPage(checkpoint.Value,
-                        null,
-                        true,
+                        nextCheckpoint,
+                        isEnd,
                         direction,
                         streamEvents.ToArray());
                 }
-                while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
-                {
-                    var streamId = reader.GetString(0);
-                    var streamVersion = reader.GetInt32(1);
-                    ordinal = reader.GetInt64(2);
-                    var eventId = reader.GetGuid(3);
-                    var created = reader.GetDateTime(4);
-                    var type = reader.GetString(5);
-                    var jsonData = reader.GetString(6);
-                    var jsonMetadata = reader.GetString(7);
-
-                    var streamEvent = new StreamEvent(streamId,
-                        eventId,
-                        streamVersion,
-                        ordinal.ToString(),
-                        created,
-                        type,
-                        jsonData,
-                        jsonMetadata);
-
-                    streamEvents.Add(streamEvent);
-                }
-
-                bool isEnd = true;
-                var nextCheckpoint = streamEvents.Last().Checkpoint;
-
-                if(streamEvents.Count == maxCount + 1) // An extra row was read, we're not at the end
-                {
-                    isEnd = false;
-                    nextCheckpoint = streamEvents[maxCount].Checkpoint;
-                    streamEvents.RemoveAt(maxCount);
-                }
-
-                return new AllEventsPage(checkpoint.Value,
-                    nextCheckpoint,
-                    isEnd,
-                    direction,
-                    streamEvents.ToArray());
             }
         }
 
@@ -291,114 +316,117 @@
                 getNextSequenceNumber = events => events.Last().StreamVersion - 1;
             }
 
-            using (var command = new SqlCommand(commandText, _connection))
+            using(var connection = _createConnection())
             {
-                command.Parameters.AddWithValue("streamId", streamIdInfo.StreamId);
-                command.Parameters.AddWithValue("count", count + 1); //Read extra row to see if at end or not
-                command.Parameters.AddWithValue("StreamVersion", streamVersion);
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                List<StreamEvent> streamEvents = new List<StreamEvent>();
-
-                var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext();
-                await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
-                bool doesNotExist = reader.IsDBNull(0);
-                if (doesNotExist)
+                using(var command = new SqlCommand(commandText, connection))
                 {
-                    return new StreamEventsPage(streamId,
-                        PageReadStatus.StreamNotFound, 
+                    command.Parameters.AddWithValue("streamId", streamIdInfo.StreamId);
+                    command.Parameters.AddWithValue("count", count + 1); //Read extra row to see if at end or not
+                    command.Parameters.AddWithValue("StreamVersion", streamVersion);
+
+                    List<StreamEvent> streamEvents = new List<StreamEvent>();
+
+                    var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext();
+                    await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
+                    bool doesNotExist = reader.IsDBNull(0);
+                    if(doesNotExist)
+                    {
+                        return new StreamEventsPage(streamId,
+                            PageReadStatus.StreamNotFound,
+                            start,
+                            -1,
+                            -1,
+                            direction,
+                            isEndOfStream: true);
+                    }
+
+                    // Read IsDeleted result set
+                    var isDeleted = reader.GetBoolean(0);
+                    if(isDeleted)
+                    {
+                        return new StreamEventsPage(streamId,
+                            PageReadStatus.StreamDeleted,
+                            0,
+                            0,
+                            0,
+                            direction,
+                            isEndOfStream: true);
+                    }
+
+
+                    // Read Events result set
+                    await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
+                    while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                    {
+                        var streamVersion1 = reader.GetInt32(0);
+                        var ordinal = reader.GetInt64(1);
+                        var eventId = reader.GetGuid(2);
+                        var created = reader.GetDateTime(3);
+                        var type = reader.GetString(4);
+                        var jsonData = reader.GetString(5);
+                        var jsonMetadata = reader.GetString(6);
+
+                        var streamEvent = new StreamEvent(streamId,
+                            eventId,
+                            streamVersion1,
+                            ordinal.ToString(),
+                            created,
+                            type,
+                            jsonData,
+                            jsonMetadata);
+
+                        streamEvents.Add(streamEvent);
+                    }
+
+                    // Read last event revision result set
+                    await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
+                    await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
+                    var lastStreamVersion = reader.GetInt32(0);
+
+
+                    bool isEnd = true;
+                    if(streamEvents.Count == count + 1)
+                    {
+                        isEnd = false;
+                        streamEvents.RemoveAt(count);
+                    }
+
+                    return new StreamEventsPage(
+                        streamId,
+                        PageReadStatus.Success,
                         start,
-                        -1,
-                        -1,
+                        getNextSequenceNumber(streamEvents),
+                        lastStreamVersion,
                         direction,
-                        isEndOfStream: true);
+                        isEnd,
+                        streamEvents.ToArray());
                 }
-
-                // Read IsDeleted result set
-                var isDeleted = reader.GetBoolean(0);
-                if(isDeleted)
-                {
-                    return new StreamEventsPage(streamId,
-                        PageReadStatus.StreamDeleted,
-                        0,
-                        0,
-                        0,
-                        direction,
-                        isEndOfStream: true);
-                }
-
-
-                // Read Events result set
-                await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
-                while (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
-                {
-                    var streamVersion1 = reader.GetInt32(0);
-                    var ordinal = reader.GetInt64(1);
-                    var eventId = reader.GetGuid(2);
-                    var created = reader.GetDateTime(3);
-                    var type = reader.GetString(4);
-                    var jsonData = reader.GetString(5);
-                    var jsonMetadata = reader.GetString(6);
-
-                    var streamEvent = new StreamEvent(streamId,
-                        eventId,
-                        streamVersion1,
-                        ordinal.ToString(),
-                        created,
-                        type,
-                        jsonData,
-                        jsonMetadata);
-
-                    streamEvents.Add(streamEvent);
-                }
-
-                // Read last event revision result set
-                await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
-                await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
-                var lastStreamVersion = reader.GetInt32(0);
-
-
-                bool isEnd = true;
-                if(streamEvents.Count == count + 1)
-                {
-                    isEnd = false;
-                    streamEvents.RemoveAt(count);
-                }
-
-                return new StreamEventsPage(
-                    streamId,
-                    PageReadStatus.Success,
-                    start,
-                    getNextSequenceNumber(streamEvents),
-                    lastStreamVersion,
-                    direction,
-                    isEnd,
-                    streamEvents.ToArray());
             }
-        }
-
-        public void Dispose()
-        {
-            if(_isDisposed.EnsureCalledOnce())
-            {
-                return;
-            }
-            _connection.Dispose();
         }
 
         public async Task InitializeStore(
             bool ignoreErrors = false,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var cmd = new SqlCommand(Scripts.InitializeStore, _connection);
-            if(ignoreErrors)
+            using(var connection = _createConnection())
             {
-                await ExecuteAndIgnoreErrors(() => cmd.ExecuteNonQueryAsync(cancellationToken))
-                    .NotOnCapturedContext();
-            }
-            else
-            {
-                await cmd.ExecuteNonQueryAsync(cancellationToken)
-                    .NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                using(var command = new SqlCommand(Scripts.InitializeStore, connection))
+                {
+                    if(ignoreErrors)
+                    {
+                        await ExecuteAndIgnoreErrors(() => command.ExecuteNonQueryAsync(cancellationToken))
+                            .NotOnCapturedContext();
+                    }
+                    else
+                    {
+                        await command.ExecuteNonQueryAsync(cancellationToken)
+                            .NotOnCapturedContext();
+                    }
+                }
             }
         }
 
@@ -406,16 +434,23 @@
             bool ignoreErrors = false,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var cmd = new SqlCommand(Scripts.DropAll, _connection);
-            if(ignoreErrors)
+            using(var connection = _createConnection())
             {
-                await ExecuteAndIgnoreErrors(() => cmd.ExecuteNonQueryAsync(cancellationToken))
-                    .NotOnCapturedContext();
-            }
-            else
-            {
-                await cmd.ExecuteNonQueryAsync(cancellationToken)
-                    .NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                using(var command = new SqlCommand(Scripts.DropAll, connection))
+                {
+                    if(ignoreErrors)
+                    {
+                        await ExecuteAndIgnoreErrors(() => command.ExecuteNonQueryAsync(cancellationToken))
+                            .NotOnCapturedContext();
+                    }
+                    else
+                    {
+                        await command.ExecuteNonQueryAsync(cancellationToken)
+                            .NotOnCapturedContext();
+                    }
+                }
             }
         }
 

@@ -7,17 +7,17 @@
 
     internal static class ClusterVNodeExtensions
     {
-        internal static Task<ClusterVNode> StartAndWaitUntilInitialized(this ClusterVNode node)
+        internal static async Task StartAndWaitUntilInitialized(this ClusterVNode node)
         {
-            var tcs = new TaskCompletionSource<ClusterVNode>();
-
-            node.MainBus
-                .Subscribe(new AdHocHandler<UserManagementMessage.UserManagementServiceInitialized>(
-                    _ => tcs.TrySetResult(node)));
+            var tcs = new TaskCompletionSource<int>();
+            var handler = new AdHocHandler<UserManagementMessage.UserManagementServiceInitialized>(_ => tcs.TrySetResult(0));
+            node.MainBus.Subscribe(handler);
 
             node.Start();
 
-            return tcs.Task;
+            await tcs.Task;
+
+            node.MainBus.Unsubscribe(handler);
         } 
     }
 }

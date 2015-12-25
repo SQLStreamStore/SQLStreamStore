@@ -14,7 +14,7 @@
     using EnsureThat;
     using Microsoft.SqlServer.Server;
 
-    public class MsSqlEventStore
+    public sealed class MsSqlEventStore : IEventStore
     {
         private readonly Func<SqlConnection> _createConnection;
         private readonly InterlockedBoolean _isDisposed = new InterlockedBoolean();
@@ -491,6 +491,11 @@
                 StreamId = streamId;
                 StreamIdOriginal = streamIdOriginal;
             }
+        }
+
+        public void Dispose()
+        {
+            // noop
         }
     }
 }

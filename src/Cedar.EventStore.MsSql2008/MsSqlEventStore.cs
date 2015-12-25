@@ -18,6 +18,15 @@
     {
         private readonly SqlConnection _connection;
         private readonly InterlockedBoolean _isDisposed = new InterlockedBoolean();
+        private readonly SqlMetaData[] _appendToStreamSqlMetadata =
+        {
+            new SqlMetaData("StreamVersion", SqlDbType.Int, true, false, SortOrder.Unspecified, -1),
+            new SqlMetaData("Id", SqlDbType.UniqueIdentifier),
+            new SqlMetaData("Created", SqlDbType.DateTime, true, false, SortOrder.Unspecified, -1),
+            new SqlMetaData("Type", SqlDbType.NVarChar, 128),
+            new SqlMetaData("JsonData", SqlDbType.NVarChar, SqlMetaData.Max),
+            new SqlMetaData("JsonMetadata", SqlDbType.NVarChar, SqlMetaData.Max),
+        };
 
         public MsSqlEventStore(Func<SqlConnection> createConnection)
         {
@@ -41,19 +50,9 @@
 
             if(expectedVersion == ExpectedVersion.NoStream)
             {
-                var sqlMetadata = new[]
-                {
-                    new SqlMetaData("StreamVersion", SqlDbType.Int, true, false, SortOrder.Unspecified, -1),
-                    new SqlMetaData("Id", SqlDbType.UniqueIdentifier),
-                    new SqlMetaData("Created", SqlDbType.DateTime, true, false, SortOrder.Unspecified, -1),
-                    new SqlMetaData("Type", SqlDbType.NVarChar, 128),
-                    new SqlMetaData("JsonData", SqlDbType.NVarChar, SqlMetaData.Max),
-                    new SqlMetaData("JsonMetadata", SqlDbType.NVarChar, SqlMetaData.Max),
-                };
-
                 var sqlDataRecords = events.Select(@event =>
                 {
-                    var record = new SqlDataRecord(sqlMetadata);
+                    var record = new SqlDataRecord(_appendToStreamSqlMetadata);
                     record.SetGuid(1, @event.EventId);
                     record.SetString(3, @event.Type);
                     record.SetString(4, @event.JsonData);
@@ -92,19 +91,9 @@
             }
             else
             {
-                var sqlMetadata = new[]
-                {
-                    new SqlMetaData("StreamVersion", SqlDbType.Int, true, false, SortOrder.Unspecified, -1),
-                    new SqlMetaData("Id", SqlDbType.UniqueIdentifier),
-                    new SqlMetaData("Created", SqlDbType.DateTime, true, false, SortOrder.Unspecified, -1),
-                    new SqlMetaData("Type", SqlDbType.NVarChar, 128),
-                    new SqlMetaData("JsonData", SqlDbType.NVarChar, SqlMetaData.Max),
-                    new SqlMetaData("JsonMetadata", SqlDbType.NVarChar, SqlMetaData.Max),
-                };
-
                 var sqlDataRecords = events.Select(@event =>
                 {
-                    var record = new SqlDataRecord(sqlMetadata);
+                    var record = new SqlDataRecord(_appendToStreamSqlMetadata);
                     record.SetGuid(1, @event.EventId);
                     record.SetString(3, @event.Type);
                     record.SetString(4, @event.JsonData);
@@ -140,10 +129,6 @@
                         }
                         throw;
                     }
-                    catch(Exception ex)
-                    {
-                        throw;
-                    }
                 }
             }
         }
@@ -175,7 +160,6 @@
                     .NotOnCapturedContext();
             }
         }
-
 
         private async Task DeleteStreamExpectedVersion(
             string streamId,
@@ -347,7 +331,7 @@
                 await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
                 while (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                 {
-                    var StreamVersion1 = reader.GetInt32(0);
+                    var streamVersion1 = reader.GetInt32(0);
                     var ordinal = reader.GetInt64(1);
                     var eventId = reader.GetGuid(2);
                     var created = reader.GetDateTime(3);
@@ -357,7 +341,7 @@
 
                     var streamEvent = new StreamEvent(streamId,
                         eventId,
-                        StreamVersion1,
+                        streamVersion1,
                         ordinal.ToString(),
                         created,
                         type,

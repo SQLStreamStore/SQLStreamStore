@@ -49,16 +49,16 @@
             var streamIdHash = HashStreamId(streamId);
 
             return expectedVersion == ExpectedVersion.NoStream 
-                ? AppendToStreamExpectedNoStream(streamId, expectedVersion, events, cancellationToken, streamIdHash)
-                : AppendToStreamExpectedVersion(streamId, expectedVersion, events, cancellationToken, streamIdHash);
+                ? AppendToStreamExpectedNoStream(streamId, expectedVersion, events, streamIdHash, cancellationToken)
+                : AppendToStreamExpectedVersion(streamId, expectedVersion, events, streamIdHash, cancellationToken);
         }
 
         private async Task AppendToStreamExpectedNoStream(
             string streamId,
             int expectedVersion,
             NewStreamEvent[] events,
-            CancellationToken cancellationToken,
-            StreamIdInfo streamIdHash)
+            StreamIdInfo streamIdHash,
+            CancellationToken cancellationToken)
         {
             var sqlDataRecords = events.Select(@event =>
             {
@@ -144,8 +144,8 @@
             string streamId,
             int expectedVersion,
             NewStreamEvent[] events,
-            CancellationToken cancellationToken,
-            StreamIdInfo streamIdHash)
+            StreamIdInfo streamIdHash,
+            CancellationToken cancellationToken)
         {
             var sqlDataRecords = events.Select(@event =>
             {
@@ -174,11 +174,22 @@
 
                     try
                     {
-                        await command.ExecuteNonQueryAsync(cancellationToken)
+                        await command
+                            .ExecuteNonQueryAsync(cancellationToken)
                             .NotOnCapturedContext();
                     }
                     catch(SqlException ex)
                     {
+                        if(ex.Errors.Count == 1)
+                        {
+                            var sqlError = ex.Errors[0];
+                            if(sqlError.Message == "WrongExpectedVersion")
+                            {
+                                throw new WrongExpectedVersionException(
+                                    Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
+                                    ex);
+                            }
+                        }
                         if(ex.IsUniqueConstraintViolation())
                         {
                             throw new WrongExpectedVersionException(

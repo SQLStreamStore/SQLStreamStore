@@ -114,7 +114,7 @@ BEGIN
           IF @streamIdInternal IS NULL
           BEGIN
              ROLLBACK TRANSACTION AppendStream;
-             RAISERROR('WrongExpectedVersion', 1,1);
+             RAISERROR('WrongExpectedVersion', 16, 1);
              RETURN;
           END
 
@@ -127,7 +127,7 @@ BEGIN
          IF @latestStreamVersion != @expectedStreamVersion
          BEGIN
             ROLLBACK TRANSACTION AppendStream;
-            RAISERROR('WrongExpectedVersion', 1,2);
+            RAISERROR('WrongExpectedVersion', 16, 2);
             RETURN;
          END
 
@@ -150,17 +150,14 @@ EXEC dbo.CreateStream 'stream-2';
 EXEC dbo.CreateStream 'stream-3';
 EXEC dbo.CreateStream 'stream-4';
 
+/* AppendStream with ExpectedVersion */
 EXEC dbo.AppendStream 'stream-4', 4;
-EXEC dbo.AppendStream 'stream-4', 2;
 EXEC dbo.AppendStream 'stream-4', 3;
 
 GO
 
 SELECT * FROM dbo.Streams;
 SELECT * FROM dbo.Events;
-
-/* AppendStream with ExpectedVersion */
-
 
 DECLARE @ordinal AS INT = 2;
 DECLARE @count AS INT = 5;

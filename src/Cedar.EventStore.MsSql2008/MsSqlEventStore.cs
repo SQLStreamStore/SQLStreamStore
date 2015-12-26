@@ -35,7 +35,7 @@
             _createConnection = createConnection;
         }
 
-        public async Task AppendToStream(
+        public Task AppendToStream(
             string streamId,
             int expectedVersion,
             IEnumerable<NewStreamEvent> events,
@@ -47,97 +47,112 @@
 
             var streamIdHash = HashStreamId(streamId);
 
-            if(expectedVersion == ExpectedVersion.NoStream)
+            return expectedVersion == ExpectedVersion.NoStream 
+                ? AppendToStreamExpectedNoStream(streamId, expectedVersion, events, cancellationToken, streamIdHash)
+                : AppendToStreamExoectedVersion(streamId, expectedVersion, events, cancellationToken, streamIdHash);
+        }
+
+        private async Task AppendToStreamExpectedNoStream(
+            string streamId,
+            int expectedVersion,
+            IEnumerable<NewStreamEvent> events,
+            CancellationToken cancellationToken,
+            StreamIdInfo streamIdHash)
+        {
+            var sqlDataRecords = events.Select(@event =>
             {
-                var sqlDataRecords = events.Select(@event =>
-                {
-                    var record = new SqlDataRecord(_appendToStreamSqlMetadata);
-                    record.SetGuid(1, @event.EventId);
-                    record.SetString(3, @event.Type);
-                    record.SetString(4, @event.JsonData);
-                    record.SetString(5, @event.JsonMetadata);
-                    return record;
-                }).ToArray();
+                var record = new SqlDataRecord(_appendToStreamSqlMetadata);
+                record.SetGuid(1, @event.EventId);
+                record.SetString(3, @event.Type);
+                record.SetString(4, @event.JsonData);
+                record.SetString(5, @event.JsonMetadata);
+                return record;
+            }).ToArray();
 
-                using(var connection = _createConnection())
-                {
-                    await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+            using(var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                    using(var command = new SqlCommand(Scripts.AppendStreamNoStream, connection))
+                using(var command = new SqlCommand(Scripts.AppendStreamNoStream, connection))
+                {
+                    command.Parameters.AddWithValue("streamId", streamIdHash.StreamId);
+                    command.Parameters.AddWithValue("streamIdOriginal", streamIdHash.StreamIdOriginal);
+                    var eventsParam = new SqlParameter("newEvents", SqlDbType.Structured)
                     {
-                        command.Parameters.AddWithValue("streamId", streamIdHash.StreamId);
-                        command.Parameters.AddWithValue("streamIdOriginal", streamIdHash.StreamIdOriginal);
-                        var eventsParam = new SqlParameter("newEvents", SqlDbType.Structured)
-                        {
-                            TypeName = "dbo.NewStreamEvents",
-                            Value = sqlDataRecords
-                        };
-                        command.Parameters.Add(eventsParam);
+                        TypeName = "dbo.NewStreamEvents",
+                        Value = sqlDataRecords
+                    };
+                    command.Parameters.Add(eventsParam);
 
-                        try
+                    try
+                    {
+                        await command.ExecuteNonQueryAsync(cancellationToken)
+                            .NotOnCapturedContext();
+                    }
+                    catch(SqlException ex)
+                    {
+                        // Check for unique constraint violation on 
+                        // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
+                        if(ex.Number == 2601)
                         {
-                            await command.ExecuteNonQueryAsync(cancellationToken)
-                                .NotOnCapturedContext();
+                            throw new WrongExpectedVersionException(
+                                Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
+                                ex);
                         }
-                        catch(SqlException ex)
-                        {
-                            // Check for unique constraint violation on 
-                            // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
-                            if(ex.Number == 2601)
-                            {
-                                throw new WrongExpectedVersionException(
-                                    Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
-                                    ex);
-                            }
-                            throw;
-                        }
+                        throw;
                     }
                 }
             }
-            else
+        }
+
+        private async Task AppendToStreamExoectedVersion(
+            string streamId,
+            int expectedVersion,
+            IEnumerable<NewStreamEvent> events,
+            CancellationToken cancellationToken,
+            StreamIdInfo streamIdHash)
+        {
+            var sqlDataRecords = events.Select(@event =>
             {
-                var sqlDataRecords = events.Select(@event =>
-                {
-                    var record = new SqlDataRecord(_appendToStreamSqlMetadata);
-                    record.SetGuid(1, @event.EventId);
-                    record.SetString(3, @event.Type);
-                    record.SetString(4, @event.JsonData);
-                    record.SetString(5, @event.JsonMetadata);
-                    return record;
-                }).ToArray();
+                var record = new SqlDataRecord(_appendToStreamSqlMetadata);
+                record.SetGuid(1, @event.EventId);
+                record.SetString(3, @event.Type);
+                record.SetString(4, @event.JsonData);
+                record.SetString(5, @event.JsonMetadata);
+                return record;
+            }).ToArray();
 
-                using(var connection = _createConnection())
-                {
-                    await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+            using(var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                    using(var command = new SqlCommand(Scripts.AppendStreamExpectedVersion, connection))
+                using(var command = new SqlCommand(Scripts.AppendStreamExpectedVersion, connection))
+                {
+                    command.Parameters.AddWithValue("streamId", streamIdHash.StreamId);
+                    command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
+                    var eventsParam = new SqlParameter("newEvents", SqlDbType.Structured)
                     {
-                        command.Parameters.AddWithValue("streamId", streamIdHash.StreamId);
-                        command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
-                        var eventsParam = new SqlParameter("newEvents", SqlDbType.Structured)
-                        {
-                            TypeName = "dbo.NewStreamEvents",
-                            Value = sqlDataRecords
-                        };
-                        command.Parameters.Add(eventsParam);
+                        TypeName = "dbo.NewStreamEvents",
+                        Value = sqlDataRecords
+                    };
+                    command.Parameters.Add(eventsParam);
 
-                        try
+                    try
+                    {
+                        await command.ExecuteNonQueryAsync(cancellationToken)
+                            .NotOnCapturedContext();
+                    }
+                    catch(SqlException ex)
+                    {
+                        // Check for unique constraint violation on 
+                        // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
+                        if(ex.Number == 2601)
                         {
-                            await command.ExecuteNonQueryAsync(cancellationToken)
-                                .NotOnCapturedContext();
+                            throw new WrongExpectedVersionException(
+                                Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
+                                ex);
                         }
-                        catch(SqlException ex)
-                        {
-                            // Check for unique constraint violation on 
-                            // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
-                            if(ex.Number == 2601)
-                            {
-                                throw new WrongExpectedVersionException(
-                                    Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
-                                    ex);
-                            }
-                            throw;
-                        }
+                        throw;
                     }
                 }
             }

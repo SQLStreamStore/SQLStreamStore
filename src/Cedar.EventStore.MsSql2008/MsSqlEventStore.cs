@@ -45,7 +45,7 @@
             Ensure.That(expectedVersion, "expectedVersion").IsGte(-2);
             Ensure.That(events, "events").IsNotNull();
 
-            var streamIdInfo = HashStreamId(streamId);
+            var streamIdHash = HashStreamId(streamId);
 
             if(expectedVersion == ExpectedVersion.NoStream)
             {
@@ -65,8 +65,8 @@
 
                     using(var command = new SqlCommand(Scripts.AppendStreamNoStream, connection))
                     {
-                        command.Parameters.AddWithValue("streamId", streamIdInfo.StreamId);
-                        command.Parameters.AddWithValue("streamIdOriginal", streamIdInfo.StreamIdOriginal);
+                        command.Parameters.AddWithValue("streamId", streamIdHash.StreamId);
+                        command.Parameters.AddWithValue("streamIdOriginal", streamIdHash.StreamIdOriginal);
                         var eventsParam = new SqlParameter("newEvents", SqlDbType.Structured)
                         {
                             TypeName = "dbo.NewStreamEvents",
@@ -112,7 +112,7 @@
 
                     using(var command = new SqlCommand(Scripts.AppendStreamExpectedVersion, connection))
                     {
-                        command.Parameters.AddWithValue("streamId", streamIdInfo.StreamId);
+                        command.Parameters.AddWithValue("streamId", streamIdHash.StreamId);
                         command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
                         var eventsParam = new SqlParameter("newEvents", SqlDbType.Structured)
                         {

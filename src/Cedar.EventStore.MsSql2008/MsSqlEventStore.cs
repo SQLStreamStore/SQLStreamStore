@@ -50,7 +50,7 @@
 
             return expectedVersion == ExpectedVersion.NoStream 
                 ? AppendToStreamExpectedNoStream(streamId, expectedVersion, events, cancellationToken, streamIdHash)
-                : AppendToStreamExoectedVersion(streamId, expectedVersion, events, cancellationToken, streamIdHash);
+                : AppendToStreamExpectedVersion(streamId, expectedVersion, events, cancellationToken, streamIdHash);
         }
 
         private async Task AppendToStreamExpectedNoStream(
@@ -140,7 +140,7 @@
             }
         }
 
-        private async Task AppendToStreamExoectedVersion(
+        private async Task AppendToStreamExpectedVersion(
             string streamId,
             int expectedVersion,
             NewStreamEvent[] events,

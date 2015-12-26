@@ -50,6 +50,7 @@
     <Compile Include="MsSqlEventStore.cs" />
     <Compile Include="CheckpointExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SqlExceptionExtensions.cs" />
     <Compile Include="SqlScripts\Scripts.cs" />
   </ItemGroup>
   <ItemGroup>

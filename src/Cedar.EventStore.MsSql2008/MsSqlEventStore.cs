@@ -97,8 +97,9 @@
                         // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
                         if(ex.IsUniqueConstraintViolationOnIndex("IX_Streams_Id"))
                         {
-                            // Stream already exists, do idempotent stuff
-                            StreamEventsPage page = await ReadStreamInternal(
+                            // Idempotency handling. Check if the events have already been written.
+
+                            var page = await ReadStreamInternal(
                                     streamId,
                                     StreamPosition.Start,
                                     events.Length,
@@ -185,9 +186,33 @@
                             var sqlError = ex.Errors[0];
                             if(sqlError.Message == "WrongExpectedVersion")
                             {
-                                throw new WrongExpectedVersionException(
-                                    Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
-                                    ex);
+                                // Idempotency handling. Check if the events have already been written.
+
+                                var page = await ReadStreamInternal(streamId,
+                                    expectedVersion + 1, // when reading for already written events, it's from the one after the expected
+                                    events.Length,
+                                    ReadDirection.Forward,
+                                    connection,
+                                    cancellationToken);
+
+                                if (events.Length > page.Events.Count)
+                                {
+                                    throw new WrongExpectedVersionException(
+                                        Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
+                                        ex);
+                                }
+
+                                for (int i = 0; i < Math.Min(events.Length, page.Events.Count); i++)
+                                {
+                                    if (events[i].EventId != page.Events[i].EventId)
+                                    {
+                                        throw new WrongExpectedVersionException(
+                                            Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
+                                            ex);
+                                    }
+                                }
+
+                                return;
                             }
                         }
                         if(ex.IsUniqueConstraintViolation())

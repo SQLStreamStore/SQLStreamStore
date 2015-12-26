@@ -38,12 +38,13 @@
         public Task AppendToStream(
             string streamId,
             int expectedVersion,
-            IEnumerable<NewStreamEvent> events,
+            NewStreamEvent[] events,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.That(streamId, "streamId").IsNotNullOrWhiteSpace();
             Ensure.That(expectedVersion, "expectedVersion").IsGte(-2);
             Ensure.That(events, "events").IsNotNull();
+            CheckIfDisposed();
 
             var streamIdHash = HashStreamId(streamId);
 
@@ -55,7 +56,7 @@
         private async Task AppendToStreamExpectedNoStream(
             string streamId,
             int expectedVersion,
-            IEnumerable<NewStreamEvent> events,
+            NewStreamEvent[] events,
             CancellationToken cancellationToken,
             StreamIdInfo streamIdHash)
         {
@@ -86,19 +87,53 @@
 
                     try
                     {
-                        await command.ExecuteNonQueryAsync(cancellationToken)
+                        await command
+                            .ExecuteNonQueryAsync(cancellationToken)
                             .NotOnCapturedContext();
                     }
                     catch(SqlException ex)
                     {
                         // Check for unique constraint violation on 
                         // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
-                        if(ex.Number == 2601)
+                        if(ex.IsUniqueConstraintViolationOnIndex("IX_Streams_Id"))
+                        {
+                            // Stream already exists, do idempotent stuff
+                            StreamEventsPage page = await ReadStreamInternal(
+                                    streamId,
+                                    StreamPosition.Start,
+                                    events.Length,
+                                    ReadDirection.Forward,
+                                    connection,
+                                    cancellationToken)
+                                    .NotOnCapturedContext();
+
+                            if(events.Length > page.Events.Count)
+                            {
+                                throw new WrongExpectedVersionException(
+                                    Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
+                                    ex);
+                            }
+
+                            for(int i = 0; i < Math.Min(events.Length, page.Events.Count); i++)
+                            {
+                                if(events[i].EventId != page.Events[i].EventId)
+                                {
+                                    throw new WrongExpectedVersionException(
+                                        Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
+                                        ex);
+                                }
+                            }
+
+                            return;
+                        }
+
+                        if (ex.IsUniqueConstraintViolation())
                         {
                             throw new WrongExpectedVersionException(
                                 Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
                                 ex);
                         }
+
                         throw;
                     }
                 }
@@ -108,7 +143,7 @@
         private async Task AppendToStreamExoectedVersion(
             string streamId,
             int expectedVersion,
-            IEnumerable<NewStreamEvent> events,
+            NewStreamEvent[] events,
             CancellationToken cancellationToken,
             StreamIdInfo streamIdHash)
         {
@@ -144,9 +179,7 @@
                     }
                     catch(SqlException ex)
                     {
-                        // Check for unique constraint violation on 
-                        // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
-                        if(ex.Number == 2601)
+                        if(ex.IsUniqueConstraintViolation())
                         {
                             throw new WrongExpectedVersionException(
                                 Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
@@ -165,6 +198,7 @@
         {
             Ensure.That(streamId, "streamId").IsNotNullOrWhiteSpace();
             Ensure.That(expectedVersion, "expectedVersion").IsGte(-2);
+            CheckIfDisposed();
 
             var streamIdInfo = HashStreamId(streamId);
 
@@ -177,7 +211,9 @@
             string streamId,
             CancellationToken cancellationToken)
         {
-            using(var connection = _createConnection())
+            CheckIfDisposed();
+
+            using (var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken);
 
@@ -196,7 +232,7 @@
             int expectedVersion,
             CancellationToken cancellationToken)
         {
-            using(var connection = _createConnection())
+            using (var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
@@ -232,11 +268,7 @@
         {
             Ensure.That(checkpoint, "checkpoint").IsNotNull();
             Ensure.That(maxCount, "maxCount").IsGt(0);
-
-            if(_isDisposed.Value)
-            {
-                throw new ObjectDisposedException("MsSqlEventStore");
-            }
+            CheckIfDisposed();
 
             long ordinal = checkpoint.GetOrdinal();
 
@@ -315,110 +347,13 @@
             Ensure.That(streamId, "streamId").IsNotNull();
             Ensure.That(start, "start").IsGte(-1);
             Ensure.That(count, "count").IsGte(0);
+            CheckIfDisposed();
 
-            var streamIdInfo = HashStreamId(streamId);
-
-            var streamVersion = start == StreamPosition.End ? int.MaxValue : start;
-            string commandText;
-            Func<List<StreamEvent>, int> getNextSequenceNumber;
-            if(direction == ReadDirection.Forward)
-            {
-                commandText = Scripts.ReadStreamForward;
-                getNextSequenceNumber = events => events.Last().StreamVersion + 1;
-            }
-            else
-            {
-                commandText = Scripts.ReadStreamBackward;
-                getNextSequenceNumber = events => events.Last().StreamVersion - 1;
-            }
-
-            using(var connection = _createConnection())
+            using (var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using(var command = new SqlCommand(commandText, connection))
-                {
-                    command.Parameters.AddWithValue("streamId", streamIdInfo.StreamId);
-                    command.Parameters.AddWithValue("count", count + 1); //Read extra row to see if at end or not
-                    command.Parameters.AddWithValue("StreamVersion", streamVersion);
-
-                    List<StreamEvent> streamEvents = new List<StreamEvent>();
-
-                    var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext();
-                    await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
-                    bool doesNotExist = reader.IsDBNull(0);
-                    if(doesNotExist)
-                    {
-                        return new StreamEventsPage(streamId,
-                            PageReadStatus.StreamNotFound,
-                            start,
-                            -1,
-                            -1,
-                            direction,
-                            isEndOfStream: true);
-                    }
-
-                    // Read IsDeleted result set
-                    var isDeleted = reader.GetBoolean(0);
-                    if(isDeleted)
-                    {
-                        return new StreamEventsPage(streamId,
-                            PageReadStatus.StreamDeleted,
-                            0,
-                            0,
-                            0,
-                            direction,
-                            isEndOfStream: true);
-                    }
-
-
-                    // Read Events result set
-                    await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
-                    while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
-                    {
-                        var streamVersion1 = reader.GetInt32(0);
-                        var ordinal = reader.GetInt64(1);
-                        var eventId = reader.GetGuid(2);
-                        var created = reader.GetDateTime(3);
-                        var type = reader.GetString(4);
-                        var jsonData = reader.GetString(5);
-                        var jsonMetadata = reader.GetString(6);
-
-                        var streamEvent = new StreamEvent(streamId,
-                            eventId,
-                            streamVersion1,
-                            ordinal.ToString(),
-                            created,
-                            type,
-                            jsonData,
-                            jsonMetadata);
-
-                        streamEvents.Add(streamEvent);
-                    }
-
-                    // Read last event revision result set
-                    await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
-                    await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
-                    var lastStreamVersion = reader.GetInt32(0);
-
-
-                    bool isEnd = true;
-                    if(streamEvents.Count == count + 1)
-                    {
-                        isEnd = false;
-                        streamEvents.RemoveAt(count);
-                    }
-
-                    return new StreamEventsPage(
-                        streamId,
-                        PageReadStatus.Success,
-                        start,
-                        getNextSequenceNumber(streamEvents),
-                        lastStreamVersion,
-                        direction,
-                        isEnd,
-                        streamEvents.ToArray());
-                }
+                return await ReadStreamInternal(streamId, start, count, direction, connection, cancellationToken);
             }
         }
 
@@ -426,7 +361,9 @@
             bool ignoreErrors = false,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            using(var connection = _createConnection())
+            CheckIfDisposed();
+
+            using (var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
@@ -450,7 +387,9 @@
             bool ignoreErrors = false,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            using(var connection = _createConnection())
+            CheckIfDisposed();
+
+            using (var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
@@ -468,6 +407,120 @@
                     }
                 }
             }
+        }
+
+        private static async Task<StreamEventsPage> ReadStreamInternal(
+            string streamId,
+            int start,
+            int count,
+            ReadDirection direction,
+            SqlConnection connection,
+            CancellationToken cancellationToken)
+        {
+            var streamIdInfo = HashStreamId(streamId);
+
+            var streamVersion = start == StreamPosition.End ? int.MaxValue : start;
+            string commandText;
+            Func<List<StreamEvent>, int> getNextSequenceNumber;
+            if(direction == ReadDirection.Forward)
+            {
+                commandText = Scripts.ReadStreamForward;
+                getNextSequenceNumber = events => events.Last().StreamVersion + 1;
+            }
+            else
+            {
+                commandText = Scripts.ReadStreamBackward;
+                getNextSequenceNumber = events => events.Last().StreamVersion - 1;
+            }
+
+            using(var command = new SqlCommand(commandText, connection))
+            {
+                command.Parameters.AddWithValue("streamId", streamIdInfo.StreamId);
+                command.Parameters.AddWithValue("count", count + 1); //Read extra row to see if at end or not
+                command.Parameters.AddWithValue("StreamVersion", streamVersion);
+
+                List<StreamEvent> streamEvents = new List<StreamEvent>();
+
+                var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext();
+                await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
+                bool doesNotExist = reader.IsDBNull(0);
+                if(doesNotExist)
+                {
+                    return new StreamEventsPage(streamId,
+                        PageReadStatus.StreamNotFound,
+                        start,
+                        -1,
+                        -1,
+                        direction,
+                        isEndOfStream: true);
+                }
+
+                // Read IsDeleted result set
+                var isDeleted = reader.GetBoolean(0);
+                if(isDeleted)
+                {
+                    return new StreamEventsPage(streamId,
+                        PageReadStatus.StreamDeleted,
+                        0,
+                        0,
+                        0,
+                        direction,
+                        isEndOfStream: true);
+                }
+
+
+                // Read Events result set
+                await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
+                while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                {
+                    var streamVersion1 = reader.GetInt32(0);
+                    var ordinal = reader.GetInt64(1);
+                    var eventId = reader.GetGuid(2);
+                    var created = reader.GetDateTime(3);
+                    var type = reader.GetString(4);
+                    var jsonData = reader.GetString(5);
+                    var jsonMetadata = reader.GetString(6);
+
+                    var streamEvent = new StreamEvent(streamId,
+                        eventId,
+                        streamVersion1,
+                        ordinal.ToString(),
+                        created,
+                        type,
+                        jsonData,
+                        jsonMetadata);
+
+                    streamEvents.Add(streamEvent);
+                }
+
+                // Read last event revision result set
+                await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
+                await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
+                var lastStreamVersion = reader.GetInt32(0);
+
+
+                bool isEnd = true;
+                if(streamEvents.Count == count + 1)
+                {
+                    isEnd = false;
+                    streamEvents.RemoveAt(count);
+                }
+
+                return new StreamEventsPage(
+                    streamId,
+                    PageReadStatus.Success,
+                    start,
+                    getNextSequenceNumber(streamEvents),
+                    lastStreamVersion,
+                    direction,
+                    isEnd,
+                    streamEvents.ToArray());
+            }
+        }
+
+        public void Dispose()
+        {
+            _isDisposed.EnsureCalledOnce();
         }
 
         private static async Task<T> ExecuteAndIgnoreErrors<T>(Func<Task<T>> operation)
@@ -509,9 +562,12 @@
             }
         }
 
-        public void Dispose()
+        private void CheckIfDisposed()
         {
-            // noop
+            if(_isDisposed.Value)
+            {
+                throw new ObjectDisposedException(nameof(MsSqlEventStore));
+            }
         }
     }
 }

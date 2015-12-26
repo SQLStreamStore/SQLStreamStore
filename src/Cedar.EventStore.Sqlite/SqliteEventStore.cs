@@ -1,7 +1,6 @@
 ﻿namespace Cedar.EventStore
 {
     using System;
-    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -27,11 +26,7 @@
             _getConnection = () => _connectionPool.GetConnection(connectionString);
         }
 
-        public Task AppendToStream(
-            string streamId,
-            int expectedVersion,
-            IEnumerable<NewStreamEvent> events,
-            CancellationToken cancellationToken = default(CancellationToken))
+        public Task AppendToStream(string streamId, int expectedVersion, NewStreamEvent[] events, CancellationToken cancellationToken = default(CancellationToken))
         {
             var connection = _getConnection();
             connection.BeginTransaction();

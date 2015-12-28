@@ -117,13 +117,8 @@
                 using (var eventStore = await fixture.GetEventStore())
                 {
                     const string streamId = "stream";
-                    var events = new[]
-                    {
-                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\""),
-                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\"")
-                    };
 
-                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, events);
+                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
 
                     await eventStore.DeleteStream(streamId, 100)
                         .ShouldThrow<WrongExpectedVersionException>(

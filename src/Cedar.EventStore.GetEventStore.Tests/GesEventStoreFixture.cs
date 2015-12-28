@@ -35,6 +35,7 @@
                 .WithExternalHttpOn(noEndpoint)
                 .WithInternalHttpOn(noEndpoint)
                 .RunProjections(ProjectionsMode.All)
+                .WithTfChunkSize(16000000)
                 .RunInMemory();
 
             await node.StartAndWaitUntilInitialized();

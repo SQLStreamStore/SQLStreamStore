@@ -1,5 +1,6 @@
 ﻿namespace Cedar.EventStore
 {
+    using System.Security.Cryptography;
     using System.Threading.Tasks;
     using Cedar.EventStore.Exceptions;
     using Shouldly;
@@ -216,7 +217,7 @@
         }
 
         [Fact]
-        public async Task Can_append_stream_to_existing_stream_with_expected_version_any()
+        public async Task Can_append_stream_with_expected_version_any_and_all_events_comitted_already()
         {
             using (var fixture = GetFixture())
             {
@@ -228,8 +229,29 @@
                         .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3));
 
                     await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(4, 5, 6))
-                        .ShouldNotThrow();
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3));
+
+                    var page = await eventStore
+                        .ReadStream(streamId, StreamPosition.Start, 10);
+                    page.Events.Count.ShouldBe(3);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Can_append_stream_with_expected_version_any_and_none_of_then_events_previously_comitted()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    const string streamId = "stream-1";
+
+                    await eventStore
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3));
+
+                    await eventStore
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(4, 5, 6));
 
                     var page = await eventStore
                         .ReadStream(streamId, StreamPosition.Start, 10);
@@ -239,7 +261,7 @@
         }
 
         [Fact]
-        public async Task When_append_with_duplicate_events_with_expected_version_any_then_should_throw()
+        public async Task Can_append_stream_with_expected_version_any_and_some_of_then_events_previously_comitted()
         {
             using (var fixture = GetFixture())
             {
@@ -251,12 +273,8 @@
                         .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3));
 
                     eventStore
-                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3))
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(3, 4, 5))
                         .ShouldThrow<WrongExpectedVersionException>();
-
-                    var page = await eventStore
-                       .ReadStream(streamId, StreamPosition.Start, 10);
-                    page.Events.Count.ShouldBe(3);
                 }
             }
         }

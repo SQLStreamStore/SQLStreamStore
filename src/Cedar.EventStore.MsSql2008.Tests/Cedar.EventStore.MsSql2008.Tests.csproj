@@ -40,6 +40,10 @@
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
+    <Reference Include="System.Data.SqlLocalDb, Version=1.14.0.0, Culture=neutral, PublicKeyToken=9a192a7522c9e1a0, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Data.SqlLocalDb.1.14.0\lib\net20\System.Data.SqlLocalDb.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
     <Reference Include="System.Xml" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="xunit.abstractions">

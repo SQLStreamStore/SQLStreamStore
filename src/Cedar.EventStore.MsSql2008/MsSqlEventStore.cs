@@ -76,11 +76,7 @@
                 {
                     command.Parameters.AddWithValue("streamId", streamIdHash.StreamId);
                     command.Parameters.AddWithValue("streamIdOriginal", streamIdHash.StreamIdOriginal);
-                    var eventsParam = new SqlParameter("newEvents", SqlDbType.Structured)
-                    {
-                        TypeName = "dbo.NewStreamEvents",
-                        Value = sqlDataRecords
-                    };
+                    var eventsParam = CreateNewEventsSqlParameter(sqlDataRecords);
                     command.Parameters.Add(eventsParam);
 
                     try
@@ -156,11 +152,7 @@
                 {
                     command.Parameters.AddWithValue("streamId", streamIdHash.StreamId);
                     command.Parameters.AddWithValue("streamIdOriginal", streamIdHash.StreamIdOriginal);
-                    var eventsParam = new SqlParameter("newEvents", SqlDbType.Structured)
-                    {
-                        TypeName = "dbo.NewStreamEvents",
-                        Value = sqlDataRecords
-                    };
+                    var eventsParam = CreateNewEventsSqlParameter(sqlDataRecords);
                     command.Parameters.Add(eventsParam);
 
                     try
@@ -236,11 +228,7 @@
                 {
                     command.Parameters.AddWithValue("streamId", streamIdHash.StreamId);
                     command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
-                    var eventsParam = new SqlParameter("newEvents", SqlDbType.Structured)
-                    {
-                        TypeName = "dbo.NewStreamEvents",
-                        Value = sqlDataRecords
-                    };
+                    var eventsParam = CreateNewEventsSqlParameter(sqlDataRecords);
                     command.Parameters.Add(eventsParam);
 
                     try
@@ -309,6 +297,16 @@
                 return record;
             }).ToArray();
             return sqlDataRecords;
+        }
+
+        private static SqlParameter CreateNewEventsSqlParameter(SqlDataRecord[] sqlDataRecords)
+        {
+            var eventsParam = new SqlParameter("newEvents", SqlDbType.Structured)
+            {
+                TypeName = "dbo.NewStreamEvents",
+                Value = sqlDataRecords
+            };
+            return eventsParam;
         }
 
         public Task DeleteStream(

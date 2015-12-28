@@ -271,9 +271,10 @@
                     await eventStore
                         .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3));
 
-                    eventStore
-                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(3, 4, 5))
-                        .ShouldThrow<WrongExpectedVersionException>();
+                    await eventStore
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(2, 3, 4))
+                        .ShouldThrow<WrongExpectedVersionException>(
+                            Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, ExpectedVersion.Any));
                 }
             }
         }

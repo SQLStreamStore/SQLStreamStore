@@ -157,9 +157,47 @@
         }
 
         [Fact]
-        public async Task When_append_stream_with_expected_version_any_and_no_stream_exists_should_not_throw()
+        public async Task When_append_stream_with_correct_expected_version_second_time_with_same_initial_events_then_should_not_throw()
         {
-            // Idempotency
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    const string streamId = "stream-1";
+                    await eventStore
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+
+                    await eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(4, 5, 6));
+
+                    await eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(4, 5))
+                        .ShouldNotThrow();
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_append_stream_with_correct_expected_version_second_time_with_additional_events_then_should_throw()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    const string streamId = "stream-1";
+                    await eventStore
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+
+                    await eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(4, 5, 6));
+
+                    await eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(4, 5, 6, 7))
+                        .ShouldThrow<WrongExpectedVersionException>(
+                            Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, 2));
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Can_append_to_non_existing_stream_with_expected_version_any()
+        {
             using (var fixture = GetFixture())
             {
                 using (var eventStore = await fixture.GetEventStore())
@@ -167,6 +205,25 @@
                     const string streamId = "stream-1";
                     await eventStore
                         .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3))
+                        .ShouldNotThrow();
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Can_append_stream_to_existing_stream_with_expected_version_any()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    const string streamId = "stream-1";
+
+                    await eventStore
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3));
+
+                    await eventStore
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(4, 5, 6))
                         .ShouldNotThrow();
                 }
             }

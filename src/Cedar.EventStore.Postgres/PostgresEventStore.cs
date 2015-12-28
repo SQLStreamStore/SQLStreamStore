@@ -52,11 +52,7 @@
             _scripts = new Scripts(schema);
         }
 
-        public async Task AppendToStream(
-            string streamId,
-            int expectedVersion,
-            IEnumerable<NewStreamEvent> events,
-            CancellationToken cancellationToken = default(CancellationToken))
+        public async Task AppendToStream(string streamId, int expectedVersion, NewStreamEvent[] events, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.That(streamId, "streamId").IsNotNullOrWhiteSpace();
             Ensure.That(expectedVersion, "expectedVersion").IsGte(-2);

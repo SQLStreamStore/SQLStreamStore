@@ -1,7 +1,7 @@
 SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 BEGIN TRANSACTION AppendStream;
     DECLARE @streamIdInternal AS INT;
-    DECLARE @latestStreamVersion  AS INT;
+    DECLARE @latestStreamVersion AS INT;
 
      SELECT @streamIdInternal = Streams.IdInternal
        FROM Streams
@@ -10,7 +10,7 @@ BEGIN TRANSACTION AppendStream;
          IF @streamIdInternal IS NULL
         BEGIN
             ROLLBACK TRANSACTION AppendStream;
-            RAISERROR('WrongExpectedVersion', 1,1);
+            RAISERROR('WrongExpectedVersion', 16, 1);
             RETURN;
         END
 
@@ -23,7 +23,7 @@ BEGIN TRANSACTION AppendStream;
         IF @latestStreamVersion != @expectedStreamVersion
         BEGIN
             ROLLBACK TRANSACTION AppendStream;
-            RAISERROR('WrongExpectedVersion', 1,2);
+            RAISERROR('WrongExpectedVersion', 16, 2);
             RETURN;
         END
 

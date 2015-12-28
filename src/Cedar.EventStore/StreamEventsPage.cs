@@ -4,7 +4,7 @@
 
     public class StreamEventsPage
     {
-        public readonly IReadOnlyCollection<StreamEvent> Events;
+        public readonly IReadOnlyList<StreamEvent> Events;
         public readonly int FromStreamVersion;
         public readonly bool IsEndOfStream;
         public readonly int LastStreamVersion;

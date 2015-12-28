@@ -1,6 +1,5 @@
 ﻿namespace Cedar.EventStore
 {
-    using System.Collections.Generic;
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
@@ -36,6 +35,7 @@
                 .WithExternalHttpOn(noEndpoint)
                 .WithInternalHttpOn(noEndpoint)
                 .RunProjections(ProjectionsMode.All)
+                .WithTfChunkSize(16000000)
                 .RunInMemory();
 
             await node.StartAndWaitUntilInitialized();
@@ -60,11 +60,7 @@
                 _node.Stop();
             }
 
-            public Task AppendToStream(
-                string streamId,
-                int expectedVersion,
-                IEnumerable<NewStreamEvent> events,
-                CancellationToken cancellationToken = default(CancellationToken))
+            public Task AppendToStream(string streamId, int expectedVersion, NewStreamEvent[] events, CancellationToken cancellationToken = default(CancellationToken))
             {
                 return _inner.AppendToStream(streamId, expectedVersion, events, cancellationToken);
             }

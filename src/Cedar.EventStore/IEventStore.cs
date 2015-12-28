@@ -1,7 +1,6 @@
 ﻿namespace Cedar.EventStore
 {
     using System;
-    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -10,7 +9,7 @@
         Task AppendToStream(
             string streamId,
             int expectedVersion,
-            IEnumerable<NewStreamEvent> events,
+            NewStreamEvent[] events,
             CancellationToken cancellationToken = default(CancellationToken));
 
         Task DeleteStream(

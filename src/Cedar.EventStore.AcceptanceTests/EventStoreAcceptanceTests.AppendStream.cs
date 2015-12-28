@@ -1,6 +1,5 @@
 ﻿namespace Cedar.EventStore
 {
-    using System.Security.Cryptography;
     using System.Threading.Tasks;
     using Cedar.EventStore.Exceptions;
     using Shouldly;

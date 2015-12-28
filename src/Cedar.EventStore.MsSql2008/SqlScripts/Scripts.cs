@@ -9,9 +9,11 @@
         private static readonly ConcurrentDictionary<string, string> s_scripts 
             = new ConcurrentDictionary<string, string>();
 
+        internal static string AppendStreamExpectedVersionAny => GetScript("AppendStreamExpectedVersionAny");
+
         internal static string AppendStreamExpectedVersion => GetScript("AppendStreamExpectedVersion");
 
-        internal static string AppendStreamNoStream => GetScript("AppendStreamNoStream");
+        internal static string AppendStreamExpectedVersionNoStream => GetScript("AppendStreamExpectedVersionNoStream");
 
         internal static string DeleteStreamAnyVersion => GetScript("DeleteStreamAnyVersion");
 

@@ -3,9 +3,8 @@
 DROP TABLE dbo.Events;
 DROP TABLE dbo.Streams;
 DROP TYPE dbo.NewStreamEvents;
-DROP PROC dbo.AppendStreamNoStream;
-DROP PROC dbo.AppendStreamExpectedVersion;
-DROP PROC dbo.AppendStreamAnyVersion;
+DROP PROC dbo.CreateStream;
+DROP PROC dbo.AppendStream;
 
 CREATE TABLE dbo.Streams(
     Id                  CHAR(40)                                NOT NULL,
@@ -43,7 +42,7 @@ CREATE TYPE dbo.NewStreamEvents AS TABLE (
 GO
  
 -- Create Stream (Append with expected version = no version)
-CREATE PROC dbo.AppendStreamNoStream(@streamId NVARCHAR(40))
+CREATE PROC dbo.CreateStream(@streamId NVARCHAR(40))
 AS
 BEGIN
     DECLARE @newEvents dbo.NewStreamEvents;
@@ -60,7 +59,7 @@ BEGIN
     ('00000000-0000-0000-0000-000000000004', 'type4', '\"data4\"', '\"meta4\"');
 
     SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
-    BEGIN TRANSACTION AppendStreamNoStream;
+    BEGIN TRANSACTION CreateStream;
         DECLARE @count AS INT;
         DECLARE @streamIdInternal AS INT;
         BEGIN
@@ -78,12 +77,12 @@ BEGIN
                    FROM @newEvents;
  
         END;
-    COMMIT TRANSACTION AppendStreamNoStream;
+    COMMIT TRANSACTION CreateStream;
 END
 GO
 
--- Create Stream (Append with expected version)
-CREATE PROC dbo.AppendStreamExpectedVersion(
+-- Create Stream (Append with expected version = no version)
+CREATE PROC dbo.AppendStream(
     @streamId NVARCHAR(40),
     @expectedStreamVersion INT
 )
@@ -103,7 +102,7 @@ BEGIN
     ('00000000-0000-0000-0000-000000000008', 'type4', '\"data4\"', '\"meta4\"');
 
     SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
-    BEGIN TRANSACTION AppendStreamExpectedVersion;
+    BEGIN TRANSACTION AppendStream;
 
         DECLARE @streamIdInternal AS INT;
         DECLARE @latestStreamVersion  AS INT;
@@ -114,7 +113,7 @@ BEGIN
 
           IF @streamIdInternal IS NULL
           BEGIN
-             ROLLBACK TRANSACTION AppendStreamExpectedVersion;
+             ROLLBACK TRANSACTION AppendStream;
              RAISERROR('WrongExpectedVersion', 16, 1);
              RETURN;
           END
@@ -127,7 +126,7 @@ BEGIN
 
          IF @latestStreamVersion != @expectedStreamVersion
          BEGIN
-            ROLLBACK TRANSACTION AppendStreamExpectedVersion;
+            ROLLBACK TRANSACTION AppendStream;
             RAISERROR('WrongExpectedVersion', 16, 2);
             RETURN;
          END
@@ -142,66 +141,18 @@ BEGIN
                 JsonMetadata
             FROM @newEvents;
  
-    COMMIT TRANSACTION AppendStreamExpectedVersion;
+    COMMIT TRANSACTION AppendStream;
 END
 GO
 
-CREATE PROC dbo.AppendStreamAnyVersion(
-    @streamId NVARCHAR(40)
-)
-AS
-BEGIN
-    SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
-    BEGIN TRANSACTION AppendStreamAnyVersion;
-        DECLARE @streamIdInternal AS INT;
-        DECLARE @latestStreamVersion AS INT;
+EXEC dbo.CreateStream 'stream-1';
+EXEC dbo.CreateStream 'stream-2';
+EXEC dbo.CreateStream 'stream-3';
+EXEC dbo.CreateStream 'stream-4';
 
-         /*SELECT @streamIdInternal = Streams.IdInternal
-           FROM Streams
-          WHERE Streams.Id = @streamId;
-
-             IF @streamIdInternal IS NULL
-            BEGIN
-                ROLLBACK TRANSACTION AppendStreamAnyVersion;
-                RAISERROR('WrongExpectedVersion', 16, 1);
-                RETURN;
-            END
-
-            SELECT TOP(1)
-                 @latestStreamVersion = Events.StreamVersion
-            FROM Events
-           WHERE Events.StreamIDInternal = @streamIdInternal
-        ORDER BY Events.Ordinal DESC;
-
-            IF @latestStreamVersion != @expectedStreamVersion
-            BEGIN
-                ROLLBACK TRANSACTION AppendStreamAnyVersion;
-                RAISERROR('WrongExpectedVersion', 16, 2);
-                RETURN;
-            END
-
-    INSERT INTO dbo.Events (StreamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata)
-         SELECT @streamIdInternal,
-                StreamVersion + @latestStreamVersion + 1,
-                Id,
-                Created,
-                [Type],
-                JsonData,
-                JsonMetadata
-           FROM @newEvents; 
- */
-    COMMIT TRANSACTION AppendStreamAnyVersion;
-END
-GO
-
-EXEC dbo.AppendStreamNoStream 'stream-1';
-EXEC dbo.AppendStreamNoStream 'stream-2';
-EXEC dbo.AppendStreamNoStream 'stream-3';
-EXEC dbo.AppendStreamNoStream 'stream-4';
-
-/* AppendStreamExpectedVersion with ExpectedVersion */
-EXEC dbo.AppendStreamExpectedVersion 'stream-4', 4;
-EXEC dbo.AppendStreamExpectedVersion 'stream-4', 3;
+/* AppendStream with ExpectedVersion */
+EXEC dbo.AppendStream 'stream-4', 4;
+EXEC dbo.AppendStream 'stream-4', 3;
 
 GO
 

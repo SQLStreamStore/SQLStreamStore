@@ -2,6 +2,7 @@
 {
     using System.Threading.Tasks;
     using Cedar.EventStore.Exceptions;
+    using Shouldly;
     using Xunit;
 
     public partial class EventStoreAcceptanceTests
@@ -206,6 +207,10 @@
                     await eventStore
                         .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3))
                         .ShouldNotThrow();
+
+                    var page = await eventStore
+                        .ReadStream(streamId, StreamPosition.Start, 4);
+                    page.Events.Count.ShouldBe(3);
                 }
             }
         }
@@ -225,6 +230,33 @@
                     await eventStore
                         .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(4, 5, 6))
                         .ShouldNotThrow();
+
+                    var page = await eventStore
+                        .ReadStream(streamId, StreamPosition.Start, 10);
+                    page.Events.Count.ShouldBe(6);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_append_with_duplicate_events_with_expected_version_any_then_should_throw()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    const string streamId = "stream-1";
+
+                    await eventStore
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3));
+
+                    eventStore
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3))
+                        .ShouldThrow<WrongExpectedVersionException>();
+
+                    var page = await eventStore
+                       .ReadStream(streamId, StreamPosition.Start, 10);
+                    page.Events.Count.ShouldBe(3);
                 }
             }
         }

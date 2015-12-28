@@ -20,6 +20,8 @@ CREATE TABLE dbo.Events(
     CONSTRAINT FK_Events_Streams FOREIGN KEY (StreamIdInternal) REFERENCES dbo.Streams(IdInternal)
 );
 
+CREATE UNIQUE NONCLUSTERED INDEX IX_Events_StreamIdInternal_Id ON dbo.Events (StreamIdInternal, Id);
+
 CREATE UNIQUE NONCLUSTERED INDEX IX_Events_StreamIdInternal_Revision ON dbo.Events (StreamIdInternal, StreamVersion);
 
 CREATE TYPE dbo.NewStreamEvents AS TABLE (

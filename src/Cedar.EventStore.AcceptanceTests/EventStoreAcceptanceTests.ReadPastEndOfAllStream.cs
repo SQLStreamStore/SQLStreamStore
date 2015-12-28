@@ -38,7 +38,7 @@
                 {
                     await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
                     await ReadAllStreamToEnd(eventStore);
-                    await eventStore.AppendToStream("stream-1", 2, CreateNewStreamEvents(1, 2, 3));
+                    await eventStore.AppendToStream("stream-1", 2, CreateNewStreamEvents(4, 5, 6));
 
                     var lastAllEventPage = await ReadAllStreamToEnd(eventStore);
 

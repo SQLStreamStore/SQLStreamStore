@@ -48,12 +48,71 @@
 
             var streamIdHash = HashStreamId(streamId);
 
-            return expectedVersion == ExpectedVersion.NoStream 
-                ? AppendToStreamExpectedNoStream(streamId, expectedVersion, events, streamIdHash, cancellationToken)
-                : AppendToStreamExpectedVersion(streamId, expectedVersion, events, streamIdHash, cancellationToken);
+            switch(expectedVersion)
+            {
+                case ExpectedVersion.Any:
+                    return AppendToStreamExpectedVersionAny(streamId, expectedVersion, events, streamIdHash, cancellationToken);
+                case ExpectedVersion.NoStream:
+                    return AppendToStreamExpectedVersionNoStream(streamId, expectedVersion, events, streamIdHash, cancellationToken);
+                default:
+                    return AppendToStreamExpectedVersion(streamId, expectedVersion, events, streamIdHash, cancellationToken);
+            }
         }
 
-        private async Task AppendToStreamExpectedNoStream(
+        private async Task AppendToStreamExpectedVersionAny(
+            string streamId,
+            int expectedVersion,
+            NewStreamEvent[] events,
+            StreamIdInfo streamIdHash,
+            CancellationToken cancellationToken)
+        {
+            var sqlDataRecords = events.Select(@event =>
+            {
+                var record = new SqlDataRecord(_appendToStreamSqlMetadata);
+                record.SetGuid(1, @event.EventId);
+                record.SetString(3, @event.Type);
+                record.SetString(4, @event.JsonData);
+                record.SetString(5, @event.JsonMetadata);
+                return record;
+            }).ToArray();
+
+            using (var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                using (var command = new SqlCommand(Scripts.AppendStreamExpectedVersionAny, connection))
+                {
+                    command.Parameters.AddWithValue("streamId", streamIdHash.StreamId);
+                    command.Parameters.AddWithValue("streamIdOriginal", streamIdHash.StreamIdOriginal);
+                    var eventsParam = new SqlParameter("newEvents", SqlDbType.Structured)
+                    {
+                        TypeName = "dbo.NewStreamEvents",
+                        Value = sqlDataRecords
+                    };
+                    command.Parameters.Add(eventsParam);
+
+                    try
+                    {
+                        await command
+                            .ExecuteNonQueryAsync(cancellationToken)
+                            .NotOnCapturedContext();
+                    }
+                    catch (SqlException ex)
+                    {
+                        if (ex.IsUniqueConstraintViolation())
+                        {
+                            throw new WrongExpectedVersionException(
+                                Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
+                                ex);
+                        }
+
+                        throw;
+                    }
+                }
+            }
+        }
+
+        private async Task AppendToStreamExpectedVersionNoStream(
             string streamId,
             int expectedVersion,
             NewStreamEvent[] events,
@@ -74,7 +133,7 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using(var command = new SqlCommand(Scripts.AppendStreamNoStream, connection))
+                using(var command = new SqlCommand(Scripts.AppendStreamExpectedVersionNoStream, connection))
                 {
                     command.Parameters.AddWithValue("streamId", streamIdHash.StreamId);
                     command.Parameters.AddWithValue("streamIdOriginal", streamIdHash.StreamIdOriginal);

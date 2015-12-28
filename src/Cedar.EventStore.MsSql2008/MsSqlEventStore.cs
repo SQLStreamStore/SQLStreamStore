@@ -99,6 +99,41 @@
                     }
                     catch (SqlException ex)
                     {
+                        // Check for unique constraint violation on 
+                        // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
+                        if (ex.IsUniqueConstraintViolationOnIndex("IX_Events_StreamIdInternal_Id"))
+                        {
+                            // Idempotency handling. Check if the events have already been written.
+
+                            var page = await ReadStreamInternal(
+                                    streamId,
+                                    StreamPosition.Start,
+                                    events.Length,
+                                    ReadDirection.Forward,
+                                    connection,
+                                    cancellationToken)
+                                    .NotOnCapturedContext();
+
+                            if (events.Length > page.Events.Count)
+                            {
+                                throw new WrongExpectedVersionException(
+                                    Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
+                                    ex);
+                            }
+
+                            for (int i = 0; i < Math.Min(events.Length, page.Events.Count); i++)
+                            {
+                                if (events[i].EventId != page.Events[i].EventId)
+                                {
+                                    throw new WrongExpectedVersionException(
+                                        Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
+                                        ex);
+                                }
+                            }
+
+                            return;
+                        }
+
                         if (ex.IsUniqueConstraintViolation())
                         {
                             throw new WrongExpectedVersionException(

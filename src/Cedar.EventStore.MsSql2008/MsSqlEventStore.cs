@@ -66,15 +66,7 @@
             StreamIdInfo streamIdHash,
             CancellationToken cancellationToken)
         {
-            var sqlDataRecords = events.Select(@event =>
-            {
-                var record = new SqlDataRecord(_appendToStreamSqlMetadata);
-                record.SetGuid(1, @event.EventId);
-                record.SetString(3, @event.Type);
-                record.SetString(4, @event.JsonData);
-                record.SetString(5, @event.JsonMetadata);
-                return record;
-            }).ToArray();
+            var sqlDataRecords = CreateSqlDataRecords(events);
 
             using (var connection = _createConnection())
             {
@@ -154,17 +146,9 @@
             StreamIdInfo streamIdHash,
             CancellationToken cancellationToken)
         {
-            var sqlDataRecords = events.Select(@event =>
-            {
-                var record = new SqlDataRecord(_appendToStreamSqlMetadata);
-                record.SetGuid(1, @event.EventId);
-                record.SetString(3, @event.Type);
-                record.SetString(4, @event.JsonData);
-                record.SetString(5, @event.JsonMetadata);
-                return record;
-            }).ToArray();
+            var sqlDataRecords = CreateSqlDataRecords(events);
 
-            using(var connection = _createConnection())
+            using (var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
@@ -242,17 +226,9 @@
             StreamIdInfo streamIdHash,
             CancellationToken cancellationToken)
         {
-            var sqlDataRecords = events.Select(@event =>
-            {
-                var record = new SqlDataRecord(_appendToStreamSqlMetadata);
-                record.SetGuid(1, @event.EventId);
-                record.SetString(3, @event.Type);
-                record.SetString(4, @event.JsonData);
-                record.SetString(5, @event.JsonMetadata);
-                return record;
-            }).ToArray();
+            var sqlDataRecords = CreateSqlDataRecords(events);
 
-            using(var connection = _createConnection())
+            using (var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
@@ -319,6 +295,20 @@
                     }
                 }
             }
+        }
+
+        private SqlDataRecord[] CreateSqlDataRecords(NewStreamEvent[] events)
+        {
+            var sqlDataRecords = events.Select(@event =>
+            {
+                var record = new SqlDataRecord(_appendToStreamSqlMetadata);
+                record.SetGuid(1, @event.EventId);
+                record.SetString(3, @event.Type);
+                record.SetString(4, @event.JsonData);
+                record.SetString(5, @event.JsonMetadata);
+                return record;
+            }).ToArray();
+            return sqlDataRecords;
         }
 
         public Task DeleteStream(

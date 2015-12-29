@@ -93,7 +93,7 @@
                             // Idempotency handling. Check if the events have already been written.
 
                             var page = await ReadStreamInternal(
-                                    streamIdInfo.Hash,
+                                    streamIdInfo.Id,
                                     StreamPosition.Start,
                                     events.Length,
                                     ReadDirection.Forward,

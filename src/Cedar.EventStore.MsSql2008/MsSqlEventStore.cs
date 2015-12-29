@@ -46,24 +46,23 @@
             Ensure.That(events, "events").IsNotNull();
             CheckIfDisposed();
 
-            var streamIdHash = HashStreamId(streamId);
+            var streamIdInfo = new StreamIdInfo(streamId);
 
             switch(expectedVersion)
             {
                 case ExpectedVersion.Any:
-                    return AppendToStreamExpectedVersionAny(streamId, expectedVersion, events, streamIdHash, cancellationToken);
+                    return AppendToStreamExpectedVersionAny(streamIdInfo, expectedVersion, events, cancellationToken);
                 case ExpectedVersion.NoStream:
-                    return AppendToStreamExpectedVersionNoStream(streamId, expectedVersion, events, streamIdHash, cancellationToken);
+                    return AppendToStreamExpectedVersionNoStream(streamId, expectedVersion, events, streamIdInfo, cancellationToken);
                 default:
-                    return AppendToStreamExpectedVersion(streamId, expectedVersion, events, streamIdHash, cancellationToken);
+                    return AppendToStreamExpectedVersion(streamId, expectedVersion, events, streamIdInfo, cancellationToken);
             }
         }
 
         private async Task AppendToStreamExpectedVersionAny(
-            string streamId,
+            StreamIdInfo streamIdInfo,
             int expectedVersion,
             NewStreamEvent[] events,
-            StreamIdInfo streamIdHash,
             CancellationToken cancellationToken)
         {
             var sqlDataRecords = CreateSqlDataRecords(events);
@@ -74,8 +73,8 @@
 
                 using (var command = new SqlCommand(Scripts.AppendStreamExpectedVersionAny, connection))
                 {
-                    command.Parameters.AddWithValue("streamId", streamIdHash.StreamId);
-                    command.Parameters.AddWithValue("streamIdOriginal", streamIdHash.StreamIdOriginal);
+                    command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
+                    command.Parameters.AddWithValue("streamIdOriginal", streamIdInfo.Id);
                     var eventsParam = CreateNewEventsSqlParameter(sqlDataRecords);
                     command.Parameters.Add(eventsParam);
 
@@ -94,7 +93,7 @@
                             // Idempotency handling. Check if the events have already been written.
 
                             var page = await ReadStreamInternal(
-                                    streamId,
+                                    streamIdInfo.Hash,
                                     StreamPosition.Start,
                                     events.Length,
                                     ReadDirection.Forward,
@@ -105,7 +104,7 @@
                             if (events.Length > page.Events.Count)
                             {
                                 throw new WrongExpectedVersionException(
-                                    Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
+                                    Messages.AppendFailedWrongExpectedVersion.FormatWith(streamIdInfo.Id, expectedVersion),
                                     ex);
                             }
 
@@ -114,7 +113,7 @@
                                 if (events[i].EventId != page.Events[i].EventId)
                                 {
                                     throw new WrongExpectedVersionException(
-                                        Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
+                                        Messages.AppendFailedWrongExpectedVersion.FormatWith(streamIdInfo.Id, expectedVersion),
                                         ex);
                                 }
                             }
@@ -125,7 +124,7 @@
                         if (ex.IsUniqueConstraintViolation())
                         {
                             throw new WrongExpectedVersionException(
-                                Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
+                                Messages.AppendFailedWrongExpectedVersion.FormatWith(streamIdInfo.Id, expectedVersion),
                                 ex);
                         }
 
@@ -150,8 +149,8 @@
 
                 using(var command = new SqlCommand(Scripts.AppendStreamExpectedVersionNoStream, connection))
                 {
-                    command.Parameters.AddWithValue("streamId", streamIdHash.StreamId);
-                    command.Parameters.AddWithValue("streamIdOriginal", streamIdHash.StreamIdOriginal);
+                    command.Parameters.AddWithValue("streamId", streamIdHash.Hash);
+                    command.Parameters.AddWithValue("streamIdOriginal", streamIdHash.Id);
                     var eventsParam = CreateNewEventsSqlParameter(sqlDataRecords);
                     command.Parameters.Add(eventsParam);
 
@@ -226,7 +225,7 @@
 
                 using(var command = new SqlCommand(Scripts.AppendStreamExpectedVersion, connection))
                 {
-                    command.Parameters.AddWithValue("streamId", streamIdHash.StreamId);
+                    command.Parameters.AddWithValue("streamId", streamIdHash.Hash);
                     command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
                     var eventsParam = CreateNewEventsSqlParameter(sqlDataRecords);
                     command.Parameters.Add(eventsParam);
@@ -318,15 +317,15 @@
             Ensure.That(expectedVersion, "expectedVersion").IsGte(-2);
             CheckIfDisposed();
 
-            var streamIdInfo = HashStreamId(streamId);
+            var streamIdInfo = new StreamIdInfo(streamId);
 
             return expectedVersion == ExpectedVersion.Any
-                ? DeleteStreamAnyVersion(streamIdInfo.StreamId, cancellationToken)
-                : DeleteStreamExpectedVersion(streamIdInfo.StreamId, expectedVersion, cancellationToken);
+                ? DeleteStreamAnyVersion(streamIdInfo, cancellationToken)
+                : DeleteStreamExpectedVersion(streamIdInfo, expectedVersion, cancellationToken);
         }
 
         private async Task DeleteStreamAnyVersion(
-            string streamId,
+            StreamIdInfo streamIdInfo,
             CancellationToken cancellationToken)
         {
             CheckIfDisposed();
@@ -337,7 +336,7 @@
 
                 using(var command = new SqlCommand(Scripts.DeleteStreamAnyVersion, connection))
                 {
-                    command.Parameters.AddWithValue("streamId", streamId);
+                    command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
                     await command
                         .ExecuteNonQueryAsync(cancellationToken)
                         .NotOnCapturedContext();
@@ -346,7 +345,7 @@
         }
 
         private async Task DeleteStreamExpectedVersion(
-            string streamId,
+            StreamIdInfo streamIdInfo,
             int expectedVersion,
             CancellationToken cancellationToken)
         {
@@ -356,7 +355,7 @@
 
                 using(var command = new SqlCommand(Scripts.DeleteStreamExpectedVersion, connection))
                 {
-                    command.Parameters.AddWithValue("streamId", streamId);
+                    command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
                     command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
                     try
                     {
@@ -369,7 +368,7 @@
                         if(ex.Message == "WrongExpectedVersion")
                         {
                             throw new WrongExpectedVersionException(
-                                string.Format(Messages.EventStreamIsDeleted, streamId),
+                                string.Format(Messages.DeleteStreamFailedWrongExpectedVersion, streamIdInfo.Id, expectedVersion),
                                 ex);
                         }
                         throw;
@@ -535,7 +534,7 @@
             SqlConnection connection,
             CancellationToken cancellationToken)
         {
-            var streamIdInfo = HashStreamId(streamId);
+            var streamIdInfo = new StreamIdInfo(streamId);
 
             var streamVersion = start == StreamPosition.End ? int.MaxValue : start;
             string commandText;
@@ -553,7 +552,7 @@
 
             using(var command = new SqlCommand(commandText, connection))
             {
-                command.Parameters.AddWithValue("streamId", streamIdInfo.StreamId);
+                command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
                 command.Parameters.AddWithValue("count", count + 1); //Read extra row to see if at end or not
                 command.Parameters.AddWithValue("StreamVersion", streamVersion);
 
@@ -653,30 +652,26 @@
             }
         }
 
-        private static StreamIdInfo HashStreamId(string streamId)
-        {
-            Ensure.That(streamId, "streamId").IsNotNullOrWhiteSpace();
-
-            Guid _;
-            if(Guid.TryParse(streamId, out _))
-            {
-                return new StreamIdInfo(streamId, streamId);
-            }
-
-            byte[] hashBytes = SHA1.Create().ComputeHash(Encoding.UTF8.GetBytes(streamId));
-            var hashedStreamId = BitConverter.ToString(hashBytes).Replace("-", "");
-            return new StreamIdInfo(hashedStreamId, streamId);
-        }
-
         private class StreamIdInfo
         {
-            public readonly string StreamId;
-            public readonly string StreamIdOriginal;
+            private static SHA1 s_sha1 = SHA1.Create();
+            public readonly string Hash;
+            public readonly string Id;
 
-            public StreamIdInfo(string streamId, string streamIdOriginal)
+            public StreamIdInfo(string id)
             {
-                StreamId = streamId;
-                StreamIdOriginal = streamIdOriginal;
+                Ensure.That(id, "streamId").IsNotNullOrWhiteSpace();
+
+                Id = id;
+
+                Guid _;
+                if (Guid.TryParse(id, out _))
+                {
+                    Hash = id;
+                }
+
+                byte[] hashBytes = s_sha1.ComputeHash(Encoding.UTF8.GetBytes(id));
+                Hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
             }
         }
 

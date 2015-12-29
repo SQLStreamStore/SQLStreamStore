@@ -652,9 +652,9 @@
             }
         }
 
-        private class StreamIdInfo
+        private struct StreamIdInfo
         {
-            private static SHA1 s_sha1 = SHA1.Create();
+            private static readonly SHA1 s_sha1 = SHA1.Create();
             public readonly string Hash;
             public readonly string Id;
 

@@ -32,6 +32,8 @@ namespace Cedar.EventStore
             _createConnectionFunc = () => new SqlConnection(connectionString);
 
             var eventStore = new MsSqlEventStore(_createConnectionFunc);
+
+            await eventStore.DropAll(ignoreErrors: true);
             await eventStore.InitializeStore();
 
             return eventStore;

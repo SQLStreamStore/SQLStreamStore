@@ -93,7 +93,22 @@
         }
 
         [Fact]
-        public async Task When_delete_stream_that_does_not_exist_with_expected_version_then_should_throw()
+        public async Task When_delete_stream_that_does_not_exist_then_should_not_throw()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    const string streamId = "notexist";
+
+                    await eventStore.DeleteStream(streamId)
+                        .ShouldNotThrow();
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_delete_stream_that_does_not_exist_with_expected_version_number_then_should_not_throw()
         {
             using (var fixture = GetFixture())
             {
@@ -102,7 +117,7 @@
                     const string streamId = "notexist";
                     const int expectedVersion = 1;
 
-                    await eventStore.DeleteStream(streamId, 1)
+                    await eventStore.DeleteStream(streamId, expectedVersion)
                         .ShouldThrow<WrongExpectedVersionException>(
                             Messages.DeleteStreamFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion));
                 }
@@ -122,7 +137,7 @@
 
                     await eventStore.DeleteStream(streamId, 100)
                         .ShouldThrow<WrongExpectedVersionException>(
-                        Messages.DeleteStreamFailedWrongExpectedVersion.FormatWith(streamId, 100));
+                            Messages.DeleteStreamFailedWrongExpectedVersion.FormatWith(streamId, 100));
                 }
             }
         }

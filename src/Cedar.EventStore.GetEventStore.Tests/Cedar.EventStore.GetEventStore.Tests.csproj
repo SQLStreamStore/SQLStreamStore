@@ -92,6 +92,7 @@
     <Compile Include="ClusterVNodeExtensions.cs" />
     <Compile Include="GesEventStoreFixture.cs" />
     <Compile Include="GesEventStoreTests.cs" />
+    <Compile Include="Meh.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

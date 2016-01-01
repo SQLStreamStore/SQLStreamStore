@@ -167,6 +167,34 @@
 ﻿                    .ToArray());
 ﻿        }
 
+﻿        public async Task<IStreamSubscription> SubscribeToStream(string streamId, EventReceived eventReceived, SubscriptionDropped subscriptionDropped, CancellationToken cancellationToken)
+﻿        {
+﻿            Action<EventStoreSubscription, ResolvedEvent> eventAppeard = (_, resolvedEvent) =>
+﻿            {
+﻿                var task = Task.Run(async () =>
+﻿                {
+﻿                    await eventReceived(resolvedEvent.ToSteamEvent()).NotOnCapturedContext();
+﻿                });
+
+﻿                task.GetAwaiter().GetResult();
+﻿            };
+
+﻿            Action<EventStoreSubscription, SubscriptionDropReason, Exception> gesSubscriptionDropped =
+﻿                (subscription, reason, exception) =>
+﻿                {
+﻿                    subscriptionDropped(reason.ToString(), exception);
+﻿                };
+
+
+﻿            var eventStoreSubscription = await _connection.SubscribeToStreamAsync(
+                streamId,
+﻿                true,
+                eventAppeard,
+                gesSubscriptionDropped);
+
+﻿            return new StreamSubscripton(eventStoreSubscription);
+﻿        }
+
 ﻿        public void Dispose()
 ﻿        {
 ﻿            if(_isDisposed.EnsureCalledOnce())
@@ -187,6 +215,25 @@
 ﻿            {
 ﻿                throw new ObjectDisposedException(nameof(GesEventStore));
 ﻿            }
+﻿        }
+
+﻿        private class StreamSubscripton : IStreamSubscription
+﻿        {
+﻿            private readonly EventStoreSubscription _eventStoreSubscription;
+
+﻿            internal StreamSubscripton(EventStoreSubscription eventStoreSubscription)
+﻿            {
+﻿                _eventStoreSubscription = eventStoreSubscription;
+﻿            }
+
+﻿            public void Dispose()
+﻿            {
+﻿                _eventStoreSubscription.Dispose();
+﻿            }
+
+﻿            public string StreamId => _eventStoreSubscription.StreamId;
+
+﻿            public int LastEventNumber => _eventStoreSubscription.LastEventNumber.Value;
 ﻿        }
 ﻿    }
 ﻿}

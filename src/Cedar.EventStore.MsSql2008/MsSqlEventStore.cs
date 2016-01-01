@@ -474,6 +474,11 @@
             }
         }
 
+        public Task<IStreamSubscription> SubscribeToStream(string streamId, EventReceived eventReceived, SubscriptionDropped subscriptionDropped, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
         public async Task InitializeStore(
             bool ignoreErrors = false,
             CancellationToken cancellationToken = default(CancellationToken))

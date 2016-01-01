@@ -9,10 +9,11 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Cedar.EventStore</RootNamespace>
     <AssemblyName>Cedar.EventStore.MsSql.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -79,6 +80,9 @@
     </Compile>
     <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadStream.cs">
       <Link>EventStoreAcceptanceTests.ReadStream.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.Subscriptions.cs">
+      <Link>EventStoreAcceptanceTests.Subscriptions.cs</Link>
     </Compile>
     <Compile Include="..\Cedar.EventStore.AcceptanceTests\TaskExtensions.cs">
       <Link>TaskExtensions.cs</Link>

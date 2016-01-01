@@ -29,5 +29,15 @@
             int count,
             ReadDirection direction = ReadDirection.Forward,
             CancellationToken cancellationToken = default(CancellationToken));
+
+        Task<IStreamSubscription> SubscribeToStream(
+            string streamId,
+            EventReceived eventReceived,
+            SubscriptionDropped subscriptionDropped,
+            CancellationToken cancellationToken = default(CancellationToken));
     }
+
+    public delegate Task EventReceived(StreamEvent streamEvent);
+
+    public delegate void SubscriptionDropped(string reason, Exception ex);
 }

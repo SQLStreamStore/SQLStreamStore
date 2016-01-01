@@ -54,6 +54,7 @@
       <DesignTime>True</DesignTime>
       <DependentUpon>Messages.resx</DependentUpon>
     </Compile>
+    <Compile Include="Subscriptions\IStreamSubscription.cs" />
     <Compile Include="NewStreamEvent.cs" />
     <Compile Include="PageReadStatus.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

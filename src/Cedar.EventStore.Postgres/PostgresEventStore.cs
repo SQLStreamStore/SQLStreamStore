@@ -462,6 +462,11 @@
             }
         }
 
+        public Task<IStreamSubscription> SubscribeToStream(string streamId, EventReceived eventReceived, SubscriptionDropped subscriptionDropped, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
         public void Dispose()
         {
             if(this._isDisposed.EnsureCalledOnce())

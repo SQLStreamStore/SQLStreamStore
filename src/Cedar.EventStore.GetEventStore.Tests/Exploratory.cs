@@ -14,6 +14,7 @@ namespace Cedar.EventStore
     public class Exploratory
     {
         private readonly ITestOutputHelper _testOutputHelper;
+        private int _eventCounter;
 
         public Exploratory(ITestOutputHelper testOutputHelper)
         {
@@ -44,10 +45,7 @@ namespace Cedar.EventStore
 
             using(var connection = EmbeddedEventStoreConnection.Create(node, connectionSettingsBuilder))
             {
-                using(await connection.SubscribeToStreamAsync(
-                    "stream-1",
-                    true,
-                    (subscription, @event) => { }))
+                using(await connection.SubscribeToStreamAsync("stream-1", true, PrintEvent))
                 {
                     await connection.AppendToStreamAsync("stream-1",
                         global::EventStore.ClientAPI.ExpectedVersion.Any,
@@ -57,17 +55,8 @@ namespace Cedar.EventStore
 
                     await Task.Delay(1000);
                 }
-                int i = 0;
-                using (await connection.SubscribeToAllAsync(
-                    true,
-                    (subscription, @event) =>
-                    {
-                        _testOutputHelper.WriteLine($"Event {i++}");
-                        _testOutputHelper.WriteLine($" {@event.Event.EventType}");
-                        _testOutputHelper.WriteLine($" {@event.Event.EventStreamId}");
-                        _testOutputHelper.WriteLine($" {@event.Event.IsJson}");
-                        _testOutputHelper.WriteLine($" {Encoding.UTF8.GetString(@event.Event.Data)}");
-                    }))
+
+                using (await connection.SubscribeToAllAsync(true, PrintEvent))
                 {
                     await connection.AppendToStreamAsync("stream-2",
                         global::EventStore.ClientAPI.ExpectedVersion.Any,
@@ -78,6 +67,17 @@ namespace Cedar.EventStore
                     await Task.Delay(1000);
                 }
             }
+        }
+
+
+        private void PrintEvent(EventStoreSubscription eventStoreSubscription, ResolvedEvent resolvedEvent)
+        {
+            _testOutputHelper.WriteLine($"Event {_eventCounter++}");
+            _testOutputHelper.WriteLine($" {eventStoreSubscription.StreamId}");
+            _testOutputHelper.WriteLine($" {resolvedEvent.Event.EventType}");
+            _testOutputHelper.WriteLine($" {resolvedEvent.Event.EventStreamId}");
+            _testOutputHelper.WriteLine($" {resolvedEvent.Event.IsJson}");
+            _testOutputHelper.WriteLine($" {Encoding.UTF8.GetString(resolvedEvent.Event.Data)}");
         }
     }
 }

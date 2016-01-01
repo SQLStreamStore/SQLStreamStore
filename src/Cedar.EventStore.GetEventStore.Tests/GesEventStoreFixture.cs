@@ -91,6 +91,15 @@
             {
                 return _inner.ReadStream(streamId, start, count, direction, cancellationToken);
             }
+
+            public Task<IStreamSubscription> SubscribeToStream(
+                string streamId,
+                EventReceived eventReceived,
+                SubscriptionDropped subscriptionDropped,
+                CancellationToken cancellationToken = default(CancellationToken))
+            {
+                return _inner.SubscribeToStream(streamId, eventReceived, subscriptionDropped, cancellationToken);
+            }
         }
     }
 }

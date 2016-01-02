@@ -27,6 +27,10 @@
                     var newStreamEvent = new NewStreamEvent(Guid.NewGuid(), "MyEvent", "{}");
                     await store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamEvent);
 
+                    await Task.Delay(2000);
+                    newStreamEvent = new NewStreamEvent(Guid.NewGuid(), "MyEvent", "{}");
+                    await store.AppendToStream(streamId, ExpectedVersion.Any, newStreamEvent);
+
                     var receivedEvent = await receiveEvent.Task;
 
                     receivedEvent.StreamId.ShouldBe(streamId);

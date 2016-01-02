@@ -11,6 +11,7 @@
     using System.Threading.Tasks;
     using Cedar.EventStore.Exceptions;
     using Cedar.EventStore.SqlScripts;
+    using Cedar.EventStore.Subscriptions;
     using EnsureThat;
     using Microsoft.SqlServer.Server;
 
@@ -28,11 +29,14 @@
             new SqlMetaData("JsonMetadata", SqlDbType.NVarChar, SqlMetaData.Max),
         };
 
-        public MsSqlEventStore(Func<SqlConnection> createConnection)
-        {
-            Ensure.That(createConnection, "createConnection").IsNotNull();
+        private readonly Lazy<Task<SqlEventsWatcher>> _lazySqlEventsWatcher;
 
-            _createConnection = createConnection;
+        public MsSqlEventStore(string connectionString)
+        {
+            Ensure.That(connectionString, nameof(connectionString)).IsNotNullOrWhiteSpace();
+
+            _createConnection = () => new SqlConnection(connectionString);
+            _lazySqlEventsWatcher = new Lazy<Task<SqlEventsWatcher>>(() => CreateSqlEventsWatcher(connectionString));
         }
 
         public Task AppendToStream(
@@ -480,11 +484,9 @@
             SubscriptionDropped subscriptionDropped,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var subscription = new StreamSubscription(_createConnection, eventReceived, subscriptionDropped);
+            var watcher = await _lazySqlEventsWatcher.Value;
 
-            await subscription.Connect();
-
-            return subscription;
+            return watcher.SubscribeToStream(streamId, eventReceived, subscriptionDropped);
         }
 
         public async Task InitializeStore(
@@ -549,7 +551,7 @@
         {
             var streamIdInfo = new StreamIdInfo(streamId);
 
-            var streamVersion = start == StreamPosition.End ? int.MaxValue : start;
+            var streamVersion = start == StreamPosition.End ? int.MaxValue : start; // To read backwards from end, need to use int MaxValue
             string commandText;
             Func<List<StreamEvent>, int> getNextSequenceNumber;
             if(direction == ReadDirection.Forward)
@@ -628,7 +630,6 @@
                 await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
                 var lastStreamVersion = reader.GetInt32(0);
 
-
                 bool isEnd = true;
                 if(streamEvents.Count == count + 1)
                 {
@@ -650,7 +651,14 @@
 
         public void Dispose()
         {
-            _isDisposed.EnsureCalledOnce();
+            if(_isDisposed.EnsureCalledOnce())
+            {
+                return;
+            }
+            if(_lazySqlEventsWatcher.IsValueCreated)
+            {
+                _lazySqlEventsWatcher.Value.Dispose();
+            }
         }
 
         private static async Task<T> ExecuteAndIgnoreErrors<T>(Func<Task<T>> operation)
@@ -663,6 +671,13 @@
             {
                 return default(T);
             }
+        }
+
+        private async Task<SqlEventsWatcher> CreateSqlEventsWatcher(string connectionString)
+        {
+            var watcher = new SqlEventsWatcher(connectionString);
+            await watcher.Initialize();
+            return watcher;
         }
 
         private void CheckIfDisposed()
@@ -693,43 +708,6 @@
 
                 byte[] hashBytes = s_sha1.ComputeHash(Encoding.UTF8.GetBytes(id));
                 Hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
-            }
-        }
-
-        private class StreamSubscription : IStreamSubscription
-        {
-            private readonly Func<SqlConnection> _createConnection;
-            private EventReceived _eventReceived;
-            private SubscriptionDropped _subscriptionDropped;
-
-            public StreamSubscription(
-                Func<SqlConnection> createConnection,
-                EventReceived eventReceived,
-                SubscriptionDropped subscriptionDropped)
-            {
-                _createConnection = createConnection;
-                _eventReceived = eventReceived;
-                _subscriptionDropped = subscriptionDropped;
-            }
-
-            public void Dispose()
-            {
-                throw new NotImplementedException();
-            }
-
-            public string StreamId
-            {
-                get { throw new NotImplementedException(); }
-            }
-
-            public int LastEventNumber
-            {
-                get { throw new NotImplementedException(); }
-            }
-
-            public Task Connect()
-            {
-                throw new NotImplementedException();
             }
         }
     }

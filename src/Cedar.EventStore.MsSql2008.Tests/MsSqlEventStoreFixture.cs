@@ -7,9 +7,9 @@ namespace Cedar.EventStore
 
     public class MsSqlEventStoreFixture : EventStoreAcceptanceTestFixture
     {
+        public readonly string ConnectionString;
         private readonly ISqlLocalDbInstance _localDbInstance;
         private readonly string _databaseName;
-        private Func<SqlConnection> _createConnectionFunc;
 
         public MsSqlEventStoreFixture()
         {
@@ -19,20 +19,18 @@ namespace Cedar.EventStore
             };
             _localDbInstance = localDbProvider.GetOrCreateInstance("CedarEventStoreTests");
             _localDbInstance.Start();
-
+            
             var uniqueName = Guid.NewGuid().ToString().Replace("-", string.Empty);
             _databaseName = $"CedarEventStoreTests_{uniqueName}";
+
+            ConnectionString = CreateConnectionString();
         }
 
         public override async Task<IEventStore> GetEventStore()
         {
             await CreateDatabase();
 
-            var connectionString = CreateConnectionString();
-            _createConnectionFunc = () => new SqlConnection(connectionString);
-
-            var eventStore = new MsSqlEventStore(_createConnectionFunc);
-
+            var eventStore = new MsSqlEventStore(ConnectionString);
             await eventStore.DropAll(ignoreErrors: true);
             await eventStore.InitializeStore();
 
@@ -41,7 +39,7 @@ namespace Cedar.EventStore
 
         public override void Dispose()
         {
-            using(var sqlConnection = _createConnectionFunc())
+            using(var sqlConnection = new SqlConnection(ConnectionString))
             {
                 // Fixes: "Cannot drop database because it is currently in use"
                 SqlConnection.ClearPool(sqlConnection);

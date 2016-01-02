@@ -90,6 +90,7 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="ExploratoryTests.cs" />
     <Compile Include="MsSqlEventStoreFixture.cs" />
     <Compile Include="MsSqlEventStoreTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

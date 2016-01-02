@@ -76,11 +76,7 @@
             throw new NotImplementedException();
         }
 
-        public Task<AllEventsPage> ReadAll(
-            Checkpoint checkpoint,
-            int maxCount,
-            ReadDirection direction = ReadDirection.Forward,
-            CancellationToken cancellationToken = default(CancellationToken))
+        public Task<AllEventsPage> ReadAll(ICheckpoint checkpoint, int maxCount, ReadDirection direction = ReadDirection.Forward, CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
         }

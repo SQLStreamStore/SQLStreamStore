@@ -31,6 +31,10 @@
 ﻿            };
 ﻿        }
 
+        public string StartCheckpoint => PositionCheckpoint.Start.Value;
+
+﻿        public string EndCheckpoint => PositionCheckpoint.End.Value;
+
 ﻿        public async Task AppendToStream(
 ﻿            string streamId,
 ﻿            int expectedVersion,
@@ -86,18 +90,14 @@
 ﻿            }
 ﻿        }
 
-﻿        public async Task<AllEventsPage> ReadAll(
-﻿            Checkpoint checkpoint,
-﻿            int maxCount,
-﻿            ReadDirection direction = ReadDirection.Forward,
-﻿            CancellationToken cancellationToken = default(CancellationToken))
+﻿        public async Task<AllEventsPage> ReadAll(string checkpoint, int maxCount, ReadDirection direction = ReadDirection.Forward, CancellationToken cancellationToken = default(CancellationToken))
 ﻿        {
 ﻿            Ensure.That(checkpoint, "checkpoint").IsNotNull();
 ﻿            CheckIfDisposed();
 
 ﻿            var connection = _getConnection();
 
-﻿            var position = checkpoint.ParsePosition();
+﻿            var position = PositionCheckpoint.Parse(checkpoint).Position;
 
 ﻿            AllEventsSlice allEventsSlice;
 ﻿            if(direction == ReadDirection.Forward)

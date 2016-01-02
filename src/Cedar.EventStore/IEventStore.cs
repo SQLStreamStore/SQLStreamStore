@@ -18,7 +18,7 @@
             CancellationToken cancellationToken = default(CancellationToken));
 
         Task<AllEventsPage> ReadAll(
-            Checkpoint checkpoint,
+            string checkpoint,
             int maxCount,
             ReadDirection direction = ReadDirection.Forward,
             CancellationToken cancellationToken = default(CancellationToken));
@@ -35,6 +35,10 @@
             EventReceived eventReceived,
             SubscriptionDropped subscriptionDropped,
             CancellationToken cancellationToken = default(CancellationToken));
+
+        string StartCheckpoint { get; }
+
+        string EndCheckpoint { get; }
     }
 
     public delegate Task EventReceived(StreamEvent streamEvent);

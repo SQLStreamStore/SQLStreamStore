@@ -45,10 +45,10 @@
 
         private class EventStoreWrapper : IEventStore
         {
-            private readonly GesEventStore _inner;
+            private readonly IEventStore _inner;
             private readonly ClusterVNode _node;
 
-            public EventStoreWrapper(GesEventStore inner, ClusterVNode node)
+            public EventStoreWrapper(IEventStore inner, ClusterVNode node)
             {
                 _inner = inner;
                 _node = node;
@@ -73,11 +73,7 @@
                 return _inner.DeleteStream(streamId, expectedVersion, cancellationToken);
             }
 
-            public Task<AllEventsPage> ReadAll(
-                Checkpoint checkpoint,
-                int maxCount,
-                ReadDirection direction = ReadDirection.Forward,
-                CancellationToken cancellationToken = default(CancellationToken))
+            public Task<AllEventsPage> ReadAll(string checkpoint, int maxCount, ReadDirection direction = ReadDirection.Forward, CancellationToken cancellationToken = default(CancellationToken))
             {
                 return _inner.ReadAll(checkpoint, maxCount, direction, cancellationToken);
             }
@@ -100,6 +96,10 @@
             {
                 return _inner.SubscribeToStream(streamId, eventReceived, subscriptionDropped, cancellationToken);
             }
+
+            public string StartCheckpoint => _inner.StartCheckpoint;
+
+            public string EndCheckpoint => _inner.EndCheckpoint;
         }
     }
 }

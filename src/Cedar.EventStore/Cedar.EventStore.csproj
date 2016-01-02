@@ -46,14 +46,15 @@
     <Compile Include="EventStoreExtensions.cs" />
     <Compile Include="Exceptions\WrongExpectedVersionException.cs" />
     <Compile Include="ExpectedVersion.cs" />
+    <Compile Include="ICheckpoint.cs" />
     <Compile Include="Infrastructure\GetUtcNow.cs" />
-    <Compile Include="Checkpoint.cs" />
     <Compile Include="IEventStore.cs" />
     <Compile Include="Exceptions\Messages.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Messages.resx</DependentUpon>
     </Compile>
+    <Compile Include="Infrastructure\LongCheckpoint.cs" />
     <Compile Include="Subscriptions\IStreamSubscription.cs" />
     <Compile Include="NewStreamEvent.cs" />
     <Compile Include="PageReadStatus.cs" />

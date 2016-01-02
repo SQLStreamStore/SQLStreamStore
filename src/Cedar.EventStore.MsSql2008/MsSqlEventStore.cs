@@ -40,6 +40,10 @@
             _lazySqlEventsWatcher = new Lazy<Task<SqlEventsWatcher>>(() => CreateSqlEventsWatcher(connectionString));
         }
 
+        public string StartCheckpoint => LongCheckpoint.Start.Value;
+
+        public string EndCheckpoint => LongCheckpoint.End.Value;
+
         public Task AppendToStream(
             string streamId,
             int expectedVersion,
@@ -382,17 +386,13 @@
             }
         }
 
-        public async Task<AllEventsPage> ReadAll(
-            Checkpoint checkpoint,
-            int maxCount,
-            ReadDirection direction = ReadDirection.Forward,
-            CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<AllEventsPage> ReadAll(string checkpoint, int maxCount, ReadDirection direction = ReadDirection.Forward, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.That(checkpoint, nameof(checkpoint)).IsNotNull();
             Ensure.That(maxCount, nameof(maxCount)).IsGt(0);
             CheckIfDisposed();
 
-            long ordinal = checkpoint.GetOrdinal();
+            long ordinal = LongCheckpoint.Parse(checkpoint).LongValue;
 
             var commandText = direction == ReadDirection.Forward ? Scripts.ReadAllForward : Scripts.ReadAllBackward;
 
@@ -451,7 +451,8 @@
                         streamEvents.RemoveAt(maxCount);
                     }
 
-                    return new AllEventsPage(checkpoint.Value,
+                    return new AllEventsPage(
+                        checkpoint,
                         nextCheckpoint,
                         isEnd,
                         direction,

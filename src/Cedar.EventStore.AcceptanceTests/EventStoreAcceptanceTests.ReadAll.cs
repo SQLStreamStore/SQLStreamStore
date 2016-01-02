@@ -28,7 +28,7 @@
                         ExpectedStreamEvent("stream-2", 6, 2, fixture.GetUtcNow().UtcDateTime)
                     };
 
-                    var allEventsPage = await eventStore.ReadAll(Checkpoint.Start, 4);
+                    var allEventsPage = await eventStore.ReadAll(eventStore.StartCheckpoint, 4);
                     List<StreamEvent> streamEvents = new List<StreamEvent>(allEventsPage.StreamEvents);
                     int count = 0;
                     while(!allEventsPage.IsEnd && count <20) //should not take more than 20 iterations.
@@ -70,12 +70,10 @@
             {
                 using (var eventStore = await fixture.GetEventStore())
                 {
-                    var allEventsPage = await eventStore.ReadAll(Checkpoint.Start, 4);
+                    var allEventsPage = await eventStore.ReadAll(eventStore.StartCheckpoint, 4);
 
                     allEventsPage.FromCheckpoint.ShouldNotBeNullOrEmpty();
                     allEventsPage.NextCheckpoint.ShouldNotBeNullOrEmpty();
-
-                    allEventsPage = await eventStore.ReadAll(allEventsPage.NextCheckpoint, 4);
                 }
             }
         }
@@ -87,7 +85,7 @@
             {
                 using (var eventStore = await fixture.GetEventStore())
                 {
-                    var allEventsPage = await eventStore.ReadAll(Checkpoint.Start, 4, ReadDirection.Backward);
+                    var allEventsPage = await eventStore.ReadAll(eventStore.EndCheckpoint, 4, ReadDirection.Backward);
 
                     allEventsPage.FromCheckpoint.ShouldNotBeNullOrEmpty();
                     allEventsPage.NextCheckpoint.ShouldNotBeNullOrEmpty();
@@ -105,7 +103,7 @@
                     await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3, 4, 5, 6));
 
                     // read to the end of the stream
-                    var allEventsPage = await eventStore.ReadAll(Checkpoint.Start, 4);
+                    var allEventsPage = await eventStore.ReadAll(eventStore.StartCheckpoint, 4);
 
                     int count = 0; //counter is used to short circuit bad implementations that never return IsEnd = true
 
@@ -117,8 +115,8 @@
 
                     allEventsPage.IsEnd.ShouldBeTrue();
 
-                    Checkpoint currentCheckpoint = allEventsPage.NextCheckpoint;
-                    currentCheckpoint.ShouldNotBeNull();
+                    var currentCheckpoint = allEventsPage.NextCheckpoint;
+                    currentCheckpoint.ShouldNotBeNullOrEmpty();
 
                     // read end of stream again, should be empty, should return same checkpoint
                     allEventsPage = await eventStore.ReadAll(currentCheckpoint, 10);
@@ -162,7 +160,7 @@
 
                     bool isEnd = false;
                     int count = 0;
-                    Checkpoint checkpoint = Checkpoint.Start;
+                    var checkpoint = eventStore.StartCheckpoint;
                     while (!isEnd)
                     {
                         _testOutputHelper.WriteLine($"Loop {count}");
@@ -206,7 +204,7 @@
                         ExpectedStreamEvent("stream-2", 6, 2, fixture.GetUtcNow().UtcDateTime)
                     }.Reverse().ToArray();
 
-                    var allEventsPage = await eventStore.ReadAll(Checkpoint.End, 4, ReadDirection.Backward);
+                    var allEventsPage = await eventStore.ReadAll(eventStore.EndCheckpoint, 4, ReadDirection.Backward);
                     List<StreamEvent> streamEvents = new List<StreamEvent>(allEventsPage.StreamEvents);
                     int count = 0;
                     while (!allEventsPage.IsEnd && count < 20) //should not take more than 20 iterations.

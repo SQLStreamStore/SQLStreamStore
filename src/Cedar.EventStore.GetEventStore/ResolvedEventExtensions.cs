@@ -11,7 +11,7 @@
                 resolvedEvent.Event.EventStreamId,
                 resolvedEvent.Event.EventId,
                 resolvedEvent.Event.EventNumber,
-                resolvedEvent.OriginalPosition.ToCheckpoint(),
+                resolvedEvent.OriginalPosition.ToString(),
                 resolvedEvent.Event.Created,
                 resolvedEvent.Event.EventType,
                 Encoding.UTF8.GetString(resolvedEvent.Event.Data),

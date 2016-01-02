@@ -51,7 +51,7 @@
         private async Task<AllEventsPage> ReadAllStreamToEnd(IEventStore eventStore)
         {
             int pageSize = 4, count = 0;
-            var allEventsPage = await eventStore.ReadAll(Checkpoint.Start, pageSize);
+            var allEventsPage = await eventStore.ReadAll(eventStore.StartCheckpoint, pageSize);
             LogAllEventsPage(allEventsPage);
             while (!allEventsPage.IsEnd && count < 20)
             {

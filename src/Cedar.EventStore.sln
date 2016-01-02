@@ -10,17 +10,9 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.GetEventSt
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.GetEventStore", "Cedar.EventStore.GetEventStore\Cedar.EventStore.GetEventStore.csproj", "{1E5E90BF-6481-4EDD-B6E2-560E617B35A9}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.Sqlite", "Cedar.EventStore.Sqlite\Cedar.EventStore.Sqlite.csproj", "{B6D70596-5DD9-4B8D-AE3D-346CF980AD97}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.Sqlite.Tests", "Cedar.EventStore.Sqlite.Tests\Cedar.EventStore.Sqlite.Tests.csproj", "{ADD767B3-B24E-4F72-BCC0-433E9C0C4AC9}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.MsSql2008", "Cedar.EventStore.MsSql2008\Cedar.EventStore.MsSql2008.csproj", "{40510896-D9A1-4E22-8D11-E718857611F8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.MsSql2008.Tests", "Cedar.EventStore.MsSql2008.Tests\Cedar.EventStore.MsSql2008.Tests.csproj", "{97AA016B-0B9F-44C2-8228-A13B4E251FB0}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.Postgres", "Cedar.EventStore.Postgres\Cedar.EventStore.Postgres.csproj", "{148C90E9-0EA1-482E-94A9-F178294EFAC2}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.Postgres.Tests", "Cedar.EventStore.Postgres.Tests\Cedar.EventStore.Postgres.Tests.csproj", "{453FB5DB-99DC-42D3-9DFE-F81EDF98F5E3}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Cedar.EventStore.AcceptanceTests", "Cedar.EventStore.AcceptanceTests", "{833038D7-0582-4D07-9458-8230A83CAC1F}"
 	ProjectSection(SolutionItems) = preProject
@@ -57,14 +49,6 @@ Global
 		{1E5E90BF-6481-4EDD-B6E2-560E617B35A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1E5E90BF-6481-4EDD-B6E2-560E617B35A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{1E5E90BF-6481-4EDD-B6E2-560E617B35A9}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B6D70596-5DD9-4B8D-AE3D-346CF980AD97}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B6D70596-5DD9-4B8D-AE3D-346CF980AD97}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B6D70596-5DD9-4B8D-AE3D-346CF980AD97}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B6D70596-5DD9-4B8D-AE3D-346CF980AD97}.Release|Any CPU.Build.0 = Release|Any CPU
-		{ADD767B3-B24E-4F72-BCC0-433E9C0C4AC9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{ADD767B3-B24E-4F72-BCC0-433E9C0C4AC9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{ADD767B3-B24E-4F72-BCC0-433E9C0C4AC9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{ADD767B3-B24E-4F72-BCC0-433E9C0C4AC9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{40510896-D9A1-4E22-8D11-E718857611F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{40510896-D9A1-4E22-8D11-E718857611F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40510896-D9A1-4E22-8D11-E718857611F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -73,14 +57,6 @@ Global
 		{97AA016B-0B9F-44C2-8228-A13B4E251FB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{97AA016B-0B9F-44C2-8228-A13B4E251FB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{97AA016B-0B9F-44C2-8228-A13B4E251FB0}.Release|Any CPU.Build.0 = Release|Any CPU
-		{148C90E9-0EA1-482E-94A9-F178294EFAC2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{148C90E9-0EA1-482E-94A9-F178294EFAC2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{148C90E9-0EA1-482E-94A9-F178294EFAC2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{148C90E9-0EA1-482E-94A9-F178294EFAC2}.Release|Any CPU.Build.0 = Release|Any CPU
-		{453FB5DB-99DC-42D3-9DFE-F81EDF98F5E3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{453FB5DB-99DC-42D3-9DFE-F81EDF98F5E3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{453FB5DB-99DC-42D3-9DFE-F81EDF98F5E3}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{453FB5DB-99DC-42D3-9DFE-F81EDF98F5E3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

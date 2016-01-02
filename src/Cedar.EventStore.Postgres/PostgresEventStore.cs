@@ -274,11 +274,7 @@
             }
         }
 
-        public async Task<AllEventsPage> ReadAll(
-            Checkpoint checkpoint,
-            int maxCount,
-            ReadDirection direction = ReadDirection.Forward,
-            CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<AllEventsPage> ReadAll(ICheckpoint checkpoint, int maxCount, ReadDirection direction = ReadDirection.Forward, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.That(checkpoint, "checkpoint").IsNotNull();
             Ensure.That(maxCount, "maxCount").IsGt(0);

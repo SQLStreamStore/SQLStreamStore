@@ -33,7 +33,7 @@
                         }
                     };
 
-                    var allEventsPage = await eventStore.ReadAll(Checkpoint.End, 1, ReadDirection.Backward);
+                    var allEventsPage = await eventStore.ReadAll(eventStore.EndCheckpoint, 1, ReadDirection.Backward);
 
                     var checkpoint = allEventsPage.NextCheckpoint;
 
@@ -56,10 +56,10 @@
             private readonly IEventStore _eventStore;
             private readonly SqlConnection _connection;
             private SqlCommand _command;
-            private Checkpoint _checkpoint;
+            private string _checkpoint;
 
             public SqlWatcher(string connectionString, ITestOutputHelper testOutputHelper, IEventStore eventStore,
-                Checkpoint checkpoint)
+                string checkpoint)
             {
                 _connectionString = connectionString;
                 _testOutputHelper = testOutputHelper;

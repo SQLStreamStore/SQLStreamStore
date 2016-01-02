@@ -387,8 +387,8 @@
             ReadDirection direction = ReadDirection.Forward,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            Ensure.That(checkpoint, "checkpoint").IsNotNull();
-            Ensure.That(maxCount, "maxCount").IsGt(0);
+            Ensure.That(checkpoint, nameof(checkpoint)).IsNotNull();
+            Ensure.That(maxCount, nameof(maxCount)).IsGt(0);
             CheckIfDisposed();
 
             long ordinal = checkpoint.GetOrdinal();
@@ -410,8 +410,9 @@
                     List<StreamEvent> streamEvents = new List<StreamEvent>();
                     if(!reader.HasRows)
                     {
-                        return new AllEventsPage(checkpoint.Value,
-                            null,
+                        return new AllEventsPage(
+                            checkpoint.ToString(),
+                            checkpoint.ToString(),
                             true,
                             direction,
                             streamEvents.ToArray());

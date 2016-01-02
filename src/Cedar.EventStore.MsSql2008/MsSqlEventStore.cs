@@ -474,9 +474,17 @@
             }
         }
 
-        public Task<IStreamSubscription> SubscribeToStream(string streamId, EventReceived eventReceived, SubscriptionDropped subscriptionDropped, CancellationToken cancellationToken)
+        public async Task<IStreamSubscription> SubscribeToStream(
+            string streamId,
+            EventReceived eventReceived,
+            SubscriptionDropped subscriptionDropped,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException();
+            var subscription = new StreamSubscription(_createConnection, eventReceived, subscriptionDropped);
+
+            await subscription.Connect();
+
+            return subscription;
         }
 
         public async Task InitializeStore(
@@ -657,6 +665,14 @@
             }
         }
 
+        private void CheckIfDisposed()
+        {
+            if(_isDisposed.Value)
+            {
+                throw new ObjectDisposedException(nameof(MsSqlEventStore));
+            }
+        }
+
         private struct StreamIdInfo
         {
             private static readonly SHA1 s_sha1 = SHA1.Create();
@@ -680,11 +696,40 @@
             }
         }
 
-        private void CheckIfDisposed()
+        private class StreamSubscription : IStreamSubscription
         {
-            if(_isDisposed.Value)
+            private readonly Func<SqlConnection> _createConnection;
+            private EventReceived _eventReceived;
+            private SubscriptionDropped _subscriptionDropped;
+
+            public StreamSubscription(
+                Func<SqlConnection> createConnection,
+                EventReceived eventReceived,
+                SubscriptionDropped subscriptionDropped)
             {
-                throw new ObjectDisposedException(nameof(MsSqlEventStore));
+                _createConnection = createConnection;
+                _eventReceived = eventReceived;
+                _subscriptionDropped = subscriptionDropped;
+            }
+
+            public void Dispose()
+            {
+                throw new NotImplementedException();
+            }
+
+            public string StreamId
+            {
+                get { throw new NotImplementedException(); }
+            }
+
+            public int LastEventNumber
+            {
+                get { throw new NotImplementedException(); }
+            }
+
+            public Task Connect()
+            {
+                throw new NotImplementedException();
             }
         }
     }

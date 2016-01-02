@@ -22,31 +22,28 @@
             {
                 using(var eventStore = await fixture.GetEventStore())
                 {
-                    var newStreamEvent = new NewStreamEvent(Guid.NewGuid(), "MyEventType", "{}");
-                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, newStreamEvent);
+                    Func<int, int, Task> createStreams = async (count, interval) =>
+                    {
+                        for(int i = 0; i < count; i++)
+                        {
+                            var newStreamEvent = new NewStreamEvent(Guid.NewGuid(), "MyEventType", "{}");
+                            await eventStore.AppendToStream($"stream-{i}", ExpectedVersion.NoStream, newStreamEvent);
 
-                    newStreamEvent = new NewStreamEvent(Guid.NewGuid(), "MyEventType", "{}");
-                    await eventStore.AppendToStream("stream-2", ExpectedVersion.NoStream, newStreamEvent);
+                            await Task.Delay(interval);
+                        }
+                    };
 
-                    using (var watcher = new SqlWatcher(fixture.ConnectionString, _testOutputHelper))
+                    var allEventsPage = await eventStore.ReadAll(Checkpoint.End, 1, ReadDirection.Backward);
+
+                    var checkpoint = allEventsPage.NextCheckpoint;
+
+                    var task = createStreams(0, 100);
+
+                    using (var watcher = new SqlWatcher(fixture.ConnectionString, _testOutputHelper, eventStore, checkpoint))
                     {
                         await watcher.Start();
 
-                        newStreamEvent = new NewStreamEvent(Guid.NewGuid(), "MyEventType", "{}");
-                        await eventStore.AppendToStream("stream-3", ExpectedVersion.NoStream, newStreamEvent);
-
-                        await Task.Delay(100);
-
-                        newStreamEvent = new NewStreamEvent(Guid.NewGuid(), "MyEventType", "{}");
-                        await eventStore.AppendToStream("stream-4", ExpectedVersion.NoStream, newStreamEvent);
-
-                        newStreamEvent = new NewStreamEvent(Guid.NewGuid(), "MyEventType", "{}");
-                        await eventStore.AppendToStream("stream-5", ExpectedVersion.NoStream, newStreamEvent);
-
-                        newStreamEvent = new NewStreamEvent(Guid.NewGuid(), "MyEventType", "{}");
-                        await eventStore.AppendToStream("stream-6", ExpectedVersion.NoStream, newStreamEvent);
-
-                        await Task.Delay(100);
+                        await task;
                     }
                 }
             }
@@ -56,13 +53,18 @@
         {
             private readonly string _connectionString;
             private readonly ITestOutputHelper _testOutputHelper;
+            private readonly IEventStore _eventStore;
             private readonly SqlConnection _connection;
             private SqlCommand _command;
+            private Checkpoint _checkpoint;
 
-            public SqlWatcher(string connectionString, ITestOutputHelper testOutputHelper)
+            public SqlWatcher(string connectionString, ITestOutputHelper testOutputHelper, IEventStore eventStore,
+                Checkpoint checkpoint)
             {
                 _connectionString = connectionString;
                 _testOutputHelper = testOutputHelper;
+                _eventStore = eventStore;
+                _checkpoint = checkpoint;
                 _connection = new SqlConnection(_connectionString);
                 SqlDependency.Start(connectionString);
             }
@@ -76,7 +78,7 @@
 
             private async Task GetData()
             {
-                _command = new SqlCommand("SELECT Id, Ordinal FROM dbo.Events", _connection);
+                _command = new SqlCommand("SELECT Id, Ordinal FROM dbo.Events ORDER By Ordinal DESC", _connection);
                 _command.Notification = null;
                 var sqlDependency = new SqlDependency(_command);
                 sqlDependency.OnChange += SqlDependencyOnOnChange;
@@ -108,6 +110,7 @@
             public void Dispose()
             {
                 _command.Dispose();
+                SqlConnection.ClearPool(_connection);
                 _connection.Dispose();
                 SqlDependency.Stop(_connectionString);
             }

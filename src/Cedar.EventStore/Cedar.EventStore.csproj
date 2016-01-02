@@ -46,7 +46,7 @@
     <Compile Include="EventStoreExtensions.cs" />
     <Compile Include="Exceptions\WrongExpectedVersionException.cs" />
     <Compile Include="ExpectedVersion.cs" />
-    <Compile Include="GetUtcNow.cs" />
+    <Compile Include="Infrastructure\GetUtcNow.cs" />
     <Compile Include="Checkpoint.cs" />
     <Compile Include="IEventStore.cs" />
     <Compile Include="Exceptions\Messages.Designer.cs">
@@ -65,9 +65,9 @@
     <Compile Include="StreamEventExtensions.cs" />
     <Compile Include="StreamEventsPage.cs" />
     <Compile Include="StreamPosition.cs" />
-    <Compile Include="StringExtensions.cs" />
-    <Compile Include="SystemClock.cs" />
-    <Compile Include="TaskExtensions.cs" />
+    <Compile Include="Infrastructure\StringExtensions.cs" />
+    <Compile Include="Infrastructure\SystemClock.cs" />
+    <Compile Include="Infrastructure\TaskExtensions.cs" />
   </ItemGroup>
   <ItemGroup>
     <Reference Include="EnsureThat">

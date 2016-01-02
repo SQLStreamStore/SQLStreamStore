@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Cedar.EventStore.Infrastructure;
     using EnsureThat;
     using SQLite.Net;
     using SQLite.Net.Interop;

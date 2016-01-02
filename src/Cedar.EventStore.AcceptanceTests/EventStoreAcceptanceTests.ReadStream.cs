@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Cedar.EventStore.Infrastructure;
     using Shouldly;
     using Xunit;
 

@@ -1,4 +1,4 @@
-﻿namespace Cedar.EventStore
+﻿namespace Cedar.EventStore.Infrastructure
 {
     using System.Runtime.CompilerServices;
     using System.Threading.Tasks;

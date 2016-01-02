@@ -6,6 +6,7 @@
 ﻿    using System.Threading;
 ﻿    using System.Threading.Tasks;
 ﻿    using Cedar.EventStore.Exceptions;
+﻿    using Cedar.EventStore.Infrastructure;
 ﻿    using EnsureThat;
 ﻿    using global::EventStore.ClientAPI;
 

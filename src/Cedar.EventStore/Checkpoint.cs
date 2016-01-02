@@ -1,6 +1,12 @@
 ﻿namespace Cedar.EventStore
 {
+    using System;
     using EnsureThat;
+
+    public interface ICheckpoint : IComparable<ICheckpoint>
+    {
+        string Value { get; }
+    }
 
     public class Checkpoint
     {

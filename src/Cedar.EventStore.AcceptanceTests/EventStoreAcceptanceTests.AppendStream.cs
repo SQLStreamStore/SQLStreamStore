@@ -2,6 +2,7 @@
 {
     using System.Threading.Tasks;
     using Cedar.EventStore.Exceptions;
+    using Cedar.EventStore.Infrastructure;
     using Shouldly;
     using Xunit;
 

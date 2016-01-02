@@ -3,6 +3,7 @@
     using Exceptions;
     using System;
     using System.Threading.Tasks;
+    using Cedar.EventStore.Infrastructure;
     using Xunit;
     using Xunit.Abstractions;
 

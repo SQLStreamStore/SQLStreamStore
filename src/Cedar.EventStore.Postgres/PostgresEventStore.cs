@@ -11,6 +11,7 @@
     using System.Threading.Tasks;
 
     using Cedar.EventStore.Exceptions;
+    using Cedar.EventStore.Infrastructure;
     using Cedar.EventStore.Postgres.SqlScripts;
 
     using EnsureThat;

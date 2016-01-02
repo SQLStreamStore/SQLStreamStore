@@ -64,6 +64,38 @@
         }
 
         [Fact]
+        public async Task When_read_all_forwards_from_an_empty_store_than_should_have_checkpoints()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    var allEventsPage = await eventStore.ReadAll(Checkpoint.Start, 4);
+
+                    allEventsPage.FromCheckpoint.ShouldNotBeNullOrEmpty();
+                    allEventsPage.NextCheckpoint.ShouldNotBeNullOrEmpty();
+
+                    allEventsPage = await eventStore.ReadAll(allEventsPage.NextCheckpoint, 4);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_read_all_backwards_from_an_empty_store_than_should_have_checkpoints()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    var allEventsPage = await eventStore.ReadAll(Checkpoint.Start, 4, ReadDirection.Backward);
+
+                    allEventsPage.FromCheckpoint.ShouldNotBeNullOrEmpty();
+                    allEventsPage.NextCheckpoint.ShouldNotBeNullOrEmpty();
+                }
+            }
+        }
+
+        [Fact]
         public async Task Read_forwards_to_the_end_should_return_a_valid_Checkpoint()
         {
             using (var fixture = GetFixture())

@@ -22,7 +22,7 @@
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG; SIMPLE_JSON_TYPEINFO, SIMPLE_JSON_INTERNAL</DefineConstants>
+    <DefineConstants>TRACE;DEBUG; </DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Debug\Cedar.EventStore.xml</DocumentationFile>
@@ -32,7 +32,7 @@
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
     <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE; SIMPLE_JSON_TYPEINFO, SIMPLE_JSON_INTERNAL</DefineConstants>
+    <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\Cedar.EventStore.xml</DocumentationFile>
@@ -42,30 +42,32 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="AllEventsPage.cs" />
+    <Compile Include="Streams\AllEventsPage.cs" />
+    <Compile Include="Streams\EventReceived.cs" />
     <Compile Include="EventStoreExtensions.cs" />
-    <Compile Include="Exceptions\WrongExpectedVersionException.cs" />
-    <Compile Include="ExpectedVersion.cs" />
-    <Compile Include="ICheckpoint.cs" />
+    <Compile Include="Streams\WrongExpectedVersionException.cs" />
+    <Compile Include="Streams\ExpectedVersion.cs" />
+    <Compile Include="Streams\ICheckpoint.cs" />
     <Compile Include="Infrastructure\GetUtcNow.cs" />
     <Compile Include="IEventStore.cs" />
-    <Compile Include="Exceptions\Messages.Designer.cs">
+    <Compile Include="Streams\Messages.Designer.cs">
       <AutoGen>True</AutoGen>
       <DesignTime>True</DesignTime>
       <DependentUpon>Messages.resx</DependentUpon>
     </Compile>
     <Compile Include="Infrastructure\LongCheckpoint.cs" />
+    <Compile Include="Streams\SubscriptionDropped.cs" />
     <Compile Include="Subscriptions\IStreamSubscription.cs" />
-    <Compile Include="NewStreamEvent.cs" />
-    <Compile Include="PageReadStatus.cs" />
+    <Compile Include="Streams\NewStreamEvent.cs" />
+    <Compile Include="Streams\PageReadStatus.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ReadDirection.cs" />
+    <Compile Include="Streams\ReadDirection.cs" />
     <Compile Include="SimpleJson.cs" />
-    <Compile Include="Exceptions\StreamDeletedException.cs" />
-    <Compile Include="StreamEvent.cs" />
-    <Compile Include="StreamEventExtensions.cs" />
-    <Compile Include="StreamEventsPage.cs" />
-    <Compile Include="StreamPosition.cs" />
+    <Compile Include="Streams\StreamDeletedException.cs" />
+    <Compile Include="Streams\StreamEvent.cs" />
+    <Compile Include="Streams\StreamEventExtensions.cs" />
+    <Compile Include="Streams\StreamEventsPage.cs" />
+    <Compile Include="Streams\StreamPosition.cs" />
     <Compile Include="Infrastructure\StringExtensions.cs" />
     <Compile Include="Infrastructure\SystemClock.cs" />
     <Compile Include="Infrastructure\TaskExtensions.cs" />
@@ -80,11 +82,14 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Exceptions\Messages.resx">
+    <EmbeddedResource Include="Streams\Messages.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>Messages.Designer.cs</LastGenOutput>
       <SubType>Designer</SubType>
     </EmbeddedResource>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Exceptions\" />
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

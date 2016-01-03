@@ -3,10 +3,13 @@
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
+    using Cedar.EventStore.Streams;
     using global::EventStore.ClientAPI;
     using global::EventStore.ClientAPI.Embedded;
     using global::EventStore.ClientAPI.SystemData;
     using global::EventStore.Core;
+    using ExpectedVersion = Cedar.EventStore.Streams.ExpectedVersion;
+    using ReadDirection = Cedar.EventStore.Streams.ReadDirection;
 
     internal class GesEventStoreFixture : EventStoreAcceptanceTestFixture
     {

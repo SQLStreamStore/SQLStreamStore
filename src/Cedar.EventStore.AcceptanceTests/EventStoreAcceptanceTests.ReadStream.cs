@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Cedar.EventStore.Infrastructure;
+    using Cedar.EventStore.Streams;
     using Shouldly;
     using Xunit;
 

@@ -1,4 +1,4 @@
-﻿namespace Cedar.EventStore
+﻿namespace Cedar.EventStore.Streams
 {
     public enum ReadDirection
     {

@@ -4,6 +4,7 @@
     using System.Data.SqlClient;
     using System.Threading.Tasks;
     using Cedar.EventStore.Infrastructure;
+    using Cedar.EventStore.Streams;
     using Xunit;
     using Xunit.Abstractions;
 
@@ -23,7 +24,7 @@
             {
                 using(var eventStore = await fixture.GetEventStore())
                 {
-                    Func<int, int, Task> createStreams = async (count, interval) =>
+                    /*Func<int, int, Task> createStreams = async (count, interval) =>
                     {
                         for(int i = 0; i < count; i++)
                         {
@@ -40,7 +41,13 @@
                         await watcher.Start();
 
                         await createStreams(10, 100);
-                    }
+
+                        
+                    }*/
+
+                    var newStreamEvent2 = new NewStreamEvent(Guid.NewGuid(), "MyEventType", "{}");
+                    await eventStore.AppendToStream($"stream-100", ExpectedVersion.NoStream, newStreamEvent2);
+                    var allEventsPage = await eventStore.ReadAll(eventStore.StartCheckpoint, 20);
                 }
             }
         }

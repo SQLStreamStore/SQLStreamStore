@@ -9,9 +9,9 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Exceptions;
     using Cedar.EventStore.Infrastructure;
     using Cedar.EventStore.SqlScripts;
+    using Cedar.EventStore.Streams;
     using Cedar.EventStore.Subscriptions;
     using EnsureThat;
     using Microsoft.SqlServer.Server;

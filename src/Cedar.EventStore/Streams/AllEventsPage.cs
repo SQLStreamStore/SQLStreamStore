@@ -1,7 +1,7 @@
-﻿using System.Collections.Generic;
-
-namespace Cedar.EventStore
+﻿namespace Cedar.EventStore.Streams
 {
+    using System.Collections.Generic;
+
     public class AllEventsPage
     {
         public readonly string FromCheckpoint;

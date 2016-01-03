@@ -1,6 +1,7 @@
 ﻿namespace Cedar.EventStore
 {
     using System;
+    using Cedar.EventStore.Streams;
     using Shouldly;
     using Xunit;
 

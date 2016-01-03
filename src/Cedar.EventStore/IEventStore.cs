@@ -3,6 +3,7 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Cedar.EventStore.Streams;
 
     public interface IEventStore : IDisposable
     {
@@ -40,8 +41,4 @@
 
         string EndCheckpoint { get; }
     }
-
-    public delegate Task EventReceived(StreamEvent streamEvent);
-
-    public delegate void SubscriptionDropped(string reason, Exception ex);
 }

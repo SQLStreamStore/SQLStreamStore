@@ -1,6 +1,7 @@
 namespace Cedar.EventStore
 {
     using System.Linq;
+    using Cedar.EventStore.Streams;
     using global::EventStore.ClientAPI;
 
     internal sealed class PositionCheckpoint : ICheckpoint

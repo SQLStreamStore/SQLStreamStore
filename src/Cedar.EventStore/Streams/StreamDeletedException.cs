@@ -1,4 +1,4 @@
-﻿namespace Cedar.EventStore.Exceptions
+﻿namespace Cedar.EventStore.Streams
 {
     using System;
 

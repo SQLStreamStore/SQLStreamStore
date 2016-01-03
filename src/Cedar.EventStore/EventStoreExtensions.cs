@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Threading.Tasks;
+    using Cedar.EventStore.Streams;
 
     public static class EventStoreExtensions
     {

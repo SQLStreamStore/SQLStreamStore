@@ -1,6 +1,7 @@
 ﻿namespace Cedar.EventStore
 {
     using System.Text;
+    using Cedar.EventStore.Streams;
     using global::EventStore.ClientAPI;
 
     internal static class ResolvedEventExtensions

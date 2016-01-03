@@ -1,6 +1,7 @@
 ﻿namespace Cedar.EventStore.Infrastructure
 {
     using System.Globalization;
+    using Cedar.EventStore.Streams;
 
     public sealed class LongCheckpoint : ICheckpoint
     {

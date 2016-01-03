@@ -5,10 +5,12 @@
 ﻿    using System.Text;
 ﻿    using System.Threading;
 ﻿    using System.Threading.Tasks;
-﻿    using Cedar.EventStore.Exceptions;
 ﻿    using Cedar.EventStore.Infrastructure;
+﻿    using Cedar.EventStore.Streams;
 ﻿    using EnsureThat;
 ﻿    using global::EventStore.ClientAPI;
+﻿    using ExpectedVersion = Cedar.EventStore.Streams.ExpectedVersion;
+﻿    using ReadDirection = Cedar.EventStore.Streams.ReadDirection;
 
 ﻿    public sealed class GesEventStore : IEventStore
 ﻿    {

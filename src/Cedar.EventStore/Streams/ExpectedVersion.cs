@@ -1,4 +1,4 @@
-﻿namespace Cedar.EventStore
+﻿namespace Cedar.EventStore.Streams
 {
     /// <summary>
     /// Constants used for expected version control

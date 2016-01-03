@@ -15,7 +15,7 @@
         private readonly InterlockedBoolean _fetchingEvents = new InterlockedBoolean();
         private SqlCommand _command;
         private string _checkpoint;
-        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
+        private readonly CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         public SqlWatcher(string connectionString, IEventStore eventStore)
         {

@@ -76,9 +76,9 @@
                 return _inner.DeleteStream(streamId, expectedVersion, cancellationToken);
             }
 
-            public Task<AllEventsPage> ReadAll(string checkpoint, int maxCount, ReadDirection direction = ReadDirection.Forward, CancellationToken cancellationToken = default(CancellationToken))
+            public Task<AllEventsPage> ReadAll(string fromCheckpoint, int maxCount, ReadDirection direction = ReadDirection.Forward, CancellationToken cancellationToken = default(CancellationToken))
             {
-                return _inner.ReadAll(checkpoint, maxCount, direction, cancellationToken);
+                return _inner.ReadAll(fromCheckpoint, maxCount, direction, cancellationToken);
             }
 
             public Task<StreamEventsPage> ReadStream(

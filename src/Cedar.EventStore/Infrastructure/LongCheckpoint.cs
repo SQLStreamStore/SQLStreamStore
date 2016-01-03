@@ -22,5 +22,10 @@
                 ? new LongCheckpoint(-1)
                 : new LongCheckpoint(long.Parse(checkpointValue));
         }
+
+        public override string ToString()
+        {
+            return Value;
+        }
     }
 }

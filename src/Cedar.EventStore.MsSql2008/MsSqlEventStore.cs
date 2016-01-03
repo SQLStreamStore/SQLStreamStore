@@ -386,13 +386,17 @@
             }
         }
 
-        public async Task<AllEventsPage> ReadAll(string checkpoint, int maxCount, ReadDirection direction = ReadDirection.Forward, CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<AllEventsPage> ReadAll(
+            string fromCheckpoint,
+            int maxCount,
+            ReadDirection direction = ReadDirection.Forward,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            Ensure.That(checkpoint, nameof(checkpoint)).IsNotNull();
-            Ensure.That(maxCount, nameof(maxCount)).IsGt(0);
+            Ensure.That(fromCheckpoint, nameof(fromCheckpoint)).IsNotNull();
+            Ensure.That(maxCount, nameof(maxCount)).IsGt(0).And().IsLte(1000);
             CheckIfDisposed();
 
-            long ordinal = LongCheckpoint.Parse(checkpoint).LongValue;
+            long ordinal = LongCheckpoint.Parse(fromCheckpoint).LongValue;
 
             var commandText = direction == ReadDirection.Forward ? Scripts.ReadAllForward : Scripts.ReadAllBackward;
 
@@ -411,22 +415,28 @@
                     List<StreamEvent> streamEvents = new List<StreamEvent>();
                     if(!reader.HasRows)
                     {
-                        if(direction == ReadDirection.Backward)
+                        // When reading backwards and there are no more items, then next checkpoint is LongCheckpoint.Start,
+                        // regardles of what the fromCheckpoint is.
+                        if (direction == ReadDirection.Backward)
                         {
                             return new AllEventsPage(
-                                LongCheckpoint.Start.Value,
+                                fromCheckpoint,
                                 LongCheckpoint.Start.Value,
                                 true,
                                 direction,
                                 streamEvents.ToArray());
                         }
+                        
+                        // 
                         return new AllEventsPage(
-                            checkpoint,
-                            checkpoint,
+                            fromCheckpoint,
+                            fromCheckpoint,
                             true,
                             direction,
                             streamEvents.ToArray());
                     }
+
+                    long lastOrdinal = 0;
                     while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                     {
                         var streamId = reader.GetString(0);
@@ -448,21 +458,21 @@
                             jsonMetadata);
 
                         streamEvents.Add(streamEvent);
+                        lastOrdinal = ordinal;
                     }
 
                     bool isEnd = true;
-                    var nextCheckpoint = streamEvents.Last().Checkpoint;
+                    var nextCheckpoint = lastOrdinal + 1;
 
                     if(streamEvents.Count == maxCount + 1) // An extra row was read, we're not at the end
                     {
                         isEnd = false;
-                        nextCheckpoint = streamEvents[maxCount].Checkpoint;
                         streamEvents.RemoveAt(maxCount);
                     }
 
                     return new AllEventsPage(
-                        checkpoint,
-                        nextCheckpoint,
+                        fromCheckpoint,
+                        nextCheckpoint.ToString(),
                         isEnd,
                         direction,
                         streamEvents.ToArray());

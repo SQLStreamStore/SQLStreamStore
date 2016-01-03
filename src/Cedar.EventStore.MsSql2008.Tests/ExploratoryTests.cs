@@ -24,7 +24,7 @@
             {
                 using(var eventStore = await fixture.GetEventStore())
                 {
-                    /*Func<int, int, Task> createStreams = async (count, interval) =>
+                    Func<int, int, Task> createStreams = async (count, interval) =>
                     {
                         for(int i = 0; i < count; i++)
                         {
@@ -40,14 +40,12 @@
                     {
                         await watcher.Start();
 
-                        await createStreams(10, 100);
+                        await createStreams(250, 1);
 
-                        
-                    }*/
+                        await Task.Delay(2000);
 
-                    var newStreamEvent2 = new NewStreamEvent(Guid.NewGuid(), "MyEventType", "{}");
-                    await eventStore.AppendToStream($"stream-100", ExpectedVersion.NoStream, newStreamEvent2);
-                    var allEventsPage = await eventStore.ReadAll(eventStore.StartCheckpoint, 20);
+                        _testOutputHelper.WriteLine(watcher._totalCount.ToString());
+                    }
                 }
             }
         }
@@ -60,6 +58,7 @@
             private readonly SqlConnection _connection;
             private SqlCommand _command;
             private LongCheckpoint _checkpoint;
+            public int _totalCount;
 
             public SqlWatcher(string connectionString, ITestOutputHelper testOutputHelper, IEventStore eventStore)
             {
@@ -83,7 +82,19 @@
 
             private async Task GetData()
             {
-                _command = new SqlCommand("SELECT Id, Ordinal FROM dbo.Events", _connection)
+                var allEventsPage = await _eventStore.ReadAll(_checkpoint.Value, 1000);
+
+                _testOutputHelper.WriteLine("-----");
+                _testOutputHelper.WriteLine($"From: {allEventsPage.FromCheckpoint}");
+                _testOutputHelper.WriteLine($"To: {allEventsPage.NextCheckpoint}");
+                _testOutputHelper.WriteLine($"Count: {allEventsPage.StreamEvents.Count}");
+                _checkpoint = LongCheckpoint.Parse(allEventsPage.NextCheckpoint);
+
+                _totalCount += allEventsPage.StreamEvents.Count;
+
+                await Task.Delay(100);
+
+                _command = new SqlCommand("SELECT Id FROM dbo.Events", _connection)
                 {
                     Notification = null
                 };
@@ -91,33 +102,12 @@
                 sqlDependency.OnChange += SqlDependencyOnOnChange;
 
                 await _command.ExecuteNonQueryAsync();
-
-                var allEventsPage = await _eventStore.ReadAll(_checkpoint.Value, int.MaxValue);
-
-                _testOutputHelper.WriteLine(allEventsPage.FromCheckpoint);
-                _testOutputHelper.WriteLine(allEventsPage.NextCheckpoint);
-                _checkpoint = LongCheckpoint.Parse(allEventsPage.NextCheckpoint);
-
-                /*
-                var reader = await _command.ExecuteReaderAsync(();
-                 _testOutputHelper.WriteLine(reader.HasRows.ToString());
-                 _testOutputHelper.WriteLine(reader.RecordsAffected.ToString());
-
-                 while(await reader.ReadAsync())
-                 {
-                     _testOutputHelper.WriteLine(reader["Id"].ToString());
-                     _testOutputHelper.WriteLine(reader["Ordinal"].ToString());
-                 }*/
             }
 
             private void SqlDependencyOnOnChange(object sender, SqlNotificationEventArgs sqlNotificationEventArgs)
             {
                 SqlDependency dependency = (SqlDependency)sender;
                 dependency.OnChange -= SqlDependencyOnOnChange;
-
-                _testOutputHelper.WriteLine(sqlNotificationEventArgs.Source.ToString());
-                _testOutputHelper.WriteLine(sqlNotificationEventArgs.Info.ToString());
-                _testOutputHelper.WriteLine(sqlNotificationEventArgs.Type.ToString());
 
                 Task.Run(GetData);
             }

@@ -92,14 +92,14 @@
 ﻿            }
 ﻿        }
 
-﻿        public async Task<AllEventsPage> ReadAll(string checkpoint, int maxCount, ReadDirection direction = ReadDirection.Forward, CancellationToken cancellationToken = default(CancellationToken))
+﻿        public async Task<AllEventsPage> ReadAll(string fromCheckpoint, int maxCount, ReadDirection direction = ReadDirection.Forward, CancellationToken cancellationToken = default(CancellationToken))
 ﻿        {
-﻿            Ensure.That(checkpoint, "checkpoint").IsNotNull();
+﻿            Ensure.That(fromCheckpoint, nameof(fromCheckpoint)).IsNotNull();
 ﻿            CheckIfDisposed();
 
 ﻿            var connection = _getConnection();
 
-﻿            var position = PositionCheckpoint.Parse(checkpoint).Position;
+﻿            var position = PositionCheckpoint.Parse(fromCheckpoint).Position;
 
 ﻿            AllEventsSlice allEventsSlice;
 ﻿            if(direction == ReadDirection.Forward)

@@ -411,9 +411,18 @@
                     List<StreamEvent> streamEvents = new List<StreamEvent>();
                     if(!reader.HasRows)
                     {
+                        if(direction == ReadDirection.Backward)
+                        {
+                            return new AllEventsPage(
+                                LongCheckpoint.Start.Value,
+                                LongCheckpoint.Start.Value,
+                                true,
+                                direction,
+                                streamEvents.ToArray());
+                        }
                         return new AllEventsPage(
-                            checkpoint.ToString(),
-                            checkpoint.ToString(),
+                            checkpoint,
+                            checkpoint,
                             true,
                             direction,
                             streamEvents.ToArray());

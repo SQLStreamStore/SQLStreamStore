@@ -3,6 +3,7 @@
     using System;
     using System.Data.SqlClient;
     using System.Threading.Tasks;
+    using Cedar.EventStore.Infrastructure;
     using Xunit;
     using Xunit.Abstractions;
 
@@ -33,17 +34,12 @@
                         }
                     };
 
-                    var allEventsPage = await eventStore.ReadAll(eventStore.EndCheckpoint, 1, ReadDirection.Backward);
 
-                    var checkpoint = allEventsPage.NextCheckpoint;
-
-                    var task = createStreams(0, 100);
-
-                    using (var watcher = new SqlWatcher(fixture.ConnectionString, _testOutputHelper, eventStore, checkpoint))
+                    using (var watcher = new SqlWatcher(fixture.ConnectionString, _testOutputHelper, eventStore))
                     {
                         await watcher.Start();
 
-                        await task;
+                        await createStreams(10, 100);
                     }
                 }
             }
@@ -56,21 +52,23 @@
             private readonly IEventStore _eventStore;
             private readonly SqlConnection _connection;
             private SqlCommand _command;
-            private string _checkpoint;
+            private LongCheckpoint _checkpoint;
 
-            public SqlWatcher(string connectionString, ITestOutputHelper testOutputHelper, IEventStore eventStore,
-                string checkpoint)
+            public SqlWatcher(string connectionString, ITestOutputHelper testOutputHelper, IEventStore eventStore)
             {
                 _connectionString = connectionString;
                 _testOutputHelper = testOutputHelper;
                 _eventStore = eventStore;
-                _checkpoint = checkpoint;
                 _connection = new SqlConnection(_connectionString);
                 SqlDependency.Start(connectionString);
             }
 
             public async Task Start()
             {
+                var allEventsPage = await _eventStore.ReadAll(_eventStore.EndCheckpoint, 1, ReadDirection.Backward);
+
+                _checkpoint = LongCheckpoint.Parse(allEventsPage.NextCheckpoint);
+
                 await _connection.OpenAsync();
 
                 await GetData();
@@ -78,21 +76,31 @@
 
             private async Task GetData()
             {
-                _command = new SqlCommand("SELECT Id, Ordinal FROM dbo.Events ORDER By Ordinal DESC", _connection);
-                _command.Notification = null;
+                _command = new SqlCommand("SELECT Id, Ordinal FROM dbo.Events", _connection)
+                {
+                    Notification = null
+                };
                 var sqlDependency = new SqlDependency(_command);
                 sqlDependency.OnChange += SqlDependencyOnOnChange;
 
-                var reader = await _command.ExecuteReaderAsync();
+                await _command.ExecuteNonQueryAsync();
 
-                _testOutputHelper.WriteLine(reader.HasRows.ToString());
-                _testOutputHelper.WriteLine(reader.RecordsAffected.ToString());
+                var allEventsPage = await _eventStore.ReadAll(_checkpoint.Value, int.MaxValue);
 
-                while(await reader.ReadAsync())
-                {
-                    _testOutputHelper.WriteLine(reader["Id"].ToString());
-                    _testOutputHelper.WriteLine(reader["Ordinal"].ToString());
-                }
+                _testOutputHelper.WriteLine(allEventsPage.FromCheckpoint);
+                _testOutputHelper.WriteLine(allEventsPage.NextCheckpoint);
+                _checkpoint = LongCheckpoint.Parse(allEventsPage.NextCheckpoint);
+
+                /*
+                var reader = await _command.ExecuteReaderAsync(();
+                 _testOutputHelper.WriteLine(reader.HasRows.ToString());
+                 _testOutputHelper.WriteLine(reader.RecordsAffected.ToString());
+
+                 while(await reader.ReadAsync())
+                 {
+                     _testOutputHelper.WriteLine(reader["Id"].ToString());
+                     _testOutputHelper.WriteLine(reader["Ordinal"].ToString());
+                 }*/
             }
 
             private void SqlDependencyOnOnChange(object sender, SqlNotificationEventArgs sqlNotificationEventArgs)

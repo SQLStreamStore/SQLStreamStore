@@ -72,7 +72,7 @@
                 {
                     var allEventsPage = await eventStore.ReadAll(eventStore.StartCheckpoint, 4);
 
-                    allEventsPage.FromCheckpoint.ShouldNotBeNullOrEmpty();
+                    allEventsPage.FromCheckpoint.ShouldBe(eventStore.StartCheckpoint);
                     allEventsPage.NextCheckpoint.ShouldNotBeNullOrEmpty();
                 }
             }
@@ -85,7 +85,7 @@
             {
                 using (var eventStore = await fixture.GetEventStore())
                 {
-                    var allEventsPage = await eventStore.ReadAll(eventStore.EndCheckpoint, 4, ReadDirection.Backward);
+                    var allEventsPage = await eventStore.ReadAll(eventStore.EndCheckpoint, 5, ReadDirection.Backward);
 
                     allEventsPage.FromCheckpoint.ShouldNotBeNullOrEmpty();
                     allEventsPage.NextCheckpoint.ShouldNotBeNullOrEmpty();

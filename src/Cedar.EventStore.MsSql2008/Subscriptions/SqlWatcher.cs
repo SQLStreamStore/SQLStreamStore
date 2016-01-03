@@ -2,6 +2,7 @@
 {
     using System;
     using System.Data.SqlClient;
+    using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Infrastructure;
     using Cedar.EventStore.Streams;
@@ -14,6 +15,7 @@
         private readonly InterlockedBoolean _fetchingEvents = new InterlockedBoolean();
         private SqlCommand _command;
         private string _checkpoint;
+        private CancellationTokenSource _cancellationTokenSource = new CancellationTokenSource();
 
         public SqlWatcher(string connectionString, IEventStore eventStore)
         {
@@ -25,6 +27,7 @@
 
         public void Dispose()
         {
+            _cancellationTokenSource.Cancel();
             _command.Dispose();
             SqlConnection.ClearPool(_connection);
             _connection.Dispose();
@@ -65,6 +68,11 @@
             FetchEvents();
         }
 
+
+        /// <summary>
+        /// Fetches any newly saved events and reises them to subscribers accordingly.
+        /// This is method is designed to run a *single* background process at any given time.
+        /// </summary>
         private void FetchEvents()
         {
             if(_fetchingEvents.EnsureCalledOnce())
@@ -76,15 +84,24 @@
                 bool isEnd = false;
                 while(!isEnd)
                 {
-                    var allEventsPage = await _eventStore.ReadAll(_checkpoint, 1000).NotOnCapturedContext();
+                    if(_cancellationTokenSource.IsCancellationRequested)
+                    {
+                        return;
+                    }
+
+                    var allEventsPage = await _eventStore
+                        .ReadAll(_checkpoint, 10, cancellationToken: _cancellationTokenSource.Token)
+                        .NotOnCapturedContext();
+
                     isEnd = allEventsPage.IsEnd;
+
                     _checkpoint = allEventsPage.NextCheckpoint;
 
                     Console.WriteLine(allEventsPage.NextCheckpoint);
                 }
 
                 _fetchingEvents.Set(false);
-            });
+            }, _cancellationTokenSource.Token);
         }
     }
 }

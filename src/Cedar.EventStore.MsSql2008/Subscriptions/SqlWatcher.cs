@@ -70,7 +70,7 @@
 
 
         /// <summary>
-        /// Fetches any newly saved events and reises them to subscribers accordingly.
+        /// Fetches any newly saved events and raises them to subscribers accordingly.
         /// This is method is designed to run a *single* background process at any given time.
         /// </summary>
         private void FetchEvents()
@@ -97,7 +97,7 @@
 
                     _checkpoint = allEventsPage.NextCheckpoint;
 
-                    Console.WriteLine(allEventsPage.NextCheckpoint);
+                    //TODO Push events from allEventsPage to subscribers.
                 }
 
                 _fetchingEvents.Set(false);

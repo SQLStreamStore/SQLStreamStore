@@ -115,7 +115,6 @@
             FetchEvents();
         }
 
-
         /// <summary>
         /// Fetches any newly saved events and raises them to subscribers accordingly.
         /// This is method is designed to run a *single* background process at any given time.

@@ -6,6 +6,6 @@
     {
         string StreamId { get; }
 
-        int LastEventNumber { get; }  
+        int LastVersion { get; }  
     }
 }

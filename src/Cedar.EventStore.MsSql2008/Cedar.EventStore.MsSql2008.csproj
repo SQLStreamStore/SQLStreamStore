@@ -55,7 +55,6 @@
     <Compile Include="SqlExceptionExtensions.cs" />
     <Compile Include="SqlScripts\Scripts.cs" />
     <Compile Include="Subscriptions\SqlEventsWatcher.cs" />
-    <Compile Include="Subscriptions\SqlWatcher.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Cedar.EventStore\Cedar.EventStore.csproj">

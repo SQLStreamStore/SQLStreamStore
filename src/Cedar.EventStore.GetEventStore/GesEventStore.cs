@@ -236,7 +236,7 @@
 
 ﻿            public string StreamId => _eventStoreSubscription.StreamId;
 
-﻿            public int LastEventNumber => _eventStoreSubscription.LastEventNumber.Value;
+﻿            public int LastVersion => _eventStoreSubscription.LastEventNumber.Value;
 ﻿        }
 ﻿    }
 ﻿}

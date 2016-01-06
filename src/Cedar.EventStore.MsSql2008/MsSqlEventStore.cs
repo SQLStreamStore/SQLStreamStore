@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Data;
     using System.Data.SqlClient;
     using System.Linq;
     using System.Security.Cryptography;
@@ -14,22 +13,11 @@
     using Cedar.EventStore.Streams;
     using Cedar.EventStore.Subscriptions;
     using EnsureThat;
-    using Microsoft.SqlServer.Server;
 
     public sealed partial class MsSqlEventStore : IEventStore
     {
         private readonly Func<SqlConnection> _createConnection;
         private readonly InterlockedBoolean _isDisposed = new InterlockedBoolean();
-        private readonly SqlMetaData[] _appendToStreamSqlMetadata =
-        {
-            new SqlMetaData("StreamVersion", SqlDbType.Int, true, false, SortOrder.Unspecified, -1),
-            new SqlMetaData("Id", SqlDbType.UniqueIdentifier),
-            new SqlMetaData("Created", SqlDbType.DateTime, true, false, SortOrder.Unspecified, -1),
-            new SqlMetaData("Type", SqlDbType.NVarChar, 128),
-            new SqlMetaData("JsonData", SqlDbType.NVarChar, SqlMetaData.Max),
-            new SqlMetaData("JsonMetadata", SqlDbType.NVarChar, SqlMetaData.Max),
-        };
-
         private readonly Lazy<Task<SqlEventsWatcher>> _lazySqlEventsWatcher;
 
         public MsSqlEventStore(string connectionString)
@@ -319,8 +307,8 @@
 
         private async Task<SqlEventsWatcher> CreateSqlEventsWatcher(string connectionString)
         {
-            var watcher = new SqlEventsWatcher(connectionString);
-            await watcher.Initialize();
+            var watcher = new SqlEventsWatcher(connectionString, this);
+            await watcher.Start();
             return watcher;
         }
 

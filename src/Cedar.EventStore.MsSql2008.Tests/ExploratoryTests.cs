@@ -36,7 +36,7 @@
                         _testOutputHelper.WriteLine(stopwatch.ElapsedMilliseconds.ToString());
                     };
 
-                    using (var watcher = new SqlWatcher(fixture.ConnectionString, eventStore))
+                    using (var watcher = new SqlEventsWatcher(fixture.ConnectionString, eventStore))
                     {
                         await watcher.Start();
 

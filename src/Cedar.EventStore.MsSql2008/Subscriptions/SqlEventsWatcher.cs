@@ -104,6 +104,7 @@
                     _subscriptions.TryRemove(subscriptionId, out _);
                 });
             _subscriptions.TryAdd(subscriptionId, streamSubscription);
+            return Subscriptions;
         }
 
         private void SetupSqlDependency()

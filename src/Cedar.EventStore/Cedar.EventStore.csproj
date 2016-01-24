@@ -42,7 +42,12 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="InMemoryEventStore.cs" />
+    <Compile Include="InMemory\InMemoryAllStream.cs" />
+    <Compile Include="InMemory\InMemoryEventsByCheckpoint.cs" />
+    <Compile Include="InMemory\InMemoryEventStore.cs" />
+    <Compile Include="InMemory\InMemoryStream.cs" />
+    <Compile Include="InMemory\InMemoryStreamEvent.cs" />
+    <Compile Include="InMemory\InMemoryStreams.cs" />
     <Compile Include="Streams\AllEventsPage.cs" />
     <Compile Include="Streams\EventReceived.cs" />
     <Compile Include="EventStoreExtensions.cs" />
@@ -92,9 +97,7 @@
       <SubType>Designer</SubType>
     </EmbeddedResource>
   </ItemGroup>
-  <ItemGroup>
-    <Folder Include="Exceptions\" />
-  </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

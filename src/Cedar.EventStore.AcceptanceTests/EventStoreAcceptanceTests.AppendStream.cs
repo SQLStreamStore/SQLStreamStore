@@ -248,6 +248,28 @@
         }
 
         [Fact]
+        public async Task Can_append_stream_with_expected_version_any_and_some_of_the_events_previously_comitteds()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    const string streamId = "stream-1";
+
+                    await eventStore
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3));
+
+                    await eventStore
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2));
+
+                    var page = await eventStore
+                        .ReadStream(streamId, StreamPosition.Start, 10);
+                    page.Events.Count.ShouldBe(3);
+                }
+            }
+        }
+
+        [Fact]
         public async Task Can_append_stream_with_expected_version_any_and_none_of_then_events_previously_comitted()
         {
             using (var fixture = GetFixture())
@@ -270,7 +292,7 @@
         }
 
         [Fact]
-        public async Task Can_append_stream_with_expected_version_any_and_some_of_then_events_previously_comitted()
+        public async Task Can_append_stream_with_expected_version_any_and_some_of_the_events_previously_comitted_and_with_additional_events()
         {
             using (var fixture = GetFixture())
             {

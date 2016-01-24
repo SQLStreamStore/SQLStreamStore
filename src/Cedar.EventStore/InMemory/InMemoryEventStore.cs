@@ -1,29 +1,28 @@
-﻿namespace Cedar.EventStore
+﻿ // ReSharper disable once CheckNamespace
+namespace Cedar.EventStore
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Infrastructure;
+    using Cedar.EventStore.InMemory;
     using Cedar.EventStore.Streams;
 
     public sealed class InMemoryEventStore : IEventStore
     {
         private readonly GetUtcNow _getUtcNow;
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
-        private readonly LinkedList<InMemoryStreamEvent> _allEvents = new LinkedList<InMemoryStreamEvent>();
-        private readonly ConcurrentDictionary<string, List<InMemoryStreamEvent>> _streams
-            = new ConcurrentDictionary<string, List<InMemoryStreamEvent>>();
-        private readonly Dictionary<long, LinkedListNode<InMemoryStreamEvent>> _eventsByCheckpoint
-            = new Dictionary<long, LinkedListNode<InMemoryStreamEvent>>();
+        private readonly InMemoryAllStream _allStream = new InMemoryAllStream();
+        private readonly InMemoryStreams _streams = new InMemoryStreams();
+        private readonly InMemoryEventsByCheckpoint _eventsByCheckpoint = new InMemoryEventsByCheckpoint();
         private bool _isDisposed;
 
         public InMemoryEventStore(GetUtcNow getUtcNow = null)
         {
             _getUtcNow = getUtcNow ?? SystemClock.GetUtcNow;
-            _allEvents.AddFirst(new InMemoryStreamEvent(
+            _allStream.AddFirst(new InMemoryStreamEvent(
                 Guid.NewGuid(),
                 -1,
                 -1,
@@ -42,7 +41,7 @@
             _lock.EnterWriteLock();
             try
             {
-                _allEvents.Clear();
+                _allStream.Clear();
                 _streams.Clear();
                 _eventsByCheckpoint.Clear();
                 _isDisposed = true;
@@ -70,31 +69,8 @@
                         Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, ExpectedVersion.NoStream));
                 }
 
-                long checkPoint = _allEvents.Last.Value.Checkpoint;
-
-                var stream = _streams.GetOrAdd(streamId, _ => new List<InMemoryStreamEvent>());
-                int streamRevision = stream.LastOrDefault()?.StreamVersion ?? -1;
-                
-                foreach(var newStreamEvent in events)
-                {
-                    checkPoint++;
-                    streamRevision++;
-
-                    var inMemoryStreamEvent = new InMemoryStreamEvent(
-                        newStreamEvent.EventId,
-                        streamRevision,
-                        checkPoint,
-                        _getUtcNow(),
-                        newStreamEvent.Type,
-                        newStreamEvent.JsonData,
-                        newStreamEvent.JsonMetadata);
-
-                    var linkedListNode = _allEvents.AddAfter(_allEvents.Last, inMemoryStreamEvent);
-                    stream.Add(inMemoryStreamEvent);
-                    _eventsByCheckpoint.Add(checkPoint, linkedListNode);
-
-                }
-
+                var stream = _streams.GetOrAdd(streamId, _ => new InMemoryStream(_allStream, _eventsByCheckpoint, _getUtcNow));
+                stream.AppendToStream(events);
                 return Task.FromResult(0);
             }
             finally
@@ -132,7 +108,7 @@
             _lock.EnterReadLock();
             try
             {
-                List<InMemoryStreamEvent> stream;
+                InMemoryStream stream;
                 if(!_streams.TryGetValue(streamId, out stream))
                 {
                     var notFound = new StreamEventsPage(streamId, PageReadStatus.StreamNotFound, start, -1, -1, direction, true);
@@ -175,14 +151,14 @@
             string streamId,
             int start,
             int count,
-            IReadOnlyList<InMemoryStreamEvent> stream)
+            InMemoryStream stream)
         {
             var events = new List<StreamEvent>();
             int i = start;
 
-            while (i < stream.Count && count > 0)
+            while (i < stream.Events.Count && count > 0)
             {
-                var inMemoryStreamEvent = stream[i];
+                var inMemoryStreamEvent = stream.Events[i];
                 var streamEvent = new StreamEvent(
                     streamId,
                     inMemoryStreamEvent.EventId,
@@ -198,9 +174,9 @@
                 count--;
             }
 
-            int lastStreamVersion = stream.Last().StreamVersion;
+            int lastStreamVersion = stream.Events.Last().StreamVersion;
             int nextStreamVersion = events.Last().StreamVersion + 1;
-            bool endOfStream = i == stream.Count;
+            bool endOfStream = i == stream.Events.Count;
 
             var page = new StreamEventsPage(
                 streamId,
@@ -218,13 +194,13 @@
             string streamId,
             int start,
             int count,
-            IReadOnlyList<InMemoryStreamEvent> stream)
+            InMemoryStream stream)
         {
             var events = new List<StreamEvent>();
-            int i = start == StreamPosition.End ? stream.Count - 1 : start;
+            int i = start == StreamPosition.End ? stream.Events.Count - 1 : start;
             while (i >= 0 && count > 0)
             {
-                var inMemoryStreamEvent = stream[i];
+                var inMemoryStreamEvent = stream.Events[i];
                 var streamEvent = new StreamEvent(
                     streamId,
                     inMemoryStreamEvent.EventId,
@@ -240,7 +216,7 @@
                 count--;
             }
 
-            int lastStreamVersion = stream.Last().StreamVersion;
+            int lastStreamVersion = stream.Events.Last().StreamVersion;
             int nextStreamVersion = events.Last().StreamVersion - 1;
             bool endOfStream = nextStreamVersion < 0;
 
@@ -254,35 +230,6 @@
                 endOfStream,
                 events.ToArray());
             return page;
-        }
-
-        private class InMemoryStreamEvent
-        {
-            internal readonly long Checkpoint;
-            public readonly DateTimeOffset Created;
-            public readonly Guid EventId;
-            public readonly string JsonData;
-            public readonly string JsonMetadata;
-            public readonly int StreamVersion;
-            public readonly string Type;
-
-            public InMemoryStreamEvent(
-                Guid eventId,
-                int streamVersion,
-                long checkpoint,
-                DateTimeOffset created,
-                string type,
-                string jsonData,
-                string jsonMetadata)
-            {
-                EventId = eventId;
-                StreamVersion = streamVersion;
-                Checkpoint = checkpoint;
-                Created = created;
-                Type = type;
-                JsonData = jsonData;
-                JsonMetadata = jsonMetadata;
-            }
         }
     }
 }

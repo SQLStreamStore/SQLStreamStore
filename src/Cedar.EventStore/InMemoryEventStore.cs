@@ -11,8 +11,6 @@
 
     public sealed class InMemoryEventStore : IEventStore
     {
-       
-
         private readonly GetUtcNow _getUtcNow;
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
         private readonly LinkedList<InMemoryStreamEvent> _allEvents = new LinkedList<InMemoryStreamEvent>();
@@ -66,6 +64,12 @@
             _lock.EnterWriteLock();
             try
             {
+                if(expectedVersion == ExpectedVersion.NoStream && _streams.ContainsKey(streamId))
+                {
+                    throw new WrongExpectedVersionException(
+                        Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, ExpectedVersion.NoStream));
+                }
+
                 long checkPoint = _allEvents.Last.Value.Checkpoint;
 
                 var stream = _streams.GetOrAdd(streamId, _ => new List<InMemoryStreamEvent>());

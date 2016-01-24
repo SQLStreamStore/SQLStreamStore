@@ -86,9 +86,10 @@
                     await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1));
                     await eventStore.DeleteStream(streamId);
 
-                    await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(2))
-                        .ShouldThrow<StreamDeletedException>(Messages.EventStreamIsDeleted.FormatWith(streamId));
+                    var exception = await Record.ExceptionAsync(() => 
+                        eventStore.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(2)));
+
+                    exception.ShouldBeOfType<StreamDeletedException>(Messages.EventStreamIsDeleted.FormatWith(streamId));
                 }
             }
         }
@@ -102,8 +103,9 @@
                 {
                     const string streamId = "notexist";
 
-                    await eventStore.DeleteStream(streamId)
-                        .ShouldNotThrow();
+                    var exception = await Record.ExceptionAsync(() => eventStore.DeleteStream(streamId));
+
+                    exception.ShouldBeNull();
                 }
             }
         }
@@ -118,9 +120,11 @@
                     const string streamId = "notexist";
                     const int expectedVersion = 1;
 
-                    await eventStore.DeleteStream(streamId, expectedVersion)
-                        .ShouldThrow<WrongExpectedVersionException>(
-                            Messages.DeleteStreamFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion));
+                    var exception = await Record.ExceptionAsync(() =>
+                        eventStore.DeleteStream(streamId, expectedVersion));
+
+                    exception.ShouldBeOfType<WrongExpectedVersionException>(
+                        Messages.DeleteStreamFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion));
                 }
             }
         }
@@ -133,11 +137,12 @@
                 using (var eventStore = await fixture.GetEventStore())
                 {
                     const string streamId = "stream";
-
                     await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
 
-                    await eventStore.DeleteStream(streamId, 100)
-                        .ShouldThrow<WrongExpectedVersionException>(
+                    var exception = await Record.ExceptionAsync(() =>
+                        eventStore.DeleteStream(streamId, 100));
+                    
+                    exception.ShouldBeOfType<WrongExpectedVersionException>(
                             Messages.DeleteStreamFailedWrongExpectedVersion.FormatWith(streamId, 100));
                 }
             }

@@ -84,9 +84,6 @@
     <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.Subscriptions.cs">
       <Link>EventStoreAcceptanceTests.Subscriptions.cs</Link>
     </Compile>
-    <Compile Include="..\Cedar.EventStore.AcceptanceTests\TaskExtensions.cs">
-      <Link>TaskExtensions.cs</Link>
-    </Compile>
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>

@@ -19,10 +19,11 @@
                     await eventStore
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
 
-                    await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(2, 3, 4))
-                        .ShouldThrow<WrongExpectedVersionException>(
-                            Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, ExpectedVersion.NoStream));
+                    var exception = await Record.ExceptionAsync(() => eventStore
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(2, 3, 4)));
+
+                    exception.ShouldBeOfType<WrongExpectedVersionException>(
+                        Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, ExpectedVersion.NoStream));
                 }
             }
         }
@@ -39,9 +40,10 @@
                     await eventStore
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2));
 
-                    await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2))
-                        .ShouldNotThrow();
+                    var exception = await Record.ExceptionAsync(() => eventStore
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2)));
+
+                    exception.ShouldBeNull();
                 }
             }
         }
@@ -58,10 +60,11 @@
                     await eventStore
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2));
 
-                    await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3))
-                        .ShouldThrow<WrongExpectedVersionException>(
-                            Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, ExpectedVersion.NoStream));
+                    var exception = await Record.ExceptionAsync(() => 
+                        eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3)));
+
+                    exception.ShouldBeOfType<WrongExpectedVersionException>(
+                        Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, ExpectedVersion.NoStream));
                 }
             }
         }
@@ -78,9 +81,10 @@
                     await eventStore
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2));
 
-                    await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1))
-                        .ShouldNotThrow();
+                    var exception = await Record.ExceptionAsync(() =>
+                       eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1)));
+
+                    exception.ShouldBeNull();
                 }
             }
         }
@@ -96,9 +100,10 @@
                     await eventStore
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2));
 
-                    await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(2))
-                        .ShouldThrow<WrongExpectedVersionException>(
+                    var exception = await Record.ExceptionAsync(() =>
+                        eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(2)));
+
+                    exception.ShouldBeOfType<WrongExpectedVersionException>(
                             Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, ExpectedVersion.NoStream));
                 }
             }
@@ -115,10 +120,11 @@
                     await eventStore
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
 
-                    await eventStore
-                        .AppendToStream(streamId, 1, CreateNewStreamEvents(4, 5, 6))
-                        .ShouldThrow<WrongExpectedVersionException>(
-                            Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, 1));
+                    var exception = await Record.ExceptionAsync(() =>
+                        eventStore.AppendToStream(streamId, 1, CreateNewStreamEvents(4, 5, 6)));
+                    
+                    exception.ShouldBeOfType<WrongExpectedVersionException>(
+                        Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, 1));
                 }
             }
         }
@@ -149,11 +155,12 @@
                     const string streamId = "stream-1";
                     await eventStore
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
-
                     await eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(4, 5, 6));
 
-                    await eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(4, 5, 6))
-                        .ShouldNotThrow();
+                    var exception = await Record.ExceptionAsync(() => 
+                        eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(4, 5, 6)));
+
+                    exception.ShouldBeNull();
                 }
             }
         }
@@ -168,11 +175,12 @@
                     const string streamId = "stream-1";
                     await eventStore
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
-
                     await eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(4, 5, 6));
 
-                    await eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(4, 5))
-                        .ShouldNotThrow();
+                    var exception = await Record.ExceptionAsync(() =>
+                        eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(4, 5)));
+
+                    exception.ShouldBeNull();
                 }
             }
         }
@@ -187,11 +195,12 @@
                     const string streamId = "stream-1";
                     await eventStore
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
-
                     await eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(4, 5, 6));
 
-                    await eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(4, 5, 6, 7))
-                        .ShouldThrow<WrongExpectedVersionException>(
+                    var exception = await Record.ExceptionAsync(() =>
+                        eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(4, 5, 6, 7)));
+
+                    exception.ShouldBeOfType<WrongExpectedVersionException>(
                             Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, 2));
                 }
             }
@@ -205,9 +214,9 @@
                 using (var eventStore = await fixture.GetEventStore())
                 {
                     const string streamId = "stream-1";
-                    await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3))
-                        .ShouldNotThrow();
+                    var exception = await Record.ExceptionAsync(() => 
+                        eventStore.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3)));
+                    exception.ShouldBeNull();
 
                     var page = await eventStore
                         .ReadStream(streamId, StreamPosition.Start, 4);
@@ -268,13 +277,13 @@
                 using (var eventStore = await fixture.GetEventStore())
                 {
                     const string streamId = "stream-1";
-
                     await eventStore
                         .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3));
 
-                    await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(2, 3, 4))
-                        .ShouldThrow<WrongExpectedVersionException>(
+                    var exception = await Record.ExceptionAsync(() =>
+                        eventStore.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(2, 3, 4)));
+
+                    exception.ShouldBeOfType<WrongExpectedVersionException>(
                             Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, ExpectedVersion.Any));
                 }
             }

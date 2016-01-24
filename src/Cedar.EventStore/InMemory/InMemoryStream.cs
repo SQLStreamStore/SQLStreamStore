@@ -26,50 +26,36 @@ namespace Cedar.EventStore.InMemory
             _getUtcNow = getUtcNow;
         }
 
+        internal IReadOnlyList<InMemoryStreamEvent> Events => _events;
+
         public void AppendToStream(int expectedVersion, NewStreamEvent[] newEvents)
         {
-            if(expectedVersion >= 0)
+            switch(expectedVersion)
             {
-                // Need to do optimistic concurrency check...
-                int currentVersion = _events.LastOrDefault()?.StreamVersion ?? 0;
-                if(expectedVersion > currentVersion)
-                {
-                    throw new WrongExpectedVersionException(
-                        Messages.AppendFailedWrongExpectedVersion.FormatWith(_streamId, expectedVersion));
-                }
-
-                if(expectedVersion == currentVersion)
-                {
-                    if (newEvents.Any(newStreamEvent => _eventIds.Contains(newStreamEvent.EventId)))
-                    {
-                        throw new WrongExpectedVersionException(
-                            Messages.AppendFailedWrongExpectedVersion.FormatWith(_streamId, expectedVersion));
-                    }
-
-                    long checkPoint = _inMemoryAllStream.Last.Value.Checkpoint;
-                    int streamRevision = _events.LastOrDefault()?.StreamVersion ?? -1;
-
-                    foreach(var newStreamEvent in newEvents)
-                    {
-                        checkPoint++;
-                        streamRevision++;
-
-                        var inMemoryStreamEvent = new InMemoryStreamEvent(
-                            newStreamEvent.EventId,
-                            streamRevision,
-                            checkPoint,
-                            _getUtcNow(),
-                            newStreamEvent.Type,
-                            newStreamEvent.JsonData,
-                            newStreamEvent.JsonMetadata);
-
-                        var linkedListNode = _inMemoryAllStream.AddAfter(_inMemoryAllStream.Last, inMemoryStreamEvent);
-                        _events.Add(inMemoryStreamEvent);
-                        _inMemoryEventsByCheckpoint.Add(checkPoint, linkedListNode);
-                        _eventIds.Add(newStreamEvent.EventId);
-                    }
+                case ExpectedVersion.Any:
+                    AppendToStreamExpectedVersionAny(expectedVersion, newEvents);
                     return;
-                }
+                case ExpectedVersion.NoStream:
+                    AppendToStreamExpectedVersionNoStream(expectedVersion, newEvents);
+                    return;
+                default:
+                    AppendToStreamExpectedVersion(expectedVersion, newEvents);
+                    return;
+            }
+        }
+
+        private void AppendToStreamExpectedVersion(int expectedVersion, NewStreamEvent[] newEvents)
+        {
+            // Need to do optimistic concurrency check...
+            int currentVersion = _events.LastOrDefault()?.StreamVersion ?? 0;
+            if(expectedVersion > currentVersion)
+            {
+                throw new WrongExpectedVersionException(
+                    Messages.AppendFailedWrongExpectedVersion.FormatWith(_streamId, expectedVersion));
+            }
+
+            if(expectedVersion < currentVersion)
+            {
                 // expectedVersion < currentVersion, Idempotency test
                 for(int i = 0; i < newEvents.Length; i++)
                 {
@@ -85,100 +71,90 @@ namespace Cedar.EventStore.InMemory
                             Messages.AppendFailedWrongExpectedVersion.FormatWith(_streamId, expectedVersion));
                     }
                 }
+                return;
             }
-            else if(expectedVersion == ExpectedVersion.NoStream)
+
+            // expectedVersion == currentVersion)
+            if(newEvents.Any(newStreamEvent => _eventIds.Contains(newStreamEvent.EventId)))
             {
-                if(_events.Count > 0)
-                {
-                    //Already committed events, do idempotency check
-                    if (newEvents.Length > _events.Count)
-                    {
-                        throw new WrongExpectedVersionException(
-                            Messages.AppendFailedWrongExpectedVersion.FormatWith(_streamId, expectedVersion));
-                    }
-
-                    for(int i = 0; i < newEvents.Length; i++)
-                    {
-                        if(_events[i].EventId != newEvents[i].EventId)
-                        {
-                            throw new WrongExpectedVersionException(
-                            Messages.AppendFailedWrongExpectedVersion.FormatWith(_streamId, expectedVersion));
-                        }
-                    }
-                    return;
-                }
-
-                // None of the events were written previously...
-
-                long checkPoint = _inMemoryAllStream.Last.Value.Checkpoint;
-                int streamRevision = _events.LastOrDefault()?.StreamVersion ?? -1;
-
-                foreach (var newStreamEvent in newEvents)
-                {
-                    checkPoint++;
-                    streamRevision++;
-
-                    var inMemoryStreamEvent = new InMemoryStreamEvent(
-                        newStreamEvent.EventId,
-                        streamRevision,
-                        checkPoint,
-                        _getUtcNow(),
-                        newStreamEvent.Type,
-                        newStreamEvent.JsonData,
-                        newStreamEvent.JsonMetadata);
-
-                    var linkedListNode = _inMemoryAllStream.AddAfter(_inMemoryAllStream.Last, inMemoryStreamEvent);
-                    _events.Add(inMemoryStreamEvent);
-                    _inMemoryEventsByCheckpoint.Add(checkPoint, linkedListNode);
-                    _eventIds.Add(newStreamEvent.EventId);
-                }
+                throw new WrongExpectedVersionException(
+                    Messages.AppendFailedWrongExpectedVersion.FormatWith(_streamId, expectedVersion));
             }
-            else // ExpectedVersion.Any
+
+            AppendEvents(newEvents);
+            return;
+        }
+
+        private void AppendToStreamExpectedVersionAny(int expectedVersion, NewStreamEvent[] newEvents)
+        {
+            // idemponcy check - how many newEvents have already been written?
+            var newEventIds = new HashSet<Guid>(newEvents.Select(e => e.EventId));
+            newEventIds.ExceptWith(_eventIds);
+
+            if(newEventIds.Count == 0)
             {
-                // idemponcy check - how many newEvents have already been written?
-                var newEventIds = new HashSet<Guid>(newEvents.Select(e => e.EventId));
-                newEventIds.ExceptWith(_eventIds);
+                // All events have already been written, we're idempotent
+                return;
+            }
 
-                if(newEventIds.Count == 0)
-                {
-                    // All events have already been written, we're idempotent
-                    return;
-                }
+            if(newEventIds.Count != newEvents.Length)
+            {
+                // Some of the events have already been written, bad request
+                throw new WrongExpectedVersionException(
+                    Messages.AppendFailedWrongExpectedVersion.FormatWith(_streamId, expectedVersion));
+            }
 
-                if(newEventIds.Count != newEvents.Length)
+            // None of the events were written previously...
+            AppendEvents(newEvents);
+        }
+
+        private void AppendToStreamExpectedVersionNoStream(int expectedVersion, NewStreamEvent[] newEvents)
+        {
+            if(_events.Count > 0)
+            {
+                //Already committed events, do idempotency check
+                if(newEvents.Length > _events.Count)
                 {
-                    // Some of the events have already been written, bad request
                     throw new WrongExpectedVersionException(
                         Messages.AppendFailedWrongExpectedVersion.FormatWith(_streamId, expectedVersion));
                 }
 
-                // None of the events were written previously...
-
-                long checkPoint = _inMemoryAllStream.Last.Value.Checkpoint;
-                int streamRevision = _events.LastOrDefault()?.StreamVersion ?? -1;
-
-                foreach (var newStreamEvent in newEvents)
+                if(newEvents.Where((@event, index) => _events[index].EventId != @event.EventId).Any())
                 {
-                    checkPoint++;
-                    streamRevision++;
-
-                    var inMemoryStreamEvent = new InMemoryStreamEvent(
-                        newStreamEvent.EventId,
-                        streamRevision,
-                        checkPoint,
-                        _getUtcNow(),
-                        newStreamEvent.Type,
-                        newStreamEvent.JsonData,
-                        newStreamEvent.JsonMetadata);
-
-                    var linkedListNode = _inMemoryAllStream.AddAfter(_inMemoryAllStream.Last, inMemoryStreamEvent);
-                    _events.Add(inMemoryStreamEvent);
-                    _inMemoryEventsByCheckpoint.Add(checkPoint, linkedListNode);
-                    _eventIds.Add(newStreamEvent.EventId);
+                    throw new WrongExpectedVersionException(
+                        Messages.AppendFailedWrongExpectedVersion.FormatWith(_streamId, expectedVersion));
                 }
+                return;
             }
+
+            // None of the events were written previously...
+            AppendEvents(newEvents);
         }
 
-        internal IReadOnlyList<InMemoryStreamEvent> Events => _events;
+        private void AppendEvents(NewStreamEvent[] newEvents)
+        {
+            long checkPoint = _inMemoryAllStream.Last.Value.Checkpoint;
+            int streamRevision = _events.LastOrDefault()?.StreamVersion ?? -1;
+
+            foreach(var newStreamEvent in newEvents)
+            {
+                checkPoint++;
+                streamRevision++;
+
+                var inMemoryStreamEvent = new InMemoryStreamEvent(
+                    newStreamEvent.EventId,
+                    streamRevision,
+                    checkPoint,
+                    _getUtcNow(),
+                    newStreamEvent.Type,
+                    newStreamEvent.JsonData,
+                    newStreamEvent.JsonMetadata);
+
+                var linkedListNode = _inMemoryAllStream.AddAfter(_inMemoryAllStream.Last, inMemoryStreamEvent);
+                _events.Add(inMemoryStreamEvent);
+                _inMemoryEventsByCheckpoint.Add(checkPoint, linkedListNode);
+                _eventIds.Add(newStreamEvent.EventId);
+            }
+        }
     }
 }

@@ -2,10 +2,10 @@
 {
     using System;
 
-    public class StreamEvent
+    public sealed class StreamEvent
     {
         public readonly string Checkpoint;
-        public readonly DateTime Created;
+        public readonly DateTimeOffset Created;
         public readonly Guid EventId;
         public readonly string JsonData;
         public readonly string JsonMetadata;
@@ -18,7 +18,7 @@
             Guid eventId,
             int streamVersion,
             string checkpoint,
-            DateTime created,
+            DateTimeOffset created,
             string type,
             string jsonData,
             string jsonMetadata)

@@ -2,7 +2,7 @@
 {
     using System.Collections.Generic;
 
-    public class AllEventsPage
+    public sealed class AllEventsPage
     {
         public readonly string FromCheckpoint;
         public readonly string NextCheckpoint;

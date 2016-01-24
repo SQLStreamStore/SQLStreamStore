@@ -2,7 +2,7 @@
 {
     using System.Collections.Generic;
 
-    public class StreamEventsPage
+    public sealed class StreamEventsPage
     {
         public readonly IReadOnlyList<StreamEvent> Events;
         public readonly int FromStreamVersion;

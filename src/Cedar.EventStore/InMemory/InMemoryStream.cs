@@ -10,19 +10,17 @@ namespace Cedar.EventStore.InMemory
     {
         private readonly string _streamId;
         private readonly InMemoryAllStream _inMemoryAllStream;
-        private readonly InMemoryEventsByCheckpoint _inMemoryEventsByCheckpoint;
         private readonly GetUtcNow _getUtcNow;
         private readonly List<InMemoryStreamEvent> _events = new List<InMemoryStreamEvent>();
         private readonly HashSet<Guid> _eventIds = new HashSet<Guid>();
 
-        internal InMemoryStream(string streamId,
+        internal InMemoryStream(
+            string streamId,
             InMemoryAllStream inMemoryAllStream,
-            InMemoryEventsByCheckpoint inMemoryEventsByCheckpoint,
             GetUtcNow getUtcNow)
         {
             _streamId = streamId;
             _inMemoryAllStream = inMemoryAllStream;
-            _inMemoryEventsByCheckpoint = inMemoryEventsByCheckpoint;
             _getUtcNow = getUtcNow;
         }
 
@@ -142,6 +140,7 @@ namespace Cedar.EventStore.InMemory
                 streamRevision++;
 
                 var inMemoryStreamEvent = new InMemoryStreamEvent(
+                    _streamId,
                     newStreamEvent.EventId,
                     streamRevision,
                     checkPoint,
@@ -150,9 +149,8 @@ namespace Cedar.EventStore.InMemory
                     newStreamEvent.JsonData,
                     newStreamEvent.JsonMetadata);
 
-                var linkedListNode = _inMemoryAllStream.AddAfter(_inMemoryAllStream.Last, inMemoryStreamEvent);
+                _inMemoryAllStream.AddAfter(_inMemoryAllStream.Last, inMemoryStreamEvent);
                 _events.Add(inMemoryStreamEvent);
-                _inMemoryEventsByCheckpoint.Add(checkPoint, linkedListNode);
                 _eventIds.Add(newStreamEvent.EventId);
             }
         }

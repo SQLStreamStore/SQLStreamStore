@@ -43,7 +43,6 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="InMemory\InMemoryAllStream.cs" />
-    <Compile Include="InMemory\InMemoryEventsByCheckpoint.cs" />
     <Compile Include="InMemory\InMemoryEventStore.cs" />
     <Compile Include="InMemory\InMemoryStream.cs" />
     <Compile Include="InMemory\InMemoryStreamEvent.cs" />

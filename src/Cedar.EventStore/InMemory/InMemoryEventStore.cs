@@ -16,13 +16,13 @@ namespace Cedar.EventStore
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
         private readonly InMemoryAllStream _allStream = new InMemoryAllStream();
         private readonly InMemoryStreams _streams = new InMemoryStreams();
-        private readonly InMemoryEventsByCheckpoint _eventsByCheckpoint = new InMemoryEventsByCheckpoint();
         private bool _isDisposed;
 
         public InMemoryEventStore(GetUtcNow getUtcNow = null)
         {
             _getUtcNow = getUtcNow ?? SystemClock.GetUtcNow;
             _allStream.AddFirst(new InMemoryStreamEvent(
+                "<in-memory-root-event>",
                 Guid.NewGuid(),
                 -1,
                 -1,
@@ -43,7 +43,6 @@ namespace Cedar.EventStore
             {
                 _allStream.Clear();
                 _streams.Clear();
-                _eventsByCheckpoint.Clear();
                 _isDisposed = true;
             }
             finally
@@ -73,7 +72,7 @@ namespace Cedar.EventStore
                     }
                     else
                     {
-                        inMemoryStream = new InMemoryStream(streamId, _allStream, _eventsByCheckpoint, _getUtcNow);
+                        inMemoryStream = new InMemoryStream(streamId, _allStream, _getUtcNow);
                         inMemoryStream.AppendToStream(expectedVersion, events);
                         _streams.TryAdd(streamId, inMemoryStream);
                     }
@@ -109,7 +108,105 @@ namespace Cedar.EventStore
             ReadDirection direction = ReadDirection.Forward,
             CancellationToken cancellationToken = new CancellationToken())
         {
-            throw new System.NotImplementedException();
+            if(_isDisposed) throw new ObjectDisposedException(nameof(InMemoryEventStore));
+
+            _lock.EnterReadLock();
+            try
+            {
+                var start = LongCheckpoint.Parse(fromCheckpoint);
+
+                // Find the node to start from (it may not be equal to the exact checkpoint)
+                var current = _allStream.First;
+                LinkedListNode<InMemoryStreamEvent> previous = current.Previous;
+                while ( current.Value.Checkpoint < start.LongValue)
+                {
+                    if(current.Next == null)
+                    {
+                        break;
+                    }
+                    previous = current;
+                    current = current.Next;
+                }
+                if(direction == ReadDirection.Forward)
+                {
+                    var streamEvents = new List<StreamEvent>();
+                    while(maxCount >= 0 && current != null)
+                    {
+                        var streamEvent = new StreamEvent(
+                            current.Value.StreamId,
+                            current.Value.EventId,
+                            current.Value.StreamVersion,
+                            current.Value.Checkpoint.ToString(),
+                            current.Value.Created,
+                            current.Value.Type,
+                            current.Value.JsonData,
+                            current.Value.JsonMetadata);
+                        streamEvents.Add(streamEvent);
+                        maxCount--;
+                        previous = current;
+                        current = current.Next;
+                    }
+
+                    bool isEnd = current == null;
+                    var nextCheckPoint = current != null
+                        ? current.Value.Checkpoint.ToString()
+                        : (previous.Value.Checkpoint + 1).ToString();
+
+
+                    var page = new AllEventsPage(fromCheckpoint,
+                        nextCheckPoint,
+                        isEnd,
+                        direction,
+                        streamEvents.ToArray());
+
+                    return Task.FromResult(page);
+                }
+                else
+                {
+                    var streamEvents = new List<StreamEvent>();
+                    while(maxCount >= 0 && current != _allStream.First)
+                    {
+                        var streamEvent = new StreamEvent(
+                            current.Value.StreamId,
+                            current.Value.EventId,
+                            current.Value.StreamVersion,
+                            current.Value.Checkpoint.ToString(),
+                            current.Value.Created,
+                            current.Value.Type,
+                            current.Value.JsonData,
+                            current.Value.JsonMetadata);
+                        streamEvents.Add(streamEvent);
+                        maxCount--;
+                        previous = current;
+                        current = current.Previous;
+                    }
+
+                    bool isEnd;
+                    if(previous == null || previous.Value.Checkpoint == 0)
+                    {
+                        isEnd = true;
+                    }
+                    else
+                    {
+                        isEnd = false;
+                    }
+                    var nextCheckPoint = isEnd
+                        ? 0.ToString()
+                        : (current.Value.Checkpoint).ToString();
+
+                    var page = new AllEventsPage(fromCheckpoint,
+                        nextCheckPoint,
+                        isEnd,
+                        direction,
+                        streamEvents.ToArray());
+
+                    return Task.FromResult(page);
+                }
+            }
+            finally
+            {
+                _lock.ExitReadLock();
+            }
         }
 
         public Task<StreamEventsPage> ReadStream(

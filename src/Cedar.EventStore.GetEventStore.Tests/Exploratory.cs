@@ -83,6 +83,9 @@ namespace Cedar.EventStore
                 var eventData = new EventData(Guid.NewGuid(), "type", false, null, null);
 
                 await connection.AppendToStreamAsync(streamId, ExpectedVersion.NoStream, eventData);
+
+                // I expected this to fail with a duplicate id exception of some sort, but it doesn't.
+                // https://groups.google.com/d/msg/event-store/kq1K2cx3Ggo/9GZve-yzCAAJ
                 await connection.AppendToStreamAsync(streamId, 0, eventData);
 
                 var streamEventsSlice = await connection.ReadStreamEventsForwardAsync(streamId, StreamPosition.Start, 2, true);

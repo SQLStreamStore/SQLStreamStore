@@ -63,14 +63,30 @@ namespace Cedar.EventStore
             _lock.EnterWriteLock();
             try
             {
-                if(expectedVersion == ExpectedVersion.NoStream && _streams.ContainsKey(streamId))
+                InMemoryStream inMemoryStream;
+                // Should only add stream if NoStream
+                if (expectedVersion == ExpectedVersion.NoStream || expectedVersion == ExpectedVersion.Any)
                 {
-                    throw new WrongExpectedVersionException(
-                        Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, ExpectedVersion.NoStream));
+                    if(_streams.TryGetValue(streamId, out inMemoryStream))
+                    {
+                        inMemoryStream.AppendToStream(expectedVersion, events);
+                    }
+                    else
+                    {
+                        inMemoryStream = new InMemoryStream(streamId, _allStream, _eventsByCheckpoint, _getUtcNow);
+                        inMemoryStream.AppendToStream(expectedVersion, events);
+                        _streams.TryAdd(streamId, inMemoryStream);
+                    }
+                    return Task.FromResult(0);
                 }
 
-                var stream = _streams.GetOrAdd(streamId, _ => new InMemoryStream(_allStream, _eventsByCheckpoint, _getUtcNow));
-                stream.AppendToStream(events);
+                if (!_streams.TryGetValue(streamId, out inMemoryStream))
+                {
+                    throw new WrongExpectedVersionException(
+                        Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion));
+                }
+                inMemoryStream.AppendToStream(expectedVersion, events);
+
                 return Task.FromResult(0);
             }
             finally

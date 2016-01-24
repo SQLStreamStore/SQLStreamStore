@@ -29,7 +29,7 @@
         }
 
         [Fact]
-        public async Task When_append_stream_second_time_with_no_stream_expected_and_same_events_then_should_not_throw()
+        public async Task When_append_stream_second_time_with_no_stream_expected_and_same_events_then_should_then_should_be_idempotent()
         {
             // Idempotency
             using (var fixture = GetFixture())
@@ -70,7 +70,7 @@
         }
 
         [Fact]
-        public async Task When_append_stream_second_time_with_no_stream_expected_and_same_inital_events_then_should_not_throw()
+        public async Task When_append_stream_second_time_with_no_stream_expected_and_same_inital_event_then_should_be_idempotent()
         {
             // Idempotency
             using (var fixture = GetFixture())
@@ -226,7 +226,7 @@
         }
 
         [Fact]
-        public async Task Can_append_stream_with_expected_version_any_and_all_events_comitted_already()
+        public async Task When_append_stream_second_time_with_expected_version_any_and_all_events_comitted_then_should_be_idempotent()
         {
             using (var fixture = GetFixture())
             {
@@ -238,7 +238,7 @@
                         .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3));
 
                     await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3));
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 3, 2));
 
                     var page = await eventStore
                         .ReadStream(streamId, StreamPosition.Start, 10);
@@ -248,7 +248,7 @@
         }
 
         [Fact]
-        public async Task Can_append_stream_with_expected_version_any_and_some_of_the_events_previously_comitteds()
+        public async Task When_append_stream_with_expected_version_any_and_some_of_the_events_previously_comitted_then_should_be_idempotent()
         {
             using (var fixture = GetFixture())
             {
@@ -292,7 +292,7 @@
         }
 
         [Fact]
-        public async Task Can_append_stream_with_expected_version_any_and_some_of_the_events_previously_comitted_and_with_additional_events()
+        public async Task When_append_stream_with_expected_version_any_and_some_of_the_events_previously_comitted_and_with_additional_events_then_should_throw()
         {
             using (var fixture = GetFixture())
             {
@@ -307,6 +307,26 @@
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
                             Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, ExpectedVersion.Any));
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_append_stream_with_expected_version_and_duplicate_event_Id_then_should_throw()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    const string streamId = "stream-1";
+                    await eventStore
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+
+                    var exception = await Record.ExceptionAsync(() =>
+                        eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(1)));
+
+                    exception.ShouldBeOfType<WrongExpectedVersionException>(
+                            Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, 2));
                 }
             }
         }

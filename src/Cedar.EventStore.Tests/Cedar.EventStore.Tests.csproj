@@ -9,10 +9,11 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Cedar.EventStore</RootNamespace>
     <AssemblyName>Cedar.EventStore.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -54,9 +55,38 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTestFixture.cs">
+      <Link>InMemory\EventStoreAcceptanceTestFixture.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.AppendStream.cs">
+      <Link>InMemory\EventStoreAcceptanceTests.AppendStream.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.cs">
+      <Link>InMemory\EventStoreAcceptanceTests.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.DeleteStream.cs">
+      <Link>InMemory\EventStoreAcceptanceTests.DeleteStream.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadAll.cs">
+      <Link>InMemory\EventStoreAcceptanceTests.ReadAll.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadPastEndOfAllStream.cs">
+      <Link>InMemory\EventStoreAcceptanceTests.ReadPastEndOfAllStream.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadStream.cs">
+      <Link>InMemory\EventStoreAcceptanceTests.ReadStream.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.Subscriptions.cs">
+      <Link>InMemory\EventStoreAcceptanceTests.Subscriptions.cs</Link>
+    </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\TaskExtensions.cs">
+      <Link>InMemory\TaskExtensions.cs</Link>
+    </Compile>
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="InMemory\InMemoryEventStoreAcceptanceTests.cs" />
+    <Compile Include="InMemory\InMemoryEventStoreFixture.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SteamEventTests.cs" />
   </ItemGroup>
@@ -69,6 +99,7 @@
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.

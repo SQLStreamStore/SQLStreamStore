@@ -13,6 +13,7 @@ namespace Cedar.EventStore.InMemory
         private readonly GetUtcNow _getUtcNow;
         private readonly List<InMemoryStreamEvent> _events = new List<InMemoryStreamEvent>();
         private readonly HashSet<Guid> _eventIds = new HashSet<Guid>();
+        private bool _isDeleted;
 
         internal InMemoryStream(
             string streamId,
@@ -26,8 +27,15 @@ namespace Cedar.EventStore.InMemory
 
         internal IReadOnlyList<InMemoryStreamEvent> Events => _events;
 
-        public void AppendToStream(int expectedVersion, NewStreamEvent[] newEvents)
+        internal bool IsDeleted => _isDeleted;
+
+        internal void AppendToStream(int expectedVersion, NewStreamEvent[] newEvents)
         {
+            if(_isDeleted)
+            {
+                throw new StreamDeletedException(Messages.EventStreamIsDeleted.FormatWith(_streamId));
+            }
+
             switch(expectedVersion)
             {
                 case ExpectedVersion.Any:
@@ -40,6 +48,28 @@ namespace Cedar.EventStore.InMemory
                     AppendToStreamExpectedVersion(expectedVersion, newEvents);
                     return;
             }
+        }
+
+        internal void Delete(int expectedVersion)
+        {
+            if(_isDeleted)
+            {
+                return;
+            }
+
+            if(expectedVersion > 0 && expectedVersion != _events.Last().StreamVersion)
+            {
+                throw new WrongExpectedVersionException(
+                   Messages.AppendFailedWrongExpectedVersion.FormatWith(_streamId, expectedVersion));
+            }
+
+            foreach (var inMemoryStreamEvent in _events)
+            {
+                _inMemoryAllStream.Remove(inMemoryStreamEvent);
+            }
+            _events.Clear();
+            _eventIds.Clear();
+            _isDeleted = true;
         }
 
         private void AppendToStreamExpectedVersion(int expectedVersion, NewStreamEvent[] newEvents)

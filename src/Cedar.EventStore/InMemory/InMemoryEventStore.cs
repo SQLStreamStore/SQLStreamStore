@@ -99,7 +99,28 @@ namespace Cedar.EventStore
             int expectedVersion = ExpectedVersion.Any,
             CancellationToken cancellationToken = new CancellationToken())
         {
-            throw new System.NotImplementedException();
+            if(_isDisposed)
+                throw new ObjectDisposedException(nameof(InMemoryEventStore));
+
+            _lock.EnterWriteLock();
+            try
+            {
+                if(!_streams.ContainsKey(streamId))
+                {
+                    if(expectedVersion >= 0)
+                    {
+                        throw new WrongExpectedVersionException(
+                            Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion));
+                    }
+                    return Task.FromResult(0);
+                }
+                _streams[streamId].Delete(expectedVersion);
+                return Task.FromResult(0);
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
         }
 
         public Task<AllEventsPage> ReadAll(
@@ -129,77 +150,12 @@ namespace Cedar.EventStore
                 }
                 if(direction == ReadDirection.Forward)
                 {
-                    var streamEvents = new List<StreamEvent>();
-                    while(maxCount >= 0 && current != null)
-                    {
-                        var streamEvent = new StreamEvent(
-                            current.Value.StreamId,
-                            current.Value.EventId,
-                            current.Value.StreamVersion,
-                            current.Value.Checkpoint.ToString(),
-                            current.Value.Created,
-                            current.Value.Type,
-                            current.Value.JsonData,
-                            current.Value.JsonMetadata);
-                        streamEvents.Add(streamEvent);
-                        maxCount--;
-                        previous = current;
-                        current = current.Next;
-                    }
-
-                    bool isEnd = current == null;
-                    var nextCheckPoint = current != null
-                        ? current.Value.Checkpoint.ToString()
-                        : (previous.Value.Checkpoint + 1).ToString();
-
-
-                    var page = new AllEventsPage(fromCheckpoint,
-                        nextCheckPoint,
-                        isEnd,
-                        direction,
-                        streamEvents.ToArray());
-
+                    var page = ReadAllForwards(fromCheckpoint, maxCount, direction, current, previous);
                     return Task.FromResult(page);
                 }
                 else
                 {
-                    var streamEvents = new List<StreamEvent>();
-                    while(maxCount >= 0 && current != _allStream.First)
-                    {
-                        var streamEvent = new StreamEvent(
-                            current.Value.StreamId,
-                            current.Value.EventId,
-                            current.Value.StreamVersion,
-                            current.Value.Checkpoint.ToString(),
-                            current.Value.Created,
-                            current.Value.Type,
-                            current.Value.JsonData,
-                            current.Value.JsonMetadata);
-                        streamEvents.Add(streamEvent);
-                        maxCount--;
-                        previous = current;
-                        current = current.Previous;
-                    }
-
-                    bool isEnd;
-                    if(previous == null || previous.Value.Checkpoint == 0)
-                    {
-                        isEnd = true;
-                    }
-                    else
-                    {
-                        isEnd = false;
-                    }
-                    var nextCheckPoint = isEnd
-                        ? 0.ToString()
-                        : (current.Value.Checkpoint).ToString();
-
-                    var page = new AllEventsPage(fromCheckpoint,
-                        nextCheckPoint,
-                        isEnd,
-                        direction,
-                        streamEvents.ToArray());
-
+                    var page = ReadAllBackwards(fromCheckpoint, maxCount, direction, current, previous);
                     return Task.FromResult(page);
                 }
             }
@@ -207,6 +163,91 @@ namespace Cedar.EventStore
             {
                 _lock.ExitReadLock();
             }
+        }
+
+        private AllEventsPage ReadAllBackwards(
+            string fromCheckpoint,
+            int maxCount,
+            ReadDirection direction,
+            LinkedListNode<InMemoryStreamEvent> current,
+            LinkedListNode<InMemoryStreamEvent> previous)
+        {
+            var streamEvents = new List<StreamEvent>();
+            while(maxCount >= 0 && current != _allStream.First)
+            {
+                var streamEvent = new StreamEvent(
+                    current.Value.StreamId,
+                    current.Value.EventId,
+                    current.Value.StreamVersion,
+                    current.Value.Checkpoint.ToString(),
+                    current.Value.Created,
+                    current.Value.Type,
+                    current.Value.JsonData,
+                    current.Value.JsonMetadata);
+                streamEvents.Add(streamEvent);
+                maxCount--;
+                previous = current;
+                current = current.Previous;
+            }
+
+            bool isEnd;
+            if(previous == null || previous.Value.Checkpoint == 0)
+            {
+                isEnd = true;
+            }
+            else
+            {
+                isEnd = false;
+            }
+            var nextCheckPoint = isEnd
+                ? 0.ToString()
+                : (current.Value.Checkpoint).ToString();
+
+            var page = new AllEventsPage(fromCheckpoint,
+                nextCheckPoint,
+                isEnd,
+                direction,
+                streamEvents.ToArray());
+            return page;
+        }
+
+        private static AllEventsPage ReadAllForwards(
+            string fromCheckpoint,
+            int maxCount,
+            ReadDirection direction,
+            LinkedListNode<InMemoryStreamEvent> current,
+            LinkedListNode<InMemoryStreamEvent> previous)
+        {
+            var streamEvents = new List<StreamEvent>();
+            while(maxCount >= 0 && current != null)
+            {
+                var streamEvent = new StreamEvent(
+                    current.Value.StreamId,
+                    current.Value.EventId,
+                    current.Value.StreamVersion,
+                    current.Value.Checkpoint.ToString(),
+                    current.Value.Created,
+                    current.Value.Type,
+                    current.Value.JsonData,
+                    current.Value.JsonMetadata);
+                streamEvents.Add(streamEvent);
+                maxCount--;
+                previous = current;
+                current = current.Next;
+            }
+
+            bool isEnd = current == null;
+            var nextCheckPoint = current != null
+                ? current.Value.Checkpoint.ToString()
+                : (previous.Value.Checkpoint + 1).ToString();
+
+
+            var page = new AllEventsPage(fromCheckpoint,
+                nextCheckPoint,
+                isEnd,
+                direction,
+                streamEvents.ToArray());
+            return page;
         }
 
         public Task<StreamEventsPage> ReadStream(
@@ -226,6 +267,11 @@ namespace Cedar.EventStore
                 {
                     var notFound = new StreamEventsPage(streamId, PageReadStatus.StreamNotFound, start, -1, -1, direction, true);
                     return Task.FromResult(notFound);
+                }
+                if(stream.IsDeleted)
+                {
+                    var deleted = new StreamEventsPage(streamId, PageReadStatus.StreamDeleted, start, 0, 0, direction, true);
+                    return Task.FromResult(deleted);
                 }
 
                 if(direction == ReadDirection.Forward)

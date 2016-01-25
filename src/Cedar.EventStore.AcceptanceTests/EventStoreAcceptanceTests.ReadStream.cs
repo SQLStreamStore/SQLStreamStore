@@ -84,7 +84,7 @@
                 using (var eventStore = await fixture.GetEventStore())
                 {
                     await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
-                    await eventStore.DeleteStream("stream-1", ExpectedVersion.Any);
+                    await eventStore.DeleteStream("stream-1");
 
                     var streamEventsPage =
                         await eventStore.ReadStream("stream-1", start, pageSize, direction);
@@ -93,6 +93,7 @@
                 }
             }
         }
+        // ReSharper disable once UnusedMethodReturnValue.Global
         public static IEnumerable<object[]> GetReadStreamTheories()
         {
             var theories = new[]

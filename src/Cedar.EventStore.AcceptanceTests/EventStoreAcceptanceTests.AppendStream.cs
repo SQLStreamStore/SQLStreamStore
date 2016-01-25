@@ -238,7 +238,7 @@
                         .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3));
 
                     await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 3, 2));
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3));
 
                     var page = await eventStore
                         .ReadStream(streamId, StreamPosition.Start, 10);

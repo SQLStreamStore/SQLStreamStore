@@ -71,11 +71,11 @@ task ILMerge -depends Compile {
     @(  "EnsureThat" ) |% { $inputDlls = "$inputDlls $dllDir\$_.dll" }
     Invoke-Expression "$ilmergePath /targetplatform:v4 /internalize /allowDup /target:library /log /out:$mergedDir\$mainDllName.dll $inputDlls"
 
-    $mainDllName = "Cedar.EventStore.Postgres"
-    $dllDir = "$srcDir\$mainDllName\bin\Release"
-    $inputDlls = "$dllDir\$mainDllName.dll"
-    @(  "EnsureThat", "Npgsql" ) |% { $inputDlls = "$inputDlls $dllDir\$_.dll" }
-    Invoke-Expression "$ilmergePath /targetplatform:v4 /internalize /allowDup /target:library /log /out:$mergedDir\$mainDllName.dll $inputDlls"
+#    $mainDllName = "Cedar.EventStore.Postgres"
+#    $dllDir = "$srcDir\$mainDllName\bin\Release"
+#    $inputDlls = "$dllDir\$mainDllName.dll"
+#    @(  "EnsureThat", "Npgsql" ) |% { $inputDlls = "$inputDlls $dllDir\$_.dll" }
+#    Invoke-Expression "$ilmergePath /targetplatform:v4 /internalize /allowDup /target:library /log /out:$mergedDir\$mainDllName.dll $inputDlls"
 }
 
 task CreateNuGetPackages -depends ILMerge {

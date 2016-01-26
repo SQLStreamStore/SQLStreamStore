@@ -1,32 +1,26 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
-    <MinimumVisualStudioVersion>10.0</MinimumVisualStudioVersion>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{3553E8E7-2C2A-45D5-BCB1-9AC7E5A209B2}</ProjectGuid>
+    <ProjectGuid>{5A8DF1A1-9B3B-499D-B9E9-A5E0F6F06953}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Cedar.EventStore</RootNamespace>
-    <AssemblyName>Cedar.EventStore</AssemblyName>
-    <DefaultLanguage>en-US</DefaultLanguage>
+    <RootNamespace>Cedar.EventStore2</RootNamespace>
+    <AssemblyName>Cedar.EventStore2</AssemblyName>
+    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
-    <ProjectTypeGuids>{786C830F-07A1-408B-BD7F-6EE04809D6DB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
-    <TargetFrameworkProfile>Profile259</TargetFrameworkProfile>
-    <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
-    <NuGetPackageImportStamp>a206d78d</NuGetPackageImportStamp>
+    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
     <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG; </DefineConstants>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\Cedar.EventStore.xml</DocumentationFile>
-    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -35,69 +29,56 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\Cedar.EventStore.xml</DocumentationFile>
-    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\SharedAssemblyInfo.cs">
-      <Link>Properties\SharedAssemblyInfo.cs</Link>
-    </Compile>
+    <Reference Include="EnsureThat, Version=2.0.0.39118, Culture=neutral, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>..\packages\Ensure.That.2.0.0\lib\portable-net4+sl5+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1\EnsureThat.dll\EnsureThat.dll</HintPath>
+    </Reference>
+    <Reference Include="System" />
+    <Reference Include="System.Core" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="EventStoreExtensions.cs" />
+    <Compile Include="IEventStore.cs" />
+    <Compile Include="Infrastructure\GetUtcNow.cs" />
+    <Compile Include="Infrastructure\LongCheckpoint.cs" />
+    <Compile Include="Infrastructure\StringExtensions.cs" />
+    <Compile Include="Infrastructure\SystemClock.cs" />
+    <Compile Include="Infrastructure\TaskExtensions.cs" />
     <Compile Include="InMemory\InMemoryAllStream.cs" />
     <Compile Include="InMemory\InMemoryEventStore.cs" />
     <Compile Include="InMemory\InMemoryStream.cs" />
     <Compile Include="InMemory\InMemoryStreamEvent.cs" />
     <Compile Include="InMemory\InMemoryStreams.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SimpleJson.cs" />
     <Compile Include="Streams\AllEventsPage.cs" />
     <Compile Include="Streams\EventReceived.cs" />
-    <Compile Include="EventStoreExtensions.cs" />
-    <Compile Include="Streams\WrongExpectedVersionException.cs" />
     <Compile Include="Streams\ExpectedVersion.cs" />
     <Compile Include="Streams\ICheckpoint.cs" />
-    <Compile Include="Infrastructure\GetUtcNow.cs" />
-    <Compile Include="IEventStore.cs" />
-    <Compile Include="Streams\Messages.Designer.cs">
-      <AutoGen>True</AutoGen>
-      <DesignTime>True</DesignTime>
-      <DependentUpon>Messages.resx</DependentUpon>
-    </Compile>
-    <Compile Include="Infrastructure\LongCheckpoint.cs" />
-    <Compile Include="Streams\SubscriptionDropped.cs" />
-    <Compile Include="Subscriptions\IStreamSubscription.cs" />
+    <Compile Include="Streams\Messages.Designer.cs" />
     <Compile Include="Streams\NewStreamEvent.cs" />
     <Compile Include="Streams\PageReadStatus.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Streams\ReadDirection.cs" />
-    <Compile Include="SimpleJson.cs" />
     <Compile Include="Streams\StreamDeletedException.cs" />
     <Compile Include="Streams\StreamEvent.cs" />
     <Compile Include="Streams\StreamEventExtensions.cs" />
     <Compile Include="Streams\StreamEventsPage.cs" />
     <Compile Include="Streams\StreamPosition.cs" />
-    <Compile Include="Infrastructure\StringExtensions.cs" />
-    <Compile Include="Infrastructure\SystemClock.cs" />
-    <Compile Include="Infrastructure\TaskExtensions.cs" />
+    <Compile Include="Streams\SubscriptionDropped.cs" />
+    <Compile Include="Streams\WrongExpectedVersionException.cs" />
+    <Compile Include="Subscriptions\IStreamSubscription.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Reference Include="EnsureThat">
-      <HintPath>..\packages\Ensure.That.2.0.0\lib\portable-net4+sl5+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1\EnsureThat.dll\EnsureThat.dll</HintPath>
-    </Reference>
-    <Reference Include="System.Collections.Concurrent">
-      <HintPath>..\..\..\..\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETPortable\v4.5\System.Collections.Concurrent.dll</HintPath>
-    </Reference>
+    <EmbeddedResource Include="Streams\Messages.resx" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Cedar.EventStore.nuspec" />
     <None Include="packages.config" />
   </ItemGroup>
-  <ItemGroup>
-    <EmbeddedResource Include="Streams\Messages.resx">
-      <Generator>PublicResXFileCodeGenerator</Generator>
-      <LastGenOutput>Messages.Designer.cs</LastGenOutput>
-      <SubType>Designer</SubType>
-    </EmbeddedResource>
-  </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\Portable\$(TargetFrameworkVersion)\Microsoft.Portable.CSharp.targets" />
+  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">

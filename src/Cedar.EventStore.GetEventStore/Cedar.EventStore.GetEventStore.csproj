@@ -61,7 +61,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Cedar.EventStore\Cedar.EventStore.csproj">
-      <Project>{3553E8E7-2C2A-45D5-BCB1-9AC7E5A209B2}</Project>
+      <Project>{5a8df1a1-9b3b-499d-b9e9-a5e0f6f06953}</Project>
       <Name>Cedar.EventStore</Name>
     </ProjectReference>
   </ItemGroup>

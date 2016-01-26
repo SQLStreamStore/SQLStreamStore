@@ -7,8 +7,6 @@ Key design considerations:
  - Designed to primarily support RDMBS\SQL implementations
  - Highly API and behaviorally compatible with [EventStore](https://geteventstore.com/)
  - Async by default
- - PCL for embedded event store scenarios
- - dnxcore50 support will be available as soon as dnxcore50 is rtm
  - JSON only event and metadata payloads
  - No in-built snapshot support; can be implemented externally
  - Leverage RDBMS specific notifications for low latency catch-up subscriptions

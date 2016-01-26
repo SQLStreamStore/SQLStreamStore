@@ -16,8 +16,8 @@ if(Test-Path Env:\TEAMCITY_PROJECT_NAME){
 
 src\.nuget\nuget.exe install src\.nuget\packages.config -o src\packages
 
-Import-Module .\src\packages\psake.4.4.1\tools\psake.psm1
+Import-Module .\src\packages\psake.4.5.0\tools\psake.psm1
 
-Invoke-Psake .\default.ps1 $task -framework "4.5.1x64" -properties @{ buildNumber=$buildNumber }
+Invoke-Psake .\default.ps1 $task -framework "4.6x64" -properties @{ buildNumber=$buildNumber }
 
 Remove-Module psake

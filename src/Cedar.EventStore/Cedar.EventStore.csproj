@@ -7,8 +7,8 @@
     <ProjectGuid>{5A8DF1A1-9B3B-499D-B9E9-A5E0F6F06953}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Cedar.EventStore2</RootNamespace>
-    <AssemblyName>Cedar.EventStore2</AssemblyName>
+    <RootNamespace>Cedar.EventStore</RootNamespace>
+    <AssemblyName>Cedar.EventStore</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Debug\Cedar.EventStore.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -29,6 +30,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <DocumentationFile>bin\Release\Cedar.EventStore.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="EnsureThat, Version=2.0.0.39118, Culture=neutral, processorArchitecture=MSIL">

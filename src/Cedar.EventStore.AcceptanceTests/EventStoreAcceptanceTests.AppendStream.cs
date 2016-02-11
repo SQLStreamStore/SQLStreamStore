@@ -219,7 +219,7 @@
                     exception.ShouldBeNull();
 
                     var page = await eventStore
-                        .ReadStream(streamId, StreamPosition.Start, 4);
+                        .ReadStream(streamId, StreamVersion.Start, 4);
                     page.Events.Count.ShouldBe(3);
                 }
             }
@@ -241,7 +241,7 @@
                         .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3));
 
                     var page = await eventStore
-                        .ReadStream(streamId, StreamPosition.Start, 10);
+                        .ReadStream(streamId, StreamVersion.Start, 10);
                     page.Events.Count.ShouldBe(3);
                 }
             }
@@ -263,7 +263,7 @@
                         .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2));
 
                     var page = await eventStore
-                        .ReadStream(streamId, StreamPosition.Start, 10);
+                        .ReadStream(streamId, StreamVersion.Start, 10);
                     page.Events.Count.ShouldBe(3);
                 }
             }
@@ -285,7 +285,7 @@
                         .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(4, 5, 6));
 
                     var page = await eventStore
-                        .ReadStream(streamId, StreamPosition.Start, 10);
+                        .ReadStream(streamId, StreamVersion.Start, 10);
                     page.Events.Count.ShouldBe(6);
                 }
             }

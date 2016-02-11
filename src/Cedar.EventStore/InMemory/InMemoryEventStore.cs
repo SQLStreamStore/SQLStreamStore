@@ -9,6 +9,7 @@ namespace Cedar.EventStore
     using Cedar.EventStore.Infrastructure;
     using Cedar.EventStore.InMemory;
     using Cedar.EventStore.Streams;
+    using Cedar.EventStore.Subscriptions;
 
     public sealed class InMemoryEventStore : IEventStore
     {
@@ -17,6 +18,8 @@ namespace Cedar.EventStore
         private readonly InMemoryAllStream _allStream = new InMemoryAllStream();
         private readonly InMemoryStreams _streams = new InMemoryStreams();
         private bool _isDisposed;
+        private readonly Subject<Unit> _subscriptions = new Subject<Unit>();
+        private readonly Action _onStreamAppended;
 
         public InMemoryEventStore(GetUtcNow getUtcNow = null)
         {
@@ -30,6 +33,8 @@ namespace Cedar.EventStore
                 null,
                 null,
                 null));
+
+            _onStreamAppended = () => _subscriptions.OnNext(Unit.Default);
         }
 
         public void Dispose()
@@ -41,6 +46,7 @@ namespace Cedar.EventStore
             _lock.EnterWriteLock();
             try
             {
+                _subscriptions.OnCompleted();
                 _allStream.Clear();
                 _streams.Clear();
                 _isDisposed = true;
@@ -72,7 +78,11 @@ namespace Cedar.EventStore
                     }
                     else
                     {
-                        inMemoryStream = new InMemoryStream(streamId, _allStream, _getUtcNow);
+                        inMemoryStream = new InMemoryStream(
+                            streamId,
+                            _allStream,
+                            _getUtcNow,
+                            _onStreamAppended);
                         inMemoryStream.AppendToStream(expectedVersion, events);
                         _streams.TryAdd(streamId, inMemoryStream);
                     }
@@ -138,6 +148,11 @@ namespace Cedar.EventStore
 
                 // Find the node to start from (it may not be equal to the exact checkpoint)
                 var current = _allStream.First;
+                if(current.Next == null) //Empty store
+                {
+                    var page = new AllEventsPage(fromCheckpoint, StartCheckpoint, true, direction);
+                    return Task.FromResult(page);
+                }
                 LinkedListNode<InMemoryStreamEvent> previous = current.Previous;
                 while ( current.Value.Checkpoint < start.LongValue)
                 {
@@ -173,7 +188,7 @@ namespace Cedar.EventStore
             LinkedListNode<InMemoryStreamEvent> previous)
         {
             var streamEvents = new List<StreamEvent>();
-            while(maxCount >= 0 && current != _allStream.First)
+            while(maxCount > 0 && current != _allStream.First)
             {
                 var streamEvent = new StreamEvent(
                     current.Value.StreamId,
@@ -237,10 +252,7 @@ namespace Cedar.EventStore
             }
 
             bool isEnd = current == null;
-            var nextCheckPoint = current != null
-                ? current.Value.Checkpoint.ToString()
-                : (previous.Value.Checkpoint + 1).ToString();
-
+            var nextCheckPoint = current?.Value.Checkpoint.ToString() ?? (previous.Value.Checkpoint + 1).ToString();
 
             var page = new AllEventsPage(fromCheckpoint,
                 nextCheckPoint,
@@ -293,13 +305,37 @@ namespace Cedar.EventStore
             }
         }
 
-        public Task<IStreamSubscription> SubscribeToStream(
+        public async Task<IStreamSubscription> SubscribeToStream(
             string streamId,
-            EventReceived eventReceived,
-            SubscriptionDropped subscriptionDropped,
-            CancellationToken cancellationToken = new CancellationToken())
+            int startPosition,
+            StreamEventReceived streamEventReceived,
+            SubscriptionDropped subscriptionDropped = null,
+            string name = null,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new System.NotImplementedException();
+            var subscription = new StreamSubscription(streamId, startPosition, this, _subscriptions, streamEventReceived, subscriptionDropped, name);
+            await subscription.Start(cancellationToken);
+            return subscription;
+        }
+
+        public async Task<IAllStreamSubscription> SubscribeToAll(
+            string fromCheckpoint,
+            StreamEventReceived streamEventReceived,
+            SubscriptionDropped subscriptionDropped = null,
+            string name = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            var subscription = new AllStreamSubscription(fromCheckpoint,
+                this,
+                _subscriptions,
+                EndCheckpoint,
+                StartCheckpoint,
+                streamEventReceived,
+                subscriptionDropped,
+                name);
+
+            await subscription.Start(cancellationToken);
+            return subscription;
         }
 
         public string StartCheckpoint => LongCheckpoint.Start.ToString();
@@ -356,7 +392,7 @@ namespace Cedar.EventStore
             InMemoryStream stream)
         {
             var events = new List<StreamEvent>();
-            int i = start == StreamPosition.End ? stream.Events.Count - 1 : start;
+            int i = start == StreamVersion.End ? stream.Events.Count - 1 : start;
             while (i >= 0 && count > 0)
             {
                 var inMemoryStreamEvent = stream.Events[i];

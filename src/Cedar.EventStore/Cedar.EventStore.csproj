@@ -42,22 +42,32 @@
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
     <Compile Include="EventStoreExtensions.cs" />
+    <Compile Include="IAllStreamSubscription.cs" />
     <Compile Include="IEventStore.cs" />
+    <Compile Include="Infrastructure\DelegateDisposable.cs" />
     <Compile Include="Infrastructure\GetUtcNow.cs" />
+    <Compile Include="Infrastructure\InterlockedBoolean.cs" />
+    <Compile Include="Infrastructure\InterlockedBooleanExtensions.cs" />
     <Compile Include="Infrastructure\LongCheckpoint.cs" />
     <Compile Include="Infrastructure\StringExtensions.cs" />
     <Compile Include="Infrastructure\SystemClock.cs" />
     <Compile Include="Infrastructure\TaskExtensions.cs" />
+    <Compile Include="Infrastructure\TaskHelpers.cs" />
+    <Compile Include="Infrastructure\Unit.cs" />
     <Compile Include="InMemory\InMemoryAllStream.cs" />
     <Compile Include="InMemory\InMemoryEventStore.cs" />
     <Compile Include="InMemory\InMemoryStream.cs" />
     <Compile Include="InMemory\InMemoryStreamEvent.cs" />
     <Compile Include="InMemory\InMemoryStreams.cs" />
+    <Compile Include="IReadOnlyEventStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SimpleJson.cs" />
     <Compile Include="Streams\AllEventsPage.cs" />
-    <Compile Include="Streams\EventReceived.cs" />
+    <Compile Include="Subscriptions\StreamEventReceived.cs" />
     <Compile Include="Streams\ExpectedVersion.cs" />
     <Compile Include="Streams\ICheckpoint.cs" />
     <Compile Include="Streams\Messages.Designer.cs" />
@@ -68,10 +78,15 @@
     <Compile Include="Streams\StreamEvent.cs" />
     <Compile Include="Streams\StreamEventExtensions.cs" />
     <Compile Include="Streams\StreamEventsPage.cs" />
-    <Compile Include="Streams\StreamPosition.cs" />
-    <Compile Include="Streams\SubscriptionDropped.cs" />
+    <Compile Include="Streams\StreamVersion.cs" />
+    <Compile Include="Subscriptions\SubscriptionDropped.cs" />
     <Compile Include="Streams\WrongExpectedVersionException.cs" />
-    <Compile Include="Subscriptions\IStreamSubscription.cs" />
+    <Compile Include="Subscriptions\AllStreamSubscription.cs" />
+    <Compile Include="Infrastructure\Subject.cs" />
+    <Compile Include="Infrastructure\AnonymousObserver.cs" />
+    <Compile Include="Infrastructure\ObservableExtensions.cs" />
+    <Compile Include="Subscriptions\StreamSubscription.cs" />
+    <Compile Include="IStreamSubscription.cs" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="Streams\Messages.resx" />

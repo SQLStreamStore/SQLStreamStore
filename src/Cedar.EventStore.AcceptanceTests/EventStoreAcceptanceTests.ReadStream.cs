@@ -59,7 +59,7 @@
 
         [Theory]
         [InlineData(ReadDirection.Forward, 0, 10)]
-        [InlineData(ReadDirection.Backward, StreamPosition.End, 10)]
+        [InlineData(ReadDirection.Backward, StreamVersion.End, 10)]
         public async Task Empty_Streams_return_StreamNotFound(ReadDirection direction, int start, int pageSize)
         {
             using(var fixture = GetFixture())
@@ -76,7 +76,7 @@
 
         [Theory]
         [InlineData(ReadDirection.Forward, 0, 10)]
-        [InlineData(ReadDirection.Backward, StreamPosition.End, 10)]
+        [InlineData(ReadDirection.Backward, StreamVersion.End, 10)]
         public async Task Deleted_Streams_return_StreamDeleted(ReadDirection direction, int start, int pageSize)
         {
             using (var fixture = GetFixture())
@@ -98,7 +98,7 @@
         {
             var theories = new[]
             {
-                new ReadStreamTheory("stream-1", StreamPosition.Start, ReadDirection.Forward, 2, 
+                new ReadStreamTheory("stream-1", StreamVersion.Start, ReadDirection.Forward, 2, 
                     new StreamEventsPage("stream-1", PageReadStatus.Success, 0, 2, 2, ReadDirection.Forward, false,
                           ExpectedStreamEvent("stream-1", 1, 0, SystemClock.GetUtcNow().UtcDateTime),
                           ExpectedStreamEvent("stream-1", 2, 1, SystemClock.GetUtcNow().UtcDateTime))),
@@ -111,12 +111,12 @@
                           ExpectedStreamEvent("stream-2", 5, 1, SystemClock.GetUtcNow().UtcDateTime),
                           ExpectedStreamEvent("stream-2", 6, 2, SystemClock.GetUtcNow().UtcDateTime))),
 
-                new ReadStreamTheory("stream-1", StreamPosition.End, ReadDirection.Backward, 2, 
+                new ReadStreamTheory("stream-1", StreamVersion.End, ReadDirection.Backward, 2, 
                     new StreamEventsPage("stream-1", PageReadStatus.Success, -1, 0, 2, ReadDirection.Backward, false,
                           ExpectedStreamEvent("stream-1", 3, 2, SystemClock.GetUtcNow().UtcDateTime),
                           ExpectedStreamEvent("stream-1", 2, 1, SystemClock.GetUtcNow().UtcDateTime))),
 
-                 new ReadStreamTheory("stream-1", StreamPosition.End, ReadDirection.Backward, 4, 
+                 new ReadStreamTheory("stream-1", StreamVersion.End, ReadDirection.Backward, 4, 
                     new StreamEventsPage("stream-1", PageReadStatus.Success, -1, -1, 2, ReadDirection.Backward, true,
                           ExpectedStreamEvent("stream-1", 3, 2, SystemClock.GetUtcNow().UtcDateTime),
                           ExpectedStreamEvent("stream-1", 2, 1, SystemClock.GetUtcNow().UtcDateTime),

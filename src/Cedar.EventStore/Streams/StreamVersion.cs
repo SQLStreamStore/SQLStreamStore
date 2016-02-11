@@ -1,10 +1,10 @@
 ﻿namespace Cedar.EventStore.Streams
 {
     /// <summary>
-    /// Constants for stream positions
+    /// Constants for stream version
     /// 
     /// </summary>
-    public static class StreamPosition
+    public static class StreamVersion
     {
         /// <summary>
         /// The first event in a stream

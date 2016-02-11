@@ -83,7 +83,7 @@
 
                             var page = await ReadStreamInternal(
                                     streamIdInfo.Id,
-                                    StreamPosition.Start,
+                                    StreamVersion.Start,
                                     events.Length,
                                     ReadDirection.Forward,
                                     connection,
@@ -159,7 +159,7 @@
 
                             var page = await ReadStreamInternal(
                                     streamId,
-                                    StreamPosition.Start,
+                                    StreamVersion.Start,
                                     events.Length,
                                     ReadDirection.Forward,
                                     connection,

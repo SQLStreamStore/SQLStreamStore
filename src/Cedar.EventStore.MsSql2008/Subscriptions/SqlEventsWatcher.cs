@@ -94,15 +94,18 @@
             FetchEvents();
         }
 
-        public IStreamSubscription SubscribeToStream(string streamId, EventReceived eventReceived, SubscriptionDropped subscriptionDropped)
+        public IStreamSubscription SubscribeToStream(
+            string streamId,
+            StreamEventReceived streamEventReceived,
+            SubscriptionDropped subscriptionDropped)
         {
             Guid subscriptionId = Guid.NewGuid();
-            var streamSubscription = new StreamSubscription(streamId, eventReceived, subscriptionDropped,
+            var streamSubscription = new StreamSubscription(streamId, streamEventReceived, subscriptionDropped,
                 () =>
                 {
                     IDisposable _;
                     _subscriptions.TryRemove(subscriptionId, out _);
-                });
+                }, Guid.NewGuid().ToString());
             _subscriptions.TryAdd(subscriptionId, streamSubscription);
             return streamSubscription;
         }
@@ -167,30 +170,34 @@
 
         private class StreamSubscription : IStreamSubscription
         {
-            private EventReceived _eventReceived;
+            private StreamEventReceived _streamEventReceived;
             private SubscriptionDropped _subscriptionDropped;
             private readonly Action _onDispose;
 
             public StreamSubscription(
                 string streamId,
-                EventReceived eventReceived,
+                StreamEventReceived streamEventReceived,
                 SubscriptionDropped subscriptionDropped,
-                Action onDispose)
+                Action onDispose,
+                string name)
             {
                 StreamId = streamId;
-                _eventReceived = streamEvent =>
+                _streamEventReceived = streamEvent =>
                 {
                     LastVersion = streamEvent.StreamVersion;
-                    return eventReceived(streamEvent);
+                    return streamEventReceived(streamEvent);
                 };
                 _subscriptionDropped = subscriptionDropped;
                 _onDispose = onDispose;
+                Name = name;
             }
 
             public void Dispose()
             {
                 _onDispose();
             }
+
+            public string Name { get; }
 
             public string StreamId { get; }
 

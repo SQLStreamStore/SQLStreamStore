@@ -1,20 +1,32 @@
 ﻿namespace Cedar.EventStore
 {
+    using System.Diagnostics;
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Streams;
+    using Cedar.EventStore.Subscriptions;
     using global::EventStore.ClientAPI;
     using global::EventStore.ClientAPI.Embedded;
     using global::EventStore.ClientAPI.SystemData;
     using global::EventStore.Core;
+    using Xunit.Abstractions;
     using ExpectedVersion = Cedar.EventStore.Streams.ExpectedVersion;
     using ReadDirection = Cedar.EventStore.Streams.ReadDirection;
 
     internal class GesEventStoreFixture : EventStoreAcceptanceTestFixture
     {
+        private readonly ITestOutputHelper _testOutputHelper;
+
+        public GesEventStoreFixture(ITestOutputHelper testOutputHelper)
+        {
+            _testOutputHelper = testOutputHelper;
+        }
+
         public override async Task<IEventStore> GetEventStore()
         {
+            var stopwatch = Stopwatch.StartNew();
+
             var node = await CreateClusterVNode();
 
             var connectionSettingsBuilder = ConnectionSettings
@@ -24,12 +36,15 @@
 
             var gesEventStore = new GesEventStore(
                 () => EmbeddedEventStoreConnection.Create(node, connectionSettingsBuilder));
+
+            _testOutputHelper.WriteLine($"Fixture init {stopwatch.ElapsedMilliseconds}ms.");
+
             return new EventStoreWrapper(gesEventStore, node);
         }
 
         private static async Task<ClusterVNode> CreateClusterVNode()
         {
-            IPEndPoint noEndpoint = new IPEndPoint(IPAddress.None, 0);
+            var noEndpoint = new IPEndPoint(IPAddress.None, 0);
 
             ClusterVNode node = EmbeddedVNodeBuilder
                 .AsSingleNode()
@@ -60,10 +75,14 @@
             public void Dispose()
             {
                 _inner.Dispose();
-                _node.Stop();
+                _node.StopNonblocking(true, true);
             }
 
-            public Task AppendToStream(string streamId, int expectedVersion, NewStreamEvent[] events, CancellationToken cancellationToken = default(CancellationToken))
+            public Task AppendToStream(
+                string streamId,
+                int expectedVersion,
+                NewStreamEvent[] events,
+                CancellationToken cancellationToken = default(CancellationToken))
             {
                 return _inner.AppendToStream(streamId, expectedVersion, events, cancellationToken);
             }
@@ -76,7 +95,11 @@
                 return _inner.DeleteStream(streamId, expectedVersion, cancellationToken);
             }
 
-            public Task<AllEventsPage> ReadAll(string fromCheckpoint, int maxCount, ReadDirection direction = ReadDirection.Forward, CancellationToken cancellationToken = default(CancellationToken))
+            public Task<AllEventsPage> ReadAll(
+                string fromCheckpoint,
+                int maxCount,
+                ReadDirection direction = ReadDirection.Forward,
+                CancellationToken cancellationToken = default(CancellationToken))
             {
                 return _inner.ReadAll(fromCheckpoint, maxCount, direction, cancellationToken);
             }
@@ -93,11 +116,28 @@
 
             public Task<IStreamSubscription> SubscribeToStream(
                 string streamId,
-                EventReceived eventReceived,
+                int startPosition,
+                StreamEventReceived streamEventReceived,
                 SubscriptionDropped subscriptionDropped,
+                string name,
                 CancellationToken cancellationToken = default(CancellationToken))
             {
-                return _inner.SubscribeToStream(streamId, eventReceived, subscriptionDropped, cancellationToken);
+                return _inner.SubscribeToStream(streamId,
+                    startPosition,
+                    streamEventReceived,
+                    subscriptionDropped,
+                    name,
+                    cancellationToken);
+            }
+
+            public Task<IAllStreamSubscription> SubscribeToAll(
+                string fromCheckpoint,
+                StreamEventReceived streamEventReceived,
+                SubscriptionDropped subscriptionDropped = null,
+                string name = null,
+                CancellationToken cancellationToken = default(CancellationToken))
+            {
+                return _inner.SubscribeToAll(fromCheckpoint, streamEventReceived, subscriptionDropped, name, cancellationToken);
             }
 
             public string StartCheckpoint => _inner.StartCheckpoint;

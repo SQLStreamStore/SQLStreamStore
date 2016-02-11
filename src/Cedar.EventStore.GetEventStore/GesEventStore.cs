@@ -7,8 +7,10 @@
 ﻿    using System.Threading.Tasks;
 ﻿    using Cedar.EventStore.Infrastructure;
 ﻿    using Cedar.EventStore.Streams;
+﻿    using Cedar.EventStore.Subscriptions;
 ﻿    using EnsureThat;
 ﻿    using global::EventStore.ClientAPI;
+﻿    using static Cedar.EventStore.Infrastructure.TaskHelpers;
 ﻿    using ExpectedVersion = Cedar.EventStore.Streams.ExpectedVersion;
 ﻿    using ReadDirection = Cedar.EventStore.Streams.ReadDirection;
 
@@ -17,7 +19,7 @@
 ﻿        private readonly CreateEventStoreConnection _getConnection;
 ﻿        private readonly InterlockedBoolean _isDisposed = new InterlockedBoolean();
 ﻿        private readonly IEventStoreConnection _connection;
-
+﻿       
 ﻿        public GesEventStore(CreateEventStoreConnection createConnection)
 ﻿        {
 ﻿            Ensure.That(createConnection, "createConnection").IsNotNull();
@@ -33,7 +35,7 @@
 ﻿            };
 ﻿        }
 
-        public string StartCheckpoint => PositionCheckpoint.Start.Value;
+﻿        public string StartCheckpoint => PositionCheckpoint.Start.Value;
 
 ﻿        public string EndCheckpoint => PositionCheckpoint.End.Value;
 
@@ -83,7 +85,7 @@
 ﻿            try
 ﻿            {
 ﻿                await connection
-﻿                    .DeleteStreamAsync(streamId, exptectedVersion, hardDelete: true)
+                    .DeleteStreamAsync(streamId, exptectedVersion, hardDelete: true)
 ﻿                    .NotOnCapturedContext();
 ﻿            }
 ﻿            catch(global::EventStore.ClientAPI.Exceptions.WrongExpectedVersionException ex)
@@ -170,35 +172,122 @@
 ﻿                    .ToArray());
 ﻿        }
 
-﻿        public async Task<IStreamSubscription> SubscribeToStream(string streamId, EventReceived eventReceived, SubscriptionDropped subscriptionDropped, CancellationToken cancellationToken)
+﻿        public async Task<IStreamSubscription> SubscribeToStream(
+             string streamId,
+             int startPosition,
+             StreamEventReceived streamEventReceived,
+             SubscriptionDropped subscriptionDropped,
+             string name,
+             CancellationToken cancellationToken = default(CancellationToken))
 ﻿        {
-﻿            Action<EventStoreSubscription, ResolvedEvent> eventAppeard = (_, resolvedEvent) =>
+            streamEventReceived = FilterOutSystemEvents(streamEventReceived);
+            subscriptionDropped = subscriptionDropped ?? ((_, __) => { });
+            name = string.IsNullOrWhiteSpace(name) ? Guid.NewGuid().ToString() : name;
+
+            Action<ResolvedEvent> eventAppeared = (resolvedEvent) =>
 ﻿            {
 ﻿                var task = Task.Run(async () =>
 ﻿                {
-﻿                    await eventReceived(resolvedEvent.ToSteamEvent()).NotOnCapturedContext();
+﻿                    await streamEventReceived(resolvedEvent.ToSteamEvent()).NotOnCapturedContext();
 ﻿                });
 
 ﻿                task.GetAwaiter().GetResult();
 ﻿            };
 
-﻿            Action<EventStoreSubscription, SubscriptionDropReason, Exception> gesSubscriptionDropped =
-﻿                (subscription, reason, exception) =>
+﻿            Action<SubscriptionDropReason, Exception> gesSubscriptionDropped =
+﻿                (reason, exception) =>
 ﻿                {
 ﻿                    subscriptionDropped(reason.ToString(), exception);
 ﻿                };
 
+﻿            if(startPosition == StreamVersion.End)
+﻿            {
+﻿                var subscription = await _connection.SubscribeToStreamAsync(
+﻿                    streamId,
+﻿                    true,
+                    (_, resolvedEvent) => eventAppeared(resolvedEvent),
+﻿                    (_, reason, exception) => gesSubscriptionDropped(reason, exception));
 
-﻿            var eventStoreSubscription = await _connection.SubscribeToStreamAsync(
-                streamId,
-﻿                true,
-                eventAppeard,
-                gesSubscriptionDropped);
+﻿                return new StreamSubscripton(subscription, name);
+﻿            }
+﻿            else
+﻿            {
+                // GES catchup subscription starts at supplied startposition + 1;
+                // So if you want to actually start at 0, one needs to supply a null
+                // Opinion - this is inconsistent with ReadStream API.
+﻿                int? unintuitiveStartPosition = startPosition - 1;
+﻿                if(unintuitiveStartPosition < 0)
+﻿                {
+﻿                    unintuitiveStartPosition = null;
+﻿                }
+﻿                EventStoreStreamCatchUpSubscription subscription = _connection.SubscribeToStreamFrom(
+﻿                    streamId,
+                    unintuitiveStartPosition,
+﻿                    true,
+﻿                    (_, resolvedEvent) => eventAppeared(resolvedEvent),
+﻿                    subscriptionDropped: (_, reason, exception) => gesSubscriptionDropped(reason, exception));
 
-﻿            return new StreamSubscripton(eventStoreSubscription);
+                return new StreamCatchupSubscripton(subscription, name);
+            }
 ﻿        }
 
-﻿        public void Dispose()
+﻿        public async Task<IAllStreamSubscription> SubscribeToAll(
+﻿            string fromCheckpoint,
+﻿            StreamEventReceived streamEventReceived,
+﻿            SubscriptionDropped subscriptionDropped,
+﻿            string name,
+﻿            CancellationToken cancellationToken = default(CancellationToken))
+﻿        {
+            streamEventReceived = FilterOutSystemEvents(streamEventReceived);
+            subscriptionDropped = subscriptionDropped ?? ((_, __) => { });
+﻿            name = string.IsNullOrWhiteSpace(name) ? Guid.NewGuid().ToString() : name;
+
+            Action<ResolvedEvent> eventAppeared = (resolvedEvent) =>
+            {
+                var task = Task.Run(async () =>
+                {
+                    await streamEventReceived(resolvedEvent.ToSteamEvent()).NotOnCapturedContext();
+                });
+
+                task.GetAwaiter().GetResult();
+            };
+
+            Action<SubscriptionDropReason, Exception> gesSubscriptionDropped =
+                (reason, exception) =>
+                {
+                    subscriptionDropped(reason.ToString(), exception);
+                };
+
+            if (fromCheckpoint == null || fromCheckpoint == EndCheckpoint)
+            {
+                var subscription = await _connection.SubscribeToAllAsync(
+                    true,
+                    (_, resolvedEvent) => eventAppeared(resolvedEvent),
+                    (_, reason, exception) => gesSubscriptionDropped(reason, exception));
+
+                return new AllStreamSubscripton(subscription, name);
+            }
+            else
+            {
+               /* // GES catchup subscription starts at supplied startposition + 1;
+                // So if you want to actually start at 0, one needs to supply a null
+                // Opinion - this is inconsistent with ReadStream API.
+                int? unintuitiveStartPosition = startPosition - 1;
+                if (unintuitiveStartPosition < 0)
+                {
+                    unintuitiveStartPosition = null;
+                }*/
+                var subscription =_connection.SubscribeToAllFrom(
+                    PositionCheckpoint.Parse(fromCheckpoint).Position,
+                    true,
+                    (_, resolvedEvent) => eventAppeared(resolvedEvent),
+                    subscriptionDropped: (_, reason, exception) => gesSubscriptionDropped(reason, exception));
+
+                return new AllCatchupSubscripton(subscription, name);
+            }
+        }
+
+        public void Dispose()
 ﻿        {
 ﻿            if(_isDisposed.EnsureCalledOnce())
 ﻿            {
@@ -220,13 +309,19 @@
 ﻿            }
 ﻿        }
 
+﻿        private static StreamEventReceived FilterOutSystemEvents(StreamEventReceived streamEventReceived)
+﻿        {
+            return streamEvent => streamEvent.StreamId.StartsWith("$") ? CompletedTask : streamEventReceived(streamEvent);
+        }
+
 ﻿        private class StreamSubscripton : IStreamSubscription
 ﻿        {
 ﻿            private readonly EventStoreSubscription _eventStoreSubscription;
 
-﻿            internal StreamSubscripton(EventStoreSubscription eventStoreSubscription)
+﻿            internal StreamSubscripton(EventStoreSubscription eventStoreSubscription, string name)
 ﻿            {
 ﻿                _eventStoreSubscription = eventStoreSubscription;
+﻿                Name = name;
 ﻿            }
 
 ﻿            public void Dispose()
@@ -234,9 +329,73 @@
 ﻿                _eventStoreSubscription.Dispose();
 ﻿            }
 
+﻿            public string Name { get; }
+
 ﻿            public string StreamId => _eventStoreSubscription.StreamId;
 
 ﻿            public int LastVersion => _eventStoreSubscription.LastEventNumber.Value;
 ﻿        }
-﻿    }
+
+        private class StreamCatchupSubscripton : IStreamSubscription
+        {
+            private readonly EventStoreStreamCatchUpSubscription _subscription;
+
+            internal StreamCatchupSubscripton(EventStoreStreamCatchUpSubscription subscription, string name)
+            {
+                _subscription = subscription;
+                Name = name;
+            }
+
+            public void Dispose()
+            {
+                _subscription.Stop();
+            }
+
+            public string Name { get; }
+
+            public string StreamId => _subscription.StreamId;
+
+            public int LastVersion => _subscription.LastProcessedEventNumber;
+        }
+
+        private class AllStreamSubscripton : IAllStreamSubscription
+        {
+            private readonly EventStoreSubscription _eventStoreSubscription;
+
+            internal AllStreamSubscripton(EventStoreSubscription eventStoreSubscription, string name)
+            {
+                _eventStoreSubscription = eventStoreSubscription;
+                Name = name;
+            }
+
+            public void Dispose()
+            {
+                _eventStoreSubscription.Dispose();
+            }
+
+            public string Name { get; }
+
+            public string LastCheckpoint => _eventStoreSubscription.LastCommitPosition.ToString();
+        }
+
+        private class AllCatchupSubscripton : IAllStreamSubscription
+        {
+            private readonly EventStoreAllCatchUpSubscription _subscription;
+
+            internal AllCatchupSubscripton(EventStoreAllCatchUpSubscription subscription, string name)
+            {
+                _subscription = subscription;
+                Name = name;
+            }
+
+            public void Dispose()
+            {
+                _subscription.Stop();
+            }
+
+            public string Name { get; }
+
+            public string LastCheckpoint => _subscription.LastProcessedPosition.ToString();
+        }
+    }
 ﻿}

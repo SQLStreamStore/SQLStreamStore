@@ -94,6 +94,65 @@ namespace Cedar.EventStore
             }
         }
 
+        [Fact]
+        public async Task Catchup_subscription()
+        {
+            await _node.StartAndWaitUntilInitialized();
+
+            using(var connection = EmbeddedEventStoreConnection.Create(_node, _connectionSettingsBuilder))
+            {
+                string streamId = "stream-1";
+
+                var eventData = new EventData(Guid.NewGuid(), "type-1", false, null, null);
+                await connection.AppendToStreamAsync(streamId, ExpectedVersion.NoStream, eventData);
+
+                var subscription = connection.SubscribeToStreamFrom(streamId,
+                    null, // Note StreamPosition.Start will actually return eventNumber+1...
+                          // I don't like this inconsistency 
+                    false,
+                    (_, resolvedEvent) =>
+                    {
+                        _testOutputHelper.WriteLine($"Sub {resolvedEvent.OriginalEvent.EventNumber} {resolvedEvent.OriginalEvent.EventType}");
+                    });
+
+                var eventData2 = new EventData(Guid.NewGuid(), "type-2", false, null, null);
+                await connection.AppendToStreamAsync(streamId, ExpectedVersion.Any, eventData2);
+
+                await Task.Delay(2000);
+
+                var streamEventsSlice = await connection.ReadStreamEventsForwardAsync(streamId, StreamPosition.Start, 10, true);
+                foreach(var resolvedEvent in streamEventsSlice.Events)
+                {
+                    _testOutputHelper.WriteLine($"Slice {resolvedEvent.OriginalEvent.EventNumber} {resolvedEvent.OriginalEvent.EventType}");
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Read_all_events()
+        {
+            await _node.StartAndWaitUntilInitialized();
+
+            using (var connection = EmbeddedEventStoreConnection.Create(_node, _connectionSettingsBuilder))
+            {
+                string streamId = "stream-1";
+                var eventData = new EventData(Guid.NewGuid(), "type", false, null, null);
+                await connection.AppendToStreamAsync(streamId, ExpectedVersion.NoStream, eventData);
+
+                var streamEventsSlice = await connection.ReadStreamEventsForwardAsync(streamId, 0, 10, true);
+
+                var allEventsSlice = await connection.ReadAllEventsForwardAsync(Position.Start, 200, true);
+
+                foreach(var resolvedEvent in allEventsSlice.Events)
+                {
+                    _testOutputHelper.WriteLine(
+                        $"{resolvedEvent.OriginalStreamId} {resolvedEvent.OriginalEventNumber} " +
+                        $"{resolvedEvent.Event.EventType} {resolvedEvent.OriginalEvent.EventType}");
+
+                }
+            }
+        }
+
         public void Dispose()
         {
             _node.Stop();

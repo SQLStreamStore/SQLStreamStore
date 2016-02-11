@@ -11,6 +11,7 @@ namespace Cedar.EventStore.InMemory
         private readonly string _streamId;
         private readonly InMemoryAllStream _inMemoryAllStream;
         private readonly GetUtcNow _getUtcNow;
+        private readonly Action _onStreamAppended;
         private readonly List<InMemoryStreamEvent> _events = new List<InMemoryStreamEvent>();
         private readonly HashSet<Guid> _eventIds = new HashSet<Guid>();
         private bool _isDeleted;
@@ -18,11 +19,13 @@ namespace Cedar.EventStore.InMemory
         internal InMemoryStream(
             string streamId,
             InMemoryAllStream inMemoryAllStream,
-            GetUtcNow getUtcNow)
+            GetUtcNow getUtcNow,
+            Action onStreamAppended)
         {
             _streamId = streamId;
             _inMemoryAllStream = inMemoryAllStream;
             _getUtcNow = getUtcNow;
+            _onStreamAppended = onStreamAppended;
         }
 
         internal IReadOnlyList<InMemoryStreamEvent> Events => _events;
@@ -182,6 +185,8 @@ namespace Cedar.EventStore.InMemory
                 _inMemoryAllStream.AddAfter(_inMemoryAllStream.Last, inMemoryStreamEvent);
                 _events.Add(inMemoryStreamEvent);
                 _eventIds.Add(newStreamEvent.EventId);
+
+                _onStreamAppended();
             }
         }
     }

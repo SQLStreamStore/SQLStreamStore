@@ -5,7 +5,7 @@
     using System.Threading.Tasks;
     using Cedar.EventStore.Streams;
 
-    public interface IEventStore : IDisposable
+    public interface IEventStore : IReadOnlyEventStore, IDisposable
     {
         Task AppendToStream(
             string streamId,
@@ -16,29 +16,6 @@
         Task DeleteStream(
             string streamId,
             int expectedVersion = ExpectedVersion.Any,
-            CancellationToken cancellationToken = default(CancellationToken));
-
-        Task<AllEventsPage> ReadAll(
-            string fromCheckpoint,
-            int maxCount,
-            ReadDirection direction = ReadDirection.Forward,
-            CancellationToken cancellationToken = default(CancellationToken));
-
-        Task<StreamEventsPage> ReadStream(
-            string streamId,
-            int start,
-            int count,
-            ReadDirection direction = ReadDirection.Forward,
-            CancellationToken cancellationToken = default(CancellationToken));
-
-        Task<IStreamSubscription> SubscribeToStream(
-            string streamId,
-            EventReceived eventReceived,
-            SubscriptionDropped subscriptionDropped,
-            CancellationToken cancellationToken = default(CancellationToken));
-
-        string StartCheckpoint { get; }
-
-        string EndCheckpoint { get; }
+            CancellationToken cancellationToken = default(CancellationToken));      
     }
 }

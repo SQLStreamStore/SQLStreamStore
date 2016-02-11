@@ -17,14 +17,14 @@
 // 
 
 
-namespace Cedar.EventStore
+namespace Cedar.EventStore.Infrastructure
 {
     using System.Threading;
 
     /// <summary>
     /// Interlocked support for boolean values
     /// </summary>
-    internal class InterlockedBoolean
+    public class InterlockedBoolean
     {
         private int _value;
 

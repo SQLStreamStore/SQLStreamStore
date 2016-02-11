@@ -1,6 +1,7 @@
 ﻿namespace Cedar.EventStore
 {
     using System;
+    using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
     using Cedar.EventStore.Streams;
@@ -11,10 +12,12 @@
     public partial class EventStoreAcceptanceTests
     {
         private readonly ITestOutputHelper _testOutputHelper;
+        private readonly Stopwatch _stopwatch;
 
         public EventStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
+            _stopwatch = Stopwatch.StartNew();
         }
 
         [Fact]
@@ -64,6 +67,18 @@
         {
             var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
             return new StreamEvent(streamId, eventId, sequenceNumber, null, created, "type", "\"data\"", "\"metadata\"");
+        }
+    }
+
+    public static class TaskExtensions
+    {
+        public static async Task<T> WithTimeout<T>(this Task<T> task, int timeout)
+        {
+            if (await Task.WhenAny(task, Task.Delay(timeout)) == task)
+            {
+                return await task;
+            }
+            throw new TimeoutException("Timed out waiting for task");
         }
     }
 }

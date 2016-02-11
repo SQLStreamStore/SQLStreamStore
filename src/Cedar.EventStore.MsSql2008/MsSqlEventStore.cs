@@ -183,7 +183,7 @@
         {
             var streamIdInfo = new StreamIdInfo(streamId);
 
-            var streamVersion = start == StreamPosition.End ? int.MaxValue : start; // To read backwards from end, need to use int MaxValue
+            var streamVersion = start == StreamVersion.End ? int.MaxValue : start; // To read backwards from end, need to use int MaxValue
             string commandText;
             Func<List<StreamEvent>, int> getNextSequenceNumber;
             if(direction == ReadDirection.Forward)

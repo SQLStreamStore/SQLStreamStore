@@ -1,4 +1,4 @@
-﻿namespace Cedar.EventStore.Streams
+﻿namespace Cedar.EventStore.Subscriptions
 {
     using System;
 

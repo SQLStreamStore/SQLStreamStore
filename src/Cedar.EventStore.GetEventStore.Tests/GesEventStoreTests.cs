@@ -4,7 +4,7 @@
     {
         private EventStoreAcceptanceTestFixture GetFixture()
         {
-            return new GesEventStoreFixture();
+            return new GesEventStoreFixture(_testOutputHelper);
         }
     }
 }

@@ -231,13 +231,6 @@
                                 receiveEvents.SetResult(streamEvent);
                             }
                             return Task.CompletedTask;
-                        },
-                        (reason, exception) =>
-                        {
-                            if (exception != null)
-                            {
-                                receiveEvents.SetException(exception);
-                            }
                         }))
                     {
                         await AppendEvents(eventStore, streamId1, 2);

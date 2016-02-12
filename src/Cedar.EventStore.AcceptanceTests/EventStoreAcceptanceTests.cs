@@ -8,6 +8,7 @@
     using Shouldly;
     using Xunit;
     using Xunit.Abstractions;
+    using Timer = System.Threading.Timer;
 
     public partial class EventStoreAcceptanceTests
     {
@@ -81,6 +82,18 @@
                 return await task;
             }
             throw new TimeoutException("Timed out waiting for task");
+        }
+    }
+
+    public class ResettableTimeout<T>
+    {
+        private TaskCompletionSource<T> _taskCompletionSource = new TaskCompletionSource<T>();
+
+        public ResettableTimeout(int timeout)
+        {
+            var timer = new Timer(_ => { });
+
+            T	
         }
     }
 }

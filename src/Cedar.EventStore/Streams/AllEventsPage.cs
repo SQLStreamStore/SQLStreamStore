@@ -1,14 +1,12 @@
 ﻿namespace Cedar.EventStore.Streams
 {
-    using System.Collections.Generic;
-
     public sealed class AllEventsPage
     {
         public readonly long FromCheckpoint;
         public readonly long NextCheckpoint;
         public readonly bool IsEnd;
         public readonly ReadDirection Direction;
-        public readonly IReadOnlyCollection<StreamEvent> StreamEvents;
+        public readonly StreamEvent[] StreamEvents;
 
         public AllEventsPage(
             long fromCheckpoint,

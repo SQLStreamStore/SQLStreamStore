@@ -1,10 +1,8 @@
 ﻿namespace Cedar.EventStore.Streams
 {
-    using System.Collections.Generic;
-
     public sealed class StreamEventsPage
     {
-        public readonly IReadOnlyList<StreamEvent> Events;
+        public readonly StreamEvent[] Events;
         public readonly int FromStreamVersion;
         public readonly bool IsEndOfStream;
         public readonly int LastStreamVersion;

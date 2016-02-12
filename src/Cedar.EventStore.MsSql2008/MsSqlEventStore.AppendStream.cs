@@ -90,14 +90,14 @@
                                     cancellationToken)
                                     .NotOnCapturedContext();
 
-                            if (events.Length > page.Events.Count)
+                            if (events.Length > page.Events.Length)
                             {
                                 throw new WrongExpectedVersionException(
                                     Messages.AppendFailedWrongExpectedVersion.FormatWith(streamIdInfo.Id, expectedVersion),
                                     ex);
                             }
 
-                            for (int i = 0; i < Math.Min(events.Length, page.Events.Count); i++)
+                            for (int i = 0; i < Math.Min(events.Length, page.Events.Length); i++)
                             {
                                 if (events[i].EventId != page.Events[i].EventId)
                                 {
@@ -166,14 +166,14 @@
                                     cancellationToken)
                                     .NotOnCapturedContext();
 
-                            if (events.Length > page.Events.Count)
+                            if (events.Length > page.Events.Length)
                             {
                                 throw new WrongExpectedVersionException(
                                     Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
                                     ex);
                             }
 
-                            for (int i = 0; i < Math.Min(events.Length, page.Events.Count); i++)
+                            for (int i = 0; i < Math.Min(events.Length, page.Events.Length); i++)
                             {
                                 if (events[i].EventId != page.Events[i].EventId)
                                 {
@@ -241,14 +241,14 @@
                                     connection,
                                     cancellationToken);
 
-                                if (events.Length > page.Events.Count)
+                                if (events.Length > page.Events.Length)
                                 {
                                     throw new WrongExpectedVersionException(
                                         Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
                                         ex);
                                 }
 
-                                for (int i = 0; i < Math.Min(events.Length, page.Events.Count); i++)
+                                for (int i = 0; i < Math.Min(events.Length, page.Events.Length); i++)
                                 {
                                     if (events[i].EventId != page.Events[i].EventId)
                                     {

@@ -34,14 +34,12 @@
                     streamEventsPage.IsEndOfStream.ShouldBe(expectedStreamEventsPage.IsEndOfStream);
                     streamEventsPage.Status.ShouldBe(expectedStreamEventsPage.Status);
                     streamEventsPage.StreamId.ShouldBe(expectedStreamEventsPage.StreamId);
-                    streamEventsPage.Events.Count.ShouldBe(expectedStreamEventsPage.Events.Count);
+                    streamEventsPage.Events.Length.ShouldBe(expectedStreamEventsPage.Events.Length);
 
-
-                    for (int i = 0; i < streamEventsPage.Events.Count; i++)
+                    for (int i = 0; i < streamEventsPage.Events.Length; i++)
                     {
                         var streamEvent = streamEventsPage.Events.ToArray()[i];
                         var expectedEvent = expectedEvents[i];
-
 
                         streamEvent.EventId.ShouldBe(expectedEvent.EventId);
                         streamEvent.JsonData.ShouldBe(expectedEvent.JsonData);

@@ -69,7 +69,7 @@
             _testOutputHelper.WriteLine($"FromCheckpoint     = {allEventsPage.FromCheckpoint}");
             _testOutputHelper.WriteLine($"NextCheckpoint     = {allEventsPage.NextCheckpoint}");
             _testOutputHelper.WriteLine($"IsEnd              = {allEventsPage.IsEnd}");
-            _testOutputHelper.WriteLine($"StreamEvents.Count = {allEventsPage.StreamEvents.Count}");
+            _testOutputHelper.WriteLine($"StreamEvents.Count = {allEventsPage.StreamEvents.Length}");
             _testOutputHelper.WriteLine("");
         }
     }

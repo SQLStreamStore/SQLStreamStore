@@ -168,7 +168,7 @@
                         _testOutputHelper.WriteLine($"FromCheckpoint     = {streamEventsPage.FromCheckpoint}");
                         _testOutputHelper.WriteLine($"NextCheckpoint     = {streamEventsPage.NextCheckpoint}");
                         _testOutputHelper.WriteLine($"IsEnd              = {streamEventsPage.IsEnd}");
-                        _testOutputHelper.WriteLine($"StreamEvents.Count = {streamEventsPage.StreamEvents.Count}");
+                        _testOutputHelper.WriteLine($"StreamEvents.Count = {streamEventsPage.StreamEvents.Length}");
                         _testOutputHelper.WriteLine("");
 
                         checkpoint = streamEventsPage.NextCheckpoint;
@@ -223,7 +223,6 @@
                     {
                         var streamEvent = streamEvents[i];
                         var expectedEvent = expectedEvents[i];
-
 
                         streamEvent.EventId.ShouldBe(expectedEvent.EventId);
                         streamEvent.JsonData.ShouldBe(expectedEvent.JsonData);

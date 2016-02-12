@@ -220,7 +220,7 @@
 
                     var page = await eventStore
                         .ReadStream(streamId, StreamVersion.Start, 4);
-                    page.Events.Count.ShouldBe(3);
+                    page.Events.Length.ShouldBe(3);
                 }
             }
         }
@@ -242,7 +242,7 @@
 
                     var page = await eventStore
                         .ReadStream(streamId, StreamVersion.Start, 10);
-                    page.Events.Count.ShouldBe(3);
+                    page.Events.Length.ShouldBe(3);
                 }
             }
         }
@@ -264,7 +264,7 @@
 
                     var page = await eventStore
                         .ReadStream(streamId, StreamVersion.Start, 10);
-                    page.Events.Count.ShouldBe(3);
+                    page.Events.Length.ShouldBe(3);
                 }
             }
         }
@@ -286,7 +286,7 @@
 
                     var page = await eventStore
                         .ReadStream(streamId, StreamVersion.Start, 10);
-                    page.Events.Count.ShouldBe(6);
+                    page.Events.Length.ShouldBe(6);
                 }
             }
         }

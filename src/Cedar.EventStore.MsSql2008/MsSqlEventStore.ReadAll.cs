@@ -110,7 +110,7 @@
             Ensure.That(maxCount, nameof(maxCount)).IsGt(0).And().IsLte(1000);
             CheckIfDisposed();
 
-            long ordinal = fromCheckpoint;
+            long ordinal = fromCheckpoint == Checkpoint.End ? long.MaxValue : fromCheckpoint;
 
             using (var connection = _createConnection())
             {

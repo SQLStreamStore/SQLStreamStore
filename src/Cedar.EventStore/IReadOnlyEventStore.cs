@@ -8,7 +8,7 @@
     public interface IReadOnlyEventStore
     {
         Task<AllEventsPage> ReadAll(
-            string fromCheckpoint,
+            long fromCheckpoint,
             int maxCount,
             ReadDirection direction = ReadDirection.Forward,
             CancellationToken cancellationToken = default(CancellationToken));
@@ -29,14 +29,10 @@
             CancellationToken cancellationToken = default(CancellationToken));
 
         Task<IAllStreamSubscription> SubscribeToAll(
-            string fromCheckpoint,
+            long? fromCheckpoint,
             StreamEventReceived streamEventReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null,
             CancellationToken cancellationToken = default(CancellationToken));
-
-        string StartCheckpoint { get; }
-
-        string EndCheckpoint { get; }
     }
 }

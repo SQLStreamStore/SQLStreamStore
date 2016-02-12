@@ -29,7 +29,7 @@
                         ExpectedVersion.NoStream,
                         new NewStreamEvent(Guid.NewGuid(), "type", "{}"));
 
-                    var dropException = await eventReceivedException.Task.WithTimeout(1000);
+                    var dropException = await eventReceivedException.Task.WithTimeout();
 
                     dropException.ShouldBeOfType<Exception>();
                 }

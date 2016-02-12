@@ -12,12 +12,12 @@
     public partial class EventStoreAcceptanceTests
     {
         private readonly ITestOutputHelper _testOutputHelper;
-        private readonly Stopwatch _stopwatch;
+
+        
 
         public EventStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
-            _stopwatch = Stopwatch.StartNew();
         }
 
         [Fact]
@@ -28,7 +28,7 @@
                 var store = await fixture.GetEventStore();
                 store.Dispose();
 
-                Func<Task> act = () => store.ReadAll(store.StartCheckpoint, 10);
+                Func<Task> act = () => store.ReadAll(Checkpoint.Start, 10);
 
                 act.ShouldThrow<ObjectDisposedException>();
             }
@@ -66,13 +66,15 @@
             DateTime created)
         {
             var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
-            return new StreamEvent(streamId, eventId, sequenceNumber, null, created, "type", "\"data\"", "\"metadata\"");
+            return new StreamEvent(streamId, eventId, sequenceNumber, 0, created, "type", "\"data\"", "\"metadata\"");
         }
     }
 
     public static class TaskExtensions
     {
-        public static async Task<T> WithTimeout<T>(this Task<T> task, int timeout)
+        private static Func<int, int> TaskTimeout => timeout => Debugger.IsAttached ? 30000 : timeout;
+
+        public static async Task<T> WithTimeout<T>(this Task<T> task, int timeout = 3000)
         {
             if (await Task.WhenAny(task, Task.Delay(timeout)) == task)
             {

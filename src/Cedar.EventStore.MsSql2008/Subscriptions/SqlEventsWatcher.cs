@@ -1,4 +1,4 @@
-﻿namespace Cedar.EventStore.Subscriptions
+﻿/*namespace Cedar.EventStore.Subscriptions
 {
     using System;
     using System.Collections.Concurrent;
@@ -204,4 +204,4 @@
             public int LastVersion { get; private set; }
         }
     }
-}
+}*/

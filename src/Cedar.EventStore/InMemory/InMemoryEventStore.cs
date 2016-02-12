@@ -134,27 +134,31 @@ namespace Cedar.EventStore
         }
 
         public Task<AllEventsPage> ReadAll(
-            string fromCheckpoint,
+            long fromCheckpoint,
             int maxCount,
             ReadDirection direction = ReadDirection.Forward,
-            CancellationToken cancellationToken = new CancellationToken())
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             if(_isDisposed) throw new ObjectDisposedException(nameof(InMemoryEventStore));
 
             _lock.EnterReadLock();
             try
             {
-                var start = LongCheckpoint.Parse(fromCheckpoint);
+                var start = fromCheckpoint;
+                if(start == Checkpoint.End)
+                {
+                    start = long.MaxValue;
+                }
 
                 // Find the node to start from (it may not be equal to the exact checkpoint)
                 var current = _allStream.First;
                 if(current.Next == null) //Empty store
                 {
-                    var page = new AllEventsPage(fromCheckpoint, StartCheckpoint, true, direction);
+                    var page = new AllEventsPage(fromCheckpoint, Checkpoint.Start, true, direction);
                     return Task.FromResult(page);
                 }
                 LinkedListNode<InMemoryStreamEvent> previous = current.Previous;
-                while ( current.Value.Checkpoint < start.LongValue)
+                while ( current.Value.Checkpoint < start)
                 {
                     if(current.Next == null)
                     {
@@ -181,7 +185,7 @@ namespace Cedar.EventStore
         }
 
         private AllEventsPage ReadAllBackwards(
-            string fromCheckpoint,
+            long fromCheckpoint,
             int maxCount,
             ReadDirection direction,
             LinkedListNode<InMemoryStreamEvent> current,
@@ -194,7 +198,7 @@ namespace Cedar.EventStore
                     current.Value.StreamId,
                     current.Value.EventId,
                     current.Value.StreamVersion,
-                    current.Value.Checkpoint.ToString(),
+                    current.Value.Checkpoint,
                     current.Value.Created,
                     current.Value.Type,
                     current.Value.JsonData,
@@ -215,10 +219,11 @@ namespace Cedar.EventStore
                 isEnd = false;
             }
             var nextCheckPoint = isEnd
-                ? 0.ToString()
-                : (current.Value.Checkpoint).ToString();
+                ? 0
+                : current.Value.Checkpoint;
 
-            var page = new AllEventsPage(fromCheckpoint,
+            var page = new AllEventsPage(
+                fromCheckpoint,
                 nextCheckPoint,
                 isEnd,
                 direction,
@@ -227,7 +232,7 @@ namespace Cedar.EventStore
         }
 
         private static AllEventsPage ReadAllForwards(
-            string fromCheckpoint,
+            long fromCheckpoint,
             int maxCount,
             ReadDirection direction,
             LinkedListNode<InMemoryStreamEvent> current,
@@ -240,7 +245,7 @@ namespace Cedar.EventStore
                     current.Value.StreamId,
                     current.Value.EventId,
                     current.Value.StreamVersion,
-                    current.Value.Checkpoint.ToString(),
+                    current.Value.Checkpoint,
                     current.Value.Created,
                     current.Value.Type,
                     current.Value.JsonData,
@@ -252,9 +257,10 @@ namespace Cedar.EventStore
             }
 
             bool isEnd = current == null;
-            var nextCheckPoint = current?.Value.Checkpoint.ToString() ?? (previous.Value.Checkpoint + 1).ToString();
+            var nextCheckPoint = current?.Value.Checkpoint ?? previous.Value.Checkpoint + 1;
 
-            var page = new AllEventsPage(fromCheckpoint,
+            var page = new AllEventsPage(
+                fromCheckpoint,
                 nextCheckPoint,
                 isEnd,
                 direction,
@@ -319,17 +325,16 @@ namespace Cedar.EventStore
         }
 
         public async Task<IAllStreamSubscription> SubscribeToAll(
-            string fromCheckpoint,
+            long? fromCheckpoint,
             StreamEventReceived streamEventReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var subscription = new AllStreamSubscription(fromCheckpoint,
+            var subscription = new AllStreamSubscription(
+                fromCheckpoint,
                 this,
                 _subscriptions,
-                EndCheckpoint,
-                StartCheckpoint,
                 streamEventReceived,
                 subscriptionDropped,
                 name);
@@ -337,10 +342,6 @@ namespace Cedar.EventStore
             await subscription.Start(cancellationToken);
             return subscription;
         }
-
-        public string StartCheckpoint => LongCheckpoint.Start.ToString();
-
-        public string EndCheckpoint => LongCheckpoint.End.ToString();
 
         private static StreamEventsPage ReadStreamForwards(
             string streamId,
@@ -358,7 +359,7 @@ namespace Cedar.EventStore
                     streamId,
                     inMemoryStreamEvent.EventId,
                     inMemoryStreamEvent.StreamVersion,
-                    inMemoryStreamEvent.Checkpoint.ToString(),
+                    inMemoryStreamEvent.Checkpoint,
                     inMemoryStreamEvent.Created,
                     inMemoryStreamEvent.Type,
                     inMemoryStreamEvent.JsonData,
@@ -400,7 +401,7 @@ namespace Cedar.EventStore
                     streamId,
                     inMemoryStreamEvent.EventId,
                     inMemoryStreamEvent.StreamVersion,
-                    inMemoryStreamEvent.Checkpoint.ToString(),
+                    inMemoryStreamEvent.Checkpoint,
                     inMemoryStreamEvent.Created,
                     inMemoryStreamEvent.Type,
                     inMemoryStreamEvent.JsonData,

@@ -11,26 +11,19 @@
     using Cedar.EventStore.Infrastructure;
     using Cedar.EventStore.SqlScripts;
     using Cedar.EventStore.Streams;
-    using Cedar.EventStore.Subscriptions;
     using EnsureThat;
 
     public sealed partial class MsSqlEventStore : IEventStore
     {
         private readonly Func<SqlConnection> _createConnection;
         private readonly InterlockedBoolean _isDisposed = new InterlockedBoolean();
-        private readonly Lazy<Task<SqlEventsWatcher>> _lazySqlEventsWatcher;
 
         public MsSqlEventStore(string connectionString)
         {
             Ensure.That(connectionString, nameof(connectionString)).IsNotNullOrWhiteSpace();
 
             _createConnection = () => new SqlConnection(connectionString);
-            _lazySqlEventsWatcher = new Lazy<Task<SqlEventsWatcher>>(() => CreateSqlEventsWatcher(connectionString));
         }
-
-        public string StartCheckpoint => LongCheckpoint.Start.Value;
-
-        public string EndCheckpoint => LongCheckpoint.End.Value;
 
         public Task DeleteStream(
             string streamId,
@@ -248,7 +241,7 @@
                     var streamEvent = new StreamEvent(streamId,
                         eventId,
                         streamVersion1,
-                        ordinal.ToString(),
+                        ordinal,
                         created,
                         type,
                         jsonData,
@@ -287,10 +280,6 @@
             {
                 return;
             }
-            if(_lazySqlEventsWatcher.IsValueCreated)
-            {
-                _lazySqlEventsWatcher.Value.Dispose();
-            }
         }
 
         private static async Task<T> ExecuteAndIgnoreErrors<T>(Func<Task<T>> operation)
@@ -303,13 +292,6 @@
             {
                 return default(T);
             }
-        }
-
-        private async Task<SqlEventsWatcher> CreateSqlEventsWatcher(string connectionString)
-        {
-            var watcher = new SqlEventsWatcher(connectionString, this);
-            await watcher.Start();
-            return watcher;
         }
 
         private void CheckIfDisposed()

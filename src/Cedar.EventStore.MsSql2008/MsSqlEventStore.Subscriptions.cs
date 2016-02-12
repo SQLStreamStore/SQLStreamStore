@@ -15,13 +15,11 @@
             string name,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var watcher = await _lazySqlEventsWatcher.Value;
-
-            return watcher.SubscribeToStream(streamId, streamEventReceived, subscriptionDropped);
+            throw new NotImplementedException();
         }
 
         public Task<IAllStreamSubscription> SubscribeToAll(
-            string fromCheckpoint,
+            long? fromCheckpoint,
             StreamEventReceived streamEventReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null,

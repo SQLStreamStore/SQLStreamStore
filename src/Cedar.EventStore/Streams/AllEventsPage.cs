@@ -4,15 +4,15 @@
 
     public sealed class AllEventsPage
     {
-        public readonly string FromCheckpoint;
-        public readonly string NextCheckpoint;
+        public readonly long FromCheckpoint;
+        public readonly long NextCheckpoint;
         public readonly bool IsEnd;
         public readonly ReadDirection Direction;
         public readonly IReadOnlyCollection<StreamEvent> StreamEvents;
 
         public AllEventsPage(
-            string fromCheckpoint,
-            string nextCheckpoint,
+            long fromCheckpoint,
+            long nextCheckpoint,
             bool isEnd,
             ReadDirection direction,
             params StreamEvent[] streamEvents)

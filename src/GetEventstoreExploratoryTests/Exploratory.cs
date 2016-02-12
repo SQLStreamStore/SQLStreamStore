@@ -129,7 +129,7 @@ namespace Cedar.EventStore
         }
 
         [Fact]
-        public async Task Read_all_events()
+        public async Task Read_all_events_forwards()
         {
             await _node.StartAndWaitUntilInitialized();
 
@@ -139,8 +139,6 @@ namespace Cedar.EventStore
                 var eventData = new EventData(Guid.NewGuid(), "type", false, null, null);
                 await connection.AppendToStreamAsync(streamId, ExpectedVersion.NoStream, eventData);
 
-                var streamEventsSlice = await connection.ReadStreamEventsForwardAsync(streamId, 0, 10, true);
-
                 var allEventsSlice = await connection.ReadAllEventsForwardAsync(Position.Start, 200, true);
 
                 foreach(var resolvedEvent in allEventsSlice.Events)
@@ -149,6 +147,31 @@ namespace Cedar.EventStore
                         $"{resolvedEvent.OriginalStreamId} {resolvedEvent.OriginalEventNumber} " +
                         $"{resolvedEvent.Event.EventType} {resolvedEvent.OriginalEvent.EventType}");
 
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Read_all_events_backwards()
+        {
+            await _node.StartAndWaitUntilInitialized();
+
+            using (var connection = EmbeddedEventStoreConnection.Create(_node, _connectionSettingsBuilder))
+            {
+                string streamId = "stream-1";
+                var eventData = new EventData(Guid.NewGuid(), "type", false, null, null);
+                await connection.AppendToStreamAsync(streamId, ExpectedVersion.NoStream, eventData);
+
+                var allEventsSlice = await connection.ReadAllEventsBackwardAsync(Position.End, 1000, true);
+
+                _testOutputHelper.WriteLine($"FromPosition = {allEventsSlice.FromPosition}");
+                _testOutputHelper.WriteLine($"NextPosition = {allEventsSlice.NextPosition}");
+
+                foreach (var resolvedEvent in allEventsSlice.Events)
+                {
+                    _testOutputHelper.WriteLine(
+                        $"{resolvedEvent.OriginalStreamId} {resolvedEvent.OriginalEventNumber} " +
+                        $"{resolvedEvent.Event.EventType} {resolvedEvent.OriginalEvent.EventType}");
                 }
             }
         }

@@ -14,7 +14,7 @@
                 "stream",
                 Guid.NewGuid(),
                 1,
-                "cp",
+                2,
                 DateTime.UtcNow,
                 "type",
                 "\"data\"",

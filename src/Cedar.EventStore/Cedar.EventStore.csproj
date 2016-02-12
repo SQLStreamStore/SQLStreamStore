@@ -45,6 +45,7 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Streams\Checkpoint.cs" />
     <Compile Include="EventStoreExtensions.cs" />
     <Compile Include="IAllStreamSubscription.cs" />
     <Compile Include="IEventStore.cs" />
@@ -52,7 +53,6 @@
     <Compile Include="Infrastructure\GetUtcNow.cs" />
     <Compile Include="Infrastructure\InterlockedBoolean.cs" />
     <Compile Include="Infrastructure\InterlockedBooleanExtensions.cs" />
-    <Compile Include="Infrastructure\LongCheckpoint.cs" />
     <Compile Include="Infrastructure\StringExtensions.cs" />
     <Compile Include="Infrastructure\SystemClock.cs" />
     <Compile Include="Infrastructure\TaskExtensions.cs" />
@@ -69,7 +69,6 @@
     <Compile Include="Streams\AllEventsPage.cs" />
     <Compile Include="Subscriptions\StreamEventReceived.cs" />
     <Compile Include="Streams\ExpectedVersion.cs" />
-    <Compile Include="Streams\ICheckpoint.cs" />
     <Compile Include="Streams\Messages.Designer.cs" />
     <Compile Include="Streams\NewStreamEvent.cs" />
     <Compile Include="Streams\PageReadStatus.cs" />

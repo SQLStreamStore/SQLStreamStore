@@ -12,12 +12,11 @@
     public partial class MsSqlEventStore
     {
         public Task<AllEventsPage> ReadAll(
-           string fromCheckpoint,
-           int maxCount,
-           ReadDirection direction = ReadDirection.Forward,
-           CancellationToken cancellationToken = default(CancellationToken))
+            long fromCheckpoint,
+            int maxCount,
+            ReadDirection direction = ReadDirection.Forward,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            Ensure.That(fromCheckpoint, nameof(fromCheckpoint)).IsNotNull();
             Ensure.That(maxCount, nameof(maxCount)).IsGt(0).And().IsLte(1000);
             CheckIfDisposed();
 
@@ -27,15 +26,14 @@
         }
 
         private async Task<AllEventsPage> ReadAllForwards(
-            string fromCheckpoint,
+            long fromCheckpoint,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            Ensure.That(fromCheckpoint, nameof(fromCheckpoint)).IsNotNull();
             Ensure.That(maxCount, nameof(maxCount)).IsGt(0).And().IsLte(1000);
             CheckIfDisposed();
 
-            long ordinal = LongCheckpoint.Parse(fromCheckpoint).LongValue;
+            long ordinal = fromCheckpoint;
 
             using (var connection = _createConnection())
             {
@@ -75,7 +73,7 @@
                         var streamEvent = new StreamEvent(streamId,
                             eventId,
                             streamVersion,
-                            ordinal.ToString(),
+                            ordinal,
                             created,
                             type,
                             jsonData,
@@ -92,11 +90,11 @@
                         streamEvents.RemoveAt(maxCount);
                     }
 
-                    var nextCheckpoint = LongCheckpoint.Parse(streamEvents[streamEvents.Count - 1].Checkpoint).LongValue + 1;
+                    var nextCheckpoint = streamEvents[streamEvents.Count - 1].Checkpoint + 1;
 
                     return new AllEventsPage(
                         fromCheckpoint,
-                        nextCheckpoint.ToString(),
+                        nextCheckpoint,
                         isEnd,
                         ReadDirection.Forward,
                         streamEvents.ToArray());
@@ -105,15 +103,14 @@
         }
 
         private async Task<AllEventsPage> ReadAllBackwards(
-            string fromCheckpoint,
+            long fromCheckpoint,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            Ensure.That(fromCheckpoint, nameof(fromCheckpoint)).IsNotNull();
             Ensure.That(maxCount, nameof(maxCount)).IsGt(0).And().IsLte(1000);
             CheckIfDisposed();
 
-            long ordinal = LongCheckpoint.Parse(fromCheckpoint).LongValue;
+            long ordinal = fromCheckpoint;
 
             using (var connection = _createConnection())
             {
@@ -134,7 +131,7 @@
                         // regardles of what the fromCheckpoint is.
                         return new AllEventsPage(
                             fromCheckpoint,
-                            LongCheckpoint.Start.Value,
+                            Checkpoint.Start,
                             true,
                             ReadDirection.Backward,
                             streamEvents.ToArray());
@@ -155,7 +152,7 @@
                         var streamEvent = new StreamEvent(streamId,
                             eventId,
                             streamVersion,
-                            ordinal.ToString(),
+                            ordinal,
                             created,
                             type,
                             jsonData,
@@ -176,7 +173,7 @@
 
                     return new AllEventsPage(
                         fromCheckpoint,
-                        nextCheckpoint.ToString(),
+                        nextCheckpoint,
                         isEnd,
                         ReadDirection.Backward,
                         streamEvents.ToArray());

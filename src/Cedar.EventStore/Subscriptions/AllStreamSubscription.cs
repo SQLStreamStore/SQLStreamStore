@@ -11,21 +11,17 @@
         private readonly IReadOnlyEventStore _readOnlyEventStore;
         private readonly IObservable<Unit> _eventStoreAppendedNotification;
         private readonly StreamEventReceived _streamEventReceived;
-        private readonly string _endCheckpoint;
-        private readonly string _startCheckpoint;
         private readonly SubscriptionDropped _subscriptionDropped;
         private readonly CancellationTokenSource _isDisposed = new CancellationTokenSource();
-        private string _lastCheckpoint;
+        private long? _lastCheckpoint;
         private readonly InterlockedBoolean _isFetching = new InterlockedBoolean();
         private int _pageSize = 50;
         private IDisposable _eventStoreAppendedSubscription;
 
         public AllStreamSubscription(
-            string fromCheckpoint,
+            long? fromCheckpoint,
             IReadOnlyEventStore readOnlyEventStore,
             IObservable<Unit> eventStoreAppendedNotification,
-            string endCheckpoint,
-            string startCheckpoint,
             StreamEventReceived streamEventReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null)
@@ -33,8 +29,6 @@
             _lastCheckpoint = fromCheckpoint;
             _readOnlyEventStore = readOnlyEventStore;
             _streamEventReceived = streamEventReceived;
-            _endCheckpoint = endCheckpoint;
-            _startCheckpoint = startCheckpoint;
             _eventStoreAppendedNotification = eventStoreAppendedNotification;
             _subscriptionDropped = subscriptionDropped ?? ((_, __) => { });
             Name = string.IsNullOrWhiteSpace(name) ? Guid.NewGuid().ToString() : name;
@@ -42,7 +36,7 @@
 
         public string Name { get; }
 
-        public string LastCheckpoint => _lastCheckpoint;
+        public long? LastCheckpoint => _lastCheckpoint;
 
         public int PageSize
         {
@@ -52,11 +46,11 @@
 
         public async Task Start(CancellationToken cancellationToken)
         {
-            if(_lastCheckpoint == _endCheckpoint)
+            if(_lastCheckpoint == Checkpoint.End)
             {
                 // Get the last stream version and subscribe from there.
                 var eventsPage = await _readOnlyEventStore.ReadAll(
-                    _endCheckpoint,
+                    Checkpoint.End,
                     1,
                     ReadDirection.Forward,
                     cancellationToken).NotOnCapturedContext();
@@ -86,7 +80,7 @@
                 {
                     var allEventsPage = await _readOnlyEventStore
                         .ReadAll(
-                            _lastCheckpoint,
+                            _lastCheckpoint.Value,
                             _pageSize,
                             ReadDirection.Forward,
                             _isDisposed.Token)

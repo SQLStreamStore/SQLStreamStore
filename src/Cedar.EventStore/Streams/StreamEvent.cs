@@ -4,7 +4,7 @@
 
     public sealed class StreamEvent
     {
-        public readonly string Checkpoint;
+        public readonly long Checkpoint;
         public readonly DateTimeOffset Created;
         public readonly Guid EventId;
         public readonly string JsonData;
@@ -17,7 +17,7 @@
             string streamId,
             Guid eventId,
             int streamVersion,
-            string checkpoint,
+            long checkpoint,
             DateTimeOffset created,
             string type,
             string jsonData,

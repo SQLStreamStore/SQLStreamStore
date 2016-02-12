@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Diagnostics;
     using System.Threading.Tasks;
     using Cedar.EventStore.Streams;
     using Shouldly;
@@ -39,7 +40,7 @@
                     {
                         await AppendEvents(eventStore, streamId1, 2);
 
-                        var receivedEvent = await receiveEvents.Task.WithTimeout(1000);
+                        var receivedEvent = await receiveEvents.Task.WithTimeout();
 
                         receivedCount.ShouldBe(12);
                         subscription.StreamId.ShouldBe(streamId1);
@@ -66,8 +67,8 @@
 
                     var receiveEvents = new TaskCompletionSource<StreamEvent>();
                     List<StreamEvent> receivedEvents = new List<StreamEvent>();
-                    using(var subscription = await eventStore.SubscribeToAll(
-                        eventStore.StartCheckpoint,
+                    using(await eventStore.SubscribeToAll(
+                        Checkpoint.Start,
                         streamEvent =>
                         {
                             receivedEvents.Add(streamEvent);
@@ -80,7 +81,7 @@
                     {
                         await AppendEvents(eventStore, streamId1, 1);
 
-                        await receiveEvents.Task.WithTimeout(1000);
+                        await receiveEvents.Task.WithTimeout();
 
                         receivedEvents.Count.ShouldBe(7);
                     }
@@ -118,7 +119,7 @@
                     {
                         await AppendEvents(eventStore, streamId1, 2);
 
-                        var receivedEvent = await receiveEvents.Task.WithTimeout(5000);
+                        var receivedEvent = await receiveEvents.Task.WithTimeout();
 
                         receivedCount.ShouldBe(2);
                         subscription.StreamId.ShouldBe(streamId1);
@@ -146,9 +147,10 @@
                     var receiveEvents = new TaskCompletionSource<StreamEvent>();
                     List<StreamEvent> receivedEvents = new List<StreamEvent>();
                     using (await eventStore.SubscribeToAll(
-                        eventStore.EndCheckpoint,
+                        Checkpoint.End,
                         streamEvent =>
                         {
+                            _testOutputHelper.WriteLine($"StreamId={streamEvent.StreamId} Version={streamEvent.StreamVersion} ");
                             receivedEvents.Add(streamEvent);
                             if (streamEvent.StreamId == streamId1 && streamEvent.StreamVersion == 11)
                             {
@@ -159,7 +161,7 @@
                     {
                         await AppendEvents(eventStore, streamId1, 2);
 
-                        await receiveEvents.Task.WithTimeout(1000);
+                        await receiveEvents.Task.WithTimeout();
 
                         receivedEvents.Count.ShouldBe(2);
                     }
@@ -170,6 +172,7 @@
         [Fact]
         public async Task Given_empty_eventstore_can_subscribe_to_all_stream_from_end()
         {
+            var stopwatch = Stopwatch.StartNew();
             using (var fixture = GetFixture())
             {
                 using (var eventStore = await fixture.GetEventStore())
@@ -178,9 +181,10 @@
                     var receiveEvents = new TaskCompletionSource<StreamEvent>();
                     List<StreamEvent> receivedEvents = new List<StreamEvent>();
                     using (await eventStore.SubscribeToAll(
-                        eventStore.EndCheckpoint,
+                        Checkpoint.End,
                         streamEvent =>
                         {
+                            _testOutputHelper.WriteLine($"{stopwatch.ElapsedMilliseconds.ToString()} {streamEvent.StreamVersion}");
                             receivedEvents.Add(streamEvent);
                             if (streamEvent.StreamId == streamId1 && streamEvent.StreamVersion == 9)
                             {
@@ -192,7 +196,7 @@
                         
                         await AppendEvents(eventStore, streamId1, 10);
 
-                        await receiveEvents.Task.WithTimeout(5000);
+                        await receiveEvents.Task.WithTimeout();
 
                         receivedEvents.Count.ShouldBe(10);
                     }
@@ -238,7 +242,7 @@
                     {
                         await AppendEvents(eventStore, streamId1, 2);
 
-                        var receivedEvent = await receiveEvents.Task;
+                        var receivedEvent = await receiveEvents.Task.WithTimeout();
 
                         receivedCount.ShouldBe(4);
                         subscription.StreamId.ShouldBe(streamId1);

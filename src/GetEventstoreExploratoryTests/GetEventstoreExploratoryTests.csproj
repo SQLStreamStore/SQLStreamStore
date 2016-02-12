@@ -1,19 +1,18 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="12.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{B3FD2834-6062-46A4-BA50-8C9F00C7F716}</ProjectGuid>
+    <ProjectGuid>{2E25DAFA-D0C8-4EB8-BA00-33E8CC8B6DAF}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Cedar.EventStore</RootNamespace>
-    <AssemblyName>Cedar.EventStore.GetEventStore.Tests</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
+    <RootNamespace>GetEventstoreExploratoryTests</RootNamespace>
+    <AssemblyName>GetEventstoreExploratoryTests</AssemblyName>
+    <TargetFrameworkVersion>v4.5.2</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
     </NuGetPackageImportStamp>
-    <TargetFrameworkProfile />
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -48,10 +47,10 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Xml" />
-    <Reference Include="System.Xml.Linq" />
-    <Reference Include="xunit.abstractions">
+    <Reference Include="System.Net.Http" />
+    <Reference Include="xunit.abstractions, Version=2.0.0.0, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <HintPath>..\packages\xunit.abstractions.2.0.0\lib\net35\xunit.abstractions.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="xunit.core, Version=2.1.0.3179, Culture=neutral, PublicKeyToken=8d05b1bb7a6fdb6c, processorArchitecture=MSIL">
       <HintPath>..\packages\xunit.extensibility.core.2.1.0\lib\dotnet\xunit.core.dll</HintPath>
@@ -63,53 +62,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTestFixture.cs">
-      <Link>EventStoreAcceptanceTestFixture.cs</Link>
-    </Compile>
-    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.AppendStream.cs">
-      <Link>EventStoreAcceptanceTests.AppendStream.cs</Link>
-    </Compile>
-    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.cs">
-      <Link>EventStoreAcceptanceTests.cs</Link>
-    </Compile>
-    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.DeleteStream.cs">
-      <Link>EventStoreAcceptanceTests.DeleteStream.cs</Link>
-    </Compile>
-    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadAll.cs">
-      <Link>EventStoreAcceptanceTests.ReadAll.cs</Link>
-    </Compile>
-    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadPastEndOfAllStream.cs">
-      <Link>EventStoreAcceptanceTests.ReadPastEndOfAllStream.cs</Link>
-    </Compile>
-    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadStream.cs">
-      <Link>EventStoreAcceptanceTests.ReadStream.cs</Link>
-    </Compile>
-    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.Subscriptions.cs">
-      <Link>EventStoreAcceptanceTests.Subscriptions.cs</Link>
-    </Compile>
     <Compile Include="..\SharedAssemblyInfo.cs">
-      <Link>Properties\SharedAssemblyInfo.cs</Link>
+      <Link>SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="ClusterVNodeExtensions.cs" />
-    <Compile Include="GesEventStoreFixture.cs" />
-    <Compile Include="GesEventStoreTests.cs" />
     <Compile Include="Exploratory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="packages.config">
-      <SubType>Designer</SubType>
-    </None>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\Cedar.EventStore.GetEventStore\Cedar.EventStore.GetEventStore.csproj">
-      <Project>{1E5E90BF-6481-4EDD-B6E2-560E617B35A9}</Project>
-      <Name>Cedar.EventStore.GetEventStore</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Cedar.EventStore\Cedar.EventStore.csproj">
-      <Project>{5A8DF1A1-9B3B-499D-B9E9-A5E0F6F06953}</Project>
-      <Name>Cedar.EventStore</Name>
-    </ProjectReference>
+    <None Include="packages.config" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Import Project="..\packages\EventStore.Client.Embedded.3.4.0\build\EventStore.Client.Embedded.targets" Condition="Exists('..\packages\EventStore.Client.Embedded.3.4.0\build\EventStore.Client.Embedded.targets')" />

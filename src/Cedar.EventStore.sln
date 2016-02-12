@@ -4,10 +4,6 @@ VisualStudioVersion = 14.0.24720.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.Tests", "Cedar.EventStore.Tests\Cedar.EventStore.Tests.csproj", "{F3FB96CF-4A3D-448D-A25E-6BC66E370BF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.GetEventStore.Tests", "Cedar.EventStore.GetEventStore.Tests\Cedar.EventStore.GetEventStore.Tests.csproj", "{B3FD2834-6062-46A4-BA50-8C9F00C7F716}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.GetEventStore", "Cedar.EventStore.GetEventStore\Cedar.EventStore.GetEventStore.csproj", "{1E5E90BF-6481-4EDD-B6E2-560E617B35A9}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.MsSql2008", "Cedar.EventStore.MsSql2008\Cedar.EventStore.MsSql2008.csproj", "{40510896-D9A1-4E22-8D11-E718857611F8}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.MsSql2008.Tests", "Cedar.EventStore.MsSql2008.Tests\Cedar.EventStore.MsSql2008.Tests.csproj", "{97AA016B-0B9F-44C2-8228-A13B4E251FB0}"
@@ -27,6 +23,8 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Cedar.EventStore.Acceptance
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore", "Cedar.EventStore\Cedar.EventStore.csproj", "{5A8DF1A1-9B3B-499D-B9E9-A5E0F6F06953}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GetEventstoreExploratoryTests", "GetEventstoreExploratoryTests\GetEventstoreExploratoryTests.csproj", "{2E25DAFA-D0C8-4EB8-BA00-33E8CC8B6DAF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -37,14 +35,6 @@ Global
 		{F3FB96CF-4A3D-448D-A25E-6BC66E370BF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F3FB96CF-4A3D-448D-A25E-6BC66E370BF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3FB96CF-4A3D-448D-A25E-6BC66E370BF6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{B3FD2834-6062-46A4-BA50-8C9F00C7F716}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{B3FD2834-6062-46A4-BA50-8C9F00C7F716}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{B3FD2834-6062-46A4-BA50-8C9F00C7F716}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{B3FD2834-6062-46A4-BA50-8C9F00C7F716}.Release|Any CPU.Build.0 = Release|Any CPU
-		{1E5E90BF-6481-4EDD-B6E2-560E617B35A9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{1E5E90BF-6481-4EDD-B6E2-560E617B35A9}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{1E5E90BF-6481-4EDD-B6E2-560E617B35A9}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{1E5E90BF-6481-4EDD-B6E2-560E617B35A9}.Release|Any CPU.Build.0 = Release|Any CPU
 		{40510896-D9A1-4E22-8D11-E718857611F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{40510896-D9A1-4E22-8D11-E718857611F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{40510896-D9A1-4E22-8D11-E718857611F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -57,6 +47,10 @@ Global
 		{5A8DF1A1-9B3B-499D-B9E9-A5E0F6F06953}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A8DF1A1-9B3B-499D-B9E9-A5E0F6F06953}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A8DF1A1-9B3B-499D-B9E9-A5E0F6F06953}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2E25DAFA-D0C8-4EB8-BA00-33E8CC8B6DAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2E25DAFA-D0C8-4EB8-BA00-33E8CC8B6DAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2E25DAFA-D0C8-4EB8-BA00-33E8CC8B6DAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2E25DAFA-D0C8-4EB8-BA00-33E8CC8B6DAF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

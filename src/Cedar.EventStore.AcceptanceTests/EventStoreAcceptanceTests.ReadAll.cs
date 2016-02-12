@@ -49,7 +49,6 @@
                         var streamEvent = streamEvents[i];
                         var expectedEvent = expectedEvents[i];
 
-
                         streamEvent.EventId.ShouldBe(expectedEvent.EventId);
                         streamEvent.JsonData.ShouldBe(expectedEvent.JsonData);
                         streamEvent.JsonMetadata.ShouldBe(expectedEvent.JsonMetadata);

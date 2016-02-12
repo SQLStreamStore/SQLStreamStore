@@ -3,7 +3,7 @@
   <BuildPriority>1000</BuildPriority>
   <CopyReferencedAssembliesToWorkspace>false</CopyReferencedAssembliesToWorkspace>
   <ConsiderInconclusiveTestsAsPassing>false</ConsiderInconclusiveTestsAsPassing>
-  <PreloadReferencedAssemblies>true</PreloadReferencedAssemblies>
+  <PreloadReferencedAssemblies>false</PreloadReferencedAssemblies>
   <AllowDynamicCodeContractChecking>true</AllowDynamicCodeContractChecking>
   <AllowStaticCodeContractChecking>false</AllowStaticCodeContractChecking>
   <AllowCodeAnalysis>false</AllowCodeAnalysis>
@@ -13,15 +13,14 @@
   <PreviouslyBuiltSuccessfully>true</PreviouslyBuiltSuccessfully>
   <InstrumentAssembly>true</InstrumentAssembly>
   <PreventSigningOfAssembly>false</PreventSigningOfAssembly>
-  <AnalyseExecutionTimes>false</AnalyseExecutionTimes>
+  <AnalyseExecutionTimes>true</AnalyseExecutionTimes>
   <DetectStackOverflow>true</DetectStackOverflow>
   <IncludeStaticReferencesInWorkspace>true</IncludeStaticReferencesInWorkspace>
   <DefaultTestTimeout>60000</DefaultTestTimeout>
-  <UseBuildConfiguration></UseBuildConfiguration>
-  <UseBuildPlatform></UseBuildPlatform>
-  <ProxyProcessPath></ProxyProcessPath>
+  <UseBuildConfiguration />
+  <UseBuildPlatform />
+  <ProxyProcessPath />
   <UseCPUArchitecture>AutoDetect</UseCPUArchitecture>
   <MSTestThreadApartmentState>STA</MSTestThreadApartmentState>
-  <BuildProcessArchitecture>x64</BuildProcessArchitecture>
-  <HiddenWarnings>LongTestTimesWithoutParallelExecution</HiddenWarnings>
+  <BuildProcessArchitecture>x86</BuildProcessArchitecture>
 </ProjectConfiguration>

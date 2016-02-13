@@ -7,18 +7,18 @@
 
     public sealed partial class MsSqlEventStore
     {
-        public async Task<IStreamSubscription> SubscribeToStream(
+        protected override async Task<IStreamSubscription> SubscribeToStreamInternal(
             string streamId,
             int startPosition,
             StreamEventReceived streamEventReceived,
-            SubscriptionDropped subscriptionDropped,
-            string name,
+            SubscriptionDropped subscriptionDropped = null,
+            string name = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             throw new NotImplementedException();
         }
 
-        public Task<IAllStreamSubscription> SubscribeToAll(
+        protected override Task<IAllStreamSubscription> SubscribeToAllInternal(
             long? fromCheckpoint,
             StreamEventReceived streamEventReceived,
             SubscriptionDropped subscriptionDropped = null,

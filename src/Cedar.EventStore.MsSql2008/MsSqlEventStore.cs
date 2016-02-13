@@ -13,7 +13,7 @@
     using Cedar.EventStore.Streams;
     using EnsureThat;
 
-    public sealed partial class MsSqlEventStore : IEventStore
+    public sealed partial class MsSqlEventStore : EventStoreBase
     {
         private readonly Func<SqlConnection> _createConnection;
         private readonly InterlockedBoolean _isDisposed = new InterlockedBoolean();
@@ -25,7 +25,7 @@
             _createConnection = () => new SqlConnection(connectionString);
         }
 
-        public Task DeleteStream(
+        protected override Task DeleteStreamInternal(
             string streamId,
             int expectedVersion = ExpectedVersion.Any,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -94,7 +94,7 @@
             }
         }
 
-        public async Task<StreamEventsPage> ReadStream(
+        protected override async Task<StreamEventsPage> ReadStreamInternal(
             string streamId,
             int start,
             int count,
@@ -274,7 +274,7 @@
             }
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             if(_isDisposed.EnsureCalledOnce())
             {

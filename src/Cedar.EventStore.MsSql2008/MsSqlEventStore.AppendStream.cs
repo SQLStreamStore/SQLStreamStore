@@ -24,7 +24,7 @@
             new SqlMetaData("JsonMetadata", SqlDbType.NVarChar, SqlMetaData.Max),
         };
 
-        public Task AppendToStream(
+        protected override Task AppendToStreamInternal(
            string streamId,
            int expectedVersion,
            NewStreamEvent[] events,

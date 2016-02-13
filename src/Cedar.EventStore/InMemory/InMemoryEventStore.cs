@@ -11,7 +11,7 @@ namespace Cedar.EventStore
     using Cedar.EventStore.Streams;
     using Cedar.EventStore.Subscriptions;
 
-    public sealed class InMemoryEventStore : IEventStore
+    public sealed class InMemoryEventStore : EventStoreBase
     {
         private readonly GetUtcNow _getUtcNow;
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
@@ -37,7 +37,7 @@ namespace Cedar.EventStore
             _onStreamAppended = () => _subscriptions.OnNext(Unit.Default);
         }
 
-        public void Dispose()
+        public override void Dispose()
         {
             if(_isDisposed)
             {
@@ -57,7 +57,7 @@ namespace Cedar.EventStore
             }
         }
 
-        public Task AppendToStream(
+        protected override Task AppendToStreamInternal(
             string streamId,
             int expectedVersion,
             NewStreamEvent[] events,
@@ -104,7 +104,7 @@ namespace Cedar.EventStore
             }
         }
 
-        public Task DeleteStream(
+        protected override Task DeleteStreamInternal(
             string streamId,
             int expectedVersion = ExpectedVersion.Any,
             CancellationToken cancellationToken = new CancellationToken())
@@ -133,7 +133,7 @@ namespace Cedar.EventStore
             }
         }
 
-        public Task<AllEventsPage> ReadAll(
+        protected override Task<AllEventsPage> ReadAllInternal(
             long fromCheckpoint,
             int maxCount,
             ReadDirection direction = ReadDirection.Forward,
@@ -268,7 +268,7 @@ namespace Cedar.EventStore
             return page;
         }
 
-        public Task<StreamEventsPage> ReadStream(
+        protected override Task<StreamEventsPage> ReadStreamInternal(
             string streamId,
             int start,
             int count,
@@ -311,7 +311,7 @@ namespace Cedar.EventStore
             }
         }
 
-        public async Task<IStreamSubscription> SubscribeToStream(
+        protected override async Task<IStreamSubscription> SubscribeToStreamInternal(
             string streamId,
             int startPosition,
             StreamEventReceived streamEventReceived,
@@ -324,7 +324,7 @@ namespace Cedar.EventStore
             return subscription;
         }
 
-        public async Task<IAllStreamSubscription> SubscribeToAll(
+        protected override async Task<IAllStreamSubscription> SubscribeToAllInternal(
             long? fromCheckpoint,
             StreamEventReceived streamEventReceived,
             SubscriptionDropped subscriptionDropped = null,

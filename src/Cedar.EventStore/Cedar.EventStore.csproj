@@ -46,6 +46,8 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
+    <Compile Include="Infrastructure\EventStoreBase.cs" />
+    <Compile Include="Infrastructure\ReadonlyEventStoreBase.cs" />
     <Compile Include="Streams\Checkpoint.cs" />
     <Compile Include="EventStoreExtensions.cs" />
     <Compile Include="IAllStreamSubscription.cs" />

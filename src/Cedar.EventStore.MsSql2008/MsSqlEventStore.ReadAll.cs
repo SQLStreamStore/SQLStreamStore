@@ -11,7 +11,7 @@
 
     public partial class MsSqlEventStore
     {
-        public Task<AllEventsPage> ReadAll(
+        protected override Task<AllEventsPage> ReadAllInternal(
             long fromCheckpoint,
             int maxCount,
             ReadDirection direction = ReadDirection.Forward,

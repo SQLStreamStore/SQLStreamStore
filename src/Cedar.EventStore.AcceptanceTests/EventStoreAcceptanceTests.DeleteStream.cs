@@ -2,7 +2,6 @@
 {
     using System;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Infrastructure;
     using Cedar.EventStore.Streams;
     using Shouldly;
     using Xunit;
@@ -89,7 +88,7 @@
                     var exception = await Record.ExceptionAsync(() => 
                         eventStore.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(2)));
 
-                    exception.ShouldBeOfType<StreamDeletedException>(Messages.EventStreamIsDeleted.FormatWith(streamId));
+                    exception.ShouldBeOfType<StreamDeletedException>(Messages.EventStreamIsDeleted(streamId));
                 }
             }
         }
@@ -124,7 +123,7 @@
                         eventStore.DeleteStream(streamId, expectedVersion));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
-                        Messages.DeleteStreamFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion));
+                        Messages.DeleteStreamFailedWrongExpectedVersion(streamId, expectedVersion));
                 }
             }
         }
@@ -143,7 +142,7 @@
                         eventStore.DeleteStream(streamId, 100));
                     
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
-                            Messages.DeleteStreamFailedWrongExpectedVersion.FormatWith(streamId, 100));
+                            Messages.DeleteStreamFailedWrongExpectedVersion(streamId, 100));
                 }
             }
         }

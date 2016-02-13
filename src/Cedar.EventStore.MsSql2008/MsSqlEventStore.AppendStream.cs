@@ -93,7 +93,7 @@
                             if (events.Length > page.Events.Length)
                             {
                                 throw new WrongExpectedVersionException(
-                                    Messages.AppendFailedWrongExpectedVersion.FormatWith(streamIdInfo.Id, expectedVersion),
+                                    Messages.AppendFailedWrongExpectedVersion(streamIdInfo.Id, expectedVersion),
                                     ex);
                             }
 
@@ -102,7 +102,7 @@
                                 if (events[i].EventId != page.Events[i].EventId)
                                 {
                                     throw new WrongExpectedVersionException(
-                                        Messages.AppendFailedWrongExpectedVersion.FormatWith(streamIdInfo.Id, expectedVersion),
+                                        Messages.AppendFailedWrongExpectedVersion(streamIdInfo.Id, expectedVersion),
                                         ex);
                                 }
                             }
@@ -113,7 +113,7 @@
                         if (ex.IsUniqueConstraintViolation())
                         {
                             throw new WrongExpectedVersionException(
-                                Messages.AppendFailedWrongExpectedVersion.FormatWith(streamIdInfo.Id, expectedVersion),
+                                Messages.AppendFailedWrongExpectedVersion(streamIdInfo.Id, expectedVersion),
                                 ex);
                         }
 
@@ -169,7 +169,7 @@
                             if (events.Length > page.Events.Length)
                             {
                                 throw new WrongExpectedVersionException(
-                                    Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
+                                    Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion),
                                     ex);
                             }
 
@@ -178,7 +178,7 @@
                                 if (events[i].EventId != page.Events[i].EventId)
                                 {
                                     throw new WrongExpectedVersionException(
-                                        Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
+                                        Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion),
                                         ex);
                                 }
                             }
@@ -189,7 +189,7 @@
                         if (ex.IsUniqueConstraintViolation())
                         {
                             throw new WrongExpectedVersionException(
-                                Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
+                                Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion),
                                 ex);
                         }
 
@@ -244,7 +244,7 @@
                                 if (events.Length > page.Events.Length)
                                 {
                                     throw new WrongExpectedVersionException(
-                                        Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
+                                        Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion),
                                         ex);
                                 }
 
@@ -253,7 +253,7 @@
                                     if (events[i].EventId != page.Events[i].EventId)
                                     {
                                         throw new WrongExpectedVersionException(
-                                            Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
+                                            Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion),
                                             ex);
                                     }
                                 }
@@ -264,7 +264,7 @@
                         if (ex.IsUniqueConstraintViolation())
                         {
                             throw new WrongExpectedVersionException(
-                                Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion),
+                                Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion),
                                 ex);
                         }
                         throw;

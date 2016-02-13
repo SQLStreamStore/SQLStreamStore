@@ -1,7 +1,6 @@
 ﻿namespace Cedar.EventStore
 {
     using System.Threading.Tasks;
-    using Cedar.EventStore.Infrastructure;
     using Cedar.EventStore.Streams;
     using Shouldly;
     using Xunit;
@@ -23,7 +22,7 @@
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(2, 3, 4)));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
-                        Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, ExpectedVersion.NoStream));
+                        Messages.AppendFailedWrongExpectedVersion(streamId, ExpectedVersion.NoStream));
                 }
             }
         }
@@ -64,7 +63,7 @@
                         eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3)));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
-                        Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, ExpectedVersion.NoStream));
+                        Messages.AppendFailedWrongExpectedVersion(streamId, ExpectedVersion.NoStream));
                 }
             }
         }
@@ -104,7 +103,7 @@
                         eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(2)));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
-                            Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, ExpectedVersion.NoStream));
+                            Messages.AppendFailedWrongExpectedVersion(streamId, ExpectedVersion.NoStream));
                 }
             }
         }
@@ -124,7 +123,7 @@
                         eventStore.AppendToStream(streamId, 1, CreateNewStreamEvents(4, 5, 6)));
                     
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
-                        Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, 1));
+                        Messages.AppendFailedWrongExpectedVersion(streamId, 1));
                 }
             }
         }
@@ -201,7 +200,7 @@
                         eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(4, 5, 6, 7)));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
-                            Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, 2));
+                            Messages.AppendFailedWrongExpectedVersion(streamId, 2));
                 }
             }
         }
@@ -306,7 +305,7 @@
                         eventStore.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(2, 3, 4)));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
-                            Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, ExpectedVersion.Any));
+                            Messages.AppendFailedWrongExpectedVersion(streamId, ExpectedVersion.Any));
                 }
             }
         }
@@ -326,7 +325,7 @@
                         eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(1)));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
-                            Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, 2));
+                            Messages.AppendFailedWrongExpectedVersion(streamId, 2));
                 }
             }
         }

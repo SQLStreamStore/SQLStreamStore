@@ -204,7 +204,6 @@
             }
         }
 
-
         [Fact]
         public async Task Can_subscribe_to_a_stream_from_a_specific_version()
         {

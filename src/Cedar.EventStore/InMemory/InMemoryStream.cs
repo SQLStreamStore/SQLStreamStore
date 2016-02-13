@@ -36,7 +36,7 @@ namespace Cedar.EventStore.InMemory
         {
             if(_isDeleted)
             {
-                throw new StreamDeletedException(Messages.EventStreamIsDeleted.FormatWith(_streamId));
+                throw new StreamDeletedException(Messages.EventStreamIsDeleted(_streamId));
             }
 
             switch(expectedVersion)
@@ -63,7 +63,7 @@ namespace Cedar.EventStore.InMemory
             if(expectedVersion > 0 && expectedVersion != _events.Last().StreamVersion)
             {
                 throw new WrongExpectedVersionException(
-                   Messages.AppendFailedWrongExpectedVersion.FormatWith(_streamId, expectedVersion));
+                   Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
             }
 
             foreach (var inMemoryStreamEvent in _events)
@@ -82,7 +82,7 @@ namespace Cedar.EventStore.InMemory
             if(expectedVersion > currentVersion)
             {
                 throw new WrongExpectedVersionException(
-                    Messages.AppendFailedWrongExpectedVersion.FormatWith(_streamId, expectedVersion));
+                    Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
             }
 
             if(expectedVersion < currentVersion)
@@ -94,12 +94,12 @@ namespace Cedar.EventStore.InMemory
                     if(index >= _events.Count)
                     {
                         throw new WrongExpectedVersionException(
-                            Messages.AppendFailedWrongExpectedVersion.FormatWith(_streamId, expectedVersion));
+                            Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
                     }
                     if(_events[index].EventId != newEvents[i].EventId)
                     {
                         throw new WrongExpectedVersionException(
-                            Messages.AppendFailedWrongExpectedVersion.FormatWith(_streamId, expectedVersion));
+                            Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
                     }
                 }
                 return;
@@ -109,7 +109,7 @@ namespace Cedar.EventStore.InMemory
             if(newEvents.Any(newStreamEvent => _eventIds.Contains(newStreamEvent.EventId)))
             {
                 throw new WrongExpectedVersionException(
-                    Messages.AppendFailedWrongExpectedVersion.FormatWith(_streamId, expectedVersion));
+                    Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
             }
 
             AppendEvents(newEvents);
@@ -132,7 +132,7 @@ namespace Cedar.EventStore.InMemory
             {
                 // Some of the events have already been written, bad request
                 throw new WrongExpectedVersionException(
-                    Messages.AppendFailedWrongExpectedVersion.FormatWith(_streamId, expectedVersion));
+                    Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
             }
 
             // None of the events were written previously...
@@ -147,13 +147,13 @@ namespace Cedar.EventStore.InMemory
                 if(newEvents.Length > _events.Count)
                 {
                     throw new WrongExpectedVersionException(
-                        Messages.AppendFailedWrongExpectedVersion.FormatWith(_streamId, expectedVersion));
+                        Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
                 }
 
                 if(newEvents.Where((@event, index) => _events[index].EventId != @event.EventId).Any())
                 {
                     throw new WrongExpectedVersionException(
-                        Messages.AppendFailedWrongExpectedVersion.FormatWith(_streamId, expectedVersion));
+                        Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
                 }
                 return;
             }

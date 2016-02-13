@@ -92,7 +92,7 @@ namespace Cedar.EventStore
                 if (!_streams.TryGetValue(streamId, out inMemoryStream))
                 {
                     throw new WrongExpectedVersionException(
-                        Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion));
+                        Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
                 }
                 inMemoryStream.AppendToStream(expectedVersion, events);
 
@@ -120,7 +120,7 @@ namespace Cedar.EventStore
                     if(expectedVersion >= 0)
                     {
                         throw new WrongExpectedVersionException(
-                            Messages.AppendFailedWrongExpectedVersion.FormatWith(streamId, expectedVersion));
+                            Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
                     }
                     return Task.FromResult(0);
                 }

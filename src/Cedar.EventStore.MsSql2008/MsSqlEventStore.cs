@@ -85,7 +85,7 @@
                         if(ex.Message == "WrongExpectedVersion")
                         {
                             throw new WrongExpectedVersionException(
-                                string.Format(Messages.DeleteStreamFailedWrongExpectedVersion, streamIdInfo.Id, expectedVersion),
+                                Messages.DeleteStreamFailedWrongExpectedVersion(streamIdInfo.Id, expectedVersion),
                                 ex);
                         }
                         throw;

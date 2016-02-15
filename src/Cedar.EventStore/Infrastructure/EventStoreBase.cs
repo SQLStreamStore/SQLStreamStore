@@ -4,7 +4,7 @@ namespace Cedar.EventStore.Infrastructure
     using System.Threading.Tasks;
     using Cedar.EventStore.Streams;
 
-    public abstract class EventStoreBase : ReadonlyEventStoreBase2, IEventStore
+    public abstract class EventStoreBase : ReadOnlyEventStoreBase, IEventStore
     {
         public Task AppendToStream(
             string streamId,

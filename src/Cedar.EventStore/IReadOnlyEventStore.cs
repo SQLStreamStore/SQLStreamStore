@@ -7,22 +7,31 @@
 
     public interface IReadOnlyEventStore
     {
-        Task<AllEventsPage> ReadAll(
-            long fromCheckpoint,
+        Task<AllEventsPage> ReadAllForwards(
+            long fromCheckpointInclusive,
             int maxCount,
-            ReadDirection direction = ReadDirection.Forward,
             CancellationToken cancellationToken = default(CancellationToken));
 
-        Task<StreamEventsPage> ReadStream(
-            string streamId,
-            int start,
-            int count,
-            ReadDirection direction = ReadDirection.Forward,
+        Task<AllEventsPage> ReadAllBackwards(
+            long fromCheckpointInclusive,
+            int maxCount,
             CancellationToken cancellationToken = default(CancellationToken));
+
+        Task<StreamEventsPage> ReadStreamForwards(
+            string streamId,
+            int fromVersionInclusive,
+            int maxCount,
+            CancellationToken cancellationToken = default(CancellationToken));
+
+        Task<StreamEventsPage> ReadStreamBackwards(
+           string streamId,
+           int fromVersionInclusive,
+           int maxCount,
+           CancellationToken cancellationToken = default(CancellationToken));
 
         Task<IStreamSubscription> SubscribeToStream(
             string streamId,
-            int startPosition,
+            int fromVersionExclusive,
             StreamEventReceived streamEventReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null,

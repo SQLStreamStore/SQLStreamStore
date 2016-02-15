@@ -177,7 +177,7 @@ namespace Cedar.EventStore
         }
 
         [Fact]
-        public async Task Read_all_with_future_checkpoint()
+        public async Task Read_all_forwards()
         {
             await _node.StartAndWaitUntilInitialized();
 
@@ -185,18 +185,13 @@ namespace Cedar.EventStore
             {
                 var eventData = new EventData(Guid.NewGuid(), "type", false, null, null);
                 await connection.AppendToStreamAsync("stream-1", ExpectedVersion.NoStream, eventData);
-                await Task.Delay(500);
-                var allEventsSlice = await connection.ReadAllEventsForwardAsync(Position.Start, 1, true);
+
+                var allEventsSlice = await connection.ReadAllEventsForwardAsync(Position.End, 1, true);
 
                 _testOutputHelper.WriteLine($"FromPosition  {allEventsSlice.FromPosition}");
                 _testOutputHelper.WriteLine($"Next Position {allEventsSlice.NextPosition}");
                 _testOutputHelper.WriteLine($"Events Length {allEventsSlice.Events.Length}");
-
-                allEventsSlice = await connection.ReadAllEventsBackwardAsync(allEventsSlice.NextPosition, 10, true);
-
-                _testOutputHelper.WriteLine($"FromPosition  {allEventsSlice.FromPosition}");
-                _testOutputHelper.WriteLine($"Next Position {allEventsSlice.NextPosition}");
-                _testOutputHelper.WriteLine($"Events Length {allEventsSlice.Events.Length}");
+                //_testOutputHelper.WriteLine($"Events Length {allEventsSlice.Events[0].Event.EventType}");
             }
         }
 

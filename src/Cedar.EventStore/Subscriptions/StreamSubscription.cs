@@ -62,11 +62,10 @@
             if(_currentVersion == StreamVersion.End)
             {
                 // Get the last stream version and subscribe from there.
-                var eventsPage = await _readOnlyEventStore.ReadStream(
+                var eventsPage = await _readOnlyEventStore.ReadStreamBackwards(
                     _streamId,
                     StreamVersion.End,
                     1,
-                    ReadDirection.Backward,
                     cancellationToken).NotOnCapturedContext();
 
                 //Only new events, i.e. the one after the current last one 
@@ -98,11 +97,10 @@
                 while(!isEnd || _shouldFetch.CompareExchange(false, true))
                 {
                     var streamEventsPage = await _readOnlyEventStore
-                        .ReadStream(
+                        .ReadStreamForwards(
                             _streamId,
                             _currentVersion,
                             _pageSize,
-                            ReadDirection.Forward,
                             _isDisposed.Token)
                         .NotOnCapturedContext();
                     isEnd = streamEventsPage.IsEndOfStream;

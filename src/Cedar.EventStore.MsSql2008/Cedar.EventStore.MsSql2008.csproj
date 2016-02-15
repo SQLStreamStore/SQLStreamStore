@@ -58,6 +58,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Cedar.EventStore.MsSql.nuspec" />
+    <Compile Include="MsSqlEventStore.ReadStream.cs" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

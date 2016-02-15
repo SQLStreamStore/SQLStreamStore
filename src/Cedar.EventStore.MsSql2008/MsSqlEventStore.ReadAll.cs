@@ -2,38 +2,21 @@
 {
     using System.Collections.Generic;
     using System.Data.SqlClient;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Infrastructure;
     using Cedar.EventStore.SqlScripts;
     using Cedar.EventStore.Streams;
-    using EnsureThat;
 
     public partial class MsSqlEventStore
     {
-        protected override Task<AllEventsPage> ReadAllInternal(
-            long fromCheckpoint,
-            int maxCount,
-            ReadDirection direction = ReadDirection.Forward,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            Ensure.That(maxCount, nameof(maxCount)).IsGt(0).And().IsLte(1000);
-            CheckIfDisposed();
-
-            return direction == ReadDirection.Forward
-                ? ReadAllForwards(fromCheckpoint, maxCount, cancellationToken)
-                : ReadAllBackwards(fromCheckpoint, maxCount, cancellationToken);
-        }
-
-        private async Task<AllEventsPage> ReadAllForwards(
-            long fromCheckpoint,
+        protected override async Task<AllEventsPage> ReadAllForwardsInternal(
+            long fromCheckpointExlusive,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            Ensure.That(maxCount, nameof(maxCount)).IsGt(0).And().IsLte(1000);
-            CheckIfDisposed();
-
-            long ordinal = fromCheckpoint;
+            long ordinal = fromCheckpointExlusive;
 
             using (var connection = _createConnection())
             {
@@ -51,8 +34,8 @@
                     if (!reader.HasRows)
                     {
                         return new AllEventsPage(
-                            fromCheckpoint,
-                            fromCheckpoint,
+                            fromCheckpointExlusive,
+                            fromCheckpointExlusive,
                             true,
                             ReadDirection.Forward,
                             streamEvents.ToArray());
@@ -93,7 +76,7 @@
                     var nextCheckpoint = streamEvents[streamEvents.Count - 1].Checkpoint + 1;
 
                     return new AllEventsPage(
-                        fromCheckpoint,
+                        fromCheckpointExlusive,
                         nextCheckpoint,
                         isEnd,
                         ReadDirection.Forward,
@@ -102,15 +85,12 @@
             }
         }
 
-        private async Task<AllEventsPage> ReadAllBackwards(
-            long fromCheckpoint,
+        protected override async Task<AllEventsPage> ReadAllBackwardsInternal(
+            long fromCheckpointExclusive,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            Ensure.That(maxCount, nameof(maxCount)).IsGt(0).And().IsLte(1000);
-            CheckIfDisposed();
-
-            long ordinal = fromCheckpoint == Checkpoint.End ? long.MaxValue : fromCheckpoint;
+            long ordinal = fromCheckpointExclusive == Checkpoint.End ? long.MaxValue : fromCheckpointExclusive;
 
             using (var connection = _createConnection())
             {
@@ -130,7 +110,7 @@
                         // When reading backwards and there are no more items, then next checkpoint is LongCheckpoint.Start,
                         // regardles of what the fromCheckpoint is.
                         return new AllEventsPage(
-                            fromCheckpoint,
+                            Checkpoint.Start,
                             Checkpoint.Start,
                             true,
                             ReadDirection.Backward,
@@ -171,8 +151,10 @@
                         streamEvents.RemoveAt(maxCount);
                     }
 
+                    fromCheckpointExclusive = streamEvents.Any() ? streamEvents[0].Checkpoint : 0;
+
                     return new AllEventsPage(
-                        fromCheckpoint,
+                        fromCheckpointExclusive,
                         nextCheckpoint,
                         isEnd,
                         ReadDirection.Backward,

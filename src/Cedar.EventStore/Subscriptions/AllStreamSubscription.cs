@@ -4,7 +4,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Infrastructure;
-    using Cedar.EventStore.Streams;
+
 
     public sealed class AllStreamSubscription : IAllStreamSubscription
     {
@@ -54,12 +54,14 @@
             if(FromCheckpoint == Checkpoint.End)
             {
                 // Get the last stream version and subscribe from there.
-                var eventsPage = await _readOnlyEventStore.ReadAll(
+                var eventsPage = await _readOnlyEventStore.ReadAllBackwards(
                     Checkpoint.End,
                     1,
-                    ReadDirection.Forward,
                     cancellationToken).NotOnCapturedContext();
-                _nextCheckpoint = eventsPage.NextCheckpoint;
+
+                // If fromCheckpoint = 0, we have empty store, so start from zero, otherwise, the next checkpoint is 
+                // one after the FromCheckpoint.
+                _nextCheckpoint = eventsPage.FromCheckpoint == 0 ?  0 : eventsPage.FromCheckpoint + 1;
             }
             _eventStoreAppendedSubscription = _eventStoreAppendedNotification.Subscribe(_ =>
             {
@@ -89,10 +91,9 @@
                 {
                     Console.WriteLine($"Fetching from {_nextCheckpoint}");
                     var allEventsPage = await _readOnlyEventStore
-                        .ReadAll(
+                        .ReadAllForwards(
                             _nextCheckpoint,
                             _pageSize,
-                            ReadDirection.Forward,
                             _isDisposed.Token)
                         .NotOnCapturedContext();
                     isEnd = allEventsPage.IsEnd;

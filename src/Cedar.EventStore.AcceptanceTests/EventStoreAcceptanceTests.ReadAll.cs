@@ -28,12 +28,12 @@
                         ExpectedStreamEvent("stream-2", 6, 2, fixture.GetUtcNow().UtcDateTime)
                     };
 
-                    var allEventsPage = await eventStore.ReadAll(Checkpoint.Start, 4);
+                    var allEventsPage = await eventStore.ReadAllForwards(Checkpoint.Start, 4);
                     List<StreamEvent> streamEvents = new List<StreamEvent>(allEventsPage.StreamEvents);
                     int count = 0;
                     while(!allEventsPage.IsEnd && count <20) //should not take more than 20 iterations.
                     {
-                        allEventsPage = await eventStore.ReadAll(allEventsPage.NextCheckpoint, 10);
+                        allEventsPage = await eventStore.ReadAllForwards(allEventsPage.NextCheckpoint, 10);
                         streamEvents.AddRange(allEventsPage.StreamEvents);
                         count++;
                     }
@@ -80,12 +80,12 @@
                         ExpectedStreamEvent("stream-2", 6, 2, fixture.GetUtcNow().UtcDateTime)
                     }.Reverse().ToArray();
 
-                    var allEventsPage = await eventStore.ReadAll(Checkpoint.End, 4, ReadDirection.Backward);
+                    var allEventsPage = await eventStore.ReadAllBackwards(Checkpoint.End, 4);
                     List<StreamEvent> streamEvents = new List<StreamEvent>(allEventsPage.StreamEvents);
                     int count = 0;
                     while (!allEventsPage.IsEnd && count < 20) //should not take more than 20 iterations.
                     {
-                        allEventsPage = await eventStore.ReadAll(allEventsPage.NextCheckpoint, 10, ReadDirection.Backward);
+                        allEventsPage = await eventStore.ReadAllBackwards(allEventsPage.NextCheckpoint, 10);
                         streamEvents.AddRange(allEventsPage.StreamEvents);
                         count++;
                     }
@@ -120,7 +120,6 @@
         [InlineData(3, 0, 4, 3, 0, 3)]  // Read entire store
         [InlineData(3, 0, 2, 2, 0, 2)]
         [InlineData(3, 1, 2, 2, 1, 3)]
-        [InlineData(3, -1, 1, 1, 2, 3)] // -1 is Checkpoint.End
         [InlineData(3, 2, 1, 1, 2, 3)]
         [InlineData(3, 3, 1, 0, 3, 3)]
         public async Task When_read_all_forwards(
@@ -140,7 +139,7 @@
                         ExpectedVersion.NoStream,
                         CreateNewStreamEventSequence(1, numberOfSeedEvents));
 
-                    var allEventsPage = await eventStore.ReadAll(fromCheckpoint, maxCount);
+                    var allEventsPage = await eventStore.ReadAllForwards(fromCheckpoint, maxCount);
 
                     allEventsPage.StreamEvents.Length.ShouldBe(expectedCount);
                     allEventsPage.FromCheckpoint.ShouldBe(expectedFromCheckpoint);
@@ -177,7 +176,7 @@
                             CreateNewStreamEventSequence(1, numberOfSeedEvents));
                     }
 
-                    var allEventsPage = await eventStore.ReadAll(fromCheckpoint, maxCount, ReadDirection.Backward);
+                    var allEventsPage = await eventStore.ReadAllBackwards(fromCheckpoint, maxCount);
 
                     allEventsPage.StreamEvents.Length.ShouldBe(expectedCount);
                     allEventsPage.FromCheckpoint.ShouldBe(expectedFromCheckpoint);

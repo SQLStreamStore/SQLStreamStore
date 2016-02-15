@@ -71,7 +71,7 @@
                         null,
                         streamEvent =>
                         {
-                            _testOutputHelper	.WriteLine($"Received event {streamEvent.StreamId} {streamEvent.StreamVersion} {streamEvent.Checkpoint}");
+                            _testOutputHelper.WriteLine($"Received event {streamEvent.StreamId} {streamEvent.StreamVersion} {streamEvent.Checkpoint}");
                             receivedEvents.Add(streamEvent);
                             if (streamEvent.StreamId == streamId1 && streamEvent.StreamVersion == 3)
                             {

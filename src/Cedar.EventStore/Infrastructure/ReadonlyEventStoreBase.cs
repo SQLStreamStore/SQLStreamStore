@@ -1,4 +1,4 @@
-namespace Cedar.EventStore
+namespace Cedar.EventStore.Infrastructure
 {
     using System.Threading;
     using System.Threading.Tasks;
@@ -127,5 +127,7 @@ namespace Cedar.EventStore
             SubscriptionDropped subscriptionDropped = null,
             string name = null,
             CancellationToken cancellationToken = new CancellationToken());
+
+        public abstract void Dispose();
     }
 }

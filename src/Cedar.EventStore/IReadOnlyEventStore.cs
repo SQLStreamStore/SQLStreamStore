@@ -1,11 +1,12 @@
 ﻿namespace Cedar.EventStore
 {
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Streams;
     using Cedar.EventStore.Subscriptions;
 
-    public interface IReadOnlyEventStore
+    public interface IReadOnlyEventStore : IDisposable
     {
         Task<AllEventsPage> ReadAllForwards(
             long fromCheckpointInclusive,

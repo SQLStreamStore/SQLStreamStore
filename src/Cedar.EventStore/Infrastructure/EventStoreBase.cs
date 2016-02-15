@@ -6,8 +6,6 @@ namespace Cedar.EventStore.Infrastructure
 
     public abstract class EventStoreBase : ReadonlyEventStoreBase, IEventStore
     {
-        public abstract void Dispose();
-
         public Task AppendToStream(
             string streamId,
             int expectedVersion,

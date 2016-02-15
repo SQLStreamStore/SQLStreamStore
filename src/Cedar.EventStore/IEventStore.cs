@@ -1,11 +1,10 @@
 ﻿namespace Cedar.EventStore
 {
-    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Streams;
 
-    public interface IEventStore : IReadOnlyEventStore, IDisposable
+    public interface IEventStore : IReadOnlyEventStore
     {
         Task AppendToStream(
             string streamId,

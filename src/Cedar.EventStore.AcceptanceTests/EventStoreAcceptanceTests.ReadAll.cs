@@ -156,7 +156,7 @@
         [InlineData(3, 0, 1, 1, 0, 0)]
         [InlineData(3, -1, 3, 3, 2, 0)] // Read entire store
         [InlineData(3, -1, 4, 3, 2, 0)] // Read entire store
-        [InlineData(0, -1, 0, 0, 0, 0)]
+        [InlineData(0, -1, 1, 0, 0, 0)]
         public async Task When_read_all_backwards(
             int numberOfSeedEvents,
             int fromCheckpoint,

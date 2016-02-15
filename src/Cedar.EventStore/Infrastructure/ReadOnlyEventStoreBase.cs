@@ -1,5 +1,6 @@
 namespace Cedar.EventStore.Infrastructure
 {
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Streams;
@@ -8,6 +9,8 @@ namespace Cedar.EventStore.Infrastructure
 
     public abstract class ReadOnlyEventStoreBase : IReadOnlyEventStore
     {
+        private bool _isDisposed;
+
         public Task<AllEventsPage> ReadAllForwards(
             long fromCheckpointInclusive,
             int maxCount,
@@ -15,6 +18,8 @@ namespace Cedar.EventStore.Infrastructure
         {
             Ensure.That(fromCheckpointInclusive, nameof(fromCheckpointInclusive)).IsGte(0);
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
+
+            CheckIfDisposed();
 
             return ReadAllForwardsInternal(fromCheckpointInclusive, maxCount, cancellationToken);
         }
@@ -31,6 +36,8 @@ namespace Cedar.EventStore.Infrastructure
         {
             Ensure.That(fromCheckpointInclusive, nameof(fromCheckpointInclusive)).IsGte(-1);
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
+
+            CheckIfDisposed();
 
             return ReadAllBackwardsInternal(fromCheckpointInclusive, maxCount, cancellationToken);
         }
@@ -49,6 +56,8 @@ namespace Cedar.EventStore.Infrastructure
             Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace();
             Ensure.That(fromVersionInclusive, nameof(fromVersionInclusive)).IsGte(0);
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
+
+            CheckIfDisposed();
 
             return ReadStreamForwardsInternal(streamId, fromVersionInclusive, maxCount, cancellationToken);
         }
@@ -69,6 +78,8 @@ namespace Cedar.EventStore.Infrastructure
             Ensure.That(fromVersionInclusive, nameof(fromVersionInclusive)).IsGte(-1);
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
 
+            CheckIfDisposed();
+
             return ReadStreamBackwardsInternal(streamId, fromVersionInclusive, maxCount, cancellationToken);
         }
 
@@ -88,6 +99,8 @@ namespace Cedar.EventStore.Infrastructure
         {
             Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace();
             Ensure.That(streamEventReceived, nameof(streamEventReceived)).IsNotNull();
+
+            CheckIfDisposed();
 
             return SubscribeToStreamInternal(streamId,
                 fromVersionExclusive,
@@ -114,6 +127,8 @@ namespace Cedar.EventStore.Infrastructure
         {
             Ensure.That(streamEventReceived, nameof(streamEventReceived)).IsNotNull();
 
+            CheckIfDisposed();
+
             return SubscribeToAllInternal(fromCheckpointExclusive,
                 streamEventReceived,
                 subscriptionDropped,
@@ -128,6 +143,29 @@ namespace Cedar.EventStore.Infrastructure
             string name = null,
             CancellationToken cancellationToken = new CancellationToken());
 
-        public abstract void Dispose();
+        public void Dispose()
+        {
+            Dispose(true);
+            GC.SuppressFinalize(this);
+            _isDisposed = true;
+        }
+
+        protected virtual void Dispose(bool disposing)
+        {
+            
+        }
+
+        protected void CheckIfDisposed()
+        {
+            if (_isDisposed)
+            {
+                throw new ObjectDisposedException(GetType().Name);
+            }
+        }
+
+        ~ReadOnlyEventStoreBase()
+        {
+            Dispose(false);
+        }
     }
 }

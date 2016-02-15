@@ -39,8 +39,6 @@
             StreamIdInfo streamIdInfo,
             CancellationToken cancellationToken)
         {
-            CheckIfDisposed();
-
             using (var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken);
@@ -140,16 +138,6 @@
             }
         }
 
-
-
-        public override void Dispose()
-        {
-            if(_isDisposed.EnsureCalledOnce())
-            {
-                return;
-            }
-        }
-
         private static async Task<T> ExecuteAndIgnoreErrors<T>(Func<Task<T>> operation)
         {
             try
@@ -162,13 +150,7 @@
             }
         }
 
-        private void CheckIfDisposed()
-        {
-            if(_isDisposed.Value)
-            {
-                throw new ObjectDisposedException(nameof(MsSqlEventStore));
-            }
-        }
+        
 
         private struct StreamIdInfo
         {

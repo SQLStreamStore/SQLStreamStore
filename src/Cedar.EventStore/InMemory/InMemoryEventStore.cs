@@ -37,12 +37,8 @@ namespace Cedar.EventStore
             _onStreamAppended = () => _subscriptions.OnNext(Unit.Default);
         }
 
-        public override void Dispose()
+        protected override void Dispose(bool disposing)
         {
-            if(_isDisposed)
-            {
-                return;
-            }
             _lock.EnterWriteLock();
             try
             {

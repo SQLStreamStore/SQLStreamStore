@@ -70,9 +70,6 @@
     <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadAll.cs">
       <Link>InMemory\EventStoreAcceptanceTests.ReadAll.cs</Link>
     </Compile>
-    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadPastEndOfAllStream.cs">
-      <Link>InMemory\EventStoreAcceptanceTests.ReadPastEndOfAllStream.cs</Link>
-    </Compile>
     <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadStream.cs">
       <Link>InMemory\EventStoreAcceptanceTests.ReadStream.cs</Link>
     </Compile>

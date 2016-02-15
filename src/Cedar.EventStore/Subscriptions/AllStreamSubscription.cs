@@ -13,8 +13,9 @@
         private readonly StreamEventReceived _streamEventReceived;
         private readonly SubscriptionDropped _subscriptionDropped;
         private readonly CancellationTokenSource _isDisposed = new CancellationTokenSource();
-        private long? _lastCheckpoint;
+        private long _nextCheckpoint;
         private readonly InterlockedBoolean _isFetching = new InterlockedBoolean();
+        private readonly InterlockedBoolean _shouldFetch = new InterlockedBoolean();
         private int _pageSize = 50;
         private IDisposable _eventStoreAppendedSubscription;
 
@@ -26,7 +27,9 @@
             SubscriptionDropped subscriptionDropped = null,
             string name = null)
         {
-            _lastCheckpoint = fromCheckpoint;
+            FromCheckpoint = fromCheckpoint;
+            LastCheckpoint = fromCheckpoint;
+            _nextCheckpoint = fromCheckpoint + 1 ?? Checkpoint.Start;
             _readOnlyEventStore = readOnlyEventStore;
             _streamEventReceived = streamEventReceived;
             _eventStoreAppendedNotification = eventStoreAppendedNotification;
@@ -36,7 +39,9 @@
 
         public string Name { get; }
 
-        public long? LastCheckpoint => _lastCheckpoint;
+        public long? FromCheckpoint { get; }
+
+        public long? LastCheckpoint { get; private set; }
 
         public int PageSize
         {
@@ -46,7 +51,7 @@
 
         public async Task Start(CancellationToken cancellationToken)
         {
-            if(_lastCheckpoint == Checkpoint.End)
+            if(FromCheckpoint == Checkpoint.End)
             {
                 // Get the last stream version and subscribe from there.
                 var eventsPage = await _readOnlyEventStore.ReadAll(
@@ -54,9 +59,13 @@
                     1,
                     ReadDirection.Forward,
                     cancellationToken).NotOnCapturedContext();
-                _lastCheckpoint = eventsPage.NextCheckpoint;
+                _nextCheckpoint = eventsPage.NextCheckpoint;
             }
-            _eventStoreAppendedSubscription = _eventStoreAppendedNotification.Subscribe(_ => Fetch());
+            _eventStoreAppendedSubscription = _eventStoreAppendedNotification.Subscribe(_ =>
+            {
+                _shouldFetch.Set(true);
+                Fetch();
+            });
             Fetch();
         }
 
@@ -66,7 +75,7 @@
             _isDisposed.Cancel();
         }
 
-        public void Fetch()
+        private void Fetch()
         {
             if (_isFetching.CompareExchange(true, false))
             {
@@ -76,27 +85,30 @@
             Task.Run(async () =>
             {
                 bool isEnd = false;
-                while (!isEnd)
+                while (!isEnd || _shouldFetch.CompareExchange(false, true))
                 {
+                    Console.WriteLine($"Fetching from {_nextCheckpoint}");
                     var allEventsPage = await _readOnlyEventStore
                         .ReadAll(
-                            _lastCheckpoint.Value,
+                            _nextCheckpoint,
                             _pageSize,
                             ReadDirection.Forward,
                             _isDisposed.Token)
                         .NotOnCapturedContext();
                     isEnd = allEventsPage.IsEnd;
 
+                    Console.WriteLine($"Received {allEventsPage.StreamEvents.Length} events");
                     foreach (var streamEvent in allEventsPage.StreamEvents)
                     {
                         if(_isDisposed.IsCancellationRequested)
                         {
                             return;
                         }
-                        _lastCheckpoint = streamEvent.Checkpoint;
                         try
                         {
                             await _streamEventReceived(streamEvent).NotOnCapturedContext();
+                            LastCheckpoint = streamEvent.Checkpoint;
+                            _nextCheckpoint = streamEvent.Checkpoint + 1;
                         }
                         catch (Exception ex)
                         {
@@ -114,6 +126,7 @@
                             }
                         }
                     }
+                    Console.WriteLine($"LastCheckpoint {LastCheckpoint}");
                 }
                 _isFetching.Set(false);
             }, _isDisposed.Token);

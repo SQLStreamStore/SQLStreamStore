@@ -1,6 +1,7 @@
 ﻿namespace Cedar.EventStore
 {
     using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
@@ -55,6 +56,19 @@
                     return new NewStreamEvent(eventId, "type", "\"data\"", "\"metadata\"");
                 })
                 .ToArray();
+        }
+
+        private static NewStreamEvent[] CreateNewStreamEventSequence(int startId, int count)
+        {
+            var streamEvents = new List<NewStreamEvent>();
+            for(int i = 0; i < count; i++)
+            {
+                var eventNumber = startId + i;
+                var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
+                var newStreamEvent = new NewStreamEvent(eventId, "type", "\"data\"", "\"metadata\"");
+                streamEvents.Add(newStreamEvent);
+            }
+            return streamEvents.ToArray();
         }
 
         private static StreamEvent ExpectedStreamEvent(

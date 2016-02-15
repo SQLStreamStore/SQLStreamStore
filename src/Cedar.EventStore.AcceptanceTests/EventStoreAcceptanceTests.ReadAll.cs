@@ -1,6 +1,5 @@
 ﻿namespace Cedar.EventStore
 {
-    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -43,7 +42,6 @@
                     allEventsPage.Direction.ShouldBe(ReadDirection.Forward);
                     allEventsPage.IsEnd.ShouldBeTrue();
 
-
                     for (int i = 0; i < streamEvents.Count; i++)
                     {
                         var streamEvent = streamEvents[i];
@@ -58,127 +56,6 @@
 
                         // We don't care about streamEvent.Checkpoint and streamEvent.Checkpoint
                         // as they are non-deterministic
-                    }
-                }
-            }
-        }
-
-        [Fact]
-        public async Task When_read_all_forwards_from_an_empty_store_than_should_have_checkpoints()
-        {
-            using (var fixture = GetFixture())
-            {
-                using (var eventStore = await fixture.GetEventStore())
-                {
-                    var allEventsPage = await eventStore.ReadAll(Checkpoint.Start, 4);
-
-                    allEventsPage.FromCheckpoint.ShouldBe(Checkpoint.Start);
-                    allEventsPage.NextCheckpoint.ShouldBe(Checkpoint.Start);
-                }
-            }
-        }
-
-        [Fact]
-        public async Task When_read_all_backwards_from_an_empty_store_than_should_have_checkpoints()
-        {
-            using (var fixture = GetFixture())
-            {
-                using (var eventStore = await fixture.GetEventStore())
-                {
-                    var allEventsPage = await eventStore.ReadAll(Checkpoint.End, 5, ReadDirection.Backward);
-
-                    allEventsPage.FromCheckpoint.ShouldBe(Checkpoint.End);
-                    allEventsPage.NextCheckpoint.ShouldBe(Checkpoint.Start);
-                }
-            }
-        }
-
-        [Fact]
-        public async Task Read_forwards_to_the_end_should_return_a_valid_Checkpoint()
-        {
-            using (var fixture = GetFixture())
-            {
-                using (var eventStore = await fixture.GetEventStore())
-                {
-                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3, 4, 5, 6));
-
-                    // read to the end of the stream
-                    var allEventsPage = await eventStore.ReadAll(Checkpoint.Start, 4);
-
-                    int count = 0; //counter is used to short circuit bad implementations that never return IsEnd = true
-
-                    while (!allEventsPage.IsEnd && count < 20)
-                    {
-                        allEventsPage = await eventStore.ReadAll(allEventsPage.NextCheckpoint, 4);
-                        count++;
-                    }
-
-                    allEventsPage.IsEnd.ShouldBeTrue();
-
-                    var currentCheckpoint = allEventsPage.NextCheckpoint;
-
-                    // read end of stream again, should be empty, should return same checkpoint
-                    allEventsPage = await eventStore.ReadAll(currentCheckpoint, 10);
-                    count = 0;
-                    while (!allEventsPage.IsEnd && count < 20)
-                    {
-                        allEventsPage = await eventStore.ReadAll(allEventsPage.NextCheckpoint, 10);
-                        count++;
-                    }
-
-                    allEventsPage.IsEnd.ShouldBeTrue();
-                    allEventsPage.NextCheckpoint.ShouldNotBeNull();
-
-                    currentCheckpoint = allEventsPage.NextCheckpoint;
-
-                    // append some events then read again from the saved checkpoint, the next checkpoint should have moved
-                    await eventStore.AppendToStream("stream-1", ExpectedVersion.Any, CreateNewStreamEvents(7, 8, 9));
-
-                    allEventsPage = await eventStore.ReadAll(currentCheckpoint, 10);
-                    count = 0;
-                    while (!allEventsPage.IsEnd && count < 20)
-                    {
-                        allEventsPage = await eventStore.ReadAll(allEventsPage.NextCheckpoint, 10);
-                        count++;
-                    }
-
-                    allEventsPage.IsEnd.ShouldBeTrue();
-                    allEventsPage.NextCheckpoint.ShouldNotBeNull();
-                }
-            }
-        }
-
-        [Fact]
-        public async Task When_read_past_end_of_all()
-        {
-            using(var fixture = GetFixture())
-            {
-                using(var eventStore = await fixture.GetEventStore())
-                {
-                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
-
-                    bool isEnd = false;
-                    int count = 0;
-                    var checkpoint = Checkpoint.Start;
-                    while (!isEnd)
-                    {
-                        _testOutputHelper.WriteLine($"Loop {count}");
-
-                        var streamEventsPage = await eventStore.ReadAll(checkpoint, 10);
-                        _testOutputHelper.WriteLine($"FromCheckpoint     = {streamEventsPage.FromCheckpoint}");
-                        _testOutputHelper.WriteLine($"NextCheckpoint     = {streamEventsPage.NextCheckpoint}");
-                        _testOutputHelper.WriteLine($"IsEnd              = {streamEventsPage.IsEnd}");
-                        _testOutputHelper.WriteLine($"StreamEvents.Count = {streamEventsPage.StreamEvents.Length}");
-                        _testOutputHelper.WriteLine("");
-
-                        checkpoint = streamEventsPage.NextCheckpoint;
-                        isEnd = streamEventsPage.IsEnd;
-                        count++;
-
-                        if(count > 100)
-                        {
-                            throw new Exception("omg wtf");
-                        }
                     }
                 }
             }
@@ -234,6 +111,77 @@
                         // We don't care about streamEvent.Checkpoint and streamEvent.Checkpoint
                         // as they are non-deterministic
                     }
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData(3, 0, 3, 3, 0, 3)]  // Read entire store
+        [InlineData(3, 0, 4, 3, 0, 3)]  // Read entire store
+        [InlineData(3, 0, 2, 2, 0, 2)]
+        [InlineData(3, 1, 2, 2, 1, 3)]
+        [InlineData(3, -1, 1, 1, 2, 3)] // -1 is Checkpoint.End
+        [InlineData(3, 2, 1, 1, 2, 3)]
+        [InlineData(3, 3, 1, 0, 3, 3)]
+        public async Task When_read_all_forwards(
+            int numberOfSeedEvents,
+            int fromCheckpoint,
+            int maxCount,
+            int expectedCount,
+            int expectedFromCheckpoint,
+            int expectedNextCheckPoint)
+        {
+            using(var fixture = GetFixture())
+            {
+                using(var eventStore = await fixture.GetEventStore())
+                {
+                    await eventStore.AppendToStream(
+                        "stream-1",
+                        ExpectedVersion.NoStream,
+                        CreateNewStreamEventSequence(1, numberOfSeedEvents));
+
+                    var allEventsPage = await eventStore.ReadAll(fromCheckpoint, maxCount);
+
+                    allEventsPage.StreamEvents.Length.ShouldBe(expectedCount);
+                    allEventsPage.FromCheckpoint.ShouldBe(expectedFromCheckpoint);
+                    allEventsPage.NextCheckpoint.ShouldBe(expectedNextCheckPoint);
+                }
+            }
+        }
+
+        [Theory]
+        [InlineData(3, -1, 1, 1, 2, 1)] // -1 is Checkpoint.End
+        [InlineData(3, 2, 1, 1, 2, 1)]
+        [InlineData(3, 1, 1, 1, 1, 0)]
+        [InlineData(3, 0, 1, 1, 0, 0)]
+        [InlineData(3, -1, 3, 3, 2, 0)] // Read entire store
+        [InlineData(3, -1, 4, 3, 2, 0)] // Read entire store
+        [InlineData(0, -1, 0, 0, 0, 0)]
+        public async Task When_read_all_backwards(
+            int numberOfSeedEvents,
+            int fromCheckpoint,
+            int maxCount,
+            int expectedCount,
+            int expectedFromCheckpoint,
+            int expectedNextCheckPoint)
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    if(numberOfSeedEvents > 0)
+                    {
+                        await eventStore.AppendToStream(
+                            "stream-1",
+                            ExpectedVersion.NoStream,
+                            CreateNewStreamEventSequence(1, numberOfSeedEvents));
+                    }
+
+                    var allEventsPage = await eventStore.ReadAll(fromCheckpoint, maxCount, ReadDirection.Backward);
+
+                    allEventsPage.StreamEvents.Length.ShouldBe(expectedCount);
+                    allEventsPage.FromCheckpoint.ShouldBe(expectedFromCheckpoint);
+                    allEventsPage.NextCheckpoint.ShouldBe(expectedNextCheckPoint);
                 }
             }
         }

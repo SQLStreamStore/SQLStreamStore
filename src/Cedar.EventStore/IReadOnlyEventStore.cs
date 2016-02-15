@@ -29,7 +29,7 @@
             CancellationToken cancellationToken = default(CancellationToken));
 
         Task<IAllStreamSubscription> SubscribeToAll(
-            long? fromCheckpoint,
+            long? fromCheckpointExclusive,
             StreamEventReceived streamEventReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null,

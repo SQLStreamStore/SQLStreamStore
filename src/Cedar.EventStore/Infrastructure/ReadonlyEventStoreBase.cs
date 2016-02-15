@@ -64,13 +64,13 @@ namespace Cedar.EventStore
             CancellationToken cancellationToken = new CancellationToken());
 
         public Task<IAllStreamSubscription> SubscribeToAll(
-            long? fromCheckpoint,
+            long? fromCheckpointExclusive,
             StreamEventReceived streamEventReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null,
             CancellationToken cancellationToken = new CancellationToken())
         {
-            return SubscribeToAllInternal(fromCheckpoint,
+            return SubscribeToAllInternal(fromCheckpointExclusive,
                 streamEventReceived,
                 subscriptionDropped,
                 name,

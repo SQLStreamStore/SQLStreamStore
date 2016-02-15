@@ -14,8 +14,9 @@
         private readonly StreamEventReceived _streamEventReceived;
         private readonly SubscriptionDropped _subscriptionDropped;
         private readonly CancellationTokenSource _isDisposed = new CancellationTokenSource();
-        private int _lastVersion;
+        private int _currentVersion;
         private readonly InterlockedBoolean _isFetching = new InterlockedBoolean();
+        private readonly InterlockedBoolean _shouldFetch = new InterlockedBoolean();
         private int _pageSize = 50;
         private IDisposable _eventStoreAppendedSubscription;
         private static readonly SubscriptionDropped s_noopSubscriptionDropped = (_, __) => { };
@@ -30,7 +31,7 @@
             string name = null)
         {
             _streamId = streamId;
-            _lastVersion = startVersion;
+            _currentVersion = startVersion;
             _readOnlyEventStore = readOnlyEventStore;
             _eventStoreAppendedNotification = eventStoreAppendedNotification;
             _streamEventReceived = streamEventReceived;
@@ -42,7 +43,7 @@
 
         public string StreamId => _streamId;
 
-        public int LastVersion => _lastVersion;
+        public int LastVersion => _currentVersion;
 
         public int PageSize
         {
@@ -58,7 +59,7 @@
 
         public async Task Start(CancellationToken cancellationToken)
         {
-            if(_lastVersion == StreamVersion.End)
+            if(_currentVersion == StreamVersion.End)
             {
                 // Get the last stream version and subscribe from there.
                 var eventsPage = await _readOnlyEventStore.ReadStream(
@@ -69,9 +70,13 @@
                     cancellationToken).NotOnCapturedContext();
 
                 //Only new events, i.e. the one after the current last one 
-                _lastVersion = eventsPage.LastStreamVersion + 1;
+                _currentVersion = eventsPage.LastStreamVersion + 1;
             }
-            _eventStoreAppendedSubscription = _eventStoreAppendedNotification.Subscribe(_ => Fetch());
+            _eventStoreAppendedSubscription = _eventStoreAppendedNotification.Subscribe(_ =>
+            {
+                _shouldFetch.Set(true);
+                Fetch();
+            });
             Fetch();
         }
 
@@ -90,12 +95,12 @@
             Task.Run(async () =>
             {
                 bool isEnd = false;
-                while(!isEnd)
+                while(!isEnd || _shouldFetch.CompareExchange(false, true))
                 {
                     var streamEventsPage = await _readOnlyEventStore
                         .ReadStream(
                             _streamId,
-                            _lastVersion,
+                            _currentVersion,
                             _pageSize,
                             ReadDirection.Forward,
                             _isDisposed.Token)
@@ -108,7 +113,7 @@
                         {
                             return;
                         }
-                        _lastVersion = streamEvent.StreamVersion;
+                        _currentVersion = streamEvent.StreamVersion;
                         try
                         {
                             await _streamEventReceived(streamEvent).NotOnCapturedContext();
@@ -129,6 +134,7 @@
                             }
                         }
                     }
+                    _currentVersion++; // We want to start 
                 }
                 _isFetching.Set(false);
             }, _isDisposed.Token);

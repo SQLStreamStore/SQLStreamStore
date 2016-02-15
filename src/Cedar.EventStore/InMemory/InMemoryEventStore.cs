@@ -144,37 +144,39 @@ namespace Cedar.EventStore
             _lock.EnterReadLock();
             try
             {
-                var start = fromCheckpoint;
-                if(start == Checkpoint.End)
+                if(fromCheckpoint == Checkpoint.End)
                 {
-                    start = long.MaxValue;
+                    fromCheckpoint = _allStream.Last.Value.Checkpoint;
                 }
 
                 // Find the node to start from (it may not be equal to the exact checkpoint)
                 var current = _allStream.First;
                 if(current.Next == null) //Empty store
                 {
-                    var page = new AllEventsPage(fromCheckpoint, Checkpoint.Start, true, direction);
+                    var page = new AllEventsPage(Checkpoint.Start, Checkpoint.Start, true, direction);
                     return Task.FromResult(page);
                 }
+
                 LinkedListNode<InMemoryStreamEvent> previous = current.Previous;
-                while ( current.Value.Checkpoint < start)
+                while ( current.Value.Checkpoint < fromCheckpoint)
                 {
-                    if(current.Next == null)
+                    if(current.Next == null) // fromCheckpoint is past end of store
                     {
-                        break;
+                        var page = new AllEventsPage(fromCheckpoint, fromCheckpoint, true, direction);
+                        return Task.FromResult(page);
                     }
                     previous = current;
                     current = current.Next;
                 }
+
                 if(direction == ReadDirection.Forward)
                 {
-                    var page = ReadAllForwards(fromCheckpoint, maxCount, direction, current, previous);
+                    var page = ReadAllForwards(maxCount, direction, current, previous);
                     return Task.FromResult(page);
                 }
                 else
                 {
-                    var page = ReadAllBackwards(fromCheckpoint, maxCount, direction, current, previous);
+                    var page = ReadAllBackwards(maxCount, direction, current, previous);
                     return Task.FromResult(page);
                 }
             }
@@ -185,7 +187,6 @@ namespace Cedar.EventStore
         }
 
         private AllEventsPage ReadAllBackwards(
-            long fromCheckpoint,
             int maxCount,
             ReadDirection direction,
             LinkedListNode<InMemoryStreamEvent> current,
@@ -222,6 +223,8 @@ namespace Cedar.EventStore
                 ? 0
                 : current.Value.Checkpoint;
 
+            var fromCheckpoint = streamEvents.Any() ? streamEvents[0].Checkpoint : 0;
+
             var page = new AllEventsPage(
                 fromCheckpoint,
                 nextCheckPoint,
@@ -232,14 +235,13 @@ namespace Cedar.EventStore
         }
 
         private static AllEventsPage ReadAllForwards(
-            long fromCheckpoint,
             int maxCount,
             ReadDirection direction,
             LinkedListNode<InMemoryStreamEvent> current,
             LinkedListNode<InMemoryStreamEvent> previous)
         {
             var streamEvents = new List<StreamEvent>();
-            while(maxCount >= 0 && current != null)
+            while(maxCount > 0 && current != null)
             {
                 var streamEvent = new StreamEvent(
                     current.Value.StreamId,
@@ -258,6 +260,7 @@ namespace Cedar.EventStore
 
             bool isEnd = current == null;
             var nextCheckPoint = current?.Value.Checkpoint ?? previous.Value.Checkpoint + 1;
+            var fromCheckpoint = streamEvents.Any() ? streamEvents[0].Checkpoint : 0;
 
             var page = new AllEventsPage(
                 fromCheckpoint,

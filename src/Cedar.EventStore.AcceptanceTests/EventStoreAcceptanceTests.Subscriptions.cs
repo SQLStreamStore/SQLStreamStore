@@ -23,26 +23,26 @@
                     string streamId2 = "stream-2";
                     await AppendEvents(eventStore, streamId2, 10);
 
-                    var receiveEvents = new TaskCompletionSource<StreamEvent>();
-                    int receivedCount = 0;
+                    var done = new TaskCompletionSource<StreamEvent>();
+                    var receivedEvents = new List<StreamEvent>();
                     using (var subscription = await eventStore.SubscribeToStream(
                         streamId1,
                         StreamVersion.Start,
                         streamEvent =>
                         {
-                            receivedCount++;
+                            receivedEvents.Add(streamEvent);
                             if (streamEvent.StreamVersion == 11)
                             {
-                                receiveEvents.SetResult(streamEvent);
+                                done.SetResult(streamEvent);
                             }
                             return Task.CompletedTask;
                         }))
                     {
                         await AppendEvents(eventStore, streamId1, 2);
 
-                        var receivedEvent = await receiveEvents.Task.WithTimeout();
+                        var receivedEvent = await done.Task.WithTimeout();
 
-                        receivedCount.ShouldBe(12);
+                        receivedEvents.Count.ShouldBe(12);
                         subscription.StreamId.ShouldBe(streamId1);
                         receivedEvent.StreamId.ShouldBe(streamId1);
                         receivedEvent.StreamVersion.ShouldBe(11);
@@ -68,9 +68,10 @@
                     var receiveEvents = new TaskCompletionSource<StreamEvent>();
                     List<StreamEvent> receivedEvents = new List<StreamEvent>();
                     using(await eventStore.SubscribeToAll(
-                        Checkpoint.Start,
+                        null,
                         streamEvent =>
                         {
+                            _testOutputHelper	.WriteLine($"Received event {streamEvent.StreamId} {streamEvent.StreamVersion} {streamEvent.Checkpoint}");
                             receivedEvents.Add(streamEvent);
                             if (streamEvent.StreamId == streamId1 && streamEvent.StreamVersion == 3)
                             {

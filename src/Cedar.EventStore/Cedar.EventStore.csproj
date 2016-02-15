@@ -81,6 +81,7 @@
     <Compile Include="Streams\StreamEventExtensions.cs" />
     <Compile Include="Streams\StreamEventsPage.cs" />
     <Compile Include="Streams\StreamVersion.cs" />
+    <Compile Include="Subscriptions\SubscriptionBase.cs" />
     <Compile Include="Subscriptions\SubscriptionDropped.cs" />
     <Compile Include="Streams\WrongExpectedVersionException.cs" />
     <Compile Include="Subscriptions\AllStreamSubscription.cs" />

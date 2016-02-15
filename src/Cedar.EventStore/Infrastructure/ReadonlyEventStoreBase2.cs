@@ -6,7 +6,7 @@ namespace Cedar.EventStore.Infrastructure
     using Cedar.EventStore.Subscriptions;
     using EnsureThat;
 
-    public abstract class ReadonlyEventStoreBase : IReadOnlyEventStore
+    public abstract class ReadonlyEventStoreBase2 : IReadOnlyEventStore
     {
         public Task<AllEventsPage> ReadAllForwards(
             long fromCheckpointInclusive,

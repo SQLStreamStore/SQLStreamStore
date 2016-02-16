@@ -86,9 +86,9 @@
                     await eventStore.DeleteStream(streamId);
 
                     var exception = await Record.ExceptionAsync(() => 
-                        eventStore.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(2)));
+                        eventStore.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1)));
 
-                    exception.ShouldBeOfType<StreamDeletedException>(Messages.EventStreamIsDeleted(streamId));
+                    exception.ShouldBeOfType<StreamDeletedException>();
                 }
             }
         }

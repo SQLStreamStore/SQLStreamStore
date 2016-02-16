@@ -6,7 +6,7 @@
     using Cedar.EventStore.Infrastructure;
 
 
-    public sealed class AllStreamSubscription : IAllStreamSubscription
+    public sealed class AllStreamSubscription : SubscriptionBase, IAllStreamSubscription
     {
         private readonly IReadOnlyEventStore _readOnlyEventStore;
         private readonly IObservable<Unit> _eventStoreAppendedNotification;
@@ -26,6 +26,7 @@
             StreamEventReceived streamEventReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null)
+            :base(readOnlyEventStore, eventStoreAppendedNotification, streamEventReceived, subscriptionDropped, name)
         {
             FromCheckpoint = fromCheckpoint;
             LastCheckpoint = fromCheckpoint;
@@ -34,20 +35,11 @@
             _streamEventReceived = streamEventReceived;
             _eventStoreAppendedNotification = eventStoreAppendedNotification;
             _subscriptionDropped = subscriptionDropped ?? ((_, __) => { });
-            Name = string.IsNullOrWhiteSpace(name) ? Guid.NewGuid().ToString() : name;
         }
-
-        public string Name { get; }
 
         public long? FromCheckpoint { get; }
 
         public long? LastCheckpoint { get; private set; }
-
-        public int PageSize
-        {
-            get { return _pageSize; }
-            set { _pageSize = (value <= 0) ? 1 : value; }
-        }
 
         public async Task Start(CancellationToken cancellationToken)
         {

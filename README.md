@@ -2,6 +2,8 @@
 
 Cedar Event Store is an event sourcing library for .NET
 
+**This project is under heavy development at this time.**
+
 Key design considerations:
 
  - Designed to primarily support RDMBS\SQL implementations

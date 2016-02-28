@@ -27,7 +27,7 @@
 
         public long? LastCheckpoint { get; private set; }
 
-        public async Task Start(CancellationToken cancellationToken)
+        public override async Task Start(CancellationToken cancellationToken)
         {
             if(FromCheckpoint == Checkpoint.End)
             {

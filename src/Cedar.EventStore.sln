@@ -15,6 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Cedar.EventStore.Acceptance
 		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.cs
 		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.DeleteStream.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.DeleteStream.cs
 		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadAll.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadAll.cs
+		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadHeadCheckpoint.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadHeadCheckpoint.cs
 		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadStream.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadStream.cs
 		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.Subscriptions.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.Subscriptions.cs
 		Cedar.EventStore.AcceptanceTests\TaskExtensions.cs = Cedar.EventStore.AcceptanceTests\TaskExtensions.cs

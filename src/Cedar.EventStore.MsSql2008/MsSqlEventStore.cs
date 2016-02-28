@@ -9,18 +9,26 @@
     using Cedar.EventStore.Infrastructure;
     using Cedar.EventStore.SqlScripts;
     using Cedar.EventStore.Streams;
+    using Cedar.EventStore.Subscriptions;
     using EnsureThat;
 
     public sealed partial class MsSqlEventStore : EventStoreBase
     {
         private readonly Func<SqlConnection> _createConnection;
-        private readonly InterlockedBoolean _isDisposed = new InterlockedBoolean();
+        private readonly AsyncLazy<Poller> _lazyPoller;
 
         public MsSqlEventStore(string connectionString)
         {
             Ensure.That(connectionString, nameof(connectionString)).IsNotNullOrWhiteSpace();
 
             _createConnection = () => new SqlConnection(connectionString);
+            _lazyPoller = new AsyncLazy<Poller>(async () =>
+            {
+                var poller = new Poller(this);
+                await poller.Start().NotOnCapturedContext();
+                return poller;
+            },
+                false);
         }
 
         protected override Task DeleteStreamInternal(
@@ -39,7 +47,7 @@
             StreamIdInfo streamIdInfo,
             CancellationToken cancellationToken)
         {
-            using (var connection = _createConnection())
+            using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken);
 
@@ -58,7 +66,7 @@
             int expectedVersion,
             CancellationToken cancellationToken)
         {
-            using (var connection = _createConnection())
+            using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
@@ -92,7 +100,7 @@
         {
             CheckIfDisposed();
 
-            using (var connection = _createConnection())
+            using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
@@ -118,7 +126,7 @@
         {
             CheckIfDisposed();
 
-            using (var connection = _createConnection())
+            using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
@@ -138,6 +146,43 @@
             }
         }
 
+        protected override async Task<long> ReadHeadCheckpointInternal(CancellationToken cancellationToken)
+        {
+            CheckIfDisposed();
+
+            using(var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken);
+
+                using(var command = new SqlCommand(Scripts.ReadHeadCheckpoint, connection))
+                {
+                    var result = await command
+                        .ExecuteScalarAsync(cancellationToken)
+                        .NotOnCapturedContext();
+
+                    if(result == DBNull.Value)
+                    {
+                        return -1;
+                    }
+                    return (long) result;
+                }
+            }
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if(disposing)
+            {
+                if(_lazyPoller.IsValueCreated)
+                {
+                    _lazyPoller.Value.Dispose();
+                }
+            }
+            base.Dispose(disposing);
+        }
+
+        private IObservable<Unit> GetStoreObservable => _lazyPoller.Value.Result.StoreAppended;
+
         private static async Task<T> ExecuteAndIgnoreErrors<T>(Func<Task<T>> operation)
         {
             try
@@ -149,8 +194,6 @@
                 return default(T);
             }
         }
-
-        
 
         private struct StreamIdInfo
         {
@@ -165,12 +208,12 @@
                 Id = id;
 
                 Guid _;
-                if (Guid.TryParse(id, out _))
+                if(Guid.TryParse(id, out _))
                 {
                     Hash = id;
                 }
 
-                byte[] hashBytes = s_sha1.ComputeHash(Encoding.UTF8.GetBytes(id));
+                var hashBytes = s_sha1.ComputeHash(Encoding.UTF8.GetBytes(id));
                 Hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
             }
         }

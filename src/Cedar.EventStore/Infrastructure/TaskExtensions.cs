@@ -14,5 +14,10 @@
         {
             return task.ConfigureAwait(false);
         }
+
+        public static void SwallowException(this Task task)
+        {
+            task.ContinueWith(_ => { return; });
+        }
     }
 }

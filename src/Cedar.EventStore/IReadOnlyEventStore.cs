@@ -25,10 +25,10 @@
             CancellationToken cancellationToken = default(CancellationToken));
 
         Task<StreamEventsPage> ReadStreamBackwards(
-           string streamId,
-           int fromVersionInclusive,
-           int maxCount,
-           CancellationToken cancellationToken = default(CancellationToken));
+            string streamId,
+            int fromVersionInclusive,
+            int maxCount,
+            CancellationToken cancellationToken = default(CancellationToken));
 
         Task<IStreamSubscription> SubscribeToStream(
             string streamId,
@@ -44,5 +44,7 @@
             SubscriptionDropped subscriptionDropped = null,
             string name = null,
             CancellationToken cancellationToken = default(CancellationToken));
+
+        Task<long> ReadHeadCheckpoint(CancellationToken cancellationToken = default(CancellationToken));
     }
 }

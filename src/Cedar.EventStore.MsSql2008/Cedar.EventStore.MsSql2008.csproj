@@ -62,6 +62,7 @@
   </ItemGroup>
   <ItemGroup>
     <Content Include="SqlScripts\DropTestDBs.sql" />
+    <EmbeddedResource Include="SqlScripts\ReadHeadCheckpoint.sql" />
     <EmbeddedResource Include="SqlScripts\ReadStreamBackward.sql" />
     <EmbeddedResource Include="SqlScripts\ReadStreamForward.sql" />
     <EmbeddedResource Include="SqlScripts\ReadAllBackward.sql" />

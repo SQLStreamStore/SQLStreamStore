@@ -46,6 +46,7 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
+    <Compile Include="Infrastructure\AsyncLazy.cs" />
     <Compile Include="Infrastructure\EventStoreBase.cs" />
     <Compile Include="Infrastructure\ReadOnlyEventStoreBase.cs" />
     <Compile Include="Streams\Checkpoint.cs" />
@@ -71,6 +72,7 @@
     <Compile Include="SimpleJson.cs" />
     <Compile Include="Streams\AllEventsPage.cs" />
     <Compile Include="Streams\Messages.cs" />
+    <Compile Include="Subscriptions\Poller.cs" />
     <Compile Include="Subscriptions\StreamEventReceived.cs" />
     <Compile Include="Streams\ExpectedVersion.cs" />
     <Compile Include="Streams\NewStreamEvent.cs" />

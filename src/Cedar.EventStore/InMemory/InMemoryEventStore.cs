@@ -1,4 +1,5 @@
-﻿ // ReSharper disable once CheckNamespace
+﻿// ReSharper disable once CheckNamespace
+
 namespace Cedar.EventStore
 {
     using System;
@@ -13,13 +14,13 @@ namespace Cedar.EventStore
 
     public sealed class InMemoryEventStore : EventStoreBase
     {
+        private readonly InMemoryAllStream _allStream = new InMemoryAllStream();
         private readonly GetUtcNow _getUtcNow;
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
-        private readonly InMemoryAllStream _allStream = new InMemoryAllStream();
-        private readonly InMemoryStreams _streams = new InMemoryStreams();
-        private bool _isDisposed;
-        private readonly Subject<Unit> _subscriptions = new Subject<Unit>();
         private readonly Action _onStreamAppended;
+        private readonly InMemoryStreams _streams = new InMemoryStreams();
+        private readonly Subject<Unit> _subscriptions = new Subject<Unit>();
+        private bool _isDisposed;
 
         public InMemoryEventStore(GetUtcNow getUtcNow = null)
         {
@@ -59,14 +60,17 @@ namespace Cedar.EventStore
             NewStreamEvent[] events,
             CancellationToken cancellationToken = new CancellationToken())
         {
-            if (_isDisposed) throw new ObjectDisposedException(nameof(InMemoryEventStore));
+            if(_isDisposed)
+            {
+                throw new ObjectDisposedException(nameof(InMemoryEventStore));
+            }
 
             _lock.EnterWriteLock();
             try
             {
                 InMemoryStream inMemoryStream;
                 // Should only add stream if NoStream
-                if (expectedVersion == ExpectedVersion.NoStream || expectedVersion == ExpectedVersion.Any)
+                if(expectedVersion == ExpectedVersion.NoStream || expectedVersion == ExpectedVersion.Any)
                 {
                     if(_streams.TryGetValue(streamId, out inMemoryStream))
                     {
@@ -85,7 +89,7 @@ namespace Cedar.EventStore
                     return Task.FromResult(0);
                 }
 
-                if (!_streams.TryGetValue(streamId, out inMemoryStream))
+                if(!_streams.TryGetValue(streamId, out inMemoryStream))
                 {
                     throw new WrongExpectedVersionException(
                         Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
@@ -106,7 +110,9 @@ namespace Cedar.EventStore
             CancellationToken cancellationToken = new CancellationToken())
         {
             if(_isDisposed)
+            {
                 throw new ObjectDisposedException(nameof(InMemoryEventStore));
+            }
 
             _lock.EnterWriteLock();
             try
@@ -134,7 +140,10 @@ namespace Cedar.EventStore
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            if(_isDisposed) throw new ObjectDisposedException(nameof(InMemoryEventStore));
+            if(_isDisposed)
+            {
+                throw new ObjectDisposedException(nameof(InMemoryEventStore));
+            }
 
             _lock.EnterReadLock();
             try
@@ -147,20 +156,23 @@ namespace Cedar.EventStore
                         new AllEventsPage(Checkpoint.Start, Checkpoint.Start, true, ReadDirection.Forward));
                 }
 
-                LinkedListNode<InMemoryStreamEvent> previous = current.Previous;
-                while ( current.Value.Checkpoint < fromCheckpointExlusive)
+                var previous = current.Previous;
+                while(current.Value.Checkpoint < fromCheckpointExlusive)
                 {
                     if(current.Next == null) // fromCheckpoint is past end of store
                     {
                         return Task.FromResult(
-                            new AllEventsPage(fromCheckpointExlusive, fromCheckpointExlusive, true, ReadDirection.Forward));
+                            new AllEventsPage(fromCheckpointExlusive,
+                                fromCheckpointExlusive,
+                                true,
+                                ReadDirection.Forward));
                     }
                     previous = current;
                     current = current.Next;
                 }
 
                 var streamEvents = new List<StreamEvent>();
-                while (maxCount > 0 && current != null)
+                while(maxCount > 0 && current != null)
                 {
                     var streamEvent = new StreamEvent(
                         current.Value.StreamId,
@@ -177,7 +189,7 @@ namespace Cedar.EventStore
                     current = current.Next;
                 }
 
-                bool isEnd = current == null;
+                var isEnd = current == null;
                 var nextCheckPoint = current?.Value.Checkpoint ?? previous.Value.Checkpoint + 1;
                 fromCheckpointExlusive = streamEvents.Any() ? streamEvents[0].Checkpoint : 0;
 
@@ -185,7 +197,7 @@ namespace Cedar.EventStore
                     fromCheckpointExlusive,
                     nextCheckPoint,
                     isEnd,
-                     ReadDirection.Forward,
+                    ReadDirection.Forward,
                     streamEvents.ToArray());
 
                 return Task.FromResult(page);
@@ -201,38 +213,44 @@ namespace Cedar.EventStore
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            if (_isDisposed) throw new ObjectDisposedException(nameof(InMemoryEventStore));
+            if(_isDisposed)
+            {
+                throw new ObjectDisposedException(nameof(InMemoryEventStore));
+            }
 
             _lock.EnterReadLock();
             try
             {
-                if (fromCheckpointExclusive == Checkpoint.End)
+                if(fromCheckpointExclusive == Checkpoint.End)
                 {
                     fromCheckpointExclusive = _allStream.Last.Value.Checkpoint;
                 }
 
                 // Find the node to start from (it may not be equal to the exact checkpoint)
                 var current = _allStream.First;
-                if (current.Next == null) //Empty store
+                if(current.Next == null) //Empty store
                 {
                     return Task.FromResult(
                         new AllEventsPage(Checkpoint.Start, Checkpoint.Start, true, ReadDirection.Backward));
                 }
 
-                LinkedListNode<InMemoryStreamEvent> previous = current.Previous;
-                while (current.Value.Checkpoint < fromCheckpointExclusive)
+                var previous = current.Previous;
+                while(current.Value.Checkpoint < fromCheckpointExclusive)
                 {
-                    if (current.Next == null) // fromCheckpoint is past end of store
+                    if(current.Next == null) // fromCheckpoint is past end of store
                     {
                         return Task.FromResult(
-                            new AllEventsPage(fromCheckpointExclusive, fromCheckpointExclusive, true, ReadDirection.Backward));
+                            new AllEventsPage(fromCheckpointExclusive,
+                                fromCheckpointExclusive,
+                                true,
+                                ReadDirection.Backward));
                     }
                     previous = current;
                     current = current.Next;
                 }
 
                 var streamEvents = new List<StreamEvent>();
-                while (maxCount > 0 && current != _allStream.First)
+                while(maxCount > 0 && current != _allStream.First)
                 {
                     var streamEvent = new StreamEvent(
                         current.Value.StreamId,
@@ -250,7 +268,7 @@ namespace Cedar.EventStore
                 }
 
                 bool isEnd;
-                if (previous == null || previous.Value.Checkpoint == 0)
+                if(previous == null || previous.Value.Checkpoint == 0)
                 {
                     isEnd = true;
                 }
@@ -285,7 +303,10 @@ namespace Cedar.EventStore
             int count,
             CancellationToken cancellationToken = new CancellationToken())
         {
-            if(_isDisposed) throw new ObjectDisposedException(nameof(InMemoryEventStore));
+            if(_isDisposed)
+            {
+                throw new ObjectDisposedException(nameof(InMemoryEventStore));
+            }
 
             _lock.EnterReadLock();
             try
@@ -293,19 +314,31 @@ namespace Cedar.EventStore
                 InMemoryStream stream;
                 if(!_streams.TryGetValue(streamId, out stream))
                 {
-                    var notFound = new StreamEventsPage(streamId, PageReadStatus.StreamNotFound, start, -1, -1, ReadDirection.Forward, true);
+                    var notFound = new StreamEventsPage(streamId,
+                        PageReadStatus.StreamNotFound,
+                        start,
+                        -1,
+                        -1,
+                        ReadDirection.Forward,
+                        true);
                     return Task.FromResult(notFound);
                 }
                 if(stream.IsDeleted)
                 {
-                    var deleted = new StreamEventsPage(streamId, PageReadStatus.StreamDeleted, start, 0, 0, ReadDirection.Forward, true);
+                    var deleted = new StreamEventsPage(streamId,
+                        PageReadStatus.StreamDeleted,
+                        start,
+                        0,
+                        0,
+                        ReadDirection.Forward,
+                        true);
                     return Task.FromResult(deleted);
                 }
 
                 var events = new List<StreamEvent>();
-                int i = start;
+                var i = start;
 
-                while (i < stream.Events.Count && count > 0)
+                while(i < stream.Events.Count && count > 0)
                 {
                     var inMemoryStreamEvent = stream.Events[i];
                     var streamEvent = new StreamEvent(
@@ -323,9 +356,9 @@ namespace Cedar.EventStore
                     count--;
                 }
 
-                int lastStreamVersion = stream.Events.Last().StreamVersion;
-                int nextStreamVersion = events.Last().StreamVersion + 1;
-                bool endOfStream = i == stream.Events.Count;
+                var lastStreamVersion = stream.Events.Last().StreamVersion;
+                var nextStreamVersion = events.Last().StreamVersion + 1;
+                var endOfStream = i == stream.Events.Count;
 
                 var page = new StreamEventsPage(
                     streamId,
@@ -351,26 +384,41 @@ namespace Cedar.EventStore
             int count,
             CancellationToken cancellationToken = new CancellationToken())
         {
-            if (_isDisposed) throw new ObjectDisposedException(nameof(InMemoryEventStore));
+            if(_isDisposed)
+            {
+                throw new ObjectDisposedException(nameof(InMemoryEventStore));
+            }
 
             _lock.EnterReadLock();
             try
             {
                 InMemoryStream stream;
-                if (!_streams.TryGetValue(streamId, out stream))
+                if(!_streams.TryGetValue(streamId, out stream))
                 {
-                    var notFound = new StreamEventsPage(streamId, PageReadStatus.StreamNotFound, fromVersionInclusive, -1, -1, ReadDirection.Backward, true);
+                    var notFound = new StreamEventsPage(streamId,
+                        PageReadStatus.StreamNotFound,
+                        fromVersionInclusive,
+                        -1,
+                        -1,
+                        ReadDirection.Backward,
+                        true);
                     return Task.FromResult(notFound);
                 }
-                if (stream.IsDeleted)
+                if(stream.IsDeleted)
                 {
-                    var deleted = new StreamEventsPage(streamId, PageReadStatus.StreamDeleted, fromVersionInclusive, 0, 0, ReadDirection.Backward, true);
+                    var deleted = new StreamEventsPage(streamId,
+                        PageReadStatus.StreamDeleted,
+                        fromVersionInclusive,
+                        0,
+                        0,
+                        ReadDirection.Backward,
+                        true);
                     return Task.FromResult(deleted);
                 }
 
                 var events = new List<StreamEvent>();
-                int i = fromVersionInclusive == StreamVersion.End ? stream.Events.Count - 1 : fromVersionInclusive;
-                while (i >= 0 && count > 0)
+                var i = fromVersionInclusive == StreamVersion.End ? stream.Events.Count - 1 : fromVersionInclusive;
+                while(i >= 0 && count > 0)
                 {
                     var inMemoryStreamEvent = stream.Events[i];
                     var streamEvent = new StreamEvent(
@@ -388,9 +436,9 @@ namespace Cedar.EventStore
                     count--;
                 }
 
-                int lastStreamVersion = stream.Events.Last().StreamVersion;
-                int nextStreamVersion = events.Last().StreamVersion - 1;
-                bool endOfStream = nextStreamVersion < 0;
+                var lastStreamVersion = stream.Events.Last().StreamVersion;
+                var nextStreamVersion = events.Last().StreamVersion - 1;
+                var endOfStream = nextStreamVersion < 0;
 
                 var page = new StreamEventsPage(
                     streamId,
@@ -412,23 +460,35 @@ namespace Cedar.EventStore
 
         protected override async Task<IStreamSubscription> SubscribeToStreamInternal(
             string streamId,
-            int startPosition,
+            int startVersion,
             StreamEventReceived streamEventReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var subscription = new StreamSubscription(streamId, startPosition, this, _subscriptions, streamEventReceived, subscriptionDropped, name);
+            var subscription = new StreamSubscription(streamId,
+                startVersion,
+                this,
+                _subscriptions,
+                streamEventReceived,
+                subscriptionDropped,
+                name);
             await subscription.Start(cancellationToken);
             return subscription;
+        }
+
+        protected override Task<long> ReadHeadCheckpointInternal(CancellationToken cancellationToken)
+        {
+            var streamEvent = _allStream.LastOrDefault();
+            return streamEvent == null ? Task.FromResult(-1L) : Task.FromResult(streamEvent.Checkpoint);
         }
 
         protected override async Task<IAllStreamSubscription> SubscribeToAllInternal(
             long? fromCheckpoint,
             StreamEventReceived streamEventReceived,
-            SubscriptionDropped subscriptionDropped = null,
-            string name = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            SubscriptionDropped subscriptionDropped,
+            string name,
+            CancellationToken cancellationToken)
         {
             var subscription = new AllStreamSubscription(
                 fromCheckpoint,

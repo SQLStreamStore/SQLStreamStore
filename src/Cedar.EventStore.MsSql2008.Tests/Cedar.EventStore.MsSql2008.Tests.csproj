@@ -75,6 +75,9 @@
     <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadAll.cs">
       <Link>EventStoreAcceptanceTests.ReadAll.cs</Link>
     </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadHeadCheckpoint.cs">
+      <Link>EventStoreAcceptanceTests.ReadHeadCheckpoint.cs</Link>
+    </Compile>
     <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadStream.cs">
       <Link>EventStoreAcceptanceTests.ReadStream.cs</Link>
     </Compile>

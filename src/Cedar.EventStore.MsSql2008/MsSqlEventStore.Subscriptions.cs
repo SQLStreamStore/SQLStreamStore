@@ -1,6 +1,5 @@
 ﻿namespace Cedar.EventStore
 {
-    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Subscriptions;
@@ -9,23 +8,43 @@
     {
         protected override async Task<IStreamSubscription> SubscribeToStreamInternal(
             string streamId,
-            int startPosition,
+            int startVersion,
             StreamEventReceived streamEventReceived,
-            SubscriptionDropped subscriptionDropped = null,
-            string name = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            SubscriptionDropped subscriptionDropped,
+            string name,
+            CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var subscription = new StreamSubscription(
+                streamId,
+                startVersion,
+                this,
+                GetStoreObservable,
+                streamEventReceived,
+                subscriptionDropped);
+
+            await subscription.Start(cancellationToken);
+
+            return subscription;
         }
 
-        protected override Task<IAllStreamSubscription> SubscribeToAllInternal(
+        protected override async Task<IAllStreamSubscription> SubscribeToAllInternal(
             long? fromCheckpoint,
             StreamEventReceived streamEventReceived,
-            SubscriptionDropped subscriptionDropped = null,
-            string name = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            SubscriptionDropped subscriptionDropped,
+            string name,
+            CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var subscription = new AllStreamSubscription(
+                fromCheckpoint,
+                this,
+                GetStoreObservable,
+                streamEventReceived,
+                subscriptionDropped, 
+                name);
+
+            await subscription.Start(cancellationToken);
+
+            return subscription;
         }
     }
 }

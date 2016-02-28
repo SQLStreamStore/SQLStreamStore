@@ -5,19 +5,9 @@
     using System.Threading.Tasks;
     using Cedar.EventStore.Infrastructure;
 
-
     public sealed class AllStreamSubscription : SubscriptionBase, IAllStreamSubscription
     {
-        private readonly IReadOnlyEventStore _readOnlyEventStore;
-        private readonly IObservable<Unit> _eventStoreAppendedNotification;
-        private readonly StreamEventReceived _streamEventReceived;
-        private readonly SubscriptionDropped _subscriptionDropped;
-        private readonly CancellationTokenSource _isDisposed = new CancellationTokenSource();
         private long _nextCheckpoint;
-        private readonly InterlockedBoolean _isFetching = new InterlockedBoolean();
-        private readonly InterlockedBoolean _shouldFetch = new InterlockedBoolean();
-        private int _pageSize = 50;
-        private IDisposable _eventStoreAppendedSubscription;
 
         public AllStreamSubscription(
             long? fromCheckpoint,
@@ -31,10 +21,6 @@
             FromCheckpoint = fromCheckpoint;
             LastCheckpoint = fromCheckpoint;
             _nextCheckpoint = fromCheckpoint + 1 ?? Checkpoint.Start;
-            _readOnlyEventStore = readOnlyEventStore;
-            _streamEventReceived = streamEventReceived;
-            _eventStoreAppendedNotification = eventStoreAppendedNotification;
-            _subscriptionDropped = subscriptionDropped ?? ((_, __) => { });
         }
 
         public long? FromCheckpoint { get; }
@@ -46,7 +32,7 @@
             if(FromCheckpoint == Checkpoint.End)
             {
                 // Get the last stream version and subscribe from there.
-                var eventsPage = await _readOnlyEventStore.ReadAllBackwards(
+                var eventsPage = await ReadOnlyEventStore.ReadAllBackwards(
                     Checkpoint.End,
                     1,
                     cancellationToken).NotOnCapturedContext();
@@ -55,74 +41,51 @@
                 // one after the FromCheckpoint.
                 _nextCheckpoint = eventsPage.FromCheckpoint == 0 ?  0 : eventsPage.FromCheckpoint + 1;
             }
-            _eventStoreAppendedSubscription = _eventStoreAppendedNotification.Subscribe(_ =>
-            {
-                _shouldFetch.Set(true);
-                Fetch();
-            });
-            Fetch();
+            await base.Start(cancellationToken).NotOnCapturedContext();
         }
 
-        public void Dispose()
+        protected override async Task<bool> DoFetch()
         {
-            _eventStoreAppendedSubscription?.Dispose();
-            _isDisposed.Cancel();
-        }
+            Console.WriteLine($"Fetching from {_nextCheckpoint}");
+            var allEventsPage = await ReadOnlyEventStore
+                .ReadAllForwards(
+                    _nextCheckpoint,
+                    PageSize,
+                    IsDisposed)
+                .NotOnCapturedContext();
+            bool isEnd = allEventsPage.IsEnd;
 
-        private void Fetch()
-        {
-            if (_isFetching.CompareExchange(true, false))
+            Console.WriteLine($"Received {allEventsPage.StreamEvents.Length} events");
+            foreach(var streamEvent in allEventsPage.StreamEvents)
             {
-                return;
-            }
-
-            Task.Run(async () =>
-            {
-                bool isEnd = false;
-                while (!isEnd || _shouldFetch.CompareExchange(false, true))
+                if(IsDisposed.IsCancellationRequested)
                 {
-                    Console.WriteLine($"Fetching from {_nextCheckpoint}");
-                    var allEventsPage = await _readOnlyEventStore
-                        .ReadAllForwards(
-                            _nextCheckpoint,
-                            _pageSize,
-                            _isDisposed.Token)
-                        .NotOnCapturedContext();
-                    isEnd = allEventsPage.IsEnd;
-
-                    Console.WriteLine($"Received {allEventsPage.StreamEvents.Length} events");
-                    foreach (var streamEvent in allEventsPage.StreamEvents)
-                    {
-                        if(_isDisposed.IsCancellationRequested)
-                        {
-                            return;
-                        }
-                        try
-                        {
-                            await _streamEventReceived(streamEvent).NotOnCapturedContext();
-                            LastCheckpoint = streamEvent.Checkpoint;
-                            _nextCheckpoint = streamEvent.Checkpoint + 1;
-                        }
-                        catch (Exception ex)
-                        {
-                            try
-                            {
-                                _subscriptionDropped.Invoke(ex.Message, ex);
-                            }
-                            catch
-                            {
-                                //TODO logging
-                            }
-                            finally
-                            {
-                                Dispose();
-                            }
-                        }
-                    }
-                    Console.WriteLine($"LastCheckpoint {LastCheckpoint}");
+                    return true;
                 }
-                _isFetching.Set(false);
-            }, _isDisposed.Token);
+                try
+                {
+                    await StreamEventReceived(streamEvent).NotOnCapturedContext();
+                    LastCheckpoint = streamEvent.Checkpoint;
+                    _nextCheckpoint = streamEvent.Checkpoint + 1;
+                }
+                catch(Exception ex)
+                {
+                    try
+                    {
+                        SubscriptionDropped.Invoke(ex.Message, ex);
+                    }
+                    catch
+                    {
+                        //TODO logging
+                    }
+                    finally
+                    {
+                        Dispose();
+                    }
+                }
+            }
+            Console.WriteLine($"LastCheckpoint {LastCheckpoint}");
+            return isEnd;
         }
     }
 }

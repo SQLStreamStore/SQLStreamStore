@@ -4,6 +4,7 @@ namespace Cedar.EventStore
     using System.Data.SqlClient;
     using System.Data.SqlLocalDb;
     using System.Threading.Tasks;
+    using Cedar.EventStore.Subscriptions;
 
     public class MsSqlEventStoreFixture : EventStoreAcceptanceTestFixture
     {
@@ -30,7 +31,7 @@ namespace Cedar.EventStore
         {
             await CreateDatabase();
 
-            var eventStore = new MsSqlEventStore(ConnectionString);
+            var eventStore = new MsSqlEventStore(ConnectionString, Poller.CreateEventStoreNotifier());
             await eventStore.DropAll(ignoreErrors: true);
             await eventStore.InitializeStore();
 

@@ -15,26 +15,22 @@
     public sealed partial class MsSqlEventStore : EventStoreBase
     {
         private readonly Func<SqlConnection> _createConnection;
-        private readonly AsyncLazy<Poller> _lazyPoller;
+        private readonly AsyncLazy<IEventStoreNotifier> _eventStoreNotifier;
 
-        public MsSqlEventStore(string connectionString)
+        public MsSqlEventStore(string connectionString, CreateEventStoreNotifier createEventStoreNotifier)
         {
             Ensure.That(connectionString, nameof(connectionString)).IsNotNullOrWhiteSpace();
 
             _createConnection = () => new SqlConnection(connectionString);
-            _lazyPoller = new AsyncLazy<Poller>(async () =>
-            {
-                var poller = new Poller(this);
-                await poller.Start().NotOnCapturedContext();
-                return poller;
-            },
-                false);
+
+            _eventStoreNotifier = new AsyncLazy<IEventStoreNotifier>(
+                async () => await createEventStoreNotifier(this), false);
         }
 
         protected override Task DeleteStreamInternal(
             string streamId,
-            int expectedVersion = ExpectedVersion.Any,
-            CancellationToken cancellationToken = default(CancellationToken))
+            int expectedVersion,
+            CancellationToken cancellationToken)
         {
             var streamIdInfo = new StreamIdInfo(streamId);
 
@@ -173,15 +169,15 @@
         {
             if(disposing)
             {
-                if(_lazyPoller.IsValueCreated)
+                if(_eventStoreNotifier.IsValueCreated)
                 {
-                    _lazyPoller.Value.Dispose();
+                    _eventStoreNotifier.Value.Dispose();
                 }
             }
             base.Dispose(disposing);
         }
 
-        private IObservable<Unit> GetStoreObservable => _lazyPoller.Value.Result.StoreAppended;
+        private IObservable<Unit> GetStoreObservable => _eventStoreNotifier.Value.Result;
 
         private static async Task<T> ExecuteAndIgnoreErrors<T>(Func<Task<T>> operation)
         {

@@ -72,6 +72,8 @@
     <Compile Include="SimpleJson.cs" />
     <Compile Include="Streams\AllEventsPage.cs" />
     <Compile Include="Streams\Messages.cs" />
+    <Compile Include="Subscriptions\CreateEventStoreNotifier.cs" />
+    <Compile Include="Subscriptions\IEventStoreNotifier.cs" />
     <Compile Include="Subscriptions\Poller.cs" />
     <Compile Include="Subscriptions\StreamEventReceived.cs" />
     <Compile Include="Streams\ExpectedVersion.cs" />

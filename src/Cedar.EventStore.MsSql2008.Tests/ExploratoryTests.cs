@@ -1,14 +1,31 @@
 ﻿namespace Cedar.EventStore
 {
-    using Xunit.Abstractions;
+    using System.Diagnostics;
+    using System.Threading.Tasks;
+    using Cedar.EventStore.Streams;
+    using Xunit;
 
-    public class ExploratoryTests
+    public partial class EventStoreAcceptanceTests
     {
-        private readonly ITestOutputHelper _testOutputHelper;
-
-        public ExploratoryTests(ITestOutputHelper testOutputHelper)
+        [Fact]
+        public async Task Time_to_take_to_read_1000_read_head_checkpoints()
         {
-            _testOutputHelper = testOutputHelper;
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+
+                    var stopwatch = Stopwatch.StartNew();
+
+                    for(int i = 0; i < 1000; i++)
+                    {
+                        await eventStore.ReadHeadCheckpoint();
+                    }
+
+                    _testOutputHelper.WriteLine(stopwatch.ElapsedMilliseconds.ToString());
+                }
+            }
         }
     }
 }

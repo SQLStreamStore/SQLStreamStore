@@ -71,7 +71,7 @@
                         streamEvent =>
                         {
                             receivedEvents.Add(streamEvent);
-                            if (streamEvent.StreamVersion == 12)
+                            if (streamEvent.StreamVersion == 11)
                             {
                                 done.SetResult(streamEvent);
                             }

@@ -1,6 +1,7 @@
 ﻿namespace Cedar.EventStore.Subscriptions
 {
     using System;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Infrastructure;
@@ -84,7 +85,6 @@
                     }
                 }
             }
-            _currentVersion++; // We want to start 
             return isEnd;
         }
     }

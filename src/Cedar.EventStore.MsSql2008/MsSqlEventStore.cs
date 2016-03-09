@@ -193,7 +193,6 @@
 
         private struct StreamIdInfo
         {
-            private static readonly SHA1 s_sha1 = SHA1.Create();
             public readonly string Hash;
             public readonly string Id;
 
@@ -207,10 +206,14 @@
                 if(Guid.TryParse(id, out _))
                 {
                     Hash = id;
-                }
 
-                var hashBytes = s_sha1.ComputeHash(Encoding.UTF8.GetBytes(id));
-                Hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
+                    return;
+                }
+                using(var sha1 = SHA1.Create())
+                {
+                    var hashBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(id));
+                    Hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
+                }
             }
         }
     }

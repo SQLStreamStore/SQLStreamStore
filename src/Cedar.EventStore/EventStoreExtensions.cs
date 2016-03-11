@@ -1,6 +1,7 @@
 ﻿namespace Cedar.EventStore
 {
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading.Tasks;
     using Cedar.EventStore.Streams;
 
@@ -21,7 +22,7 @@
             int expectedVersion,
             IEnumerable<NewStreamEvent> events)
         {
-            return eventStore.AppendToStream(streamId, expectedVersion, events);
+            return eventStore.AppendToStream(streamId, expectedVersion, events.ToArray());
         }
     }
 }

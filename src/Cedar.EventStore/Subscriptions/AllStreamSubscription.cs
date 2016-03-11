@@ -46,7 +46,6 @@
 
         protected override async Task<bool> DoFetch()
         {
-            Console.WriteLine($"Fetching from {_nextCheckpoint}");
             var allEventsPage = await ReadOnlyEventStore
                 .ReadAllForwards(
                     _nextCheckpoint,
@@ -54,8 +53,7 @@
                     IsDisposed)
                 .NotOnCapturedContext();
             bool isEnd = allEventsPage.IsEnd;
-
-            Console.WriteLine($"Received {allEventsPage.StreamEvents.Length} events");
+            
             foreach(var streamEvent in allEventsPage.StreamEvents)
             {
                 if(IsDisposed.IsCancellationRequested)
@@ -84,7 +82,7 @@
                     }
                 }
             }
-            Console.WriteLine($"LastCheckpoint {LastCheckpoint}");
+            
             return isEnd;
         }
     }

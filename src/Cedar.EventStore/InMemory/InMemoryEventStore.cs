@@ -462,9 +462,9 @@ namespace Cedar.EventStore
             string streamId,
             int startVersion,
             StreamEventReceived streamEventReceived,
-            SubscriptionDropped subscriptionDropped = null,
-            string name = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            SubscriptionDropped subscriptionDropped,
+            string name,
+            CancellationToken cancellationToken)
         {
             var subscription = new StreamSubscription(streamId,
                 startVersion,

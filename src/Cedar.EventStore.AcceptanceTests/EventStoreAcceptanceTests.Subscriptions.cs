@@ -59,37 +59,31 @@
             {
                 using (var eventStore = await fixture.GetEventStore())
                 {
-                    string streamId1 = "stream-1";
-
-                    string streamId2 = "stream-2";
+                    string streamId = "stream-1";
 
                     var done = new TaskCompletionSource<StreamEvent>();
                     var receivedEvents = new List<StreamEvent>();
                     using (var subscription = await eventStore.SubscribeToStream(
-                        streamId1,
+                        streamId,
                         StreamVersion.Start,
                         streamEvent =>
                         {
                             receivedEvents.Add(streamEvent);
-                            if (streamEvent.StreamVersion == 12)
+                            if (streamEvent.StreamVersion == 1)
                             {
                                 done.SetResult(streamEvent);
                             }
                             return Task.CompletedTask;
                         }))
                     {
-                        await AppendEvents(eventStore, streamId1, 2);
-
-                        await AppendEvents(eventStore, streamId1, 10);
-
-                        await AppendEvents(eventStore, streamId2, 10);
+                        await AppendEvents(eventStore, streamId, 2);
 
                         var receivedEvent = await done.Task.WithTimeout();
 
-                        receivedEvents.Count.ShouldBe(12);
-                        subscription.StreamId.ShouldBe(streamId1);
-                        receivedEvent.StreamId.ShouldBe(streamId1);
-                        receivedEvent.StreamVersion.ShouldBe(11);
+                        receivedEvents.Count.ShouldBe(2);
+                        subscription.StreamId.ShouldBe(streamId);
+                        receivedEvent.StreamId.ShouldBe(streamId);
+                        receivedEvent.StreamVersion.ShouldBe(1);
                         subscription.LastVersion.ShouldBeGreaterThan(0);
                     }
                 }

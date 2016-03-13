@@ -45,7 +45,7 @@
 
         protected SubscriptionDropped SubscriptionDropped { get; }
 
-        public virtual async Task Start(CancellationToken cancellationToken)
+        public virtual Task Start(CancellationToken cancellationToken)
         {
             _eventStoreAppendedSubscription = EventStoreAppendedNotification.Subscribe(_ =>
             {
@@ -53,6 +53,7 @@
                 Fetch();
             });
             Fetch();
+            return Task.FromResult(0);
         }
 
         public void Dispose()

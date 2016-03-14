@@ -198,7 +198,7 @@
                     {
                         await AppendEvents(eventStore, streamId1, 2);
 
-                        var receivedEvent = await receiveEvents.Task.WithTimeout();
+                        var receivedEvent = await receiveEvents.Task.WithTimeout(6000);
 
                         receivedCount.ShouldBe(2);
                         subscription.StreamId.ShouldBe(streamId1);

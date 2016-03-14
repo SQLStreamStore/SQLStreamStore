@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.Linq;
     using System.Threading.Tasks;
     using Cedar.EventStore.Streams;
     using Shouldly;
@@ -321,6 +322,89 @@
                         receivedEvent.StreamId.ShouldBe(streamId1);
                         receivedEvent.StreamVersion.ShouldBe(11);
                         subscription.LastVersion.ShouldBeGreaterThan(0);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Can_have_multiple_subscriptions_to_all()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    string streamId1 = "stream-1";
+                    await AppendEvents(eventStore, streamId1, 2);
+
+                    var subscriptionCount = 500;
+
+                    var completionSources =
+                        Enumerable.Range(0, subscriptionCount).Select(_ => new TaskCompletionSource<int>())
+                        .ToArray();
+
+                    var subscriptions = await Task.WhenAll(Enumerable.Range(0, subscriptionCount)
+                        .Select(async index => await eventStore.SubscribeToAll(
+                            null,
+                            streamEventReceived: streamEvent =>
+                            {
+                                if(streamEvent.StreamVersion == 1)
+                                {
+                                    completionSources[index].SetResult(0);
+                                }
+                                return Task.CompletedTask;
+                            })));
+
+
+                    try
+                    {
+                        await Task.WhenAll(completionSources.Select(source => source.Task)).WithTimeout();
+                    }
+                    finally
+                    {
+                        foreach (var subscription in subscriptions) subscription.Dispose();
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Can_have_multiple_subscriptions_to_stream()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    string streamId1 = "stream-1";
+                    await AppendEvents(eventStore, streamId1, 2);
+
+                    var subscriptionCount = 500;
+
+                    var completionSources =
+                        Enumerable.Range(0, subscriptionCount).Select(_ => new TaskCompletionSource<int>())
+                        .ToArray();
+
+                    var subscriptions = await Task.WhenAll(Enumerable.Range(0, subscriptionCount)
+                        .Select(async index => await eventStore.SubscribeToStream(
+                            streamId1,
+                            0,
+                            streamEventReceived: streamEvent =>
+                            {
+                                if (streamEvent.StreamVersion == 1)
+                                {
+                                    completionSources[index].SetResult(0);
+                                }
+                                return Task.CompletedTask;
+                            })));
+
+
+                    try
+                    {
+                        await Task.WhenAll(completionSources.Select(source => source.Task)).WithTimeout();
+                    }
+                    finally
+                    {
+                        foreach (var subscription in subscriptions) subscription.Dispose();
                     }
                 }
             }

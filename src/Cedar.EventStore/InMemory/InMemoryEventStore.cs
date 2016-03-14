@@ -466,7 +466,8 @@ namespace Cedar.EventStore
             string name,
             CancellationToken cancellationToken)
         {
-            var subscription = new StreamSubscription(streamId,
+            var subscription = new StreamSubscription(
+                streamId,
                 startVersion,
                 this,
                 _subscriptions,

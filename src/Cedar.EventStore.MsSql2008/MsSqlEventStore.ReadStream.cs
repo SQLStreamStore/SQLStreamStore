@@ -16,7 +16,7 @@
             string streamId,
             int start,
             int count,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             using(var connection = _createConnection())
             {
@@ -30,7 +30,7 @@
             string streamId,
             int start,
             int count,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             using (var connection = _createConnection())
             {

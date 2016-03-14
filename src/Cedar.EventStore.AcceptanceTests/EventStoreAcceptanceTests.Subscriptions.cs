@@ -188,6 +188,7 @@
                         StreamVersion.End,
                         streamEvent =>
                         {
+                            _testOutputHelper.WriteLine($"Received event {streamEvent.StreamId} {streamEvent.StreamVersion} {streamEvent.Checkpoint}");
                             receivedCount++;
                             if (streamEvent.StreamVersion == 11)
                             {
@@ -198,7 +199,7 @@
                     {
                         await AppendEvents(eventStore, streamId1, 2);
 
-                        var receivedEvent = await receiveEvents.Task.WithTimeout(6000);
+                        var receivedEvent = await receiveEvents.Task.WithTimeout();
 
                         receivedCount.ShouldBe(2);
                         subscription.StreamId.ShouldBe(streamId1);

@@ -21,5 +21,11 @@
             Direction = direction;
             StreamEvents = streamEvents;
         }
+
+        public override string ToString()
+        {
+            return $"FromCheckpoint: {FromCheckpoint}, NextCheckpoint: {NextCheckpoint}, " +
+                   $"IsEnd: {IsEnd}, Direction: {Direction}, SteamEventCount: {StreamEvents.Length}";
+        }
     }
 }

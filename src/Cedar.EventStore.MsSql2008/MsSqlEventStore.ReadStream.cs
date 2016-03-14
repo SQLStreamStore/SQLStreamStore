@@ -77,7 +77,8 @@
                 var doesNotExist = reader.IsDBNull(0);
                 if(doesNotExist)
                 {
-                    return new StreamEventsPage(streamId,
+                    return new StreamEventsPage(
+                        streamId,
                         PageReadStatus.StreamNotFound,
                         start,
                         -1,
@@ -90,7 +91,8 @@
                 var isDeleted = reader.GetBoolean(0);
                 if(isDeleted)
                 {
-                    return new StreamEventsPage(streamId,
+                    return new StreamEventsPage(
+                        streamId,
                         PageReadStatus.StreamDeleted,
                         0,
                         0,
@@ -112,7 +114,8 @@
                     var jsonData = reader.GetString(5);
                     var jsonMetadata = reader.GetString(6);
 
-                    var streamEvent = new StreamEvent(streamId,
+                    var streamEvent = new StreamEvent(
+                        streamId,
                         eventId,
                         streamVersion1,
                         ordinal,

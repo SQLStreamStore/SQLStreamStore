@@ -104,7 +104,17 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using(var command = new SqlCommand(_scripts.InitializeStore, connection))
+                if(_scripts.Schema != "dbo")
+                {
+                    using(var command = new SqlCommand($"CREATE SCHEMA {_scripts.Schema}", connection))
+                    {
+                        await command
+                            .ExecuteNonQueryAsync(cancellationToken)
+                            .NotOnCapturedContext();
+                    }
+                }
+
+                using (var command = new SqlCommand(_scripts.InitializeStore, connection))
                 {
                     if(ignoreErrors)
                     {

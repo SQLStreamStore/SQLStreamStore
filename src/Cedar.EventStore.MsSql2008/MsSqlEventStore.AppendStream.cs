@@ -286,11 +286,11 @@
             return sqlDataRecords;
         }
 
-        private static SqlParameter CreateNewEventsSqlParameter(SqlDataRecord[] sqlDataRecords)
+        private SqlParameter CreateNewEventsSqlParameter(SqlDataRecord[] sqlDataRecords)
         {
             var eventsParam = new SqlParameter("newEvents", SqlDbType.Structured)
             {
-                TypeName = "dbo.NewStreamEvents",
+                TypeName = $"{_scripts.Schema}.NewStreamEvents",
                 Value = sqlDataRecords
             };
             return eventsParam;

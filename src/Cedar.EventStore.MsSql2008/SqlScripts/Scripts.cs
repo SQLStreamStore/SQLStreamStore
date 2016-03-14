@@ -6,13 +6,13 @@
 
     internal class Scripts
     {
-        private readonly string _schema;
+        internal readonly string Schema;
         private readonly ConcurrentDictionary<string, string> _scripts 
             = new ConcurrentDictionary<string, string>();
 
         internal Scripts(string schema)
         {
-            _schema = schema;
+            Schema = schema;
         }
 
         internal string AppendStreamExpectedVersionAny => GetScript(nameof(AppendStreamExpectedVersionAny));
@@ -54,7 +54,9 @@
                         }
                         using(StreamReader reader = new StreamReader(stream))
                         {
-                            return reader.ReadToEnd();
+                            return reader
+                                .ReadToEnd()
+                                .Replace("dbo.", Schema + ".");
                         }
                     }
                 });

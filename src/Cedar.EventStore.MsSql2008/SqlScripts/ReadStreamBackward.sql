@@ -19,7 +19,7 @@
             dbo.Events.JsonData,
             dbo.Events.JsonMetadata
        FROM dbo.Events
- INNER JOIN Streams
+ INNER JOIN dbo.Streams
          ON dbo.Events.StreamIdInternal = dbo.Streams.IdInternal
       WHERE dbo.Events.StreamIDInternal = @streamIDInternal AND dbo.Events.StreamVersion <= @StreamVersion
    ORDER BY dbo.Events.Ordinal DESC

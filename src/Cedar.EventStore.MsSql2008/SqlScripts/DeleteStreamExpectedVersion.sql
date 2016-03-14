@@ -4,8 +4,8 @@ BEGIN TRANSACTION DeleteStream
         DECLARE @latestStreamVersion  AS INT;
 
          SELECT @streamIdInternal = dbo.Streams.IdInternal
-           FROM Streams
-          WHERE Streams.Id = @streamId;
+           FROM dbo.Streams
+          WHERE dbo.Streams.Id = @streamId;
 
           IF @streamIdInternal IS NULL
           BEGIN

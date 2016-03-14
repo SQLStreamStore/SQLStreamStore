@@ -3,7 +3,7 @@ BEGIN TRANSACTION DeleteStream
         DECLARE @streamIdInternal AS INT;
         DECLARE @latestStreamVersion  AS INT;
 
-         SELECT @streamIdInternal = Streams.IdInternal
+         SELECT @streamIdInternal = dbo.Streams.IdInternal
            FROM Streams
           WHERE Streams.Id = @streamId;
 
@@ -15,10 +15,10 @@ BEGIN TRANSACTION DeleteStream
           END
 
           SELECT TOP(1)
-                @latestStreamVersion = Events.StreamVersion
-           FROM Events
-          WHERE Events.StreamIDInternal = @streamIdInternal
-       ORDER BY Events.Ordinal DESC;
+                @latestStreamVersion = dbo.Events.StreamVersion
+           FROM dbo.Events
+          WHERE dbo.Events.StreamIDInternal = @streamIdInternal
+       ORDER BY dbo.Events.Ordinal DESC;
 
          IF @latestStreamVersion != @expectedStreamVersion
          BEGIN
@@ -27,11 +27,11 @@ BEGIN TRANSACTION DeleteStream
             RETURN;
          END
 
-         UPDATE Streams
+         UPDATE dbo.Streams
             SET IsDeleted = '1'
-          WHERE Streams.Id = @streamId ;
+          WHERE dbo.Streams.Id = @streamId ;
 
-         DELETE FROM Events
-          WHERE Events.StreamIdInternal = @streamIdInternal;
+         DELETE FROM dbo.Events
+          WHERE dbo.Events.StreamIdInternal = @streamIdInternal;
 
 COMMIT TRANSACTION DeleteStream

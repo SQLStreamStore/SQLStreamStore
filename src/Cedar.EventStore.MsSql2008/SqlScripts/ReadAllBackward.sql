@@ -1,15 +1,15 @@
 /* SQL Server 2008+ */
      SELECT TOP(@count)
-            Streams.IdOriginal As StreamId,
-            Events.StreamVersion,
-            Events.Ordinal,
-            Events.Id AS EventId,
-            Events.Created,
-            Events.Type,
-            Events.JsonData,
-            Events.JsonMetadata
-       FROM Events
- INNER JOIN Streams
-         ON Events.StreamIdInternal=Streams.IdInternal
-      WHERE Events.Ordinal <= @ordinal
-   ORDER BY Events.Ordinal DESC;
+            dbo.Streams.IdOriginal As StreamId,
+            dbo.Events.StreamVersion,
+            dbo.Events.Ordinal,
+            dbo.Events.Id AS EventId,
+            dbo.Events.Created,
+            dbo.Events.Type,
+            dbo.Events.JsonData,
+            dbo.Events.JsonMetadata
+       FROM dbo.Events
+ INNER JOIN dbo.Streams
+         ON dbo.Events.StreamIdInternal = dbo.Streams.IdInternal
+      WHERE dbo.Events.Ordinal <= @ordinal
+   ORDER BY dbo.Events.Ordinal DESC;

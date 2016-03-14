@@ -6,6 +6,10 @@ namespace Cedar.EventStore.Infrastructure
 
     public abstract class EventStoreBase : ReadOnlyEventStoreBase, IEventStore
     {
+        protected EventStoreBase(string logName = null)
+            : base(logName)
+        {}
+
         public Task AppendToStream(
             string streamId,
             int expectedVersion,
@@ -32,6 +36,6 @@ namespace Cedar.EventStore.Infrastructure
         protected abstract Task DeleteStreamInternal(
             string streamId,
             int expectedVersion,
-            CancellationToken cancellationToke );
+            CancellationToken cancellationToken);
     }
 }

@@ -21,7 +21,9 @@
         public MsSqlEventStore(
             string connectionString,
             CreateEventStoreNotifier createEventStoreNotifier,
-            string schema = "dbo")
+            string schema = "dbo",
+            string logName = "MsSqlEventStore")
+            :base(logName)
         {
             Ensure.That(connectionString, nameof(connectionString)).IsNotNullOrWhiteSpace();
 

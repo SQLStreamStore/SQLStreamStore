@@ -9,7 +9,8 @@
     public sealed class StreamSubscription : SubscriptionBase, IStreamSubscription
     {
         private readonly string _streamId;
-        private int _currentVersion;
+        private int _nextVersion;
+        private int _lastVersion;
 
         public StreamSubscription(
             string streamId,
@@ -22,16 +23,17 @@
             :base(readOnlyEventStore, eventStoreAppendedNotification, streamEventReceived, subscriptionDropped, name)
         {
             _streamId = streamId;
-            _currentVersion = startVersion;
+            _nextVersion = startVersion;
+            _lastVersion = startVersion - 1;
         }
 
         public string StreamId => _streamId;
 
-        public int LastVersion => _currentVersion;
+        public int LastVersion => _lastVersion;
 
         public override async Task Start(CancellationToken cancellationToken)
         {
-            if(_currentVersion == StreamVersion.End)
+            if(_nextVersion == StreamVersion.End)
             {
                 // Get the last stream version and subscribe from there.
                 var eventsPage = await ReadOnlyEventStore.ReadStreamBackwards(
@@ -41,7 +43,7 @@
                     cancellationToken).NotOnCapturedContext();
 
                 //Only new events, i.e. the one after the current last one 
-                _currentVersion = eventsPage.LastStreamVersion + 1;
+                _nextVersion = eventsPage.LastStreamVersion + 1;
             }
             await base.Start(cancellationToken);
         }
@@ -51,7 +53,7 @@
             var streamEventsPage = await ReadOnlyEventStore
                 .ReadStreamForwards(
                     _streamId,
-                    _currentVersion,
+                    _nextVersion,
                     PageSize,
                     IsDisposed)
                 .NotOnCapturedContext();
@@ -63,7 +65,8 @@
                 {
                     return true;
                 }
-                _currentVersion = streamEvent.StreamVersion;
+                _nextVersion = streamEvent.StreamVersion + 1;
+                _lastVersion = streamEvent.StreamVersion;
                 try
                 {
                     await StreamEventReceived(streamEvent).NotOnCapturedContext();
@@ -84,7 +87,6 @@
                     }
                 }
             }
-            _currentVersion++; // We want to start 
             return isEnd;
         }
     }

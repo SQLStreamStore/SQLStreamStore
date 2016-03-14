@@ -9,11 +9,13 @@ namespace Cedar.EventStore
     public class MsSqlEventStoreFixture : EventStoreAcceptanceTestFixture
     {
         public readonly string ConnectionString;
+        private readonly string _schema;
         private readonly ISqlLocalDbInstance _localDbInstance;
         private readonly string _databaseName;
 
-        public MsSqlEventStoreFixture()
+        public MsSqlEventStoreFixture(string schema)
         {
+            _schema = schema;
             var localDbProvider = new SqlLocalDbProvider
             {
                 Version = "11.0"
@@ -31,8 +33,16 @@ namespace Cedar.EventStore
         {
             await CreateDatabase();
 
-            var eventStore = new MsSqlEventStore(ConnectionString, Poller.CreateEventStoreNotifier());
+            var eventStore = new MsSqlEventStore(ConnectionString, Poller.CreateEventStoreNotifier(), _schema);
             await eventStore.DropAll(ignoreErrors: true);
+            await eventStore.InitializeStore();
+
+            return eventStore;
+        }
+
+        public async Task<IEventStore> GetEventStore(string schema)
+        {
+            var eventStore = new MsSqlEventStore(ConnectionString, Poller.CreateEventStoreNotifier(), schema);
             await eventStore.InitializeStore();
 
             return eventStore;

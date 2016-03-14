@@ -3,29 +3,29 @@
     DECLARE @streamIdInternal AS INT
     DECLARE @isDeleted AS BIT
 
-     SELECT @streamIdInternal = Streams.IdInternal,
-            @isDeleted = Streams.IsDeleted
-       FROM Streams
-      WHERE Streams.Id = @streamId
+     SELECT @streamIdInternal = dbo.Streams.IdInternal,
+            @isDeleted = dbo.Streams.IsDeleted
+       FROM dbo.Streams
+      WHERE dbo.Streams.Id = @streamId
 
      SELECT @isDeleted;
 
      SELECT TOP(@count)
-            Events.StreamVersion,
-            Events.Ordinal,
-            Events.Id AS EventId,
-            Events.Created,
-            Events.Type,
-            Events.JsonData,
-            Events.JsonMetadata
-       FROM Events
-      INNER JOIN Streams
-         ON Events.StreamIdInternal = Streams.IdInternal
-      WHERE Events.StreamIDInternal = @streamIDInternal AND Events.StreamVersion >= @StreamVersion
-   ORDER BY Events.Ordinal;
+            dbo.Events.StreamVersion,
+            dbo.Events.Ordinal,
+            dbo.Events.Id AS EventId,
+            dbo.Events.Created,
+            dbo.Events.Type,
+            dbo.Events.JsonData,
+            dbo.Events.JsonMetadata
+       FROM dbo.Events
+ INNER JOIN dbo.Streams
+         ON dbo.Events.StreamIdInternal = dbo.Streams.IdInternal
+      WHERE dbo.Events.StreamIDInternal = @streamIDInternal AND dbo.Events.StreamVersion >= @StreamVersion
+   ORDER BY dbo.Events.Ordinal;
 
      SELECT TOP(1)
-            Events.StreamVersion
-       FROM Events
-      WHERE Events.StreamIDInternal = @streamIDInternal
-   ORDER BY Events.Ordinal DESC;
+            dbo.Events.StreamVersion
+       FROM dbo.Events
+      WHERE dbo.Events.StreamIDInternal = @streamIDInternal
+   ORDER BY dbo.Events.Ordinal DESC;

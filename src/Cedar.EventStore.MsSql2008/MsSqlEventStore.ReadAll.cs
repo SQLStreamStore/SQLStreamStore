@@ -6,7 +6,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Infrastructure;
-    using Cedar.EventStore.SqlScripts;
     using Cedar.EventStore.Streams;
 
     public partial class MsSqlEventStore
@@ -14,7 +13,7 @@
         protected override async Task<AllEventsPage> ReadAllForwardsInternal(
             long fromCheckpointExlusive,
             int maxCount,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             long ordinal = fromCheckpointExlusive;
 
@@ -22,7 +21,7 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using (var command = new SqlCommand(Scripts.ReadAllForward, connection))
+                using (var command = new SqlCommand(_scripts.ReadAllForward, connection))
                 {
                     command.Parameters.AddWithValue("ordinal", ordinal);
                     command.Parameters.AddWithValue("count", maxCount + 1); //Read extra row to see if at end or not
@@ -96,7 +95,7 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using (var command = new SqlCommand(Scripts.ReadAllBackward, connection))
+                using (var command = new SqlCommand(_scripts.ReadAllBackward, connection))
                 {
                     command.Parameters.AddWithValue("ordinal", ordinal);
                     command.Parameters.AddWithValue("count", maxCount + 1); //Read extra row to see if at end or not

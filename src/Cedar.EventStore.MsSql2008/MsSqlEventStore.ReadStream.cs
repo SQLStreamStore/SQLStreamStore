@@ -7,7 +7,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Infrastructure;
-    using Cedar.EventStore.SqlScripts;
     using Cedar.EventStore.Streams;
 
     public partial class MsSqlEventStore
@@ -40,7 +39,7 @@
             }
         }
 
-        private static async Task<StreamEventsPage> ReadStreamInternal(
+        private async Task<StreamEventsPage> ReadStreamInternal(
             string streamId,
             int start,
             int count,
@@ -56,12 +55,12 @@
             Func<List<StreamEvent>, int> getNextSequenceNumber;
             if(direction == ReadDirection.Forward)
             {
-                commandText = Scripts.ReadStreamForward;
+                commandText = _scripts.ReadStreamForward;
                 getNextSequenceNumber = events => events.Last().StreamVersion + 1;
             }
             else
             {
-                commandText = Scripts.ReadStreamBackward;
+                commandText = _scripts.ReadStreamBackward;
                 getNextSequenceNumber = events => events.Last().StreamVersion - 1;
             }
 
@@ -78,7 +77,8 @@
                 var doesNotExist = reader.IsDBNull(0);
                 if(doesNotExist)
                 {
-                    return new StreamEventsPage(streamId,
+                    return new StreamEventsPage(
+                        streamId,
                         PageReadStatus.StreamNotFound,
                         start,
                         -1,
@@ -91,7 +91,8 @@
                 var isDeleted = reader.GetBoolean(0);
                 if(isDeleted)
                 {
-                    return new StreamEventsPage(streamId,
+                    return new StreamEventsPage(
+                        streamId,
                         PageReadStatus.StreamDeleted,
                         0,
                         0,
@@ -113,7 +114,8 @@
                     var jsonData = reader.GetString(5);
                     var jsonMetadata = reader.GetString(6);
 
-                    var streamEvent = new StreamEvent(streamId,
+                    var streamEvent = new StreamEvent(
+                        streamId,
                         eventId,
                         streamVersion1,
                         ordinal,

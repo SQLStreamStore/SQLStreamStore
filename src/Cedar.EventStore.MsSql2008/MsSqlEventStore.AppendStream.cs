@@ -7,7 +7,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Infrastructure;
-    using Cedar.EventStore.SqlScripts;
     using Cedar.EventStore.Streams;
     using EnsureThat;
     using Microsoft.SqlServer.Server;
@@ -60,7 +59,7 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using (var command = new SqlCommand(Scripts.AppendStreamExpectedVersionAny, connection))
+                using (var command = new SqlCommand(_scripts.AppendStreamExpectedVersionAny, connection))
                 {
                     command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
                     command.Parameters.AddWithValue("streamIdOriginal", streamIdInfo.Id);
@@ -136,7 +135,7 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using (var command = new SqlCommand(Scripts.AppendStreamExpectedVersionNoStream, connection))
+                using (var command = new SqlCommand(_scripts.AppendStreamExpectedVersionNoStream, connection))
                 {
                     command.Parameters.AddWithValue("streamId", streamIdHash.Hash);
                     command.Parameters.AddWithValue("streamIdOriginal", streamIdHash.Id);
@@ -212,7 +211,7 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using (var command = new SqlCommand(Scripts.AppendStreamExpectedVersion, connection))
+                using (var command = new SqlCommand(_scripts.AppendStreamExpectedVersion, connection))
                 {
                     command.Parameters.AddWithValue("streamId", streamIdHash.Hash);
                     command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
@@ -287,11 +286,11 @@
             return sqlDataRecords;
         }
 
-        private static SqlParameter CreateNewEventsSqlParameter(SqlDataRecord[] sqlDataRecords)
+        private SqlParameter CreateNewEventsSqlParameter(SqlDataRecord[] sqlDataRecords)
         {
             var eventsParam = new SqlParameter("newEvents", SqlDbType.Structured)
             {
-                TypeName = "dbo.NewStreamEvents",
+                TypeName = $"{_scripts.Schema}.NewStreamEvents",
                 Value = sqlDataRecords
             };
             return eventsParam;

@@ -56,14 +56,14 @@ namespace Cedar.EventStore
                 SqlConnection.ClearPool(sqlConnection);
             }
 
-            /*using (var connection = _localDbInstance.CreateConnection())
+            using (var connection = _localDbInstance.CreateConnection())
             {
                 connection.Open();
                 using (var command = new SqlCommand($"DROP DATABASE {_databaseName}", connection))
                 {
                     command.ExecuteNonQuery();
                 }
-            }*/
+            }
         }
 
         private async Task CreateDatabase()

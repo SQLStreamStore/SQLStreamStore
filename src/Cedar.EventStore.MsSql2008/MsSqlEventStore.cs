@@ -16,15 +16,19 @@
     {
         private readonly Func<SqlConnection> _createConnection;
         private readonly AsyncLazy<IEventStoreNotifier> _eventStoreNotifier;
+        private readonly Scripts _scripts;
 
-        public MsSqlEventStore(string connectionString, CreateEventStoreNotifier createEventStoreNotifier)
+        public MsSqlEventStore(
+            string connectionString,
+            CreateEventStoreNotifier createEventStoreNotifier,
+            string schema = "dbo")
         {
             Ensure.That(connectionString, nameof(connectionString)).IsNotNullOrWhiteSpace();
 
             _createConnection = () => new SqlConnection(connectionString);
-
             _eventStoreNotifier = new AsyncLazy<IEventStoreNotifier>(
                 async () => await createEventStoreNotifier(this), false);
+            _scripts = new Scripts(schema);
         }
 
         protected override Task DeleteStreamInternal(
@@ -47,7 +51,7 @@
             {
                 await connection.OpenAsync(cancellationToken);
 
-                using(var command = new SqlCommand(Scripts.DeleteStreamAnyVersion, connection))
+                using(var command = new SqlCommand(_scripts.DeleteStreamAnyVersion, connection))
                 {
                     command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
                     await command
@@ -66,7 +70,7 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using(var command = new SqlCommand(Scripts.DeleteStreamExpectedVersion, connection))
+                using(var command = new SqlCommand(_scripts.DeleteStreamExpectedVersion, connection))
                 {
                     command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
                     command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
@@ -100,7 +104,7 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using(var command = new SqlCommand(Scripts.InitializeStore, connection))
+                using(var command = new SqlCommand(_scripts.InitializeStore, connection))
                 {
                     if(ignoreErrors)
                     {
@@ -126,7 +130,7 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using(var command = new SqlCommand(Scripts.DropAll, connection))
+                using(var command = new SqlCommand(_scripts.DropAll, connection))
                 {
                     if(ignoreErrors)
                     {
@@ -150,7 +154,7 @@
             {
                 await connection.OpenAsync(cancellationToken);
 
-                using(var command = new SqlCommand(Scripts.ReadHeadCheckpoint, connection))
+                using(var command = new SqlCommand(_scripts.ReadHeadCheckpoint, connection))
                 {
                     var result = await command
                         .ExecuteScalarAsync(cancellationToken)

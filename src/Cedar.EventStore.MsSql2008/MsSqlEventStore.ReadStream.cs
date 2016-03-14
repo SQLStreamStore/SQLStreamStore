@@ -7,7 +7,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Infrastructure;
-    using Cedar.EventStore.SqlScripts;
     using Cedar.EventStore.Streams;
 
     public partial class MsSqlEventStore
@@ -40,7 +39,7 @@
             }
         }
 
-        private static async Task<StreamEventsPage> ReadStreamInternal(
+        private async Task<StreamEventsPage> ReadStreamInternal(
             string streamId,
             int start,
             int count,
@@ -56,12 +55,12 @@
             Func<List<StreamEvent>, int> getNextSequenceNumber;
             if(direction == ReadDirection.Forward)
             {
-                commandText = Scripts.ReadStreamForward;
+                commandText = _scripts.ReadStreamForward;
                 getNextSequenceNumber = events => events.Last().StreamVersion + 1;
             }
             else
             {
-                commandText = Scripts.ReadStreamBackward;
+                commandText = _scripts.ReadStreamBackward;
                 getNextSequenceNumber = events => events.Last().StreamVersion - 1;
             }
 

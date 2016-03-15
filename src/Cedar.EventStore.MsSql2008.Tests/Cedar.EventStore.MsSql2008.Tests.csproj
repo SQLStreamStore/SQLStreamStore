@@ -9,7 +9,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Cedar.EventStore</RootNamespace>
-    <AssemblyName>Cedar.EventStore.MsSql.Tests</AssemblyName>
+    <AssemblyName>Cedar.EventStore.MsSql2008.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>

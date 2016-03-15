@@ -35,7 +35,7 @@ task UpdateVersion {
     Update-Version $newVersion $assemblyInfoFilePath
 }
 
-task Compile -depends RestoreNuget{
+task Compile -depends RestoreNuget {
     exec { msbuild /nologo /verbosity:quiet $solutionFilePath /p:Configuration=Release /p:platform="Any CPU"}
 }
 
@@ -44,10 +44,10 @@ task RunTests -depends Compile {
     EnsureDirectory $testReportDir
 
     Run-Tests "Cedar.EventStore.Tests"
-    Run-Tests "Cedar.EventStore.GetEventStore.Tests"
+#   Run-Tests "Cedar.EventStore.GetEventStore.Tests"
     Run-Tests "Cedar.EventStore.MsSql2008.Tests"
-    Run-Tests "Cedar.EventStore.Sqlite.Tests"
-    Run-Tests "Cedar.EventStore.Postgres.Tests"
+#   Run-Tests "Cedar.EventStore.Sqlite.Tests"
+#   Run-Tests "Cedar.EventStore.Postgres.Tests"
 }
 
 task ILMerge -depends Compile {
@@ -59,11 +59,11 @@ task ILMerge -depends Compile {
     @(  "EnsureThat" ) |% { $inputDlls = "$inputDlls $dllDir\$_.dll" }
     Invoke-Expression "$ilmergePath /targetplatform:v4 /internalize /allowDup /target:library /log /out:$mergedDir\$mainDllName.dll $inputDlls"
 
-    $mainDllName = "Cedar.EventStore.GetEventStore"
-    $dllDir = "$srcDir\$mainDllName\bin\Release"
-    $inputDlls = "$dllDir\$mainDllName.dll"
-    @(  "EnsureThat" ) |% { $inputDlls = "$inputDlls $dllDir\$_.dll" }
-    Invoke-Expression "$ilmergePath /targetplatform:v4 /internalize /allowDup /target:library /log /out:$mergedDir\$mainDllName.dll $inputDlls"
+#   $mainDllName = "Cedar.EventStore.GetEventStore"
+#   $dllDir = "$srcDir\$mainDllName\bin\Release"
+#   $inputDlls = "$dllDir\$mainDllName.dll"
+#   @(  "EnsureThat" ) |% { $inputDlls = "$inputDlls $dllDir\$_.dll" }
+#   Invoke-Expression "$ilmergePath /targetplatform:v4 /internalize /allowDup /target:library /log /out:$mergedDir\$mainDllName.dll $inputDlls"
 
     $mainDllName = "Cedar.EventStore.MsSql2008"
     $dllDir = "$srcDir\$mainDllName\bin\Release"
@@ -89,13 +89,12 @@ task CreateNuGetPackages -depends ILMerge {
 }
 
 function FindTool {
-	param(
+	param (
 		[string]$name,
 		[string]$packageDir
 	)
 
 	$result = Get-ChildItem "$packageDir\$name" | Select-Object -First 1
-
 	return $result.FullName
 }
 
@@ -104,30 +103,28 @@ function Get-PackageConfigs {
 }
 
 function EnsureDirectory {
-    param($directory)
+    param (
+		[string]$directory
+	)
 
     if(!(test-path $directory))	{
         mkdir $directory
     }
 }
 
-
-function Get-Version
-{
-	param
-	(
+function Get-Version {
+	param (
 		[string]$assemblyInfoFilePath
 	)
+	
 	Write-Host "path $assemblyInfoFilePath"
 	$pattern = '(?<=^\[assembly\: AssemblyVersion\(\")(?<versionString>\d+\.\d+\.\d+\.\d+)(?=\"\))'
 	$assmblyInfoContent = Get-Content $assemblyInfoFilePath
 	return $assmblyInfoContent | Select-String -Pattern $pattern | Select -expand Matches |% {$_.Groups['versionString'].Value}
 }
 
-function Update-Version
-{
-	param
-    (
+function Update-Version {
+	param (
 		[string]$version,
 		[string]$assemblyInfoFilePath
 	)
@@ -142,16 +139,17 @@ function Update-Version
 	Move-Item $tmpFile $assemblyInfoFilePath -force
 }
 
-function Run-Tests{
-    param
-    (
+function Run-Tests {
+    param (
 		[string]$projectName
 	)
-    .$xunitRunner "$srcDir\$projectName\bin\Release\$projectName.dll" -html "$testReportDir\$projectName.html" -xml "$testReportDir\$projectName.xml"
-
+	
+    exec { .$xunitRunner "$srcDir\$projectName\bin\Release\$projectName.dll" -html "$testReportDir\$projectName.html" -xml "$testReportDir\$projectName.xml"}
+		
     # Pretty-print the xml
     if(Test-Path "$testReportDir\$projectName.xml"){
-        [Reflection.Assembly]::LoadWithPartialName("System.Xml.Linq")
+        #capture the Assembly to prevent it being printed to console.
+        $temp = [Reflection.Assembly]::LoadWithPartialName("System.Xml.Linq")
         [System.Xml.Linq.XDocument]::Load("$testReportDir\$projectName.xml").Save("$testReportDir\$projectName.xml")
     }
 }

@@ -1,15 +1,22 @@
 ﻿namespace Cedar.EventStore
 {
+    using System;
     using System.Threading.Tasks;
     using Cedar.EventStore.Streams;
     using Shouldly;
     using Xunit;
+    using Xunit.Abstractions;
 
     public partial class EventStoreAcceptanceTests
     {
         private EventStoreAcceptanceTestFixture GetFixture(string schema = "foo")
         {
             return new MsSqlEventStoreFixture(schema);
+        }
+
+        private IDisposable CaptureLogs(ITestOutputHelper testOutputHelper)
+        {
+            return LoggingHelper.Capture(testOutputHelper);
         }
 
         [Fact]

@@ -10,13 +10,20 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public partial class EventStoreAcceptanceTests
+    public partial class EventStoreAcceptanceTests : IDisposable
     {
         private readonly ITestOutputHelper _testOutputHelper;
+        private readonly IDisposable _logCapture;
 
         public EventStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
+            _logCapture = CaptureLogs(testOutputHelper);
+        }
+
+        public void Dispose()
+        {
+            _logCapture.Dispose();
         }
 
         [Fact]

@@ -199,6 +199,12 @@
                     {
                         await AppendEvents(eventStore, streamId1, 2);
 
+                        var allEventsPage = await eventStore.ReadAllForwards(0, 30);
+                        foreach(var streamEvent in allEventsPage.StreamEvents)
+                        {
+                            _testOutputHelper.WriteLine(streamEvent.ToString());
+                        }
+
                         var receivedEvent = await receiveEvents.Task.WithTimeout();
 
                         receivedCount.ShouldBe(2);

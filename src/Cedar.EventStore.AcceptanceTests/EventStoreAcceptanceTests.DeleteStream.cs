@@ -73,7 +73,7 @@
             }
         }
 
-        [Fact]
+        [Fact(Skip = "To be re-implemented")]
         public async Task When_delete_a_stream_and_append_then_should_throw()
         {
             using (var fixture = GetFixture())

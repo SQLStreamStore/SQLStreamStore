@@ -166,7 +166,26 @@
             }
         }
 
-        // ReSharper disable once UnusedMethodReturnValue.Global
+        [Fact]
+        public async Task When_read_existing_stream_forwards_past_the_end_should_get_empty_page()
+        {
+            using(var fixture = GetFixture())
+            {
+                using(var eventStore = await fixture.GetEventStore())
+                {
+                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamEvents(1));
+
+                    var streamEventsPage = await eventStore.ReadStreamForwards("stream-1", 1, int.MaxValue);
+
+                    streamEventsPage.Status.ShouldBe(PageReadStatus.Success);
+                    streamEventsPage.Events.Any().ShouldBe(false);
+                    streamEventsPage.IsEndOfStream.ShouldBe(true);
+                    streamEventsPage.LastStreamVersion.ShouldBe(0);
+                    streamEventsPage.NextStreamVersion.ShouldBe(1);
+                }
+            }
+        }
+        // ReSharper disable MemberCanBePrivate.Global
         public static IEnumerable<object[]> GetReadStreamForwardsTheories()
         {
             var theories = new[]
@@ -206,6 +225,7 @@
 
             return theories.Select(t => new object[] { t });
         }
+        // ReSharper restore MemberCanBePrivate.Global
 
         public class ReadStreamTheory
         {

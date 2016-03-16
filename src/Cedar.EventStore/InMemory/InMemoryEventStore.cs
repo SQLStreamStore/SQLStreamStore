@@ -358,7 +358,7 @@ namespace Cedar.EventStore
                 }
 
                 var lastStreamVersion = stream.Events.Last().StreamVersion;
-                var nextStreamVersion = events.Last().StreamVersion + 1;
+                var nextStreamVersion = (events.LastOrDefault()?.StreamVersion ?? lastStreamVersion) + 1;
                 var endOfStream = i == stream.Events.Count;
 
                 var page = new StreamEventsPage(

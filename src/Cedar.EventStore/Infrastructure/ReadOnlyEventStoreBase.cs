@@ -1,17 +1,40 @@
 namespace Cedar.EventStore.Infrastructure
 {
     using System;
+    using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
+    using Cedar.EventStore.Logging;
     using Cedar.EventStore.Streams;
     using Cedar.EventStore.Subscriptions;
     using EnsureThat;
 
+    internal static class OperationExtensions
+    {
+        internal static async Task<T> Measure<T>(this Func<Task<T>> operation, ILog logger, Func<T, long, string> generateMessage)
+        {
+            if(!logger.IsDebugEnabled())
+            {
+                return await operation();
+            }
+            var stopWatch = Stopwatch.StartNew();
+            T result = await operation();
+            logger.Debug(generateMessage(result, stopWatch.ElapsedMilliseconds));
+            return result;
+        }
+    }
+
     public abstract class ReadOnlyEventStoreBase : IReadOnlyEventStore
     {
+        protected readonly ILog Logger;
         private bool _isDisposed;
 
-        public Task<AllEventsPage> ReadAllForwards(
+        protected ReadOnlyEventStoreBase(string logName)
+        {
+            Logger = LogProvider.GetLogger(logName);
+        }
+
+        public async Task<AllEventsPage> ReadAllForwards(
             long fromCheckpointInclusive,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -21,7 +44,12 @@ namespace Cedar.EventStore.Infrastructure
 
             CheckIfDisposed();
 
-            return ReadAllForwardsInternal(fromCheckpointInclusive, maxCount, cancellationToken);
+            Func<Task<AllEventsPage>> operation =
+                () => ReadAllForwardsInternal(fromCheckpointInclusive, maxCount, cancellationToken);
+
+            return await operation.Measure(Logger,
+                (page, elapsed) => $"{nameof(ReadAllForwards)} from {fromCheckpointInclusive} with max of {maxCount} " +
+                                   $"returned [{page}]");
         }
 
         public Task<AllEventsPage> ReadAllBackwards(

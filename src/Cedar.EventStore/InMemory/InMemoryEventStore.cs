@@ -22,7 +22,8 @@ namespace Cedar.EventStore
         private readonly Subject<Unit> _subscriptions = new Subject<Unit>();
         private bool _isDisposed;
 
-        public InMemoryEventStore(GetUtcNow getUtcNow = null)
+        public InMemoryEventStore(GetUtcNow getUtcNow = null, string logName = null)
+            : base(logName ?? nameof(InMemoryEventStore))
         {
             _getUtcNow = getUtcNow ?? SystemClock.GetUtcNow;
             _allStream.AddFirst(new InMemoryStreamEvent(

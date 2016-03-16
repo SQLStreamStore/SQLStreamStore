@@ -20,7 +20,8 @@ BEGIN TRANSACTION AppendStream;
                         [Type],
                         JsonData,
                         JsonMetadata
-                   FROM @newEvents;
+                   FROM @newEvents
+               ORDER BY StreamVersion;
             END
        ELSE
            BEGIN
@@ -38,6 +39,7 @@ BEGIN TRANSACTION AppendStream;
                         [Type],
                         JsonData,
                         JsonMetadata
-                   FROM @newEvents;
+                   FROM @newEvents
+               ORDER BY StreamVersion;
            END
 COMMIT TRANSACTION AppendStream;

@@ -35,6 +35,7 @@ INSERT INTO dbo.Events (StreamIdInternal, StreamVersion, Id, Created, [Type], Js
             [Type],
             JsonData,
             JsonMetadata
-       FROM @newEvents;
+       FROM @newEvents
+   ORDER BY StreamVersion;
  
 COMMIT TRANSACTION AppendStream;

@@ -25,6 +25,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore", "Cedar.E
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GetEventstoreExploratoryTests", "GetEventstoreExploratoryTests\GetEventstoreExploratoryTests.csproj", "{2E25DAFA-D0C8-4EB8-BA00-33E8CC8B6DAF}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.GetEventStore", "Cedar.EventStore.GetEventStore\Cedar.EventStore.GetEventStore.csproj", "{890C4705-7224-48E2-9A24-7EFA71C6527C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.GetEventStore.Tests", "Cedar.EventStore.GetEventStore.Tests\Cedar.EventStore.GetEventStore.Tests.csproj", "{9BC93D71-384A-4B40-BFC4-91349A9FA6C9}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -51,6 +55,14 @@ Global
 		{2E25DAFA-D0C8-4EB8-BA00-33E8CC8B6DAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{2E25DAFA-D0C8-4EB8-BA00-33E8CC8B6DAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{2E25DAFA-D0C8-4EB8-BA00-33E8CC8B6DAF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{890C4705-7224-48E2-9A24-7EFA71C6527C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{890C4705-7224-48E2-9A24-7EFA71C6527C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{890C4705-7224-48E2-9A24-7EFA71C6527C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{890C4705-7224-48E2-9A24-7EFA71C6527C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{9BC93D71-384A-4B40-BFC4-91349A9FA6C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{9BC93D71-384A-4B40-BFC4-91349A9FA6C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{9BC93D71-384A-4B40-BFC4-91349A9FA6C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{9BC93D71-384A-4B40-BFC4-91349A9FA6C9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

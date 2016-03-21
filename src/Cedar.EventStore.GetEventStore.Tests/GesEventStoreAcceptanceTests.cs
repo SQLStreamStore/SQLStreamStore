@@ -12,7 +12,15 @@
 
         private IDisposable CaptureLogs(ITestOutputHelper testOutputHelper)
         {
-            return LoggingHelper.Capture(testOutputHelper);
+            return new Disposable();
+        }
+
+        private class Disposable : IDisposable
+        {
+            public void Dispose()
+            {
+                
+            }
         }
     }
 }

@@ -64,7 +64,7 @@
                     .ToArray());
         }
 
-        public Task<AllEventsPage> ReadAllBackwards(
+        public async Task<AllEventsPage> ReadAllBackwards(
             long fromCheckpointInclusive,
             int maxCount,
             CancellationToken cancellationToken = new CancellationToken())
@@ -74,7 +74,26 @@
 
             CheckIfDisposed();
 
-            throw new NotImplementedException();
+            Position position = new Position(fromCheckpointInclusive, fromCheckpointInclusive);
+            var slice = await _connection.ReadAllEventsBackwardAsync(position, maxCount, true, _userCredentials);
+
+            return new AllEventsPage(
+                slice.FromPosition.PreparePosition,
+                slice.NextPosition.PreparePosition,
+                slice.IsEndOfStream,
+                ReadDirection.Backward,
+                slice.Events
+                    .Where(resolvedEvent => !resolvedEvent.Event.EventStreamId.StartsWith("$"))
+                    .Select(resolvedEvent => new StreamEvent(
+                        resolvedEvent.Event.EventStreamId,
+                        resolvedEvent.Event.EventId,
+                        resolvedEvent.Event.EventNumber,
+                        resolvedEvent.OriginalPosition.GetValueOrDefault().PreparePosition,
+                        FromEpoch(resolvedEvent.Event.CreatedEpoch),
+                        resolvedEvent.Event.EventType,
+                        s_encoding.GetString(resolvedEvent.Event.Data),
+                        s_encoding.GetString(resolvedEvent.Event.Metadata)))
+                    .ToArray());
         }
 
         public async Task<StreamEventsPage> ReadStreamForwards(
@@ -109,7 +128,7 @@
                     .ToArray());
         }
 
-        public Task<StreamEventsPage> ReadStreamBackwards(
+        public async Task<StreamEventsPage> ReadStreamBackwards(
             string streamId,
             int fromVersionInclusive,
             int maxCount,
@@ -121,7 +140,26 @@
 
             CheckIfDisposed();
 
-            throw new NotImplementedException();
+            var slice = await _connection.ReadStreamEventsBackwardAsync(streamId, fromVersionInclusive, maxCount, true, _userCredentials);
+
+            return new StreamEventsPage(
+                streamId,
+                (PageReadStatus)slice.Status,
+                fromVersionInclusive,
+                slice.NextEventNumber,
+                slice.LastEventNumber,
+                ReadDirection.Backward,
+                slice.IsEndOfStream,
+                slice.Events.Select(resolvedEvent => new StreamEvent(
+                    streamId,
+                    resolvedEvent.Event.EventId,
+                    resolvedEvent.Event.EventNumber,
+                    resolvedEvent.OriginalPosition.GetValueOrDefault().PreparePosition,
+                    FromEpoch(resolvedEvent.Event.CreatedEpoch),
+                    resolvedEvent.Event.EventType,
+                    s_encoding.GetString(resolvedEvent.Event.Data),
+                    s_encoding.GetString(resolvedEvent.Event.Metadata)))
+                    .ToArray());
         }
 
         public Task<IStreamSubscription> SubscribeToStream(

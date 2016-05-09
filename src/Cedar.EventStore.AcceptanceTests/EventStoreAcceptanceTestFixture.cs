@@ -6,6 +6,8 @@ namespace Cedar.EventStore
 
     public abstract class EventStoreAcceptanceTestFixture : IDisposable
     {
+        public virtual int LargeSubscriptionCount => 500;
+
         public abstract Task<IEventStore> GetEventStore();
 
         public virtual GetUtcNow GetUtcNow => SystemClock.GetUtcNow;

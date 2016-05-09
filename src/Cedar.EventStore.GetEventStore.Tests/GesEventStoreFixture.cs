@@ -2,7 +2,6 @@ namespace Cedar.EventStore
 {
     using System.Net;
     using System.Threading.Tasks;
-    using Cedar.EventStore.GetEventStore;
     using global::EventStore.ClientAPI;
     using global::EventStore.ClientAPI.Embedded;
     using global::EventStore.ClientAPI.SystemData;
@@ -12,6 +11,9 @@ namespace Cedar.EventStore
     {
         private readonly ClusterVNode _node;
         private readonly IEventStoreConnection _connection;
+
+        public override int LargeSubscriptionCount => 10;
+
         public GesEventStoreFixture()
         {
             var none = new IPEndPoint(IPAddress.None, 0);

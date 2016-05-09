@@ -6,6 +6,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Streams;
+    using EnsureThat;
     using global::EventStore.ClientAPI;
     using global::EventStore.ClientAPI.SystemData;
 
@@ -54,15 +55,11 @@
 
         public Task Start(CancellationToken cancellationToken)
         {
-            _subscription = _connection.SubscribeToAllFrom(Position.Start, 
+            _subscription = _connection.SubscribeToAllFrom(LastCheckpointPosition, 
                 false,
                 EventAppeared,
                 subscriptionDropped: SubscriptionDropped,
-                userCredentials: _userCredentials,
-                liveProcessingStarted: s =>
-                {
-                    s.ToString();
-                });
+                userCredentials: _userCredentials);
 
             return ProcessQueue();
         }

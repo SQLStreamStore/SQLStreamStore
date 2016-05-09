@@ -343,7 +343,7 @@
                     string streamId1 = "stream-1";
                     await AppendEvents(eventStore, streamId1, 2);
 
-                    var subscriptionCount = 500;
+                    var subscriptionCount = fixture.LargeSubscriptionCount;
 
                     var completionSources =
                         Enumerable.Range(0, subscriptionCount).Select(_ => new TaskCompletionSource<int>())
@@ -384,7 +384,7 @@
                     string streamId1 = "stream-1";
                     await AppendEvents(eventStore, streamId1, 2);
 
-                    var subscriptionCount = 500;
+                    var subscriptionCount = fixture.LargeSubscriptionCount;
 
                     var completionSources =
                         Enumerable.Range(0, subscriptionCount).Select(_ => new TaskCompletionSource<int>())

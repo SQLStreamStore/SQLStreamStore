@@ -5,6 +5,7 @@
     using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+    using Cedar.EventStore.Infrastructure;
     using Cedar.EventStore.Streams;
     using EnsureThat;
     using global::EventStore.ClientAPI;
@@ -39,7 +40,7 @@
             _connection = connection;
             _fromCheckpoint = fromCheckpoint;
             _streamEventReceived = streamEventReceived;
-            _subscriptionDropped = subscriptionDropped;
+            _subscriptionDropped = subscriptionDropped ?? ((_, ex) => {});
             _userCredentials = userCredentials;
             _lastCheckpoint = fromCheckpoint;
             _nextCheckpoint = fromCheckpoint + 1 ?? Checkpoint.Start;

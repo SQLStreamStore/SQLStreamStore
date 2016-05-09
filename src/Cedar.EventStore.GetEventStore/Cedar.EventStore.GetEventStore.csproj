@@ -55,6 +55,7 @@
     <Compile Include="InterlockedBooleanExtensions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Subscriptions\GesAllStreamSubscription.cs" />
+    <Compile Include="Subscriptions\GesStreamSubscription.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Cedar.EventStore.GetEventStore.nuspec" />

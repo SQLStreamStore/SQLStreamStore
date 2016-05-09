@@ -175,7 +175,17 @@
 
             CheckIfDisposed();
 
-            throw new NotImplementedException();
+            var subscription = new GesStreamSubscription(
+                _connection,
+                streamId,
+                fromVersionExclusive,
+                streamEventReceived,
+                subscriptionDropped,
+                name,
+                _userCredentials);
+
+            return subscription.Start(cancellationToken)
+                .ContinueWith(_ => (IStreamSubscription)subscription, cancellationToken);
         }
 
         public Task<IAllStreamSubscription> SubscribeToAll(

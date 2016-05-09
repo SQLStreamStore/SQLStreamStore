@@ -133,8 +133,8 @@ namespace Cedar.EventStore.Subscriptions
             if (_queue.TryDequeue(out streamEvent))
             {
                 return _streamEventReceived(streamEvent)
-                    .ContinueWith(_ => Interlocked.Exchange(ref _lastVersion, streamEvent.StreamVersion))
-                    .ContinueWith(_ => ProcessQueue());
+                    .ContinueWith(_ => Interlocked.Exchange(ref _lastVersion, streamEvent.StreamVersion), TaskContinuationOptions.NotOnFaulted)
+                    .ContinueWith(_ => ProcessQueue(), TaskContinuationOptions.NotOnFaulted);
             }
 
             return Task.Delay(1).ContinueWith(_ => ProcessQueue());

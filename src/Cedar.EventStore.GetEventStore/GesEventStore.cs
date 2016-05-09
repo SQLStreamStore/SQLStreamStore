@@ -185,7 +185,7 @@
                 _userCredentials);
 
             return subscription.Start(cancellationToken)
-                .ContinueWith(_ => (IStreamSubscription)subscription, cancellationToken);
+                .ContinueWith(_ => (IStreamSubscription)subscription, cancellationToken, TaskContinuationOptions.NotOnFaulted, TaskScheduler.Current);
         }
 
         public Task<IAllStreamSubscription> SubscribeToAll(
@@ -207,7 +207,7 @@
                 _userCredentials);
 
             return subscription.Start(cancellationToken)
-                .ContinueWith(_ => (IAllStreamSubscription)subscription, cancellationToken);
+                .ContinueWith(_ => (IAllStreamSubscription)subscription, cancellationToken, TaskContinuationOptions.NotOnFaulted, TaskScheduler.Current);
         }
 
         public Task<long> ReadHeadCheckpoint(CancellationToken cancellationToken = new CancellationToken())

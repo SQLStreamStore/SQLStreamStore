@@ -112,7 +112,7 @@
             if(_queue.TryDequeue(out streamEvent))
             {
                 return _streamEventReceived(streamEvent)
-                    .ContinueWith(_ => ProcessQueue());
+                    .ContinueWith(_ => ProcessQueue(), TaskContinuationOptions.NotOnFaulted);
             }
 
             return Task.Delay(1).ContinueWith(_ => ProcessQueue());

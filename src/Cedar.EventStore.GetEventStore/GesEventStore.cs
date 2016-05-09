@@ -1,4 +1,4 @@
-﻿namespace Cedar.EventStore.GetEventStore
+﻿namespace Cedar.EventStore
 {
     using System;
     using System.Linq;
@@ -189,7 +189,15 @@
 
             CheckIfDisposed();
 
-            throw new NotImplementedException();
+            var subscription = new GesAllStreamSubscription(
+                _connection, 
+                fromCheckpointExclusive, 
+                streamEventReceived, 
+                subscriptionDropped, name, 
+                _userCredentials);
+
+            return subscription.Start(cancellationToken)
+                .ContinueWith(_ => (IAllStreamSubscription)subscription, cancellationToken);
         }
 
         public Task<long> ReadHeadCheckpoint(CancellationToken cancellationToken = new CancellationToken())

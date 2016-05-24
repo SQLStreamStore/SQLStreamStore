@@ -1,6 +1,6 @@
 # Cedar EventStore
 
-Cedar Event Store is an event sourcing library for .NET
+Cedar Event Store is an event store library for .NET
 
 **This project is under heavy development at this time.**
 

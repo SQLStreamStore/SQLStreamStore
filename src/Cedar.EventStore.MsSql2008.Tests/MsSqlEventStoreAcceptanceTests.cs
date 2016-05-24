@@ -40,7 +40,6 @@
 
                         dboHeadCheckpoint.ShouldBe(1);
                         fooHeadCheckpoint.ShouldBe(1);
-
                     }
                 }
             }

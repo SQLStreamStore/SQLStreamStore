@@ -54,7 +54,7 @@
             }
         }
 
-        private static NewStreamEvent[] CreateNewStreamEvents(params int[] eventNumbers)
+        public static NewStreamEvent[] CreateNewStreamEvents(params int[] eventNumbers)
         {
             return eventNumbers
                 .Select(eventNumber =>

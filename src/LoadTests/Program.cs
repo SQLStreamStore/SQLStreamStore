@@ -39,15 +39,18 @@
                         {
                             var task = Task.Run(async () =>
                             {
+                                int eventNumber = i * 10000000;
                                 while(!cts.IsCancellationRequested)
                                 {
                                     try
                                     {
                                         await eventStore.AppendToStream("stream-1",
                                             ExpectedVersion.Any,
-                                            EventStoreAcceptanceTests.CreateNewStreamEvents(1, 2),
+                                            EventStoreAcceptanceTests.CreateNewStreamEvents(eventNumber, eventNumber + 1),
                                             cts.Token);
                                         Console.Write($"\r{Interlocked.Increment(ref count)}");
+
+                                        eventNumber += 2;
                                     }
                                     catch (Exception ex) when(!(ex is TaskCanceledException))
                                     {

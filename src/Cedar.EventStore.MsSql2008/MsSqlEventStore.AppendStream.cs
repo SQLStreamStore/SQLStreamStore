@@ -53,6 +53,33 @@
             NewStreamEvent[] events,
             CancellationToken cancellationToken)
         {
+            await AppendToStreamExpectedVersionAny2(streamIdInfo, expectedVersion, events, cancellationToken);
+
+            return;
+
+            Func<Task> action =
+                () => AppendToStreamExpectedVersionAny2(streamIdInfo, expectedVersion, events, cancellationToken);
+
+            WrongExpectedVersionException wrongExpectedVersionException = null;
+            do
+            {
+                try
+                {
+                    await action();
+                }
+                catch(WrongExpectedVersionException ex)
+                {
+                    wrongExpectedVersionException = ex;
+                }
+            } while(wrongExpectedVersionException != null);
+        }
+
+        private async Task AppendToStreamExpectedVersionAny2(
+            StreamIdInfo streamIdInfo,
+            int expectedVersion,
+            NewStreamEvent[] events,
+            CancellationToken cancellationToken)
+        {
             var sqlDataRecords = CreateSqlDataRecords(events);
 
             using (var connection = _createConnection())
@@ -79,7 +106,6 @@
                         if (ex.IsUniqueConstraintViolationOnIndex("IX_Events_StreamIdInternal_Id"))
                         {
                             // Idempotency handling. Check if the events have already been written.
-
                             var page = await ReadStreamInternal(
                                     streamIdInfo.Id,
                                     StreamVersion.Start,

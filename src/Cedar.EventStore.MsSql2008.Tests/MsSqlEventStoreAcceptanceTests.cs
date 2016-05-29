@@ -1,8 +1,6 @@
 ﻿namespace Cedar.EventStore
 {
     using System;
-    using System.Collections.Generic;
-    using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Streams;
     using Shouldly;

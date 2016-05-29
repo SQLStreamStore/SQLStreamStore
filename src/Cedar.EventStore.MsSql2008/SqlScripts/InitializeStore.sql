@@ -1,3 +1,5 @@
+/* SQL Server 2008+*/
+
 CREATE TABLE dbo.Streams(
     Id                  CHAR(40)                                NOT NULL,
     IdOriginal          NVARCHAR(1000)                          NOT NULL,

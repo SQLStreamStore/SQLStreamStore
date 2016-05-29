@@ -13,8 +13,10 @@
         static void Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
+                //.WriteTo
+                //.ColoredConsole()
                 .WriteTo
-                .ColoredConsole()
+                .File("LoadTests.txt")
                 .CreateLogger();
 
             var cts = new CancellationTokenSource();
@@ -26,45 +28,68 @@
 
         private static async Task MainAsync(CancellationToken cancellationToken)
         {
-            using(var fixture = new MsSqlEventStoreFixture("dbo"))
+            try
             {
-                using(var eventStore = await fixture.GetEventStore())
+                using(var fixture = new MsSqlEventStoreFixture("dbo"))
                 {
-                    using(var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+                    using(var eventStore = await fixture.GetEventStore())
                     {
-                        var tasks = new List<Task>();
-                        int count = 0;
-
-                        for(int i = 0; i < Environment.ProcessorCount; i++)
+                        using(var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
                         {
-                            var task = Task.Run(async () =>
-                            {
-                                int eventNumber = i * 10000000;
-                                while(!cts.IsCancellationRequested)
-                                {
-                                    try
-                                    {
-                                        await eventStore.AppendToStream("stream-1",
-                                            ExpectedVersion.Any,
-                                            EventStoreAcceptanceTests.CreateNewStreamEvents(eventNumber, eventNumber + 1),
-                                            cts.Token);
-                                        Console.Write($"\r{Interlocked.Increment(ref count)}");
-
-                                        eventNumber += 2;
-                                    }
-                                    catch (Exception ex) when(!(ex is TaskCanceledException))
-                                    {
-                                        cts.Cancel();
-                                        Console.WriteLine(ex);
-                                    }
-                                }
-                            },cts.Token);
-                            tasks.Add(task);
+                            await RunLoadTest(cts, eventStore);
                         }
-                        await Task.WhenAll(tasks);
                     }
                 }
             }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                throw;
+            }
+        }
+
+        private static async Task RunLoadTest(CancellationTokenSource cts, IEventStore eventStore)
+        {
+            var tasks = new List<Task>();
+            int count = -1;
+
+            for(int i = 0; i < 2; i++)
+            {
+                var taskNumber = i;
+                var task = Task.Run(async () =>
+                {
+                    while(!cts.IsCancellationRequested)
+                    {
+                        try
+                        {
+                            var eventNumber = Interlocked.Increment(ref count);
+                            var newStreamEvents = EventStoreAcceptanceTests
+                                .CreateNewStreamEvents(eventNumber*2 + 1, eventNumber*2 + 2);
+
+                            var info = $"{taskNumber} - {newStreamEvents[0].EventId}," +
+                                       $"{newStreamEvents[1].EventId}";
+
+                            Log.Logger.Information($"Begin {info}");
+                            await eventStore.AppendToStream(
+                                "stream-1",
+                                ExpectedVersion.Any,
+                                newStreamEvents,
+                                cts.Token);
+                            Log.Logger.Information($"End   {info}");
+                            Console.Write($"\r{eventNumber*2 + 2}");
+                        }
+                        catch(Exception ex) when(!(ex is TaskCanceledException))
+                        {
+                            cts.Cancel();
+                            Log.Logger.Error(ex, ex.Message);
+                            Console.WriteLine(ex);
+                            Console.ReadKey();
+                        }
+                    }
+                },cts.Token);
+                tasks.Add(task);
+            }
+            await Task.WhenAll(tasks);
         }
     }
 }

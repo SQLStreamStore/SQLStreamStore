@@ -22,8 +22,8 @@ namespace Cedar.EventStore
             };
             _localDbInstance = localDbProvider.GetOrCreateInstance("CedarEventStoreTests");
             _localDbInstance.Start();
-            
-            var uniqueName = Guid.NewGuid().ToString().Replace("-", string.Empty);
+
+            var uniqueName = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds().ToString().PadLeft(20, '0');
             _databaseName = $"CedarEventStoreTests_{uniqueName}";
 
             ConnectionString = CreateConnectionString();

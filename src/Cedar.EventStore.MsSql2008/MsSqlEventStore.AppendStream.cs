@@ -40,7 +40,8 @@
             switch (expectedVersion)
             {
                 case ExpectedVersion.Any:
-                    return AppendToStreamExpectedVersionAny(streamIdInfo, expectedVersion, events, cancellationToken);
+                    return RetryOnDeadLock(
+                        () => AppendToStreamExpectedVersionAny(streamIdInfo, expectedVersion, events, cancellationToken));
                 case ExpectedVersion.NoStream:
                     return AppendToStreamExpectedVersionNoStream(streamId, expectedVersion, events, streamIdInfo, cancellationToken);
                 default:
@@ -65,18 +66,7 @@
             } while(exception != null);
         }
 
-        private Task AppendToStreamExpectedVersionAny(
-            StreamIdInfo streamIdInfo,
-            int expectedVersion,
-            NewStreamEvent[] events,
-            CancellationToken cancellationToken)
-        {
-            return RetryOnDeadLock(
-                () => AppendToStreamExpectedVersionAny2(streamIdInfo, expectedVersion, events, cancellationToken));
-
-        }
-
-        private async Task AppendToStreamExpectedVersionAny2(
+        private async Task AppendToStreamExpectedVersionAny(
             StreamIdInfo streamIdInfo,
             int expectedVersion,
             NewStreamEvent[] events,

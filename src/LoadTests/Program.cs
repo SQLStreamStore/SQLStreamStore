@@ -21,9 +21,21 @@
 
             var cts = new CancellationTokenSource();
             var task = MainAsync(cts.Token);
-            Console.WriteLine("Press key to stop...");
+            PrintMenu();
             Console.ReadKey();
             cts.Cancel();
+        }
+
+        private static void PrintMenu()
+        {
+            Console.WriteLine("Load tests. Choose wisely.");
+            Console.WriteLine($"(your processor count is {Environment.ProcessorCount}).\r\n");
+            var foregroundColor = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Yellow;
+            Console.WriteLine(" 1. ExpectedVersion.Any on one stream.");
+            Console.WriteLine(" 2. ExpectedVersion.Any on a stream per task.");
+            Console.ForegroundColor = foregroundColor;
+            Console.WriteLine();
         }
 
         private static async Task MainAsync(CancellationToken cancellationToken)
@@ -71,7 +83,7 @@
 
                             Log.Logger.Information($"Begin {info}");
                             await eventStore.AppendToStream(
-                                $"stream-1",
+                                $"stream-{taskNumber}",
                                 ExpectedVersion.Any,
                                 newStreamEvents,
                                 cts.Token);

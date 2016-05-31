@@ -71,7 +71,7 @@
 
                             Log.Logger.Information($"Begin {info}");
                             await eventStore.AppendToStream(
-                                $"stream-{taskNumber}",
+                                $"stream-1",
                                 ExpectedVersion.Any,
                                 newStreamEvents,
                                 cts.Token);

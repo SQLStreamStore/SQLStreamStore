@@ -1,9 +1,9 @@
-BEGIN TRANSACTION AppendStream;
+BEGIN TRANSACTION AppendStream ;
     DECLARE @streamIdInternal AS INT;
     DECLARE @latestStreamVersion AS INT;
 
      SELECT @streamIdInternal = dbo.Streams.IdInternal
-       FROM dbo.Streams
+      FROM dbo.Streams WITH (UPDLOCK, ROWLOCK)
       WHERE dbo.Streams.Id = @streamId;
 
          IF @streamIdInternal IS NULL
@@ -26,7 +26,7 @@ BEGIN TRANSACTION AppendStream;
            BEGIN
                  SELECT TOP(1)
                          @latestStreamVersion = dbo.Events.StreamVersion
-                    FROM dbo.Events
+                    FROM dbo.Events WITH (UPDLOCK, ROWLOCK)
                    WHERE dbo.Events.StreamIDInternal = @streamIdInternal
                 ORDER BY dbo.Events.Ordinal DESC;
 

@@ -39,6 +39,6 @@ BEGIN TRANSACTION AppendStream;
                         JsonData,
                         JsonMetadata
                    FROM @newEvents
-               ORDER BY StreamVersion;
+               ORDER BY StreamVersion
            END
 COMMIT TRANSACTION AppendStream;

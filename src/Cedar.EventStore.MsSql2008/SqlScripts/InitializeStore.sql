@@ -1,5 +1,11 @@
 /* SQL Server 2008+*/
 
+DECLARE @DBName sysname;
+SET @DBName = (SELECT db_name());
+DECLARE @SQL varchar(1000);
+SET @SQL = 'ALTER DATABASE '+@DBName+' SET ALLOW_SNAPSHOT_ISOLATION ON; ALTER DATABASE '+@DBName+' SET READ_COMMITTED_SNAPSHOT ON;'; 
+exec(@sql)
+
 CREATE TABLE dbo.Streams(
     Id                  CHAR(40)                                NOT NULL,
     IdOriginal          NVARCHAR(1000)                          NOT NULL,

@@ -53,7 +53,7 @@
             var tasks = new List<Task>();
             int count = -1;
 
-            for(int i = 0; i < 2; i++)
+            for(int i = 0; i < Environment.ProcessorCount; i++)
             {
                 var taskNumber = i;
                 var task = Task.Run(async () =>
@@ -71,7 +71,7 @@
 
                             Log.Logger.Information($"Begin {info}");
                             await eventStore.AppendToStream(
-                                "stream-1",
+                                $"stream-{taskNumber}",
                                 ExpectedVersion.Any,
                                 newStreamEvents,
                                 cts.Token);

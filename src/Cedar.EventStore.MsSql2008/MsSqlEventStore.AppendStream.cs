@@ -40,8 +40,6 @@
             {
                 case ExpectedVersion.Any:
                     return AppendToStreamExpectedVersionAny(streamIdInfo, expectedVersion, events, cancellationToken);
-/*                    return RetryOnDeadLock(
-                        () => AppendToStreamExpectedVersionAny(streamIdInfo, expectedVersion, events, cancellationToken));*/
                 case ExpectedVersion.NoStream:
                     return AppendToStreamExpectedVersionNoStream(streamId, expectedVersion, events, streamIdInfo, cancellationToken);
                 default:
@@ -91,8 +89,8 @@
                             .ExecuteNonQueryAsync(cancellationToken)
                             .NotOnCapturedContext();
                     }
-                        // Check for unique constraint violation on 
-                        // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
+                    // Check for unique constraint violation on 
+                    // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
                     catch(SqlException ex)
                         when(ex.IsUniqueConstraintViolationOnIndex("IX_Events_StreamIdInternal_Id"))
                     {

@@ -144,7 +144,7 @@ function Run-Tests {
 		[string]$projectName
 	)
 	
-    exec { .$xunitRunner "$srcDir\$projectName\bin\Release\$projectName.dll" -html "$testReportDir\$projectName.html" -xml "$testReportDir\$projectName.xml"}
+    exec { .$xunitRunner "$srcDir\$projectName\bin\Release\$projectName.dll" }
 		
     # Pretty-print the xml
     if(Test-Path "$testReportDir\$projectName.xml"){

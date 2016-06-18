@@ -75,8 +75,7 @@
                 _isDisposed.Cancel();
             }
         }
-
-        protected void Fetch()
+        private void Fetch()
         {
             if (_isFetching.CompareExchange(true, false))
             {
@@ -84,12 +83,22 @@
             }
             Task.Run(async () =>
             {
-                bool isEnd = false;
-                while (!isEnd || _shouldFetch.CompareExchange(false, true))
+                try
                 {
-                    isEnd = await DoFetch();
+                    bool isEnd = false;
+                    while(_shouldFetch.CompareExchange(false, true) || !isEnd)
+                    {
+                        isEnd = await DoFetch();
+                    }
                 }
-                _isFetching.Set(false);
+                catch(Exception ex)
+                {
+                    // Drop subscription
+                }
+                finally
+                {
+                    _isFetching.Set(false);
+                }
             }, IsDisposed);
         }
 

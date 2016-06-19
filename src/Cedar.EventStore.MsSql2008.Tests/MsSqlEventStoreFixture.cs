@@ -18,7 +18,7 @@ namespace Cedar.EventStore
             _schema = schema;
             var localDbProvider = new SqlLocalDbProvider
             {
-                Version = "11.0"
+                Version = "10.5"
             };
             _localDbInstance = localDbProvider.GetOrCreateInstance("CedarEventStoreTests");
             _localDbInstance.Start();

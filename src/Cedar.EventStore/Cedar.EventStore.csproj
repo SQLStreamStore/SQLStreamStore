@@ -22,6 +22,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Debug\Cedar.EventStore.xml</DocumentationFile>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -31,6 +32,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <DocumentationFile>bin\Release\Cedar.EventStore.xml</DocumentationFile>
+    <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="EnsureThat, Version=2.0.0.39118, Culture=neutral, processorArchitecture=MSIL">
@@ -48,6 +50,7 @@
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
     <Compile Include="Infrastructure\AsyncLazy.cs" />
     <Compile Include="Infrastructure\EventStoreBase.cs" />
+    <Compile Include="Infrastructure\OperationExtensions.cs" />
     <Compile Include="Infrastructure\ReadOnlyEventStoreBase.cs" />
     <Compile Include="Streams\Checkpoint.cs" />
     <Compile Include="EventStoreExtensions.cs" />

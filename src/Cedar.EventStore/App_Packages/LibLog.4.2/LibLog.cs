@@ -742,7 +742,6 @@ namespace Cedar.EventStore.Logging.LogProviders
     using System.Linq.Expressions;
     using System.Reflection;
 #if !LIBLOG_PORTABLE
-    using System.Text;
 #endif
     using System.Text.RegularExpressions;
 

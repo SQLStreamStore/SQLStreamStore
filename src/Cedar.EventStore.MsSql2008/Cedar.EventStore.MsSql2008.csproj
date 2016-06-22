@@ -46,8 +46,6 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
-    <Compile Include="InterlockedBoolean.cs" />
-    <Compile Include="InterlockedBooleanExtensions.cs" />
     <Compile Include="MsSqlEventStore.cs" />
     <Compile Include="MsSqlEventStore.AppendStream.cs" />
     <Compile Include="MsSqlEventStore.ReadAll.cs" />

@@ -14,7 +14,6 @@ namespace Cedar.EventStore.InMemory
         private readonly Action _onStreamAppended;
         private readonly List<InMemoryStreamEvent> _events = new List<InMemoryStreamEvent>();
         private readonly HashSet<Guid> _eventIds = new HashSet<Guid>();
-        private bool _isDeleted;
 
         internal InMemoryStream(
             string streamId,
@@ -30,15 +29,8 @@ namespace Cedar.EventStore.InMemory
 
         internal IReadOnlyList<InMemoryStreamEvent> Events => _events;
 
-        internal bool IsDeleted => _isDeleted;
-
         internal void AppendToStream(int expectedVersion, NewStreamEvent[] newEvents)
         {
-            if(_isDeleted)
-            {
-                throw new StreamDeletedException(Messages.EventStreamIsDeleted(_streamId));
-            }
-
             switch(expectedVersion)
             {
                 case ExpectedVersion.Any:
@@ -55,11 +47,6 @@ namespace Cedar.EventStore.InMemory
 
         internal void Delete(int expectedVersion)
         {
-            if(_isDeleted)
-            {
-                return;
-            }
-
             if(expectedVersion > 0 && expectedVersion != _events.Last().StreamVersion)
             {
                 throw new WrongExpectedVersionException(
@@ -72,7 +59,6 @@ namespace Cedar.EventStore.InMemory
             }
             _events.Clear();
             _eventIds.Clear();
-            _isDeleted = true;
         }
 
         private void AppendToStreamExpectedVersion(int expectedVersion, NewStreamEvent[] newEvents)

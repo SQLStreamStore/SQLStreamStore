@@ -1,14 +1,10 @@
 /* SQL Server 2008+ */
 
     DECLARE @streamIdInternal AS INT
-    DECLARE @isDeleted AS BIT
 
-     SELECT @streamIdInternal = dbo.Streams.IdInternal,
-            @isDeleted = dbo.Streams.IsDeleted
+     SELECT @streamIdInternal = dbo.Streams.IdInternal
        FROM dbo.Streams
       WHERE dbo.Streams.Id = @streamId
-
-     SELECT @isDeleted;
 
      SELECT TOP(@count)
             dbo.Events.StreamVersion,

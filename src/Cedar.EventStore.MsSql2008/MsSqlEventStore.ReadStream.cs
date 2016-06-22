@@ -49,8 +49,8 @@
         {
             var streamIdInfo = new StreamIdInfo(streamId);
 
+            // To read backwards from end, need to use int MaxValue
             var streamVersion = start == StreamVersion.End ? int.MaxValue : start;
-                // To read backwards from end, need to use int MaxValue
             string commandText;
             Func<List<StreamEvent>, int> getNextSequenceNumber;
             if(direction == ReadDirection.Forward)
@@ -87,23 +87,8 @@
                         isEndOfStream: true);
                 }
 
-                // Read IsDeleted result set
-                var isDeleted = reader.GetBoolean(0);
-                if(isDeleted)
-                {
-                    return new StreamEventsPage(
-                        streamId,
-                        PageReadStatus.StreamDeleted,
-                        0,
-                        0,
-                        0,
-                        direction,
-                        isEndOfStream: true);
-                }
-
-
                 // Read Events result set
-                await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
+                //bool b = await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
                 while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                 {
                     var streamVersion1 = reader.GetInt32(0);

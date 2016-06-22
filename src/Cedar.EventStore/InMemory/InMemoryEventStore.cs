@@ -324,17 +324,6 @@ namespace Cedar.EventStore
                         true);
                     return Task.FromResult(notFound);
                 }
-                if(stream.IsDeleted)
-                {
-                    var deleted = new StreamEventsPage(streamId,
-                        PageReadStatus.StreamDeleted,
-                        start,
-                        0,
-                        0,
-                        ReadDirection.Forward,
-                        true);
-                    return Task.FromResult(deleted);
-                }
 
                 var events = new List<StreamEvent>();
                 var i = start;
@@ -404,17 +393,6 @@ namespace Cedar.EventStore
                         ReadDirection.Backward,
                         true);
                     return Task.FromResult(notFound);
-                }
-                if(stream.IsDeleted)
-                {
-                    var deleted = new StreamEventsPage(streamId,
-                        PageReadStatus.StreamDeleted,
-                        fromVersionInclusive,
-                        0,
-                        0,
-                        ReadDirection.Backward,
-                        true);
-                    return Task.FromResult(deleted);
                 }
 
                 var events = new List<StreamEvent>();

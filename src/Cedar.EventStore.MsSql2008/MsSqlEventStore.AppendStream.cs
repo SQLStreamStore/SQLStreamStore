@@ -27,7 +27,7 @@
            string streamId,
            int expectedVersion,
            NewStreamEvent[] events,
-           CancellationToken cancellationToken = default(CancellationToken))
+           CancellationToken cancellationToken)
         {
             Ensure.That(streamId, "streamId").IsNotNullOrWhiteSpace();
             Ensure.That(expectedVersion, "expectedVersion").IsGte(-2);

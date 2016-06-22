@@ -10,7 +10,6 @@ CREATE TABLE dbo.Streams(
     Id                  CHAR(40)                                NOT NULL,
     IdOriginal          NVARCHAR(1000)                          NOT NULL,
     IdInternal          INT                 IDENTITY(1,1)       NOT NULL,
-    IsDeleted           BIT                 DEFAULT (0)         NOT NULL,
     CONSTRAINT PK_Streams PRIMARY KEY CLUSTERED (IdInternal)
 );
 CREATE UNIQUE NONCLUSTERED INDEX IX_Streams_Id ON dbo.Streams (Id);
@@ -216,15 +215,11 @@ SELECT * FROM dbo.Events;
 
 /* ReadStreamForward */
 DECLARE @StreamVersion AS INT = 0
-DECLARE @isDeleted AS BIT;
 SET @streamId = 'stream-2'
 
-     SELECT @streamIdInternal = Streams.IdInternal,
-            @isDeleted = Streams.IsDeleted
+     SELECT @streamIdInternal = Streams.IdInternal
        FROM Streams
       WHERE Streams.Id = @streamId
-
-     SELECT @isDeleted AS IsDeleted
 
      SELECT TOP(@count)
             Events.StreamVersion,
@@ -250,16 +245,12 @@ SET @streamId = 'stream-2'
 
 SET @StreamVersion = 5;
 
-     SELECT @streamIdInternal = Streams.IdInternal,
-            @isDeleted = Streams.IsDeleted
+     SELECT @streamIdInternal = Streams.IdInternal
        FROM Streams
       WHERE Streams.Id = @streamId
 
-     SELECT @isDeleted;
-
      SELECT TOP(@count)
             Streams.IdOriginal As StreamId,
-            Streams.IsDeleted as IsDeleted,
             Events.StreamVersion,
             Events.Ordinal,
             Events.Id AS EventId,

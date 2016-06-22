@@ -10,7 +10,6 @@ CREATE TABLE dbo.Streams(
     Id                  CHAR(40)                                NOT NULL,
     IdOriginal          NVARCHAR(1000)                          NOT NULL,
     IdInternal          INT                 IDENTITY(1,1)       NOT NULL,
-    IsDeleted           BIT                 DEFAULT (0)         NOT NULL,
     CONSTRAINT PK_Streams PRIMARY KEY CLUSTERED (IdInternal)
 );
 CREATE UNIQUE NONCLUSTERED INDEX IX_Streams_Id ON dbo.Streams (Id);

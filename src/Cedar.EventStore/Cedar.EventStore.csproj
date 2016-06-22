@@ -83,7 +83,6 @@
     <Compile Include="Streams\NewStreamEvent.cs" />
     <Compile Include="Streams\PageReadStatus.cs" />
     <Compile Include="Streams\ReadDirection.cs" />
-    <Compile Include="Streams\StreamDeletedException.cs" />
     <Compile Include="Streams\StreamEvent.cs" />
     <Compile Include="Streams\StreamEventExtensions.cs" />
     <Compile Include="Streams\StreamEventsPage.cs" />

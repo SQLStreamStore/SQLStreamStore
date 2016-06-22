@@ -73,26 +73,6 @@
             }
         }
 
-        [Fact(Skip = "To be re-implemented")]
-        public async Task When_delete_a_stream_and_append_then_should_throw()
-        {
-            using (var fixture = GetFixture())
-            {
-                using (var eventStore = await fixture.GetEventStore())
-                {
-                    const string streamId = "stream";
-
-                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1));
-                    await eventStore.DeleteStream(streamId);
-
-                    var exception = await Record.ExceptionAsync(() => 
-                        eventStore.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1)));
-
-                    exception.ShouldBeOfType<StreamDeletedException>();
-                }
-            }
-        }
-
         [Fact]
         public async Task When_delete_stream_that_does_not_exist_then_should_not_throw()
         {

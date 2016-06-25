@@ -73,9 +73,8 @@
                 var streamEvents = new List<StreamEvent>();
 
                 var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext();
-                await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
-                var doesNotExist = reader.IsDBNull(0);
-                if(doesNotExist)
+                bool b = await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
+                if(!b)
                 {
                     return new StreamEventsPage(
                         streamId,
@@ -88,8 +87,7 @@
                 }
 
                 // Read Events result set
-                //bool b = await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
-                while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                do
                 {
                     var streamVersion1 = reader.GetInt32(0);
                     var ordinal = reader.GetInt64(1);
@@ -110,7 +108,7 @@
                         jsonMetadata);
 
                     streamEvents.Add(streamEvent);
-                }
+                } while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext());
 
                 // Read last event revision result set
                 await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();

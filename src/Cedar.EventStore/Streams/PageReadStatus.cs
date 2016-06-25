@@ -4,6 +4,5 @@ namespace Cedar.EventStore.Streams
     {
         Success,
         StreamNotFound,
-        StreamDeleted,
     }
 }

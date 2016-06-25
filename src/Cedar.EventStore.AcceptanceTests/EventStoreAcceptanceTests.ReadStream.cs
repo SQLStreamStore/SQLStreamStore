@@ -131,7 +131,7 @@
         }
 
         [Fact]
-        public async Task When_read_deleted_stream_forwards_then_should_get_StreamDeleted()
+        public async Task When_read_deleted_stream_forwards_then_should_get_StreamNotFound()
         {
             using (var fixture = GetFixture())
             {
@@ -143,13 +143,13 @@
                     var streamEventsPage =
                         await eventStore.ReadStreamForwards("stream-1", StreamVersion.Start, 1);
 
-                    streamEventsPage.Status.ShouldBe(PageReadStatus.StreamDeleted);
+                    streamEventsPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
                 }
             }
         }
 
         [Fact]
-        public async Task When_read_deleted_stream_backwards_then_should_get_StreamDeleted()
+        public async Task When_read_deleted_stream_backwards_then_should_get_StreamNotFound()
         {
             using (var fixture = GetFixture())
             {
@@ -161,7 +161,7 @@
                     var streamEventsPage =
                         await eventStore.ReadStreamBackwards("stream-1", StreamVersion.Start, 1);
 
-                    streamEventsPage.Status.ShouldBe(PageReadStatus.StreamDeleted);
+                    streamEventsPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
                 }
             }
         }

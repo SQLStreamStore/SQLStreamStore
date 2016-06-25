@@ -9,7 +9,7 @@
     public partial class EventStoreAcceptanceTests
     {
         [Fact]
-        public async Task When_delete_existing_stream_with_no_expected_version_then_should_be_deleted()
+        public async Task When_delete_existing_stream_with_no_expected_version_then_should_get_StreamNotFound()
         {
             using (var fixture = GetFixture())
             {
@@ -28,7 +28,7 @@
                     var streamEventsPage =
                         await eventStore.ReadStreamForwards(streamId, StreamVersion.Start, 10);
 
-                    streamEventsPage.Status.ShouldBe(PageReadStatus.StreamDeleted);
+                    streamEventsPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
                 }
             }
         }
@@ -49,7 +49,7 @@
         }
 
         [Fact]
-        public async Task When_delete_stream_with_a_matching_expected_version_then_should_be_deleted()
+        public async Task When_delete_stream_with_a_matching_expected_version_then_should_be_not_found()
         {
             using (var fixture = GetFixture())
             {
@@ -68,7 +68,7 @@
                     var streamEventsPage =
                         await eventStore.ReadStreamForwards(streamId, StreamVersion.Start, 10);
 
-                    streamEventsPage.Status.ShouldBe(PageReadStatus.StreamDeleted);
+                    streamEventsPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
                 }
             }
         }

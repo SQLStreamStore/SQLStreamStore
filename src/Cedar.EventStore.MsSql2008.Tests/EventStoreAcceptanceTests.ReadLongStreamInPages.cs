@@ -65,11 +65,6 @@
             {
                 eventsPage = await _eventStore.ReadStreamForwards(streamName, start, BatchSize);
 
-                if (eventsPage.Status == PageReadStatus.StreamDeleted)
-                {
-                    throw new Exception("Stream deleted");
-                }
-
                 if (eventsPage.Status == PageReadStatus.StreamNotFound)
                 {
                     throw new Exception("Stream not found");

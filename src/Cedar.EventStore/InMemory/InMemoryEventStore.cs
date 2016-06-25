@@ -127,7 +127,14 @@ namespace Cedar.EventStore
                     }
                     return Task.FromResult(0);
                 }
-                _streams[streamId].Delete(expectedVersion);
+                if(expectedVersion != ExpectedVersion.Any &&
+                    _streams[streamId].Events.Last().StreamVersion != expectedVersion)
+                {
+                    throw new WrongExpectedVersionException(
+                            Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
+                }
+                InMemoryStream _;
+                _streams.TryRemove(streamId, out _);
                 return Task.FromResult(0);
             }
             finally

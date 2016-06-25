@@ -3,6 +3,7 @@ namespace Cedar.EventStore.Infrastructure
     using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Streams;
+    using EnsureThat;
 
     public abstract class EventStoreBase : ReadOnlyEventStoreBase, IEventStore
     {
@@ -16,6 +17,9 @@ namespace Cedar.EventStore.Infrastructure
             NewStreamEvent[] events,
             CancellationToken cancellationToken = default(CancellationToken))
         {
+            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace();
+            Ensure.That(streamId, nameof(streamId)).DoesNotStartWith("$");
+
             return AppendToStreamInternal(streamId, expectedVersion, events, cancellationToken);
         }
 
@@ -24,6 +28,9 @@ namespace Cedar.EventStore.Infrastructure
             int expectedVersion = ExpectedVersion.Any,
             CancellationToken cancellationToken = default(CancellationToken))
         {
+            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace();
+            Ensure.That(streamId, nameof(streamId)).DoesNotStartWith("$");
+
             return DeleteStreamInternal(streamId, expectedVersion, cancellationToken);
         }
 

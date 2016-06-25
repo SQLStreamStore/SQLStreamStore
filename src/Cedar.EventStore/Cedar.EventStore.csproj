@@ -37,7 +37,7 @@
   <ItemGroup>
     <Reference Include="EnsureThat, Version=2.0.0.39118, Culture=neutral, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Ensure.That.2.0.0\lib\portable-net4+sl5+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1\EnsureThat.dll\EnsureThat.dll</HintPath>
+      <HintPath>..\..\..\eVision.PermitVision\src\packages\Ensure.That.2.0.0\lib\portable-net4+sl5+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1\EnsureThat.dll\EnsureThat.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -49,6 +49,7 @@
     </Compile>
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
     <Compile Include="Infrastructure\AsyncLazy.cs" />
+    <Compile Include="Infrastructure\EnsureThatExtensions.cs" />
     <Compile Include="Infrastructure\EventStoreBase.cs" />
     <Compile Include="Infrastructure\OperationExtensions.cs" />
     <Compile Include="Infrastructure\ReadOnlyEventStoreBase.cs" />

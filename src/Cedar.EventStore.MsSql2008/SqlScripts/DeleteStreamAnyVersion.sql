@@ -1,4 +1,3 @@
-SET TRANSACTION ISOLATION LEVEL SERIALIZABLE;
 BEGIN TRANSACTION DeleteStream
         DECLARE @streamIdInternal AS INT
 
@@ -9,7 +8,6 @@ BEGIN TRANSACTION DeleteStream
     DELETE FROM dbo.Events
           WHERE dbo.Events.StreamIdInternal = @streamIdInternal;
 
-         UPDATE dbo.Streams
-            SET IsDeleted = '1'
+    DELETE FROM dbo.Streams
           WHERE dbo.Streams.Id = @streamId;
 COMMIT TRANSACTION DeleteStream

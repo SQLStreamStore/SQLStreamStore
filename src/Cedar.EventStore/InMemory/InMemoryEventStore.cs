@@ -69,7 +69,8 @@ namespace Cedar.EventStore
             _lock.EnterWriteLock();
             try
             {
-                 return AppendToStreamInternal(streamId, expectedVersion, events);
+                AppendToStreamInternal(streamId, expectedVersion, events);
+                return Task.FromResult(0);
             }
             finally
             {
@@ -77,7 +78,7 @@ namespace Cedar.EventStore
             }
         }
 
-        private Task AppendToStreamInternal(
+        private void AppendToStreamInternal(
             string streamId,
             int expectedVersion,
             NewStreamEvent[] events)
@@ -99,7 +100,7 @@ namespace Cedar.EventStore
                     inMemoryStream.AppendToStream(expectedVersion, events);
                     _streams.TryAdd(streamId, inMemoryStream);
                 }
-                return Task.FromResult(0);
+                return;
             }
 
             if (!_streams.TryGetValue(streamId, out inMemoryStream))
@@ -108,12 +109,10 @@ namespace Cedar.EventStore
                     Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
             }
             inMemoryStream.AppendToStream(expectedVersion, events);
-
-            return Task.FromResult(0);
         }
 
 
-        protected override async Task DeleteStreamInternal(
+        protected override Task DeleteStreamInternal(
             string streamId,
             int expectedVersion,
             CancellationToken cancellationToken)
@@ -133,7 +132,7 @@ namespace Cedar.EventStore
                         throw new WrongExpectedVersionException(
                             Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
                     }
-                    return;
+                    return Task.FromResult(0);
                 }
                 if(expectedVersion != ExpectedVersion.Any &&
                     _streams[streamId].Events.Last().StreamVersion != expectedVersion)
@@ -145,7 +144,8 @@ namespace Cedar.EventStore
                 _streams.TryRemove(streamId, out inMemoryStream);
                 inMemoryStream.DeleteEvents(ExpectedVersion.Any);
                 var streamDeletedEvent = Deleted.CreateStreamDeletedEvent(streamId);
-                await AppendToStreamInternal(Deleted.StreamId, ExpectedVersion.Any, new[] { streamDeletedEvent });
+                AppendToStreamInternal(Deleted.StreamId, ExpectedVersion.Any, new[] { streamDeletedEvent });
+                return Task.FromResult(0);
             }
             finally
             {

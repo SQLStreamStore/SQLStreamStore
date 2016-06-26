@@ -1,6 +1,7 @@
 ﻿namespace Cedar.EventStore
 {
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
     using Cedar.EventStore.Streams;
     using Shouldly;
@@ -29,6 +30,34 @@
                         await eventStore.ReadStreamForwards(streamId, StreamVersion.Start, 10);
 
                     streamEventsPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_delete_stream_with_expected_version_any_and_then_read_then_should_stream_deleted_event()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    const string streamId = "stream";
+                    var events = new[]
+                    {
+                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\""),
+                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\"")
+                    };
+
+                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, events);
+                    await eventStore.DeleteStream(streamId);
+
+                    var streamEventsPage =
+                        await eventStore.ReadStreamBackwards(Deleted.StreamId, StreamVersion.End, 1);
+
+                    streamEventsPage.Status.ShouldBe(PageReadStatus.Success);
+                    var streamEvent = streamEventsPage.Events.Single();
+                    streamEvent.Type.ShouldBe(Deleted.StreamDeletedEventType);
+                    streamEvent.JsonData.ShouldBe("{ \"streamId\": \"stream\" }");
                 }
             }
         }

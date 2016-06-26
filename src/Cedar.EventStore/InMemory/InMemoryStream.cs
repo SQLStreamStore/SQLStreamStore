@@ -45,7 +45,7 @@ namespace Cedar.EventStore.InMemory
             }
         }
 
-        internal void Delete(int expectedVersion)
+        internal void DeleteEvents(int expectedVersion)
         {
             if(expectedVersion > 0 && expectedVersion != _events.Last().StreamVersion)
             {

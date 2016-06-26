@@ -57,6 +57,7 @@
   <ItemGroup>
     <None Include="Cedar.EventStore.MsSql.nuspec" />
     <Compile Include="MsSqlEventStore.ReadStream.cs" />
+    <Compile Include="MsSqlEventStore.Delete.cs" />
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>

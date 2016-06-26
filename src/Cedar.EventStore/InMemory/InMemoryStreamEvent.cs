@@ -2,7 +2,7 @@
 {
     using System;
 
-    internal class InMemoryStreamEvent
+    internal sealed class InMemoryStreamEvent
     {
         internal readonly long Checkpoint;
         internal readonly DateTimeOffset Created;

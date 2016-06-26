@@ -23,7 +23,7 @@
             new SqlMetaData("JsonMetadata", SqlDbType.NVarChar, SqlMetaData.Max),
         };
 
-        protected override Task AppendToStreamInternal(
+        protected override async Task AppendToStreamInternal(
            string streamId,
            int expectedVersion,
            NewStreamEvent[] events,
@@ -36,14 +36,37 @@
 
             var streamIdInfo = new StreamIdInfo(streamId);
 
-            switch (expectedVersion)
+            using(var connection = _createConnection())
             {
-                case ExpectedVersion.Any:
-                    return AppendToStreamExpectedVersionAny(streamIdInfo, expectedVersion, events, cancellationToken);
-                case ExpectedVersion.NoStream:
-                    return AppendToStreamExpectedVersionNoStream(streamId, expectedVersion, events, streamIdInfo, cancellationToken);
-                default:
-                    return AppendToStreamExpectedVersion(streamId, expectedVersion, events, streamIdInfo, cancellationToken);
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                if(expectedVersion == ExpectedVersion.Any)
+                {
+                    await AppendToStreamExpectedVersionAny(
+                        connection,
+                        null,
+                        streamIdInfo,
+                        events,
+                        cancellationToken);
+                    return;
+                }
+                if(expectedVersion == ExpectedVersion.NoStream)
+                {
+                    await AppendToStreamExpectedVersionNoStream(
+                        connection,
+                        streamId,
+                        events,
+                        streamIdInfo,
+                        cancellationToken);
+                    return;
+                }
+                await AppendToStreamExpectedVersion(
+                    connection,
+                    streamId,
+                    expectedVersion,
+                    events,
+                    streamIdInfo,
+                    cancellationToken);
             }
         }
 
@@ -65,38 +88,97 @@
         }
 
         private async Task AppendToStreamExpectedVersionAny(
+            SqlConnection connection,
+            SqlTransaction transaction,
             StreamIdInfo streamIdInfo,
-            int expectedVersion,
             NewStreamEvent[] events,
             CancellationToken cancellationToken)
         {
-            var sqlDataRecords = CreateSqlDataRecords(events);
-
-            using(var connection = _createConnection())
+            using(var command = new SqlCommand(_scripts.AppendStreamExpectedVersionAny, connection, transaction))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
+                command.Parameters.AddWithValue("streamIdOriginal", streamIdInfo.Id);
+                var eventsParam = CreateNewEventsSqlParameter(CreateSqlDataRecords(events));
+                command.Parameters.Add(eventsParam);
 
-                using(var command = new SqlCommand(_scripts.AppendStreamExpectedVersionAny, connection))
+                try
                 {
-                    command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
-                    command.Parameters.AddWithValue("streamIdOriginal", streamIdInfo.Id);
-                    var eventsParam = CreateNewEventsSqlParameter(sqlDataRecords);
-                    command.Parameters.Add(eventsParam);
+                    await command
+                        .ExecuteNonQueryAsync(cancellationToken)
+                        .NotOnCapturedContext();
+                }
+                // Check for unique constraint violation on 
+                // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
+                catch(SqlException ex)
+                    when(ex.IsUniqueConstraintViolationOnIndex("IX_Events_StreamIdInternal_Id"))
+                {
+                    // Idempotency handling. Check if the events have already been written.
+                    var page = await ReadStreamInternal(
+                        streamIdInfo.Id,
+                        StreamVersion.Start,
+                        events.Length,
+                        ReadDirection.Forward,
+                        connection,
+                        cancellationToken)
+                        .NotOnCapturedContext();
 
-                    try
+                    if(events.Length > page.Events.Length)
                     {
-                        await command
-                            .ExecuteNonQueryAsync(cancellationToken)
-                            .NotOnCapturedContext();
+                        throw new WrongExpectedVersionException(
+                            Messages.AppendFailedWrongExpectedVersion(streamIdInfo.Id, ExpectedVersion.Any),
+                            ex);
                     }
+
+                    for(int i = 0; i < Math.Min(events.Length, page.Events.Length); i++)
+                    {
+                        if(events[i].EventId != page.Events[i].EventId)
+                        {
+                            throw new WrongExpectedVersionException(
+                                Messages.AppendFailedWrongExpectedVersion(streamIdInfo.Id, ExpectedVersion.Any),
+                                ex);
+                        }
+                    }
+                }
+                catch(SqlException ex) when(ex.IsUniqueConstraintViolation())
+                {
+                    throw new WrongExpectedVersionException(
+                        Messages.AppendFailedWrongExpectedVersion(streamIdInfo.Id, ExpectedVersion.Any),
+                        ex);
+                }
+            }
+        }
+
+        private async Task AppendToStreamExpectedVersionNoStream(
+            SqlConnection connection,
+            string streamId,
+            NewStreamEvent[] events,
+            StreamIdInfo streamIdHash,
+            CancellationToken cancellationToken)
+        {
+            using(var command = new SqlCommand(_scripts.AppendStreamExpectedVersionNoStream, connection))
+            {
+                command.Parameters.AddWithValue("streamId", streamIdHash.Hash);
+                command.Parameters.AddWithValue("streamIdOriginal", streamIdHash.Id);
+                var sqlDataRecords = CreateSqlDataRecords(events);
+                var eventsParam = CreateNewEventsSqlParameter(sqlDataRecords);
+                command.Parameters.Add(eventsParam);
+
+                try
+                {
+                    await command
+                        .ExecuteNonQueryAsync(cancellationToken)
+                        .NotOnCapturedContext();
+                }
+                catch(SqlException ex)
+                {
                     // Check for unique constraint violation on 
                     // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
-                    catch(SqlException ex)
-                        when(ex.IsUniqueConstraintViolationOnIndex("IX_Events_StreamIdInternal_Id"))
+                    if(ex.IsUniqueConstraintViolationOnIndex("IX_Streams_Id"))
                     {
                         // Idempotency handling. Check if the events have already been written.
+
                         var page = await ReadStreamInternal(
-                            streamIdInfo.Id,
+                            streamId,
                             StreamVersion.Start,
                             events.Length,
                             ReadDirection.Forward,
@@ -107,7 +189,7 @@
                         if(events.Length > page.Events.Length)
                         {
                             throw new WrongExpectedVersionException(
-                                Messages.AppendFailedWrongExpectedVersion(streamIdInfo.Id, expectedVersion),
+                                Messages.AppendFailedWrongExpectedVersion(streamId, ExpectedVersion.NoStream),
                                 ex);
                         }
 
@@ -116,23 +198,28 @@
                             if(events[i].EventId != page.Events[i].EventId)
                             {
                                 throw new WrongExpectedVersionException(
-                                    Messages.AppendFailedWrongExpectedVersion(streamIdInfo.Id,
-                                        expectedVersion),
+                                    Messages.AppendFailedWrongExpectedVersion(streamId, ExpectedVersion.NoStream),
                                     ex);
                             }
                         }
+
+                        return;
                     }
-                    catch(SqlException ex) when(ex.IsUniqueConstraintViolation())
+
+                    if(ex.IsUniqueConstraintViolation())
                     {
                         throw new WrongExpectedVersionException(
-                            Messages.AppendFailedWrongExpectedVersion(streamIdInfo.Id, expectedVersion),
+                            Messages.AppendFailedWrongExpectedVersion(streamId, ExpectedVersion.NoStream),
                             ex);
                     }
+
+                    throw;
                 }
             }
         }
 
-        private async Task AppendToStreamExpectedVersionNoStream(
+        private async Task AppendToStreamExpectedVersion(
+            SqlConnection connection,
             string streamId,
             int expectedVersion,
             NewStreamEvent[] events,
@@ -141,50 +228,46 @@
         {
             var sqlDataRecords = CreateSqlDataRecords(events);
 
-            using (var connection = _createConnection())
+            using(var command = new SqlCommand(_scripts.AppendStreamExpectedVersion, connection))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                command.Parameters.AddWithValue("streamId", streamIdHash.Hash);
+                command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
+                var eventsParam = CreateNewEventsSqlParameter(sqlDataRecords);
+                command.Parameters.Add(eventsParam);
 
-                using (var command = new SqlCommand(_scripts.AppendStreamExpectedVersionNoStream, connection))
+                try
                 {
-                    command.Parameters.AddWithValue("streamId", streamIdHash.Hash);
-                    command.Parameters.AddWithValue("streamIdOriginal", streamIdHash.Id);
-                    var eventsParam = CreateNewEventsSqlParameter(sqlDataRecords);
-                    command.Parameters.Add(eventsParam);
-
-                    try
+                    await command
+                        .ExecuteNonQueryAsync(cancellationToken)
+                        .NotOnCapturedContext();
+                }
+                catch(SqlException ex)
+                {
+                    if(ex.Errors.Count == 1)
                     {
-                        await command
-                            .ExecuteNonQueryAsync(cancellationToken)
-                            .NotOnCapturedContext();
-                    }
-                    catch (SqlException ex)
-                    {
-                        // Check for unique constraint violation on 
-                        // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
-                        if (ex.IsUniqueConstraintViolationOnIndex("IX_Streams_Id"))
+                        var sqlError = ex.Errors[0];
+                        if(sqlError.Message == "WrongExpectedVersion")
                         {
                             // Idempotency handling. Check if the events have already been written.
 
-                            var page = await ReadStreamInternal(
-                                    streamId,
-                                    StreamVersion.Start,
-                                    events.Length,
-                                    ReadDirection.Forward,
-                                    connection,
-                                    cancellationToken)
-                                    .NotOnCapturedContext();
+                            var page = await ReadStreamInternal(streamId,
+                                expectedVersion + 1,
+                                // when reading for already written events, it's from the one after the expected
+                                events.Length,
+                                ReadDirection.Forward,
+                                connection,
+                                cancellationToken);
 
-                            if (events.Length > page.Events.Length)
+                            if(events.Length > page.Events.Length)
                             {
                                 throw new WrongExpectedVersionException(
                                     Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion),
                                     ex);
                             }
 
-                            for (int i = 0; i < Math.Min(events.Length, page.Events.Length); i++)
+                            for(int i = 0; i < Math.Min(events.Length, page.Events.Length); i++)
                             {
-                                if (events[i].EventId != page.Events[i].EventId)
+                                if(events[i].EventId != page.Events[i].EventId)
                                 {
                                     throw new WrongExpectedVersionException(
                                         Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion),
@@ -194,90 +277,14 @@
 
                             return;
                         }
-
-                        if (ex.IsUniqueConstraintViolation())
-                        {
-                            throw new WrongExpectedVersionException(
-                                Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion),
-                                ex);
-                        }
-
-                        throw;
                     }
-                }
-            }
-        }
-
-        private async Task AppendToStreamExpectedVersion(
-            string streamId,
-            int expectedVersion,
-            NewStreamEvent[] events,
-            StreamIdInfo streamIdHash,
-            CancellationToken cancellationToken)
-        {
-            var sqlDataRecords = CreateSqlDataRecords(events);
-
-            using (var connection = _createConnection())
-            {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
-                using (var command = new SqlCommand(_scripts.AppendStreamExpectedVersion, connection))
-                {
-                    command.Parameters.AddWithValue("streamId", streamIdHash.Hash);
-                    command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
-                    var eventsParam = CreateNewEventsSqlParameter(sqlDataRecords);
-                    command.Parameters.Add(eventsParam);
-
-                    try
+                    if(ex.IsUniqueConstraintViolation())
                     {
-                        await command
-                            .ExecuteNonQueryAsync(cancellationToken)
-                            .NotOnCapturedContext();
+                        throw new WrongExpectedVersionException(
+                            Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion),
+                            ex);
                     }
-                    catch (SqlException ex)
-                    {
-                        if (ex.Errors.Count == 1)
-                        {
-                            var sqlError = ex.Errors[0];
-                            if (sqlError.Message == "WrongExpectedVersion")
-                            {
-                                // Idempotency handling. Check if the events have already been written.
-
-                                var page = await ReadStreamInternal(streamId,
-                                    expectedVersion + 1, // when reading for already written events, it's from the one after the expected
-                                    events.Length,
-                                    ReadDirection.Forward,
-                                    connection,
-                                    cancellationToken);
-
-                                if (events.Length > page.Events.Length)
-                                {
-                                    throw new WrongExpectedVersionException(
-                                        Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion),
-                                        ex);
-                                }
-
-                                for (int i = 0; i < Math.Min(events.Length, page.Events.Length); i++)
-                                {
-                                    if (events[i].EventId != page.Events[i].EventId)
-                                    {
-                                        throw new WrongExpectedVersionException(
-                                            Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion),
-                                            ex);
-                                    }
-                                }
-
-                                return;
-                            }
-                        }
-                        if (ex.IsUniqueConstraintViolation())
-                        {
-                            throw new WrongExpectedVersionException(
-                                Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion),
-                                ex);
-                        }
-                        throw;
-                    }
+                    throw;
                 }
             }
         }

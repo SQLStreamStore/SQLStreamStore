@@ -2,7 +2,7 @@
 {
     using System;
 
-    public sealed class StreamEvent
+    public struct StreamEvent
     {
         public readonly long Checkpoint;
         public readonly DateTimeOffset Created;

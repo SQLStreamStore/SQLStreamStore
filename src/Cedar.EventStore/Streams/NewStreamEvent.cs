@@ -3,7 +3,7 @@
     using System;
     using EnsureThat;
 
-    public sealed class NewStreamEvent
+    public struct NewStreamEvent
     {
         public readonly string JsonData;
         public readonly Guid EventId;

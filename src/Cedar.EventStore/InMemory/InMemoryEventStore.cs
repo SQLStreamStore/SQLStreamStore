@@ -59,7 +59,7 @@ namespace Cedar.EventStore
             string streamId,
             int expectedVersion,
             NewStreamEvent[] events,
-            CancellationToken cancellationToken = new CancellationToken())
+            CancellationToken cancellationToken)
         {
             if(_isDisposed)
             {
@@ -69,35 +69,7 @@ namespace Cedar.EventStore
             _lock.EnterWriteLock();
             try
             {
-                InMemoryStream inMemoryStream;
-                // Should only add stream if NoStream
-                if(expectedVersion == ExpectedVersion.NoStream || expectedVersion == ExpectedVersion.Any)
-                {
-                    if(_streams.TryGetValue(streamId, out inMemoryStream))
-                    {
-                        inMemoryStream.AppendToStream(expectedVersion, events);
-                    }
-                    else
-                    {
-                        inMemoryStream = new InMemoryStream(
-                            streamId,
-                            _allStream,
-                            _getUtcNow,
-                            _onStreamAppended);
-                        inMemoryStream.AppendToStream(expectedVersion, events);
-                        _streams.TryAdd(streamId, inMemoryStream);
-                    }
-                    return Task.FromResult(0);
-                }
-
-                if(!_streams.TryGetValue(streamId, out inMemoryStream))
-                {
-                    throw new WrongExpectedVersionException(
-                        Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
-                }
-                inMemoryStream.AppendToStream(expectedVersion, events);
-
-                return Task.FromResult(0);
+                 return AppendToStreamInternal(streamId, expectedVersion, events);
             }
             finally
             {
@@ -105,10 +77,46 @@ namespace Cedar.EventStore
             }
         }
 
-        protected override Task DeleteStreamInternal(
+        private Task AppendToStreamInternal(
             string streamId,
-            int expectedVersion = ExpectedVersion.Any,
-            CancellationToken cancellationToken = new CancellationToken())
+            int expectedVersion,
+            NewStreamEvent[] events)
+        {
+            InMemoryStream inMemoryStream;
+            if (expectedVersion == ExpectedVersion.NoStream || expectedVersion == ExpectedVersion.Any)
+            {
+                if (_streams.TryGetValue(streamId, out inMemoryStream))
+                {
+                    inMemoryStream.AppendToStream(expectedVersion, events);
+                }
+                else
+                {
+                    inMemoryStream = new InMemoryStream(
+                        streamId,
+                        _allStream,
+                        _getUtcNow,
+                        _onStreamAppended);
+                    inMemoryStream.AppendToStream(expectedVersion, events);
+                    _streams.TryAdd(streamId, inMemoryStream);
+                }
+                return Task.FromResult(0);
+            }
+
+            if (!_streams.TryGetValue(streamId, out inMemoryStream))
+            {
+                throw new WrongExpectedVersionException(
+                    Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
+            }
+            inMemoryStream.AppendToStream(expectedVersion, events);
+
+            return Task.FromResult(0);
+        }
+
+
+        protected override async Task DeleteStreamInternal(
+            string streamId,
+            int expectedVersion,
+            CancellationToken cancellationToken)
         {
             if(_isDisposed)
             {
@@ -125,7 +133,7 @@ namespace Cedar.EventStore
                         throw new WrongExpectedVersionException(
                             Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
                     }
-                    return Task.FromResult(0);
+                    return;
                 }
                 if(expectedVersion != ExpectedVersion.Any &&
                     _streams[streamId].Events.Last().StreamVersion != expectedVersion)
@@ -133,9 +141,11 @@ namespace Cedar.EventStore
                     throw new WrongExpectedVersionException(
                             Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
                 }
-                InMemoryStream _;
-                _streams.TryRemove(streamId, out _);
-                return Task.FromResult(0);
+                InMemoryStream inMemoryStream;
+                _streams.TryRemove(streamId, out inMemoryStream);
+                inMemoryStream.DeleteEvents(ExpectedVersion.Any);
+                var streamDeletedEvent = Deleted.CreateStreamDeletedEvent(streamId);
+                await AppendToStreamInternal(Deleted.StreamId, ExpectedVersion.Any, new[] { streamDeletedEvent });
             }
             finally
             {
@@ -146,7 +156,7 @@ namespace Cedar.EventStore
         protected override Task<AllEventsPage> ReadAllForwardsInternal(
             long fromCheckpointExlusive,
             int maxCount,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             if(_isDisposed)
             {
@@ -219,7 +229,7 @@ namespace Cedar.EventStore
         protected override Task<AllEventsPage> ReadAllBackwardsInternal(
             long fromCheckpointExclusive,
             int maxCount,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken)
         {
             if(_isDisposed)
             {
@@ -309,7 +319,7 @@ namespace Cedar.EventStore
             string streamId,
             int start,
             int count,
-            CancellationToken cancellationToken = new CancellationToken())
+            CancellationToken cancellationToken)
         {
             if(_isDisposed)
             {
@@ -379,7 +389,7 @@ namespace Cedar.EventStore
             string streamId,
             int fromVersionInclusive,
             int count,
-            CancellationToken cancellationToken = new CancellationToken())
+            CancellationToken cancellationToken)
         {
             if(_isDisposed)
             {

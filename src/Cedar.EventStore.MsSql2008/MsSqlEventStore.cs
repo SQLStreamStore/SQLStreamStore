@@ -8,7 +8,6 @@
     using System.Threading.Tasks;
     using Cedar.EventStore.Infrastructure;
     using Cedar.EventStore.SqlScripts;
-    using Cedar.EventStore.Streams;
     using Cedar.EventStore.Subscriptions;
     using EnsureThat;
 
@@ -31,69 +30,6 @@
             _eventStoreNotifier = new AsyncLazy<IEventStoreNotifier>(
                 async () => await createEventStoreNotifier(this).NotOnCapturedContext());
             _scripts = new Scripts(schema);
-        }
-
-        protected override Task DeleteStreamInternal(
-            string streamId,
-            int expectedVersion,
-            CancellationToken cancellationToken)
-        {
-            var streamIdInfo = new StreamIdInfo(streamId);
-
-            return expectedVersion == ExpectedVersion.Any
-                ? DeleteStreamAnyVersion(streamIdInfo, cancellationToken)
-                : DeleteStreamExpectedVersion(streamIdInfo, expectedVersion, cancellationToken);
-        }
-
-        private async Task DeleteStreamAnyVersion(
-            StreamIdInfo streamIdInfo,
-            CancellationToken cancellationToken)
-        {
-            using(var connection = _createConnection())
-            {
-                await connection.OpenAsync(cancellationToken);
-
-                using(var command = new SqlCommand(_scripts.DeleteStreamAnyVersion, connection))
-                {
-                    command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
-                    await command
-                        .ExecuteNonQueryAsync(cancellationToken)
-                        .NotOnCapturedContext();
-                }
-            }
-        }
-
-        private async Task DeleteStreamExpectedVersion(
-            StreamIdInfo streamIdInfo,
-            int expectedVersion,
-            CancellationToken cancellationToken)
-        {
-            using(var connection = _createConnection())
-            {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
-                using(var command = new SqlCommand(_scripts.DeleteStreamExpectedVersion, connection))
-                {
-                    command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
-                    command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
-                    try
-                    {
-                        await command
-                            .ExecuteNonQueryAsync(cancellationToken)
-                            .NotOnCapturedContext();
-                    }
-                    catch(SqlException ex)
-                    {
-                        if(ex.Message == "WrongExpectedVersion")
-                        {
-                            throw new WrongExpectedVersionException(
-                                Messages.DeleteStreamFailedWrongExpectedVersion(streamIdInfo.Id, expectedVersion),
-                                ex);
-                        }
-                        throw;
-                    }
-                }
-            }
         }
 
         public async Task InitializeStore(

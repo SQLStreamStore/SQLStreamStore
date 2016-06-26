@@ -9,7 +9,7 @@
     public partial class EventStoreAcceptanceTests
     {
         [Fact]
-        public async Task When_delete_existing_stream_with_no_expected_version_then_should_get_StreamNotFound()
+        public async Task When_delete_stream_with_no_expected_version_and_read_then_should_get_StreamNotFound()
         {
             using (var fixture = GetFixture())
             {
@@ -49,7 +49,7 @@
         }
 
         [Fact]
-        public async Task When_delete_stream_with_a_matching_expected_version_then_should_be_not_found()
+        public async Task When_delete_stream_with_a_matching_expected_version_and_read_then_should_get_StreamNotFound()
         {
             using (var fixture = GetFixture())
             {

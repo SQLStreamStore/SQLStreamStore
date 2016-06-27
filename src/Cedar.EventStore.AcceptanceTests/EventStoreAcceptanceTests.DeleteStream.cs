@@ -53,6 +53,25 @@
         }
 
         [Fact]
+        public async Task When_delete_stream_with_no_expected_version_and_read_all_then_should_not_see_deleted_stream_events()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    const string streamId = "stream";
+
+                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+                    await eventStore.DeleteStream(streamId);
+
+                    var allEventsPage = await eventStore.ReadAllForwards(Checkpoint.Start, 10);
+
+                    allEventsPage.StreamEvents.Any(streamEvent => streamEvent.StreamId == streamId).ShouldBeFalse();
+                }
+            }
+        }
+
+        [Fact]
         public async Task When_delete_stream_that_does_not_exist()
         {
             using (var fixture = GetFixture())
@@ -106,6 +125,25 @@
                     var streamEvent = streamEventsPage.Events.Single();
                     streamEvent.Type.ShouldBe(Deleted.StreamDeletedEventType);
                     streamEvent.JsonData.ShouldBe("{ \"streamId\": \"stream\" }");
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_delete_stream_with_a_matching_expected_version_and_read_all_then_should_not_see_deleted_stream_events()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    const string streamId = "stream";
+
+                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+                    await eventStore.DeleteStream(streamId);
+
+                    var allEventsPage = await eventStore.ReadAllForwards(Checkpoint.Start, 10);
+
+                    allEventsPage.StreamEvents.Any(streamEvent => streamEvent.StreamId == streamId).ShouldBeFalse();
                 }
             }
         }

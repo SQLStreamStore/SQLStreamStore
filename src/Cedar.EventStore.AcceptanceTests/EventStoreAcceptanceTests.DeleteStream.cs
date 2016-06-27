@@ -17,13 +17,8 @@
                 using (var eventStore = await fixture.GetEventStore())
                 {
                     const string streamId = "stream";
-                    var events = new[]
-                    {
-                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\""),
-                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\"")
-                    };
 
-                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, events);
+                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
                     await eventStore.DeleteStream(streamId);
 
                     var streamEventsPage =
@@ -42,13 +37,8 @@
                 using (var eventStore = await fixture.GetEventStore())
                 {
                     const string streamId = "stream";
-                    var events = new[]
-                    {
-                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\""),
-                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\"")
-                    };
 
-                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, events);
+                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
                     await eventStore.DeleteStream(streamId);
 
                     var streamEventsPage =
@@ -85,19 +75,37 @@
                 using (var eventStore = await fixture.GetEventStore())
                 {
                     const string streamId = "stream";
-                    var events = new[]
-                    {
-                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\""),
-                        new NewStreamEvent(Guid.NewGuid(), "type", "\"data\"", "\"headers\"")
-                    };
 
-                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, events);
-                    await eventStore.DeleteStream(streamId, 1);
+                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+                    await eventStore.DeleteStream(streamId, 2);
 
                     var streamEventsPage =
                         await eventStore.ReadStreamForwards(streamId, StreamVersion.Start, 10);
 
                     streamEventsPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_delete_stream_with_a_matching_expected_version_and_read_then_should_get_stream_deleted_event()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    const string streamId = "stream";
+
+                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+                    await eventStore.DeleteStream(streamId, 2);
+
+                    var streamEventsPage =
+                        await eventStore.ReadStreamBackwards(Deleted.StreamId, StreamVersion.End, 1);
+
+                    streamEventsPage.Status.ShouldBe(PageReadStatus.Success);
+                    var streamEvent = streamEventsPage.Events.Single();
+                    streamEvent.Type.ShouldBe(Deleted.StreamDeletedEventType);
+                    streamEvent.JsonData.ShouldBe("{ \"streamId\": \"stream\" }");
                 }
             }
         }

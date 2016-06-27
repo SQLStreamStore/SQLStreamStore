@@ -38,12 +38,12 @@
                             .NotOnCapturedContext();
                     }
 
-                    var newStreamEvent = Deleted.CreateStreamDeletedEvent(streamIdInfo.Id);
+                    var streamDeletedEvent = Deleted.CreateStreamDeletedEvent(streamIdInfo.Id);
                     await AppendToStreamExpectedVersionAny(
                         connection,
                         transaction,
                         new StreamIdInfo(Deleted.StreamId),
-                        new[] { newStreamEvent },
+                        new[] { streamDeletedEvent },
                         cancellationToken);
 
                     transaction.Commit();
@@ -60,25 +60,39 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using (var command = new SqlCommand(_scripts.DeleteStreamExpectedVersion, connection))
+                using(var transaction = connection.BeginTransaction())
                 {
-                    command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
-                    command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
-                    try
+                    using(var command = new SqlCommand(_scripts.DeleteStreamExpectedVersion, connection, transaction))
                     {
-                        await command
-                            .ExecuteNonQueryAsync(cancellationToken)
-                            .NotOnCapturedContext();
-                    }
-                    catch (SqlException ex)
-                    {
-                        if (ex.Message == "WrongExpectedVersion")
+                        command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
+                        command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
+                        try
                         {
-                            throw new WrongExpectedVersionException(
-                                Messages.DeleteStreamFailedWrongExpectedVersion(streamIdInfo.Id, expectedVersion),
-                                ex);
+                            await command
+                                .ExecuteNonQueryAsync(cancellationToken)
+                                .NotOnCapturedContext();
                         }
-                        throw;
+                        catch(SqlException ex)
+                        {
+                            transaction.Rollback();
+                            if(ex.Message.StartsWith("WrongExpectedVersion"))
+                            {
+                                throw new WrongExpectedVersionException(
+                                    Messages.DeleteStreamFailedWrongExpectedVersion(streamIdInfo.Id, expectedVersion),
+                                    ex);
+                            }
+                            throw;
+                        }
+
+                        var streamDeletedEvent = Deleted.CreateStreamDeletedEvent(streamIdInfo.Id);
+                        await AppendToStreamExpectedVersionAny(
+                            connection,
+                            transaction,
+                            new StreamIdInfo(Deleted.StreamId),
+                            new[] { streamDeletedEvent },
+                            cancellationToken);
+
+                        transaction.Commit();
                     }
                 }
             }

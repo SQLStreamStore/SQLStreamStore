@@ -8,7 +8,6 @@ BEGIN TRANSACTION DeleteStream
 
           IF @streamIdInternal IS NULL
           BEGIN
-             ROLLBACK TRANSACTION DeleteStream;
              RAISERROR('WrongExpectedVersion', 16,1);
              RETURN;
           END
@@ -21,7 +20,6 @@ BEGIN TRANSACTION DeleteStream
 
          IF @latestStreamVersion != @expectedStreamVersion
          BEGIN
-            ROLLBACK TRANSACTION DeleteStream;
             RAISERROR('WrongExpectedVersion', 16,2);
             RETURN;
          END

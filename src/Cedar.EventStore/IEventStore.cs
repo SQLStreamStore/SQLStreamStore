@@ -6,6 +6,17 @@
 
     public interface IEventStore : IReadOnlyEventStore
     {
+        /// <summary>
+        ///     Appends a collection of events to a stream. 
+        /// </summary>
+        /// <param name="streamId">The Stream Id to append events to. Must not start with a '$'.</param>
+        /// <param name="expectedVersion">
+        ///     The version of the stream that is expected. This is used to control concurrency concerns. See
+        ///     <see cref="ExpectedVersion"/>.
+        /// </param>
+        /// <param name="events">The collection of events to append.</param>
+        /// <param name="cancellationToken">A cancellation token to allow cancellation of the operation.</param>
+        /// <returns></returns>
         Task AppendToStream(
             string streamId,
             int expectedVersion,

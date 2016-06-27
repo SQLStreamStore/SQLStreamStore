@@ -20,6 +20,11 @@
                 : DeleteStreamExpectedVersion(streamIdInfo, expectedVersion, cancellationToken);
         }
 
+        protected override Task DeleteEventInternal(string streamId, int streamVersion, CancellationToken cancellationToken)
+        {
+            throw new System.NotImplementedException();
+        }
+
         private async Task DeleteStreamAnyVersion(
             StreamIdInfo streamIdInfo,
             CancellationToken cancellationToken)

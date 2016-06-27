@@ -153,6 +153,11 @@ namespace Cedar.EventStore
             }
         }
 
+        protected override Task DeleteEventInternal(string streamId, int streamVersion, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
         protected override Task<AllEventsPage> ReadAllForwardsInternal(
             long fromCheckpointExlusive,
             int maxCount,

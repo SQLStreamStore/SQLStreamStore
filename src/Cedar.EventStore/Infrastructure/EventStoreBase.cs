@@ -34,6 +34,17 @@ namespace Cedar.EventStore.Infrastructure
             return DeleteStreamInternal(streamId, expectedVersion, cancellationToken);
         }
 
+        public Task DeleteEvent(
+            string streamId,
+            int streamVersion,
+            CancellationToken cancellationToken = new CancellationToken())
+        {
+            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace();
+            Ensure.That(streamId, nameof(streamId)).DoesNotStartWith("$");
+
+            return DeleteEventInternal(streamId, streamVersion, cancellationToken);
+        }
+
         protected abstract Task AppendToStreamInternal(
             string streamId,
             int expectedVersion,
@@ -43,6 +54,11 @@ namespace Cedar.EventStore.Infrastructure
         protected abstract Task DeleteStreamInternal(
             string streamId,
             int expectedVersion,
+            CancellationToken cancellationToken);
+
+        protected abstract Task DeleteEventInternal(
+            string streamId,
+            int streamVersion,
             CancellationToken cancellationToken);
     }
 }

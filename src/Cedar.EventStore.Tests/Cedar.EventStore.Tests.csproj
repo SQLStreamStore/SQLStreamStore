@@ -85,6 +85,9 @@
     <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.cs">
       <Link>InMemory\EventStoreAcceptanceTests.cs</Link>
     </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.DeleteEvent.cs">
+      <Link>InMemory\EventStoreAcceptanceTests.DeleteEvent.cs</Link>
+    </Compile>
     <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.DeleteStream.cs">
       <Link>InMemory\EventStoreAcceptanceTests.DeleteStream.cs</Link>
     </Compile>
@@ -118,6 +121,9 @@
       <Project>{5a8df1a1-9b3b-499d-b9e9-a5e0f6f06953}</Project>
       <Name>Cedar.EventStore</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">

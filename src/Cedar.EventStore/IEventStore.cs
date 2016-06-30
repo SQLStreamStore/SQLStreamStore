@@ -52,7 +52,7 @@
 
 
         /// <summary>
-        ///     Hard deletes an event from the stream. Deleting an event message will result in a '$events-deleted'
+        ///     Hard deletes an event from the stream. Deleting an event message will result in an '$event-deleted'
         ///     event being appended to the '$deleted' stream.
         /// </summary>
         /// <param name="streamId">

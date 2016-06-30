@@ -14,6 +14,7 @@ namespace Cedar.EventStore.InMemory
         private readonly Action _onStreamAppended;
         private readonly List<InMemoryStreamEvent> _events = new List<InMemoryStreamEvent>();
         private readonly Dictionary<Guid, InMemoryStreamEvent> _eventsById = new Dictionary<Guid, InMemoryStreamEvent>();
+        private int _currentVersion = -1;
 
         internal InMemoryStream(
             string streamId,
@@ -48,14 +49,13 @@ namespace Cedar.EventStore.InMemory
         private void AppendToStreamExpectedVersion(int expectedVersion, NewStreamEvent[] newEvents)
         {
             // Need to do optimistic concurrency check...
-            int currentVersion = _events.LastOrDefault()?.StreamVersion ?? 0;
-            if(expectedVersion > currentVersion)
+            if(expectedVersion > _currentVersion)
             {
                 throw new WrongExpectedVersionException(
                     Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
             }
 
-            if(expectedVersion < currentVersion)
+            if(_currentVersion >= 0 && expectedVersion < _currentVersion)
             {
                 // expectedVersion < currentVersion, Idempotency test
                 for(int i = 0; i < newEvents.Length; i++)
@@ -134,17 +134,16 @@ namespace Cedar.EventStore.InMemory
         private void AppendEvents(NewStreamEvent[] newEvents)
         {
             long checkPoint = _inMemoryAllStream.Last.Value.Checkpoint;
-            int streamRevision = _events.LastOrDefault()?.StreamVersion ?? -1;
 
             foreach(var newStreamEvent in newEvents)
             {
                 checkPoint++;
-                streamRevision++;
+                _currentVersion++;
 
                 var inMemoryStreamEvent = new InMemoryStreamEvent(
                     _streamId,
                     newStreamEvent.EventId,
-                    streamRevision,
+                    _currentVersion,
                     checkPoint,
                     _getUtcNow(),
                     newStreamEvent.Type,
@@ -161,7 +160,7 @@ namespace Cedar.EventStore.InMemory
 
         internal void DeleteAllEvents(int expectedVersion)
         {
-            if (expectedVersion > 0 && expectedVersion != _events.Last().StreamVersion)
+            if (expectedVersion > 0 && expectedVersion != _currentVersion)
             {
                 throw new WrongExpectedVersionException(
                    Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));

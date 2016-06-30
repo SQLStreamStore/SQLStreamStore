@@ -1,5 +1,6 @@
 ﻿namespace Cedar.EventStore
 {
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Streams;
@@ -57,8 +58,8 @@
         /// <param name="streamId">
         ///     The stream Id to delete.
         /// </param>
-        /// <param name="streamVersion">
-        ///     The version of the event to deleted.
+        /// <param name="eventId">
+        ///     The Id of the event to delete. If the event doesn't exist, nothing occurs.
         /// </param>
         /// <param name="cancellationToken">
         ///     The cancellation instruction.
@@ -68,7 +69,7 @@
         /// </returns>
         Task DeleteEvent(
             string streamId,
-            int streamVersion,
+            Guid eventId,
             CancellationToken cancellationToken = default(CancellationToken));
     }
 }

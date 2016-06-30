@@ -1,10 +1,12 @@
 ﻿namespace Cedar.EventStore
 {
+    using System;
     using System.Data.SqlClient;
     using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Infrastructure;
     using Cedar.EventStore.Streams;
+    using static Cedar.EventStore.Streams.Deleted;
 
     public partial class MsSqlEventStore
     {
@@ -20,9 +22,9 @@
                 : DeleteStreamExpectedVersion(streamIdInfo, expectedVersion, cancellationToken);
         }
 
-        protected override Task DeleteEventInternal(string streamId, int streamVersion, CancellationToken cancellationToken)
+        protected override Task DeleteEventInternal(string streamId, Guid eventId, CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
+            throw new NotImplementedException();
         }
 
         private async Task DeleteStreamAnyVersion(
@@ -43,11 +45,11 @@
                             .NotOnCapturedContext();
                     }
 
-                    var streamDeletedEvent = Deleted.CreateStreamDeletedEvent(streamIdInfo.Id);
+                    var streamDeletedEvent = CreateStreamDeletedEvent(streamIdInfo.Id);
                     await AppendToStreamExpectedVersionAny(
                         connection,
                         transaction,
-                        new StreamIdInfo(Deleted.StreamId),
+                        new StreamIdInfo(DeletedStreamId),
                         new[] { streamDeletedEvent },
                         cancellationToken);
 
@@ -89,11 +91,11 @@
                             throw;
                         }
 
-                        var streamDeletedEvent = Deleted.CreateStreamDeletedEvent(streamIdInfo.Id);
+                        var streamDeletedEvent = CreateStreamDeletedEvent(streamIdInfo.Id);
                         await AppendToStreamExpectedVersionAny(
                             connection,
                             transaction,
-                            new StreamIdInfo(Deleted.StreamId),
+                            new StreamIdInfo(DeletedStreamId),
                             new[] { streamDeletedEvent },
                             cancellationToken);
 

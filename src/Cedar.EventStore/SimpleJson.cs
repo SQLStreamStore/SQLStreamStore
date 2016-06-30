@@ -21,19 +21,19 @@
 
 #define SIMPLE_JSON_TYPEINFO
 // NOTE: uncomment the following line to make SimpleJson class internal.
-#define SIMPLE_JSON_INTERNAL
+// define SIMPLE_JSON_INTERNAL
 
 // NOTE: uncomment the following line to make JsonArray and JsonObject class internal.
-#define SIMPLE_JSON_OBJARRAYINTERNAL
+// #define SIMPLE_JSON_OBJARRAYINTERNAL
 
 // NOTE: uncomment the following line to enable dynamic support.
-// #define SIMPLE_JSON_DYNAMIC
+#define SIMPLE_JSON_DYNAMIC
 
 // NOTE: uncomment the following line to enable DataContract support.
 // #define SIMPLE_JSON_DATACONTRACT
 
 // NOTE: uncomment the following line to enable IReadOnlyCollection<T> and IReadOnlyList<T> support.
-// #define SIMPLE_JSON_READONLY_COLLECTIONS
+#define SIMPLE_JSON_READONLY_COLLECTIONS
 
 // NOTE: uncomment the following line to disable linq expressions/compiled lambda (better performance) instead of method.invoke().
 // define if you are using .net framework <= 3.0 or < WP7.5
@@ -67,12 +67,12 @@ using System.Globalization;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
-using Cedar.EventStore.Reflection;
+using Cedar.EventStore.Json.Reflection;
 
 // ReSharper disable LoopCanBeConvertedToQuery
 // ReSharper disable RedundantExplicitArrayCreation
 // ReSharper disable SuggestUseVarKeywordEvident
-namespace Cedar.EventStore
+namespace Cedar.EventStore.Json
 {
     /// <summary>
     /// Represents the json array.
@@ -485,7 +485,7 @@ namespace Cedar.EventStore
     }
 }
 
-namespace Cedar.EventStore
+namespace Cedar.EventStore.Json
 {
     /// <summary>
     /// This class encodes and decodes JSON strings.

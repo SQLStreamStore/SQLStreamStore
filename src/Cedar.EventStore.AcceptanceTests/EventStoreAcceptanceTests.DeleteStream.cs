@@ -6,6 +6,7 @@
     using Cedar.EventStore.Streams;
     using Shouldly;
     using Xunit;
+    using static Cedar.EventStore.Streams.Deleted;
 
     public partial class EventStoreAcceptanceTests
     {
@@ -42,11 +43,11 @@
                     await eventStore.DeleteStream(streamId);
 
                     var streamEventsPage =
-                        await eventStore.ReadStreamBackwards(Deleted.StreamId, StreamVersion.End, 1);
+                        await eventStore.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
 
                     streamEventsPage.Status.ShouldBe(PageReadStatus.Success);
                     var streamEvent = streamEventsPage.Events.Single();
-                    streamEvent.Type.ShouldBe(Deleted.StreamDeletedEventType);
+                    streamEvent.Type.ShouldBe(StreamDeletedEventType);
                     streamEvent.JsonData.ShouldBe("{ \"streamId\": \"stream\" }");
                 }
             }
@@ -119,11 +120,11 @@
                     await eventStore.DeleteStream(streamId, 2);
 
                     var streamEventsPage =
-                        await eventStore.ReadStreamBackwards(Deleted.StreamId, StreamVersion.End, 1);
+                        await eventStore.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
 
                     streamEventsPage.Status.ShouldBe(PageReadStatus.Success);
                     var streamEvent = streamEventsPage.Events.Single();
-                    streamEvent.Type.ShouldBe(Deleted.StreamDeletedEventType);
+                    streamEvent.Type.ShouldBe(StreamDeletedEventType);
                     streamEvent.JsonData.ShouldBe("{ \"streamId\": \"stream\" }");
                 }
             }

@@ -1,5 +1,7 @@
 ﻿namespace Cedar.EventStore.Streams
 {
+    using Cedar.EventStore.Json;
+
     public static class StreamEventExtensions
     {
         public static T JsonDataAs<T>(this StreamEvent streamEvent)

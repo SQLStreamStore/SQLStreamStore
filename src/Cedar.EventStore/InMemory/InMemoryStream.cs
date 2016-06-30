@@ -13,7 +13,7 @@ namespace Cedar.EventStore.InMemory
         private readonly GetUtcNow _getUtcNow;
         private readonly Action _onStreamAppended;
         private readonly List<InMemoryStreamEvent> _events = new List<InMemoryStreamEvent>();
-        private readonly HashSet<Guid> _eventIds = new HashSet<Guid>();
+        private readonly Dictionary<Guid, InMemoryStreamEvent> _eventsById = new Dictionary<Guid, InMemoryStreamEvent>();
 
         internal InMemoryStream(
             string streamId,
@@ -43,22 +43,6 @@ namespace Cedar.EventStore.InMemory
                     AppendToStreamExpectedVersion(expectedVersion, newEvents);
                     return;
             }
-        }
-
-        internal void DeleteEvents(int expectedVersion)
-        {
-            if(expectedVersion > 0 && expectedVersion != _events.Last().StreamVersion)
-            {
-                throw new WrongExpectedVersionException(
-                   Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
-            }
-
-            foreach (var inMemoryStreamEvent in _events)
-            {
-                _inMemoryAllStream.Remove(inMemoryStreamEvent);
-            }
-            _events.Clear();
-            _eventIds.Clear();
         }
 
         private void AppendToStreamExpectedVersion(int expectedVersion, NewStreamEvent[] newEvents)
@@ -92,21 +76,20 @@ namespace Cedar.EventStore.InMemory
             }
 
             // expectedVersion == currentVersion)
-            if(newEvents.Any(newStreamEvent => _eventIds.Contains(newStreamEvent.EventId)))
+            if(newEvents.Any(newStreamEvent => _eventsById.ContainsKey(newStreamEvent.EventId)))
             {
                 throw new WrongExpectedVersionException(
                     Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
             }
 
             AppendEvents(newEvents);
-            return;
         }
 
         private void AppendToStreamExpectedVersionAny(int expectedVersion, NewStreamEvent[] newEvents)
         {
             // idemponcy check - how many newEvents have already been written?
             var newEventIds = new HashSet<Guid>(newEvents.Select(e => e.EventId));
-            newEventIds.ExceptWith(_eventIds);
+            newEventIds.ExceptWith(_eventsById.Keys);
 
             if(newEventIds.Count == 0)
             {
@@ -170,10 +153,40 @@ namespace Cedar.EventStore.InMemory
 
                 _inMemoryAllStream.AddAfter(_inMemoryAllStream.Last, inMemoryStreamEvent);
                 _events.Add(inMemoryStreamEvent);
-                _eventIds.Add(newStreamEvent.EventId);
+                _eventsById.Add(newStreamEvent.EventId, inMemoryStreamEvent);
 
                 _onStreamAppended();
             }
+        }
+
+        internal void DeleteAllEvents(int expectedVersion)
+        {
+            if (expectedVersion > 0 && expectedVersion != _events.Last().StreamVersion)
+            {
+                throw new WrongExpectedVersionException(
+                   Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
+            }
+
+            foreach (var inMemoryStreamEvent in _events)
+            {
+                _inMemoryAllStream.Remove(inMemoryStreamEvent);
+            }
+            _events.Clear();
+            _eventsById.Clear();
+        }
+
+        public bool DeleteEvent(Guid eventId)
+        {
+            InMemoryStreamEvent inMemoryStreamEvent;
+            if(!_eventsById.TryGetValue(eventId, out inMemoryStreamEvent))
+            {
+                return false;
+            }
+
+            _events.Remove(inMemoryStreamEvent);
+            _inMemoryAllStream.Remove(inMemoryStreamEvent);
+            _eventsById.Remove(eventId);
+            return true;
         }
     }
 }

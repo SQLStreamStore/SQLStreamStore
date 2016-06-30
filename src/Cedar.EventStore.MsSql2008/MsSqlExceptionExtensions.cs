@@ -2,7 +2,7 @@ namespace Cedar.EventStore
 {
     using System.Data.SqlClient;
 
-    internal static class SqlExceptionExtensions
+    internal static class MsSqlExceptionExtensions
     {
         internal static bool IsUniqueConstraintViolationOnIndex(this SqlException exception, string indexName)
         {

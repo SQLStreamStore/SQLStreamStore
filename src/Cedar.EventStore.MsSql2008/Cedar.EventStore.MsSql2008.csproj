@@ -51,8 +51,8 @@
     <Compile Include="MsSqlEventStore.ReadAll.cs" />
     <Compile Include="MsSqlEventStore.Subscriptions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SqlExceptionExtensions.cs" />
-    <Compile Include="SqlScripts\Scripts.cs" />
+    <Compile Include="MsSqlExceptionExtensions.cs" />
+    <Compile Include="MsSqlScripts\Scripts.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Cedar.EventStore.MsSql.nuspec" />
@@ -61,21 +61,22 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <Content Include="SqlScripts\DropTestDBs.sql" />
-    <EmbeddedResource Include="SqlScripts\ReadHeadCheckpoint.sql" />
-    <EmbeddedResource Include="SqlScripts\ReadStreamBackward.sql" />
-    <EmbeddedResource Include="SqlScripts\ReadStreamForward.sql" />
-    <EmbeddedResource Include="SqlScripts\ReadAllBackward.sql" />
-    <EmbeddedResource Include="SqlScripts\GetVersion.sql" />
-    <EmbeddedResource Include="SqlScripts\AppendStreamExpectedVersionNoStream.sql" />
-    <EmbeddedResource Include="SqlScripts\ReadAllForward.sql" />
-    <EmbeddedResource Include="SqlScripts\DeleteStreamAnyVersion.sql" />
-    <EmbeddedResource Include="SqlScripts\DeleteStreamExpectedVersion.sql" />
-    <EmbeddedResource Include="SqlScripts\AppendStreamExpectedVersion.sql" />
-    <EmbeddedResource Include="SqlScripts\AppendStreamExpectedVersionAny.sql" />
-    <Content Include="SqlScripts\Dev.sql" />
-    <EmbeddedResource Include="SqlScripts\DropAll.sql" />
-    <EmbeddedResource Include="SqlScripts\InitializeStore.sql" />
+    <EmbeddedResource Include="MsSqlScripts\DeleteStreamEvent.sql" />
+    <Content Include="MsSqlScripts\DropTestDBs.sql" />
+    <EmbeddedResource Include="MsSqlScripts\ReadHeadCheckpoint.sql" />
+    <EmbeddedResource Include="MsSqlScripts\ReadStreamBackward.sql" />
+    <EmbeddedResource Include="MsSqlScripts\ReadStreamForward.sql" />
+    <EmbeddedResource Include="MsSqlScripts\ReadAllBackward.sql" />
+    <EmbeddedResource Include="MsSqlScripts\GetVersion.sql" />
+    <EmbeddedResource Include="MsSqlScripts\AppendStreamExpectedVersionNoStream.sql" />
+    <EmbeddedResource Include="MsSqlScripts\ReadAllForward.sql" />
+    <EmbeddedResource Include="MsSqlScripts\DeleteStreamAnyVersion.sql" />
+    <EmbeddedResource Include="MsSqlScripts\DeleteStreamExpectedVersion.sql" />
+    <EmbeddedResource Include="MsSqlScripts\AppendStreamExpectedVersion.sql" />
+    <EmbeddedResource Include="MsSqlScripts\AppendStreamExpectedVersionAny.sql" />
+    <Content Include="MsSqlScripts\Dev.sql" />
+    <EmbeddedResource Include="MsSqlScripts\DropAll.sql" />
+    <EmbeddedResource Include="MsSqlScripts\InitializeStore.sql" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\Cedar.EventStore\Cedar.EventStore.csproj">

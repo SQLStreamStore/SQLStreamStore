@@ -23,6 +23,8 @@
 
         internal string DeleteStreamAnyVersion => GetScript(nameof(DeleteStreamAnyVersion));
 
+        internal string DeleteStreamEvent => GetScript(nameof(DeleteStreamEvent));
+
         internal string DeleteStreamExpectedVersion => GetScript(nameof(DeleteStreamExpectedVersion));
 
         internal string DropAll => GetScript(nameof(DropAll));
@@ -46,7 +48,7 @@
                 {
                     using(Stream stream = typeof(Scripts)
                         .Assembly
-                        .GetManifestResourceStream("Cedar.EventStore.SqlScripts." + key + ".sql"))
+                        .GetManifestResourceStream("Cedar.EventStore.MsSqlScripts." + key + ".sql"))
                     {
                         if(stream == null)
                         {

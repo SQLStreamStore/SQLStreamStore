@@ -100,6 +100,9 @@
     <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadStream.cs">
       <Link>InMemory\EventStoreAcceptanceTests.ReadStream.cs</Link>
     </Compile>
+    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.StreamMetadata.cs">
+      <Link>InMemory\EventStoreAcceptanceTests.StreamMetadata.cs</Link>
+    </Compile>
     <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.Subscriptions.cs">
       <Link>InMemory\EventStoreAcceptanceTests.Subscriptions.cs</Link>
     </Compile>

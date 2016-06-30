@@ -48,6 +48,7 @@
     </Compile>
     <Compile Include="MsSqlEventStore.cs" />
     <Compile Include="MsSqlEventStore.AppendStream.cs" />
+    <Compile Include="MsSqlEventStore.StreamMetadata.cs" />
     <Compile Include="MsSqlEventStore.ReadAll.cs" />
     <Compile Include="MsSqlEventStore.Subscriptions.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

@@ -53,6 +53,7 @@
     <Compile Include="Infrastructure\EventStoreBase.cs" />
     <Compile Include="Infrastructure\OperationExtensions.cs" />
     <Compile Include="Infrastructure\ReadOnlyEventStoreBase.cs" />
+    <Compile Include="Streams\StreamMetadataResult.cs" />
     <Compile Include="Streams\Checkpoint.cs" />
     <Compile Include="EventStoreExtensions.cs" />
     <Compile Include="IAllStreamSubscription.cs" />

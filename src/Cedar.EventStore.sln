@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.Tests", "Cedar.EventStore.Tests\Cedar.EventStore.Tests.csproj", "{F3FB96CF-4A3D-448D-A25E-6BC66E370BF6}"
 EndProject
@@ -18,6 +18,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Cedar.EventStore.Acceptance
 		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadAll.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadAll.cs
 		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadHeadCheckpoint.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadHeadCheckpoint.cs
 		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadStream.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadStream.cs
+		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.StreamMetadata.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.StreamMetadata.cs
 		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.Subscriptions.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.Subscriptions.cs
 		Cedar.EventStore.AcceptanceTests\TaskExtensions.cs = Cedar.EventStore.AcceptanceTests\TaskExtensions.cs
 	EndProjectSection

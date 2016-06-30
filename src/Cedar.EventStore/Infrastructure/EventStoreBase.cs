@@ -18,8 +18,7 @@ namespace Cedar.EventStore.Infrastructure
             NewStreamEvent[] events,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace();
-            Ensure.That(streamId, nameof(streamId)).DoesNotStartWith("$");
+            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
 
             return AppendToStreamInternal(streamId, expectedVersion, events, cancellationToken);
         }
@@ -29,8 +28,7 @@ namespace Cedar.EventStore.Infrastructure
             int expectedVersion = ExpectedVersion.Any,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace();
-            Ensure.That(streamId, nameof(streamId)).DoesNotStartWith("$");
+            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
 
             return DeleteStreamInternal(streamId, expectedVersion, cancellationToken);
         }
@@ -38,12 +36,40 @@ namespace Cedar.EventStore.Infrastructure
         public Task DeleteEvent(
             string streamId,
             Guid eventId,
-            CancellationToken cancellationToken = new CancellationToken())
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace();
-            Ensure.That(streamId, nameof(streamId)).DoesNotStartWith("$");
+            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
 
             return DeleteEventInternal(streamId, eventId, cancellationToken);
+        }
+
+        public Task<StreamMetadataResult> GetStreamMetadata(
+            string streamId,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
+
+            return GetStreamMetadataInternal(streamId, cancellationToken);
+        }
+
+        public Task SetStreamMetadata(
+            string streamId,
+            int expectedStreamMetadataVersion,
+            int? maxAge,
+            int? maxCount,
+            string metadataJson,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
+            Ensure.That(expectedStreamMetadataVersion, nameof(expectedStreamMetadataVersion)).IsGte(0);
+
+            return SetStreamMetadataInternal(
+                streamId,
+                expectedStreamMetadataVersion,
+                maxAge,
+                maxCount,
+                metadataJson,
+                cancellationToken);
         }
 
         protected abstract Task AppendToStreamInternal(
@@ -61,5 +87,17 @@ namespace Cedar.EventStore.Infrastructure
             string streamId,
             Guid eventId,
             CancellationToken cancellationToken);
+
+        protected abstract Task<StreamMetadataResult> GetStreamMetadataInternal(
+            string streamId,
+            CancellationToken cancellationToken);
+
+        public abstract Task SetStreamMetadataInternal(
+           string streamId,
+           int expectedStreamMetadataVersion,
+           int? maxAge,
+           int? maxCount,
+           string metadataJson,
+           CancellationToken cancellationToken);
     }
 }

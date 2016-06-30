@@ -50,7 +50,6 @@
             int expectedVersion = ExpectedVersion.Any,
             CancellationToken cancellationToken = default(CancellationToken));
 
-
         /// <summary>
         ///     Hard deletes an event from the stream. Deleting an event message will result in an '$event-deleted'
         ///     event being appended to the '$deleted' stream.
@@ -70,6 +69,18 @@
         Task DeleteEvent(
             string streamId,
             Guid eventId,
+            CancellationToken cancellationToken = default(CancellationToken));
+
+        Task<StreamMetadataResult> GetStreamMetadata(
+            string streamId,
+            CancellationToken cancellationToken = default(CancellationToken));
+
+        Task SetStreamMetadata(
+            string streamId,
+            int expectedStreamMetadataVersion,
+            int? maxAge,
+            int? maxCount,
+            string metadataJson,
             CancellationToken cancellationToken = default(CancellationToken));
     }
 }

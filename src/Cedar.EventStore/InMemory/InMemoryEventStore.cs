@@ -343,6 +343,7 @@ namespace Cedar.EventStore
                     -1,
                     ReadDirection.Forward,
                     true);
+                _lock.ExitReadLock();
                 return Task.FromResult(notFound);
             }
 

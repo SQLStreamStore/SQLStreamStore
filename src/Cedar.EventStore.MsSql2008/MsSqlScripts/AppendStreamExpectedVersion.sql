@@ -2,7 +2,8 @@ BEGIN TRANSACTION AppendStream;
     DECLARE @streamIdInternal AS INT;
     DECLARE @latestStreamVersion AS INT;
 
-     SELECT @streamIdInternal = dbo.Streams.IdInternal
+     SELECT @streamIdInternal = dbo.Streams.IdInternal,
+            @latestStreamVersion = dbo.Streams.[Version]
        FROM dbo.Streams
       WHERE dbo.Streams.Id = @streamId;
 
@@ -12,12 +13,6 @@ BEGIN TRANSACTION AppendStream;
             RAISERROR('WrongExpectedVersion', 16, 1);
             RETURN;
         END
-
-        SELECT TOP(1)
-             @latestStreamVersion = dbo.Events.StreamVersion
-        FROM dbo.Events
-       WHERE dbo.Events.StreamIDInternal = @streamIdInternal
-    ORDER BY dbo.Events.Ordinal DESC;
 
         IF @latestStreamVersion != @expectedStreamVersion
         BEGIN
@@ -36,5 +31,15 @@ INSERT INTO dbo.Events (StreamIdInternal, StreamVersion, Id, Created, [Type], Js
             JsonMetadata
        FROM @newEvents
    ORDER BY StreamVersion;
- 
+
+  SELECT TOP(1)
+            @latestStreamVersion = dbo.Events.StreamVersion
+       FROM dbo.Events
+      WHERE dbo.Events.StreamIDInternal = @streamIdInternal
+   ORDER BY dbo.Events.Ordinal DESC
+
+     UPDATE dbo.Streams
+        SET dbo.Streams.[Version] = @latestStreamVersion
+      WHERE dbo.Streams.IdInternal = @streamIdInternal
+
 COMMIT TRANSACTION AppendStream;

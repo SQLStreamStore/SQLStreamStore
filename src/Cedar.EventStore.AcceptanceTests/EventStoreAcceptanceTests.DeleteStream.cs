@@ -48,7 +48,8 @@
                     streamEventsPage.Status.ShouldBe(PageReadStatus.Success);
                     var streamEvent = streamEventsPage.Events.Single();
                     streamEvent.Type.ShouldBe(StreamDeletedEventType);
-                    streamEvent.JsonData.ShouldBe("{ \"streamId\": \"stream\" }");
+                    var streamDeleted = streamEvent.JsonDataAs<StreamDeleted>();
+                    streamDeleted.StreamId.ShouldBe("stream");
                 }
             }
         }
@@ -125,7 +126,8 @@
                     streamEventsPage.Status.ShouldBe(PageReadStatus.Success);
                     var streamEvent = streamEventsPage.Events.Single();
                     streamEvent.Type.ShouldBe(StreamDeletedEventType);
-                    streamEvent.JsonData.ShouldBe("{ \"streamId\": \"stream\" }");
+                    var streamDeleted = streamEvent.JsonDataAs<StreamDeleted>();
+                    streamDeleted.StreamId.ShouldBe("stream");
                 }
             }
         }

@@ -77,5 +77,27 @@
                 }
             }
         }
+
+        [Fact]
+        public async Task When_delete_last_event_in_stream_and_append_then_it_should_have_subsequent_version_number()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    const string streamId = "stream";
+                    var newStreamEvents = CreateNewStreamEvents(1, 2, 3);
+                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamEvents);
+                    await eventStore.DeleteEvent(streamId, newStreamEvents.Last().EventId);
+
+                    newStreamEvents = CreateNewStreamEvents(4);
+                    await eventStore.AppendToStream(streamId, 2, newStreamEvents);
+
+                    var streamEventsPage = await eventStore.ReadStreamForwards(streamId, StreamVersion.Start, 3);
+                    streamEventsPage.Events.Length.ShouldBe(3);
+                    streamEventsPage.LastStreamVersion.ShouldBe(3);
+                }
+            }
+        }
     }
 }

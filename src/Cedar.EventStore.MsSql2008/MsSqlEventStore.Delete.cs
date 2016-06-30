@@ -22,9 +22,42 @@
                 : DeleteStreamExpectedVersion(streamIdInfo, expectedVersion, cancellationToken);
         }
 
-        protected override Task DeleteEventInternal(string streamId, Guid eventId, CancellationToken cancellationToken)
+        protected override async Task DeleteEventInternal(string streamId, Guid eventId, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            using (var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken);
+
+                using (var transaction = connection.BeginTransaction())
+                {
+                    var streamIdInfo = new StreamIdInfo(streamId);
+
+                    bool deleted;
+                    using (var command = new SqlCommand(_scripts.DeleteStreamEvent, connection, transaction))
+                    {
+                        command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
+                        command.Parameters.AddWithValue("eventId", eventId);
+                        var count  = await command
+                            .ExecuteScalarAsync(cancellationToken)
+                            .NotOnCapturedContext();
+
+                        deleted = (int)count == 1;
+                    }
+
+                    if(deleted)
+                    {
+                        var eventDeletedEvent = CreateEventDeletedEvent(streamIdInfo.Id, eventId);
+                        await AppendToStreamExpectedVersionAny(
+                            connection,
+                            transaction,
+                            new StreamIdInfo(DeletedStreamId),
+                            new[] { eventDeletedEvent },
+                            cancellationToken);
+                    }
+
+                    transaction.Commit();
+                }
+            }
         }
 
         private async Task DeleteStreamAnyVersion(

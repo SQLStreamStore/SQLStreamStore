@@ -229,33 +229,11 @@ namespace Cedar.EventStore
                 await connection
                     .SetStreamMetadataAsync(streamId, ExpectedVersion.NoStream, StreamMetadata.Create(maxCount: 2));
 
-                await connection.DeleteStreamAsync(streamId, ExpectedVersion.Any);
+                await connection.DeleteStreamAsync(streamId, ExpectedVersion.Any, true);
 
                 var metadata = await connection.GetStreamMetadataAsync(streamId);
 
-                metadata.IsStreamDeleted.ShouldBe(false);
-            }
-        }
-
-        [Fact]
-        public async Task DeleteMetadataStream()
-        {
-            await _node.StartAndWaitUntilInitialized();
-
-            using (var connection = EmbeddedEventStoreConnection.Create(_node, _connectionSettingsBuilder))
-            {
-                string streamId = "stream-1";
-                var eventData = new EventData(Guid.NewGuid(), "type", false, null, null);
-
-                await connection.AppendToStreamAsync(streamId, ExpectedVersion.NoStream, eventData);
-                var writeResult = await connection
-                    .SetStreamMetadataAsync(streamId, ExpectedVersion.NoStream, StreamMetadata.Create(maxCount: 2));
-
-                await connection.DeleteStreamAsync("$stream-1", ExpectedVersion.Any);
-
-                var metadata = await connection.GetStreamMetadataAsync(streamId);
-
-                metadata.IsStreamDeleted.ShouldBe(false);
+                metadata.IsStreamDeleted.ShouldBe(true);
             }
         }
 

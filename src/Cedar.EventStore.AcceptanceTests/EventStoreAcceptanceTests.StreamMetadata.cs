@@ -1,5 +1,6 @@
 ﻿namespace Cedar.EventStore
 {
+    using System;
     using System.Threading.Tasks;
     using Shouldly;
     using Xunit;
@@ -13,7 +14,7 @@
             {
                 using(var eventStore = await fixture.GetEventStore())
                 {
-                    const string streamId = "stream-1";
+                    string streamId = Guid.NewGuid().ToString();
                     await eventStore
                         .SetStreamMetadata(streamId, maxAge: 2, maxCount: 3, metadataJson: "meta");
 

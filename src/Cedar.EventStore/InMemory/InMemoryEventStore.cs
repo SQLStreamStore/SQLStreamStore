@@ -160,15 +160,14 @@ namespace Cedar.EventStore
                     return new StreamMetadataResult(streamId, -1);
                 }
 
-                var inMemoryMetadata = _inMemoryMetadata[streamId];
                 var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(
                     eventsPage.Events[0].JsonData);
 
                 return new StreamMetadataResult(
                     streamId,
                     eventsPage.LastStreamVersion,
-                    inMemoryMetadata.MaxAge,
-                    inMemoryMetadata.MaxCount,
+                    metadataMessage.MaxAge,
+                    metadataMessage.MaxCount,
                     metadataMessage.MetaJson);
             }
             finally

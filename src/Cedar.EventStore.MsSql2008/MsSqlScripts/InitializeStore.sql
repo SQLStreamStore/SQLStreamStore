@@ -34,11 +34,19 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Events_StreamIdInternal_Id ON dbo.Events (St
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_Events_StreamIdInternal_Revision ON dbo.Events (StreamIdInternal, StreamVersion);
 
+CREATE TABLE dbo.StreamMetadata(
+    StreamId            CHAR(40)                                NOT NULL,
+    MaxAge              INT                                     NULL,
+    MaxCount            INT                                     NULL
+);
+
+CREATE UNIQUE NONCLUSTERED INDEX IX_StreamMetadata_StreamId ON dbo.StreamMetadata (StreamId);
+
 CREATE TYPE dbo.NewStreamEvents AS TABLE (
     StreamVersion       INT IDENTITY(0,1)                       NOT NULL,
     Id                  UNIQUEIDENTIFIER                        NOT NULL,
     Created             DATETIME            DEFAULT(GETDATE())  NOT NULL,
     [Type]              NVARCHAR(128)                           NOT NULL,
-    JsonData            NVARCHAR(max)                           NULL    ,
+    JsonData            NVARCHAR(max)                           NULL,
     JsonMetadata        NVARCHAR(max)                           NULL
 );

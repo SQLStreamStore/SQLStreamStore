@@ -34,40 +34,58 @@
             Ensure.That(events, "events").IsNotNull();
             CheckIfDisposed();
 
-            var streamIdInfo = new StreamIdInfo(streamId);
-
             using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                if(expectedVersion == ExpectedVersion.Any)
-                {
-                    await AppendToStreamExpectedVersionAny(
-                        connection,
-                        null,
-                        streamIdInfo,
-                        events,
-                        cancellationToken);
-                    return;
-                }
-                if(expectedVersion == ExpectedVersion.NoStream)
-                {
-                    await AppendToStreamExpectedVersionNoStream(
-                        connection,
-                        streamId,
-                        events,
-                        streamIdInfo,
-                        cancellationToken);
-                    return;
-                }
-                await AppendToStreamExpectedVersion(
+                await AppendToStreamInternal(connection, null, streamId, expectedVersion, events, cancellationToken);
+            }
+        }
+
+        private async Task AppendToStreamInternal(
+           SqlConnection connection,
+           SqlTransaction transaction,
+           string streamId,
+           int expectedVersion,
+           NewStreamEvent[] events,
+           CancellationToken cancellationToken)
+        {
+            Ensure.That(streamId, "streamId").IsNotNullOrWhiteSpace();
+            Ensure.That(expectedVersion, "expectedVersion").IsGte(-2);
+            Ensure.That(events, "events").IsNotNull();
+            CheckIfDisposed();
+
+            var streamIdInfo = new StreamIdInfo(streamId);
+
+            if (expectedVersion == ExpectedVersion.Any)
+            {
+                await AppendToStreamExpectedVersionAny(
                     connection,
+                    transaction,
+                    streamIdInfo,
+                    events,
+                    cancellationToken);
+                return;
+            }
+            if (expectedVersion == ExpectedVersion.NoStream)
+            {
+                await AppendToStreamExpectedVersionNoStream(
+                    connection,
+                    transaction,
                     streamId,
-                    expectedVersion,
                     events,
                     streamIdInfo,
                     cancellationToken);
+                return;
             }
+            await AppendToStreamExpectedVersion(
+                connection,
+                transaction,
+                streamId,
+                expectedVersion,
+                events,
+                streamIdInfo,
+                cancellationToken);
         }
 
         private async Task RetryOnDeadLock(Func<Task> operation)
@@ -150,12 +168,13 @@
 
         private async Task AppendToStreamExpectedVersionNoStream(
             SqlConnection connection,
+            SqlTransaction transaction,
             string streamId,
             NewStreamEvent[] events,
             StreamIdInfo streamIdHash,
             CancellationToken cancellationToken)
         {
-            using(var command = new SqlCommand(_scripts.AppendStreamExpectedVersionNoStream, connection))
+            using(var command = new SqlCommand(_scripts.AppendStreamExpectedVersionNoStream, connection, transaction))
             {
                 command.Parameters.AddWithValue("streamId", streamIdHash.Hash);
                 command.Parameters.AddWithValue("streamIdOriginal", streamIdHash.Id);
@@ -220,6 +239,7 @@
 
         private async Task AppendToStreamExpectedVersion(
             SqlConnection connection,
+            SqlTransaction transaction,
             string streamId,
             int expectedVersion,
             NewStreamEvent[] events,
@@ -228,7 +248,7 @@
         {
             var sqlDataRecords = CreateSqlDataRecords(events);
 
-            using(var command = new SqlCommand(_scripts.AppendStreamExpectedVersion, connection))
+            using(var command = new SqlCommand(_scripts.AppendStreamExpectedVersion, connection, transaction))
             {
                 command.Parameters.AddWithValue("streamId", streamIdHash.Hash);
                 command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);

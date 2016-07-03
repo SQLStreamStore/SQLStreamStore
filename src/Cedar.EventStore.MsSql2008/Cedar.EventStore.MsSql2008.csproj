@@ -63,6 +63,7 @@
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="MsSqlScripts\DeleteStreamEvent.sql" />
+    <EmbeddedResource Include="MsSqlScripts\SetStreamMetadata.sql" />
     <Content Include="MsSqlScripts\DropTestDBs.sql" />
     <EmbeddedResource Include="MsSqlScripts\ReadHeadCheckpoint.sql" />
     <EmbeddedResource Include="MsSqlScripts\ReadStreamBackward.sql" />

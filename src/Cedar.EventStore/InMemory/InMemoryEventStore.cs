@@ -221,27 +221,10 @@ namespace Cedar.EventStore
             _lock.EnterWriteLock();
             try
             {
-                if(!_streams.ContainsKey(streamId))
-                {
-                    if(expectedVersion >= 0)
-                    {
-                        throw new WrongExpectedVersionException(
-                            Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
-                    }
-                    return Task.FromResult(0);
-                }
-                if(expectedVersion != ExpectedVersion.Any &&
-                    _streams[streamId].Events.Last().StreamVersion != expectedVersion)
-                {
-                    throw new WrongExpectedVersionException(
-                            Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
-                }
-                InMemoryStream inMemoryStream;
-                _streams.TryRemove(streamId, out inMemoryStream);
-                inMemoryStream.DeleteAllEvents(ExpectedVersion.Any);
+                DeleteStream(streamId, expectedVersion);
 
-                var streamDeletedEvent = CreateStreamDeletedEvent(streamId);
-                AppendToStreamInternal(DeletedStreamId, ExpectedVersion.Any, new[] { streamDeletedEvent });
+                // Delete metadata stream, if it exists
+                DeleteStream($"$${streamId}", ExpectedVersion.Any);
 
                 return Task.FromResult(0);
             }
@@ -249,6 +232,31 @@ namespace Cedar.EventStore
             {
                 _lock.ExitWriteLock();
             }
+        }
+
+        private void DeleteStream(string streamId, int expectedVersion)
+        {
+            if (!_streams.ContainsKey(streamId))
+            {
+                if (expectedVersion >= 0)
+                {
+                    throw new WrongExpectedVersionException(
+                        Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
+                }
+                return;
+            }
+            if (expectedVersion != ExpectedVersion.Any &&
+                _streams[streamId].Events.Last().StreamVersion != expectedVersion)
+            {
+                throw new WrongExpectedVersionException(
+                        Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
+            }
+            InMemoryStream inMemoryStream;
+            _streams.TryRemove(streamId, out inMemoryStream);
+            inMemoryStream.DeleteAllEvents(ExpectedVersion.Any);
+
+            var streamDeletedEvent = CreateStreamDeletedEvent(streamId);
+            AppendToStreamInternal(DeletedStreamId, ExpectedVersion.Any, new[] { streamDeletedEvent });
         }
 
         protected override Task<AllEventsPage> ReadAllForwardsInternal(

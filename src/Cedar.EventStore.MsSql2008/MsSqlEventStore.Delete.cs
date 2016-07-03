@@ -22,7 +22,10 @@
                 : DeleteStreamExpectedVersion(streamIdInfo, expectedVersion, cancellationToken);
         }
 
-        protected override async Task DeleteEventInternal(string streamId, Guid eventId, CancellationToken cancellationToken)
+        protected override async Task DeleteEventInternal(
+            string streamId,
+            Guid eventId,
+            CancellationToken cancellationToken)
         {
             using (var connection = _createConnection())
             {
@@ -60,37 +63,7 @@
             }
         }
 
-        private async Task DeleteStreamAnyVersion(
-            StreamIdInfo streamIdInfo,
-            CancellationToken cancellationToken)
-        {
-            using (var connection = _createConnection())
-            {
-                await connection.OpenAsync(cancellationToken);
-
-                using (var transaction = connection.BeginTransaction())
-                {
-                    using (var command = new SqlCommand(_scripts.DeleteStreamAnyVersion, connection, transaction))
-                    {
-                        command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
-                        await command
-                            .ExecuteNonQueryAsync(cancellationToken)
-                            .NotOnCapturedContext();
-                    }
-
-                    var streamDeletedEvent = CreateStreamDeletedEvent(streamIdInfo.Id);
-                    await AppendToStreamExpectedVersionAny(
-                        connection,
-                        transaction,
-                        new StreamIdInfo(DeletedStreamId),
-                        new[] { streamDeletedEvent },
-                        cancellationToken);
-
-                    transaction.Commit();
-                }
-            }
-        }
-
+       
         private async Task DeleteStreamExpectedVersion(
             StreamIdInfo streamIdInfo,
             int expectedVersion,
@@ -132,9 +105,63 @@
                             new[] { streamDeletedEvent },
                             cancellationToken);
 
+                        // Delete metadata stream (if it exists)
+                        var metadataStreamIdInfo = new StreamIdInfo($"$${streamIdInfo.Id}");
+                        await DeleteStreamAnyVersion(connection, transaction, metadataStreamIdInfo, cancellationToken);
+
                         transaction.Commit();
                     }
                 }
+            }
+        }
+
+        private async Task DeleteStreamAnyVersion(
+            StreamIdInfo streamIdInfo,
+            CancellationToken cancellationToken)
+        {
+            using (var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken);
+
+                using (var transaction = connection.BeginTransaction())
+                {
+                    await DeleteStreamAnyVersion(connection, transaction, streamIdInfo, cancellationToken);
+
+                    // Delete metadata stream (if it exists)
+                    var metadataStreamIdInfo = new StreamIdInfo($"$${streamIdInfo.Id}");
+                    await DeleteStreamAnyVersion(connection, transaction, metadataStreamIdInfo, cancellationToken);
+
+                    transaction.Commit();
+                }
+            }
+        }
+
+        private async Task DeleteStreamAnyVersion(
+           SqlConnection connection,
+           SqlTransaction transaction,
+           StreamIdInfo streamIdInfo,
+           CancellationToken cancellationToken)
+        {
+            bool aStreamIsDeleted;
+            using (var command = new SqlCommand(_scripts.DeleteStreamAnyVersion, connection, transaction))
+            {
+                command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
+                var i = await command
+                    .ExecuteScalarAsync(cancellationToken)
+                    .NotOnCapturedContext();
+
+                aStreamIsDeleted = (int)i > 0;
+            }
+
+            if(aStreamIsDeleted)
+            {
+                var streamDeletedEvent = CreateStreamDeletedEvent(streamIdInfo.Id);
+                await AppendToStreamExpectedVersionAny(
+                    connection,
+                    transaction,
+                    new StreamIdInfo(DeletedStreamId),
+                    new[] { streamDeletedEvent },
+                    cancellationToken);
             }
         }
     }

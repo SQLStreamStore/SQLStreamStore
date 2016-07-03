@@ -28,7 +28,15 @@
 
             _createConnection = () => new SqlConnection(connectionString);
             _eventStoreNotifier = new AsyncLazy<IEventStoreNotifier>(
-                async () => await createEventStoreNotifier(this).NotOnCapturedContext());
+                async () =>
+                {
+                    if(createEventStoreNotifier == null)
+                    {
+                        throw new ArgumentNullException(
+                            "Cannot create notifier because supplied createEventStoreNotifier was null");
+                    }
+                    return await createEventStoreNotifier(this).NotOnCapturedContext();
+                });
             _scripts = new Scripts(schema);
         }
 

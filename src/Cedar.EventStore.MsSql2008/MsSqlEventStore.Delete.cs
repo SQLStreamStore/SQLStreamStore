@@ -63,7 +63,6 @@
             }
         }
 
-       
         private async Task DeleteStreamExpectedVersion(
             StreamIdInfo streamIdInfo,
             int expectedVersion,

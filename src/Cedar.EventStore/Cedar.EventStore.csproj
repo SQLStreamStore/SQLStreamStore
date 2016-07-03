@@ -51,6 +51,7 @@
     <Compile Include="Infrastructure\AsyncLazy.cs" />
     <Compile Include="Infrastructure\EnsureThatExtensions.cs" />
     <Compile Include="Infrastructure\EventStoreBase.cs" />
+    <Compile Include="Infrastructure\MetadataMessage.cs" />
     <Compile Include="Infrastructure\OperationExtensions.cs" />
     <Compile Include="Infrastructure\ReadOnlyEventStoreBase.cs" />
     <Compile Include="Streams\StreamMetadataResult.cs" />
@@ -71,7 +72,6 @@
     <Compile Include="InMemory\InMemoryEventStore.cs" />
     <Compile Include="InMemory\InMemoryStream.cs" />
     <Compile Include="InMemory\InMemoryStreamEvent.cs" />
-    <Compile Include="InMemory\InMemoryStreams.cs" />
     <Compile Include="IReadOnlyEventStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SimpleJson.cs" />

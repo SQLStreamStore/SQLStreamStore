@@ -1,13 +1,13 @@
 ﻿namespace Cedar.EventStore
 {
     using System.Threading.Tasks;
-    using Cedar.EventStore.Streams;
+    using Shouldly;
     using Xunit;
 
     public partial class EventStoreAcceptanceTests
     {
         [Fact]
-        public async Task Can_get_stream_metadata()
+        public async Task Can_set_and_get_stream_metadata()
         {
             using(var fixture = GetFixture())
             {
@@ -15,11 +15,15 @@
                 {
                     const string streamId = "stream-1";
                     await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+                        .SetStreamMetadata(streamId, maxAge: 2, maxCount: 3, metadataJson: "meta");
 
                     var metadata = await eventStore.GetStreamMetadata(streamId);
 
-
+                    metadata.StreamId.ShouldBe(streamId);
+                    metadata.MaxAge.ShouldBe(2);
+                    metadata.MetadataStreamVersion.ShouldBe(0);
+                    metadata.MaxCount.ShouldBe(3);
+                    metadata.MetadataJson.ShouldBe("meta");
                 }
             }
         }

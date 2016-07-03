@@ -196,6 +196,20 @@ namespace Cedar.EventStore
         }
 
         [Fact]
+        public async Task What_happens_when_you_get_metadata_on_stream_that_does_not_exist()
+        {
+            await _node.StartAndWaitUntilInitialized();
+
+            using (var connection = EmbeddedEventStoreConnection.Create(_node, _connectionSettingsBuilder))
+            {
+                string streamId = "does-not-exist";
+
+                var metadataResult = await connection.GetStreamMetadataAsync(streamId);
+                metadataResult.IsStreamDeleted.ShouldBe(false);
+            }
+        }
+
+        [Fact]
         public async Task What_happens_when_you_set_metadata_on_stream_that_does_not_exist()
         {
             await _node.StartAndWaitUntilInitialized();

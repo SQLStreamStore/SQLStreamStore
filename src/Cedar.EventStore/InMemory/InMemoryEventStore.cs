@@ -3,12 +3,14 @@
 namespace Cedar.EventStore
 {
     using System;
+    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Infrastructure;
     using Cedar.EventStore.InMemory;
+    using Cedar.EventStore.Json;
     using Cedar.EventStore.Streams;
     using Cedar.EventStore.Subscriptions;
     using static Cedar.EventStore.Streams.Deleted;
@@ -17,9 +19,12 @@ namespace Cedar.EventStore
     {
         private readonly InMemoryAllStream _allStream = new InMemoryAllStream();
         private readonly GetUtcNow _getUtcNow;
-        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim(LockRecursionPolicy.NoRecursion);
+        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         private readonly Action _onStreamAppended;
-        private readonly InMemoryStreams _streams = new InMemoryStreams();
+        private readonly ConcurrentDictionary<string, InMemoryStream> _streams 
+            = new ConcurrentDictionary<string, InMemoryStream>();
+        private readonly ConcurrentDictionary<string, MetadataMessage> _inMemoryMetadata
+            = new ConcurrentDictionary<string, MetadataMessage>();
         private readonly Subject<Unit> _subscriptions = new Subject<Unit>();
         private bool _isDisposed;
 
@@ -142,7 +147,34 @@ namespace Cedar.EventStore
             string streamId,
             CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            _lock.EnterReadLock();
+            try
+            {
+                string metaStreamId = $"$${streamId}";
+
+                var eventsPage = await ReadStreamBackwardsInternal(metaStreamId, StreamVersion.End,
+                    1, cancellationToken);
+
+                if(eventsPage.Status == PageReadStatus.StreamNotFound)
+                {
+                    return new StreamMetadataResult(streamId, -1);
+                }
+
+                var inMemoryMetadata = _inMemoryMetadata[streamId];
+                var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(
+                    eventsPage.Events[0].JsonData);
+
+                return new StreamMetadataResult(
+                    streamId,
+                    eventsPage.LastStreamVersion,
+                    inMemoryMetadata.MaxAge,
+                    inMemoryMetadata.MaxCount,
+                    metadataMessage.MetaJson);
+            }
+            finally
+            {
+                _lock.ExitReadLock();
+            }
         }
 
         public override Task SetStreamMetadataInternal(
@@ -153,7 +185,31 @@ namespace Cedar.EventStore
             string metadataJson,
             CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            _lock.EnterWriteLock();
+            try
+            {
+                string metaStreamId = $"$${streamId}";
+
+                var metadataMessage = new MetadataMessage
+                {
+                    StreamId = streamId,
+                    MaxAge = maxAge,
+                    MaxCount = maxCount,
+                    MetaJson = metadataJson
+                };
+                var json = SimpleJson.SerializeObject(metadataMessage);
+                var newStreamEvent = new NewStreamEvent(Guid.NewGuid(), "$stream-metadata", json);
+
+                AppendToStreamInternal(metaStreamId, expectedStreamMetadataVersion, new[] { newStreamEvent });
+
+                _inMemoryMetadata[streamId] = metadataMessage;
+
+                return Task.FromResult(0);
+            }
+            finally
+            {
+                _lock.ExitWriteLock();
+            }
         }
 
         protected override Task DeleteStreamInternal(

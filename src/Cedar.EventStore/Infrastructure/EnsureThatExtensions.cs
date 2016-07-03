@@ -4,7 +4,7 @@
 
     internal static class EnsureThatExtensions
     {
-        public static Param<string> DoesNotStartWith(this Param<string> param, string s)
+        internal static Param<string> DoesNotStartWith(this Param<string> param, string s)
         {
             if(param.Value.StartsWith(s))
             {

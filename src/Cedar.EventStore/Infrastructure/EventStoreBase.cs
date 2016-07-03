@@ -61,7 +61,7 @@ namespace Cedar.EventStore.Infrastructure
             CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
-            Ensure.That(expectedStreamMetadataVersion, nameof(expectedStreamMetadataVersion)).IsGte(0);
+            Ensure.That(expectedStreamMetadataVersion, nameof(expectedStreamMetadataVersion)).IsGte(-2);
 
             return SetStreamMetadataInternal(
                 streamId,

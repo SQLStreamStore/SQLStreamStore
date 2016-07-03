@@ -77,10 +77,10 @@
 
         Task SetStreamMetadata(
             string streamId,
-            int expectedStreamMetadataVersion,
-            int? maxAge,
-            int? maxCount,
-            string metadataJson,
+            int expectedStreamMetadataVersion = ExpectedVersion.Any,
+            int? maxAge = null,
+            int? maxCount = null,
+            string metadataJson = null,
             CancellationToken cancellationToken = default(CancellationToken));
     }
 }

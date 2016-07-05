@@ -1,7 +1,6 @@
 ﻿namespace Cedar.EventStore
 {
     using System;
-    using System.Data.SqlClient;
     using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Infrastructure;
@@ -67,19 +66,6 @@
                         expectedStreamMetadataVersion,
                         new[] { newStreamEvent },
                         cancellationToken);
-
-                    var streamIdInfo = new StreamIdInfo(streamId);
-
-                    using(var command = new SqlCommand(_scripts.SetStreamMetadata, connection, transaction))
-                    {
-                        command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
-                        command.Parameters.AddWithValue("maxAge", maxAge);
-                        command.Parameters.AddWithValue("maxCount", maxCount);
-
-                        await command
-                            .ExecuteNonQueryAsync(cancellationToken)
-                            .NotOnCapturedContext();
-                    }
 
                     transaction.Commit();
                 }

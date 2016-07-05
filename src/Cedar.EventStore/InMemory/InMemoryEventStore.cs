@@ -23,8 +23,6 @@ namespace Cedar.EventStore
         private readonly Action _onStreamAppended;
         private readonly ConcurrentDictionary<string, InMemoryStream> _streams 
             = new ConcurrentDictionary<string, InMemoryStream>();
-        private readonly ConcurrentDictionary<string, MetadataMessage> _inMemoryMetadata
-            = new ConcurrentDictionary<string, MetadataMessage>();
         private readonly Subject<Unit> _subscriptions = new Subject<Unit>();
         private bool _isDisposed;
 
@@ -200,8 +198,6 @@ namespace Cedar.EventStore
                 var newStreamEvent = new NewStreamEvent(Guid.NewGuid(), "$stream-metadata", json);
 
                 AppendToStreamInternal(metaStreamId, expectedStreamMetadataVersion, new[] { newStreamEvent });
-
-                _inMemoryMetadata[streamId] = metadataMessage;
 
                 return Task.FromResult(0);
             }

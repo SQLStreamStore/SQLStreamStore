@@ -34,15 +34,26 @@
             _connection = new SQLiteConnection($"Data Source={dbPath};Version=3;");
         }
 
-        public void Blah()
+        public Meta[] GetMetadata()
         {
-            
         }
 
         public void Dispose()
         {
             _connection?.Dispose();
             _connection = null;
+        }
+    }
+
+    public class Meta
+    {
+        public readonly string Key;
+        public readonly string Value;
+
+        public Meta(string key, string value)
+        {
+            key = Key;
+            value = Value;
         }
     }
 

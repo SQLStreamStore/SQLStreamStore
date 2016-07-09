@@ -107,8 +107,7 @@ namespace Cedar.EventStore
                 await connection.AppendToStreamAsync(streamId, ExpectedVersion.NoStream, eventData);
 
                 var subscription = connection.SubscribeToStreamFrom(streamId,
-                    null, // Note StreamPosition.Start will actually return eventNumber+1...
-                          // I don't like this inconsistency 
+                    null,
                     false,
                     (_, resolvedEvent) =>
                     {
@@ -125,6 +124,7 @@ namespace Cedar.EventStore
                 {
                     _testOutputHelper.WriteLine($"Slice {resolvedEvent.OriginalEvent.EventNumber} {resolvedEvent.OriginalEvent.EventType}");
                 }
+                subscription.Stop();
             }
         }
 

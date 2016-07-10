@@ -174,7 +174,7 @@ namespace Cedar.EventStore
             }
         }
 
-        public override Task SetStreamMetadataInternal(
+        protected override Task SetStreamMetadataInternal(
             string streamId,
             int expectedStreamMetadataVersion,
             int? maxAge,

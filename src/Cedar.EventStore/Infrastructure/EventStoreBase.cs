@@ -92,7 +92,7 @@ namespace Cedar.EventStore.Infrastructure
             string streamId,
             CancellationToken cancellationToken);
 
-        public abstract Task SetStreamMetadataInternal(
+        protected abstract Task SetStreamMetadataInternal(
            string streamId,
            int expectedStreamMetadataVersion,
            int? maxAge,

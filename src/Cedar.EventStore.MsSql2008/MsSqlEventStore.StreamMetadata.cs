@@ -33,7 +33,7 @@
                    metadataMessage.MetaJson);
         }
 
-        public override async Task SetStreamMetadataInternal(
+        protected override async Task SetStreamMetadataInternal(
             string streamId,
             int expectedStreamMetadataVersion,
             int? maxAge,

@@ -5,7 +5,7 @@
     public struct StreamEvent
     {
         public readonly long Checkpoint;
-        public readonly DateTimeOffset Created;
+        public readonly DateTime Created;
         public readonly Guid EventId;
         public readonly string JsonData;
         public readonly string JsonMetadata;
@@ -18,7 +18,7 @@
             Guid eventId,
             int streamVersion,
             long checkpoint,
-            DateTimeOffset created,
+            DateTime created,
             string type,
             string jsonData,
             string jsonMetadata)

@@ -5,7 +5,7 @@
     internal sealed class InMemoryStreamEvent
     {
         internal readonly long Checkpoint;
-        internal readonly DateTimeOffset Created;
+        internal readonly DateTime Created;
         internal readonly string StreamId;
         internal readonly Guid EventId;
         internal readonly string JsonData;
@@ -18,7 +18,7 @@
             Guid eventId,
             int streamVersion,
             long checkpoint,
-            DateTimeOffset created,
+            DateTime created,
             string type,
             string jsonData,
             string jsonMetadata)

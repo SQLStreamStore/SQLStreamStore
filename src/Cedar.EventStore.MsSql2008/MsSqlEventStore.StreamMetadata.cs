@@ -3,7 +3,6 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Infrastructure;
     using Cedar.EventStore.Json;
     using Cedar.EventStore.Streams;
 

@@ -91,9 +91,49 @@
 
         private void HandleStreamEvent(StreamEvent streamEvent)
         {
-            if(!streamEvent.StreamId.StartsWith("$"))
+            /* Pseudo
+             * 1. if normal event
+             *      lookup metadata
+             *      insert event with calculated 
+             *     
+            */
+
+            if(streamEvent.StreamId.StartsWith("$$"))
+            {
+                var streamId = streamEvent.StreamId.Substring(2, streamEvent.StreamId.Length - 2);
+                var metadata = streamEvent.JsonDataAs<MetadataMessage>();
+                using(var connection = CreateConnection())
+                {
+                    connection.Open();
+                    using(var command = connection.CreateCommand())
+                    {
+                        command.CommandText = Scripts.UpsertStreamMetadata;
+                        command.Parameters.AddWithValue("streamId", streamId);
+                        command.Parameters.AddWithValue("maxAge", metadata.MaxAge);
+                        command.Parameters.AddWithValue("maxCount", metadata.MaxCount);
+                        command.ExecuteNonQuery();
+                    }
+                }
+            }
+            else if(streamEvent.StreamId == Deleted.DeletedStreamId)
             {
                 
+            }
+            else if(!streamEvent.StreamId.StartsWith("$"))
+            {
+                using (var connection = CreateConnection())
+                {
+                    connection.Open();
+                    using (var command = connection.CreateCommand())
+                    {
+                        command.CommandText = Scripts.InsertEvent;
+                        command.Parameters.AddWithValue("streamId", streamEvent.StreamId);
+                        command.Parameters.AddWithValue("eventId", streamEvent.EventId);
+                        command.Parameters.AddWithValue("created", streamEvent.Created);
+                        command.Parameters.AddWithValue("expires", DateTime.MaxValue);
+                        command.ExecuteNonQuery();
+                    }
+                }
             }
         }
 
@@ -112,10 +152,10 @@
             using(var connection = CreateConnection())
             {
                 connection.Open();
-                using(var sqLiteCommand = connection.CreateCommand())
+                using(var command = connection.CreateCommand())
                 {
-                    sqLiteCommand.CommandText = Scripts.GetVersion;
-                    return int.Parse((string) sqLiteCommand.ExecuteScalar());
+                    command.CommandText = Scripts.GetVersion;
+                    return int.Parse((string) command.ExecuteScalar());
                 }
             }
         }
@@ -189,9 +229,15 @@
         {
             internal static readonly string GetCheckpoint = "SELECT Value FROM Meta WHERE Key = 'Checkpoint'";
             internal static readonly string GetVersion = "SELECT Value FROM Meta WHERE Key = 'Version'";
-
             internal static readonly string SaveCheckpoint =
                 "UDATE Meta SET Value = '@checkpoint' WHERE Key = 'Checkpoint'";
+
+            internal static readonly string UpsertStreamMetadata =
+                "UPDATE StreamMetadata SET MaxAge = @maxAge, MaxCount = @maxCount WHERE id = @streamId;" +
+                "INSERT INTO StreamMetadata(StreamId, MaxAge, MaxCount) SELECT @streamId, @maxAge, @maxCount WHERE changes() = 0;";
+
+            internal static readonly string InsertEvent =
+                "INSERT OR IGNORE INTO Events VALUES(@streamId, @eventId, @maxAge, @maxCount);";
         }
     }
 

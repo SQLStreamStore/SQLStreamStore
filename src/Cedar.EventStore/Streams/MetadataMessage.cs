@@ -1,4 +1,4 @@
-namespace Cedar.EventStore.Infrastructure
+namespace Cedar.EventStore.Streams
 {
     public class MetadataMessage
     {

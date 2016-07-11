@@ -51,7 +51,7 @@
     <Compile Include="Infrastructure\AsyncLazy.cs" />
     <Compile Include="Infrastructure\EnsureThatExtensions.cs" />
     <Compile Include="Infrastructure\EventStoreBase.cs" />
-    <Compile Include="Infrastructure\MetadataMessage.cs" />
+    <Compile Include="Streams\MetadataMessage.cs" />
     <Compile Include="Infrastructure\OperationExtensions.cs" />
     <Compile Include="Infrastructure\ReadOnlyEventStoreBase.cs" />
     <Compile Include="Streams\StreamMetadataResult.cs" />

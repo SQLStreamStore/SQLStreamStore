@@ -40,7 +40,7 @@
             _scheduler.Complete();
         }
 
-        public event EventHandler<StreamEvent> StreamEventHandled;
+        public event EventHandler<Streams.StreamEvent> StreamEventHandled;
 
         public Task<int> GetSchemaVersion()
         {
@@ -80,7 +80,7 @@
                 (reason, exception) => { });
         }
 
-        private Task StreamEventProcessed(StreamEvent streamEvent)
+        private Task StreamEventProcessed(Streams.StreamEvent streamEvent)
         {
             return StartNewTask(() =>
             {
@@ -89,7 +89,7 @@
             });
         }
 
-        private void HandleStreamEvent(StreamEvent streamEvent)
+        private void HandleStreamEvent(Streams.StreamEvent streamEvent)
         {
             /* Pseudo
              * 1. if normal event
@@ -142,7 +142,7 @@
             return new SQLiteConnection($"Data Source={_dbPath};Version=3;");
         }
 
-        private void RaiseStreamEventProcessed(StreamEvent streamEvent)
+        private void RaiseStreamEventProcessed(Streams.StreamEvent streamEvent)
         {
             Volatile.Read(ref StreamEventHandled)?.Invoke(this, streamEvent);
         }
@@ -239,23 +239,5 @@
             internal static readonly string InsertEvent =
                 "INSERT OR IGNORE INTO Events VALUES(@streamId, @eventId, @maxAge, @maxCount);";
         }
-    }
-
-    internal class StreamMetadata
-    {
-        public string StreamId { get; set; }
-
-        public int MaxAge { get; set; }
-    }
-
-    internal class StreamEventMaxAge
-    {
-        public string StreamId { get; set; }
-
-        public string EventId { get; set; }
-
-        public DateTime Created { get; set; }
-
-        public DateTime Expires { get; set; }
     }
 }

@@ -145,7 +145,7 @@ namespace Cedar.EventStore.InMemory
                     newStreamEvent.EventId,
                     _currentVersion,
                     checkPoint,
-                    _getUtcNow().UtcDateTime,
+                    _getUtcNow().DateTime,
                     newStreamEvent.Type,
                     newStreamEvent.JsonData,
                     newStreamEvent.JsonMetadata);

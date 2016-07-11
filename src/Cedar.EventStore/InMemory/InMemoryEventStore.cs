@@ -35,7 +35,7 @@ namespace Cedar.EventStore
                 Guid.NewGuid(),
                 -1,
                 -1,
-                _getUtcNow().UtcDateTime,
+                _getUtcNow().DateTime,
                 null,
                 null,
                 null));

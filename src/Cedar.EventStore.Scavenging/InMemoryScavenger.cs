@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using Cedar.EventStore.Infrastructure;
     using Cedar.EventStore.Streams;
+    using Timer = System.Timers.Timer;
 
     public class InMemoryScavenger
     {
@@ -18,18 +19,50 @@
             = new Dictionary<string, Dictionary<Guid, ScavengerStreamEvent>>();
         private readonly Dictionary<string, ScavengerStreamMetadata> _streamMetadata 
             = new Dictionary<string, ScavengerStreamMetadata>();
+        private readonly Timer _maxAgePurgeTimer;
+        private TaskFactory _taskFactory;
 
-        public InMemoryScavenger(IEventStore eventStore, GetUtcNow getUtcNow = null)
+        public InMemoryScavenger(IEventStore eventStore, GetUtcNow getUtcNow = null, int purgeInterval = 1000)
         {
             _eventStore = eventStore;
             _getUtcNow = getUtcNow;
             _scheduler = new ConcurrentExclusiveSchedulerPair();
+            _taskFactory = new TaskFactory(_scheduler.ExclusiveScheduler);
+            _maxAgePurgeTimer = new Timer(purgeInterval)
+            {
+                AutoReset = true,
+                Enabled = true
+            };
+            _maxAgePurgeTimer.Elapsed += (_, __) => 
+            {
+                PurgeExpiredEvents();
+            };
+        }
+
+        public Task PurgeExpiredEvents()
+        {
+            return StartNewTask(() =>
+            {
+                var utcNow = _getUtcNow();
+                foreach(var stream in _streamEventsByStream)
+                {
+                    foreach(var scavengerStreamEvent in stream.Value.Values)
+                    {
+                        if(scavengerStreamEvent.Expires < utcNow)
+                        {
+                            StartNewTask(async () => 
+                                await _eventStore.DeleteEvent(scavengerStreamEvent.StreamId, scavengerStreamEvent.EventId));
+                        }
+                    }
+                }
+            });
         }
 
         public event EventHandler<StreamEvent> StreamEventProcessed;
         
         public Task Complete()
         {
+            _maxAgePurgeTimer?.Dispose();
             _allStreamSubscription?.Dispose();
             _scheduler.Complete();
             return _scheduler.Completion;
@@ -74,11 +107,9 @@
 
         private Task StartNewTask(Action action)
         {
-            return Task.Factory.StartNew(
+            return _taskFactory.StartNew(
                 action,
-                CancellationToken.None,
-                TaskCreationOptions.PreferFairness,
-                _scheduler.ExclusiveScheduler);
+                CancellationToken.None);
         }
 
         private void RaiseStreamEventProcessed(StreamEvent streamEvent)
@@ -92,7 +123,7 @@
             {
                 if(streamEvent.StreamId.StartsWith("$$"))
                 {
-                    HandleMetadata(streamEvent);
+                    HandleMetadataEvent(streamEvent);
                 }
                 else if(streamEvent.StreamId == Deleted.DeletedStreamId 
                         && streamEvent.Type == Deleted.EventDeletedEventType)
@@ -114,7 +145,7 @@
             });
         }
 
-        private void HandleMetadata(StreamEvent streamEvent)
+        private void HandleMetadataEvent(StreamEvent streamEvent)
         {
             var streamId = streamEvent.StreamId;
             var metadataMessage = streamEvent.JsonDataAs<MetadataMessage>();
@@ -133,6 +164,11 @@
                 _streamMetadata[streamId] = scavengerStreamMetadata;
             }
 
+            ResetStreamEventExpiry(metadataMessage, scavengerStreamMetadata);
+        }
+
+        private void ResetStreamEventExpiry(MetadataMessage metadataMessage, ScavengerStreamMetadata scavengerStreamMetadata)
+        {
             Dictionary<Guid, ScavengerStreamEvent> scavengerStreamEvents;
             if(_streamEventsByStream.TryGetValue(metadataMessage.StreamId, out scavengerStreamEvents))
             {

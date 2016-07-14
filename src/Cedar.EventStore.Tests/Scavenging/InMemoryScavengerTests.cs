@@ -108,22 +108,31 @@
         [Fact]
         public async Task When_stream_metadata_set_second_time_with_max_age_then_then_should_have_correct_expiry()
         {
+            // Arrange
             var scavenger = await CreateScavenger();
             var streamId = "stream-1";
-            var newStreamEvent = new NewStreamEvent(Guid.NewGuid(), "type", "json");
+            var eventId = Guid.NewGuid();
+
             await _store.SetStreamMetadata(streamId, maxAge: 360);
+
             var streamEventProcessed = scavenger
-               .WaitForStreamEventProcessed(@event => @event.EventId == newStreamEvent.EventId);
+               .WaitForStreamEventProcessed(@event => @event.EventId == eventId);
+
+            var newStreamEvent = new NewStreamEvent(eventId, "type", "json");
             await _store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamEvent);
             await streamEventProcessed;
             streamEventProcessed = scavenger
                 .WaitForStreamEventProcessed(@event => @event.StreamId == $"$${streamId}");
-            await _store.SetStreamMetadata(streamId, maxAge: 720);
-            await streamEventProcessed;
 
+            // Act
+            await _store.SetStreamMetadata(streamId, maxAge: 720);
+
+            // Assert
+            await streamEventProcessed;
             var scavengerStreamEvent = await scavenger.GetStreamEvent(streamId, newStreamEvent.EventId);
             scavengerStreamEvent.Expires.ShouldBe(_getUtcNow().DateTime.AddSeconds(720));
 
+            // Cleanup
             await scavenger.Complete();
         }
 

@@ -49,6 +49,7 @@
     </Compile>
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
     <Compile Include="Infrastructure\AsyncLazy.cs" />
+    <Compile Include="Infrastructure\TaskQueue.cs" />
     <Compile Include="Infrastructure\EnsureThatExtensions.cs" />
     <Compile Include="Infrastructure\EventStoreBase.cs" />
     <Compile Include="Streams\MetadataMessage.cs" />

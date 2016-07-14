@@ -113,6 +113,7 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Infrastructure\TaskQueueTests.cs" />
     <Compile Include="InMemory\InMemoryEventStoreAcceptanceTests.cs" />
     <Compile Include="InMemory\InMemoryEventStoreFixture.cs" />
     <Compile Include="LoggingHelper.cs" />

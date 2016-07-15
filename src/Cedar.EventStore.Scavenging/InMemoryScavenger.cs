@@ -8,11 +8,11 @@
     using Cedar.EventStore.Streams;
     using Timer = System.Timers.Timer;
 
-    public class InMemoryScavenger
+    public class InMemoryScavenger :IDisposable
     {
         private readonly IEventStore _eventStore;
         private readonly GetUtcNow _getUtcNow;
-        private readonly ConcurrentExclusiveSchedulerPair _scheduler;
+        private TaskQueue _taskQueue = new TaskQueue();
         private long? _currentCheckpoint;
         private IAllStreamSubscription _allStreamSubscription;
         private readonly Dictionary<string, Dictionary<Guid, ScavengerStreamEvent>> _streamEventsByStream 
@@ -20,14 +20,11 @@
         private readonly Dictionary<string, ScavengerStreamMetadata> _streamMetadata 
             = new Dictionary<string, ScavengerStreamMetadata>();
         private readonly Timer _maxAgePurgeTimer;
-        private readonly TaskFactory _taskFactory;
 
         public InMemoryScavenger(IEventStore eventStore, GetUtcNow getUtcNow = null, int purgeInterval = 1000)
         {
             _eventStore = eventStore;
             _getUtcNow = getUtcNow;
-            _scheduler = new ConcurrentExclusiveSchedulerPair();
-            _taskFactory = new TaskFactory(_scheduler.ExclusiveScheduler);
             _maxAgePurgeTimer = new Timer(purgeInterval)
             {
                 AutoReset = true,
@@ -35,11 +32,11 @@
             };
             _maxAgePurgeTimer.Elapsed += (_, __) => 
             {
-                PurgeExpiredEvents();
+                //PurgeExpiredEvents();
             };
         }
 
-        public Task PurgeExpiredEvents()
+        /*public Task PurgeExpiredEvents()
         {
             return StartNewTask(() =>
             {
@@ -57,21 +54,13 @@
                     }
                 }
             });
-        }
+        }*/
 
         public event EventHandler<StreamEvent> StreamEventProcessed;
         
-        public Task Complete()
-        {
-            _maxAgePurgeTimer?.Dispose();
-            _allStreamSubscription?.Dispose();
-            _scheduler.Complete();
-            return _scheduler.Completion;
-        }
-
         public Task Initialize()
         {
-            return StartNewTask(async () =>
+            return _taskQueue.EnqueueHighPriority(async () =>
             {
                 _allStreamSubscription = await _eventStore.SubscribeToAll(
                    _currentCheckpoint,
@@ -82,12 +71,12 @@
 
         public Task<long?> GetCheckpoint()
         {
-            return StartNewTask(() => _currentCheckpoint);
+            return _taskQueue.EnqueueHighPriority(() => _currentCheckpoint);
         }
 
         public Task<ScavengerStreamEvent> GetStreamEvent(string streamId, Guid eventId)
         {
-            return StartNewTask(() =>
+            return _taskQueue.EnqueueHighPriority(() =>
             {
                 if(!_streamEventsByStream.ContainsKey(streamId))
                 {
@@ -101,18 +90,6 @@
             });
         }
 
-        private Task<T> StartNewTask<T>(Func<T> func)
-        {
-            return Task.Factory.StartNew(func, CancellationToken.None, TaskCreationOptions.PreferFairness, _scheduler.ExclusiveScheduler);
-        }
-
-        private Task StartNewTask(Action action)
-        {
-            return _taskFactory.StartNew(
-                action,
-                CancellationToken.None);
-        }
-
         private void RaiseStreamEventProcessed(StreamEvent streamEvent)
         {
             Volatile.Read(ref StreamEventProcessed)?.Invoke(this, streamEvent);
@@ -120,7 +97,7 @@
 
         private Task ProcessStreamEvent(StreamEvent streamEvent)
         {
-            return StartNewTask(() =>
+            return _taskQueue.Enqueue(() =>
             {
                 if(streamEvent.StreamId.StartsWith("$$"))
                 {
@@ -216,6 +193,13 @@
 
                 _streamEventsByStream[streamId].Add(streamEvent.EventId, scavengerStreamEvent);
             }
+        }
+
+        public void Dispose()
+        {
+            _maxAgePurgeTimer.Dispose();
+            _allStreamSubscription.Dispose();
+            _taskQueue.Dispose();
         }
     }
 }

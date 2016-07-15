@@ -22,6 +22,16 @@
             return task;
         }
 
+        public Task<T> Enqueue<T>(Func<T> function)
+        {
+            var task = Enqueue(_ =>
+            {
+                var result = function();
+                return Task.FromResult(result);
+            });
+            return task;
+        }
+
         public Task Enqueue(Func<CancellationToken, Task> function)
         {
             var task = Enqueue(async ct =>
@@ -43,6 +53,16 @@
             {
                 action();
                 return TaskHelpers.CompletedTask;
+            });
+            return task;
+        }
+
+        public Task<T> EnqueueHighPriority<T>(Func<T> function)
+        {
+            var task = EnqueueHighPriority(_ =>
+            {
+                var result = function();
+                return Task.FromResult(result);
             });
             return task;
         }

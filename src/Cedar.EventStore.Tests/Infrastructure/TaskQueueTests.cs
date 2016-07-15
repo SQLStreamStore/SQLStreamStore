@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Concurrent;
-    using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
     using Shouldly;
@@ -25,12 +24,13 @@
             {
                 var tasks = new ConcurrentBag<Task>();
 
-                for (int i = 0; i < 1000; i++)
+                for (int i = 0; i < 250; i++)
                 {
+                    int j = i;
                     var task = taskQueue.Enqueue(async ct =>
                     {
                         await Task.Delay(1, ct);
-                        _testOutputHelper.WriteLine(i.ToString());
+                        _testOutputHelper.WriteLine(j.ToString());
                     });
                     tasks.Add(task);
                 }
@@ -50,10 +50,11 @@
                     250,
                     i =>
                     {
+                        int j = i;
                         var task = taskQueue.Enqueue(async ct =>
                         {
                             await Task.Delay(1, ct);
-                            _testOutputHelper.WriteLine(i.ToString());
+                            _testOutputHelper.WriteLine(j.ToString());
                         });
                         tasks.Add(task);
                     });

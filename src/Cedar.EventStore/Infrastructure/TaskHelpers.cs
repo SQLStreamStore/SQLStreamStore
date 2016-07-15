@@ -4,6 +4,6 @@
 
     public static class TaskHelpers
     {
-        public static Task CompletedTask = Task.FromResult(0);
+        public static readonly Task CompletedTask = Task.FromResult(0);
     }
 }

@@ -20,7 +20,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Cedar.EventStore.Acceptance
 		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadStream.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadStream.cs
 		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.StreamMetadata.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.StreamMetadata.cs
 		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.Subscriptions.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.Subscriptions.cs
-		Cedar.EventStore.AcceptanceTests\TaskExtensions.cs = Cedar.EventStore.AcceptanceTests\TaskExtensions.cs
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore", "Cedar.EventStore\Cedar.EventStore.csproj", "{5A8DF1A1-9B3B-499D-B9E9-A5E0F6F06953}"

@@ -20,7 +20,7 @@
         private readonly Dictionary<string, ScavengerStreamMetadata> _streamMetadata 
             = new Dictionary<string, ScavengerStreamMetadata>();
         private readonly Timer _maxAgePurgeTimer;
-        private TaskFactory _taskFactory;
+        private readonly TaskFactory _taskFactory;
 
         public InMemoryScavenger(IEventStore eventStore, GetUtcNow getUtcNow = null, int purgeInterval = 1000)
         {
@@ -51,7 +51,8 @@
                         if(scavengerStreamEvent.Expires < utcNow)
                         {
                             StartNewTask(async () => 
-                                await _eventStore.DeleteEvent(scavengerStreamEvent.StreamId, scavengerStreamEvent.EventId));
+                                await _eventStore
+                                  .DeleteEvent(scavengerStreamEvent.StreamId, scavengerStreamEvent.EventId));
                         }
                     }
                 }

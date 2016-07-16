@@ -135,6 +135,37 @@
             }
         }
 
+        [Fact]
+        public async Task When_purge_then_should_delete_expired_event()
+        {
+            using(var scavenger = await CreateScavenger())
+            {
+                // Arrange
+                var streamId = "stream-1";
+                var newStreamEvent = new NewStreamEvent(Guid.NewGuid(), "type", "json");
+                var metadataProcessed = scavenger
+                    .WaitForStreamEventProcessed(@event => @event.StreamId == $"$${streamId}");
+                var eventDeletedProcessed = scavenger
+                    .WaitForStreamEventProcessed(
+                        @event => @event.StreamId == Deleted.DeletedStreamId 
+                        && @event.Type == Deleted.EventDeletedEventType);
+                await _store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamEvent);
+                await _store.SetStreamMetadata(streamId, maxAge: 1);
+                await metadataProcessed;
+
+                // Act
+                _utcNow = _utcNow.AddMinutes(1);
+                await scavenger.PurgeExpiredEvents();
+                var streamEvent = await eventDeletedProcessed;
+
+                // Assert
+                streamEvent
+                    .JsonDataAs<Deleted.EventDeleted>()
+                    .StreamId
+                    .ShouldBe(streamId);
+            }
+        }
+
         private async Task<InMemoryScavenger> CreateScavenger()
         {
             var scavenger = new InMemoryScavenger(_store, _getUtcNow);

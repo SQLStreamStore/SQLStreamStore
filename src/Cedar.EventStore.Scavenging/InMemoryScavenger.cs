@@ -8,7 +8,7 @@
     using Cedar.EventStore.Streams;
     using Timer = System.Timers.Timer;
 
-    public class InMemoryScavenger :IDisposable
+    public class InMemoryScavenger : IDisposable
     {
         private readonly IEventStore _eventStore;
         private readonly GetUtcNow _getUtcNow;
@@ -22,40 +22,42 @@
         private readonly Timer _maxAgePurgeTimer;
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
-        public InMemoryScavenger(IEventStore eventStore, GetUtcNow getUtcNow = null, int purgeInterval = 1000)
+        public InMemoryScavenger(IEventStore eventStore, GetUtcNow getUtcNow = null, int purgeInterval = 60000)
         {
             _eventStore = eventStore;
             _getUtcNow = getUtcNow;
             _maxAgePurgeTimer = new Timer(purgeInterval)
             {
-                AutoReset = true,
+                AutoReset = false,
                 Enabled = true
             };
             _maxAgePurgeTimer.Elapsed += (_, __) => 
             {
-                //PurgeExpiredEvents();
+                PurgeExpiredEvents();
             };
         }
 
-        /*public Task PurgeExpiredEvents()
+        public Task PurgeExpiredEvents()
         {
-            return StartNewTask(() =>
+            return _taskQueue.Enqueue(async ct =>
             {
                 var utcNow = _getUtcNow();
                 foreach(var stream in _streamEventsByStream)
                 {
                     foreach(var scavengerStreamEvent in stream.Value.Values)
                     {
+                        ct.ThrowIfCancellationRequested();
+
                         if(scavengerStreamEvent.Expires < utcNow)
                         {
-                            StartNewTask(async () => 
-                                await _eventStore
-                                  .DeleteEvent(scavengerStreamEvent.StreamId, scavengerStreamEvent.EventId));
+                            await _eventStore
+                                .DeleteEvent(scavengerStreamEvent.StreamId, scavengerStreamEvent.EventId, ct);
                         }
                     }
                 }
+                _maxAgePurgeTimer.Start();
             });
-        }*/
+        }
 
         public event EventHandler<StreamEvent> StreamEventProcessed;
         

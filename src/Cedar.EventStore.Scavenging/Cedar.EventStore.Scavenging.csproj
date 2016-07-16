@@ -54,7 +54,7 @@
     <Compile Include="Scavenger.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="ScavengerStreamEvent.cs" />
-    <Compile Include="StreamMetadata.cs" />
+    <Compile Include="ScavengerStreamMetadata.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="app.config" />

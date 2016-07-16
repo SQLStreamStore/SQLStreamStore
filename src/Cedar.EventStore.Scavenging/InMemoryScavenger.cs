@@ -20,7 +20,7 @@
         private readonly Dictionary<string, ScavengerStreamMetadata> _streamMetadata 
             = new Dictionary<string, ScavengerStreamMetadata>();
         private readonly Timer _maxAgePurgeTimer;
-        private ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
+        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
         public InMemoryScavenger(IEventStore eventStore, GetUtcNow getUtcNow = null, int purgeInterval = 1000)
         {

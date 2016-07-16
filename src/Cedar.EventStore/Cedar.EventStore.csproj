@@ -53,6 +53,7 @@
     <Compile Include="Infrastructure\TaskQueue.cs" />
     <Compile Include="Infrastructure\EnsureThatExtensions.cs" />
     <Compile Include="Infrastructure\EventStoreBase.cs" />
+    <Compile Include="InMemory\InMemoryAllStream.cs" />
     <Compile Include="Streams\MetadataMessage.cs" />
     <Compile Include="Infrastructure\OperationExtensions.cs" />
     <Compile Include="Infrastructure\ReadOnlyEventStoreBase.cs" />
@@ -70,7 +71,6 @@
     <Compile Include="Infrastructure\TaskExtensions.cs" />
     <Compile Include="Infrastructure\TaskHelpers.cs" />
     <Compile Include="Infrastructure\Unit.cs" />
-    <Compile Include="InMemory\InMemoryAllStream.cs" />
     <Compile Include="InMemory\InMemoryEventStore.cs" />
     <Compile Include="InMemory\InMemoryStream.cs" />
     <Compile Include="InMemory\InMemoryStreamEvent.cs" />
@@ -105,6 +105,9 @@
   <ItemGroup>
     <None Include="Cedar.EventStore.nuspec" />
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Scavenging\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 

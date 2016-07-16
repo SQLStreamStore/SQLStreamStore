@@ -23,16 +23,10 @@
             using (var taskQueue = new TaskQueue())
             {
                 var tasks = new ConcurrentBag<Task>();
-
+                
                 for (int i = 0; i < 250; i++)
                 {
-                    int j = i;
-                    var task = taskQueue.Enqueue(async ct =>
-                    {
-                        await Task.Delay(1, ct);
-                        _testOutputHelper.WriteLine(j.ToString());
-                    });
-                    tasks.Add(task);
+                    tasks.Add(taskQueue.Enqueue(() => { }));
                 }
 
                 await Task.WhenAll(tasks);
@@ -51,9 +45,8 @@
                     i =>
                     {
                         int j = i;
-                        var task = taskQueue.Enqueue(async ct =>
+                        var task = taskQueue.Enqueue(() =>
                         {
-                            await Task.Delay(1, ct);
                             _testOutputHelper.WriteLine(j.ToString());
                         });
                         tasks.Add(task);

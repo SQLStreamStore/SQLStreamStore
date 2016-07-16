@@ -12,7 +12,7 @@
     {
         private readonly IEventStore _eventStore;
         private readonly GetUtcNow _getUtcNow;
-        private TaskQueue _taskQueue = new TaskQueue();
+        private readonly TaskQueue _taskQueue = new TaskQueue();
         private long? _currentCheckpoint;
         private IAllStreamSubscription _allStreamSubscription;
         private readonly Dictionary<string, Dictionary<Guid, ScavengerStreamEvent>> _streamEventsByStream 
@@ -20,6 +20,7 @@
         private readonly Dictionary<string, ScavengerStreamMetadata> _streamMetadata 
             = new Dictionary<string, ScavengerStreamMetadata>();
         private readonly Timer _maxAgePurgeTimer;
+        private ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
         public InMemoryScavenger(IEventStore eventStore, GetUtcNow getUtcNow = null, int purgeInterval = 1000)
         {
@@ -58,36 +59,36 @@
 
         public event EventHandler<StreamEvent> StreamEventProcessed;
         
-        public Task Initialize()
+        public async Task Initialize()
         {
-            return _taskQueue.EnqueueHighPriority(async () =>
-            {
-                _allStreamSubscription = await _eventStore.SubscribeToAll(
+            _allStreamSubscription = await _eventStore.SubscribeToAll(
                    _currentCheckpoint,
-                   ProcessStreamEvent,
+                   StreamEventReceived,
                    (reason, exception) => { });
-            });
         }
 
-        public Task<long?> GetCheckpoint()
+        public long? GetCheckpoint()
         {
-            return _taskQueue.EnqueueHighPriority(() => _currentCheckpoint);
-        }
-
-        public Task<ScavengerStreamEvent> GetStreamEvent(string streamId, Guid eventId)
-        {
-            return _taskQueue.EnqueueHighPriority(() =>
+            using(_lock.UseReadLock())
             {
-                if(!_streamEventsByStream.ContainsKey(streamId))
+                return _currentCheckpoint;
+            }
+        }
+
+        public ScavengerStreamEvent GetStreamEvent(string streamId, Guid eventId)
+        {
+            using(_lock.UseReadLock())
+            {
+                if (!_streamEventsByStream.ContainsKey(streamId))
                 {
                     return null;
                 }
-                if(!_streamEventsByStream[streamId].ContainsKey(eventId))
+                if (!_streamEventsByStream[streamId].ContainsKey(eventId))
                 {
                     return null;
                 }
                 return _streamEventsByStream[streamId][eventId];
-            });
+            }
         }
 
         private void RaiseStreamEventProcessed(StreamEvent streamEvent)
@@ -95,30 +96,33 @@
             Volatile.Read(ref StreamEventProcessed)?.Invoke(this, streamEvent);
         }
 
-        private Task ProcessStreamEvent(StreamEvent streamEvent)
+        private Task StreamEventReceived(StreamEvent streamEvent)
         {
             return _taskQueue.Enqueue(() =>
             {
-                if(streamEvent.StreamId.StartsWith("$$"))
+                using(_lock.UseWriteLock())
                 {
-                    HandleMetadataEvent(streamEvent);
-                }
-                else if(streamEvent.StreamId == Deleted.DeletedStreamId 
-                        && streamEvent.Type == Deleted.EventDeletedEventType)
-                {
-                    HandleEventDeleted(streamEvent);
-                }
-                else if(streamEvent.StreamId == Deleted.DeletedStreamId
-                        && streamEvent.Type == Deleted.StreamDeletedEventType)
-                {
-                    HandleStreamDeleted(streamEvent);
-                }
-                else
-                {
-                    HandleStreamEvent(streamEvent);
-                }
+                    if(streamEvent.StreamId.StartsWith("$$"))
+                    {
+                        HandleMetadataEvent(streamEvent);
+                    }
+                    else if(streamEvent.StreamId == Deleted.DeletedStreamId
+                            && streamEvent.Type == Deleted.EventDeletedEventType)
+                    {
+                        HandleEventDeleted(streamEvent);
+                    }
+                    else if(streamEvent.StreamId == Deleted.DeletedStreamId
+                            && streamEvent.Type == Deleted.StreamDeletedEventType)
+                    {
+                        HandleStreamDeleted(streamEvent);
+                    }
+                    else
+                    {
+                        HandleStreamEvent(streamEvent);
+                    }
 
-                _currentCheckpoint = streamEvent.Checkpoint;
+                    _currentCheckpoint = streamEvent.Checkpoint;
+                }
                 RaiseStreamEventProcessed(streamEvent);
             });
         }

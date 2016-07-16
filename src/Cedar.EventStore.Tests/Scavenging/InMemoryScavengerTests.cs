@@ -24,7 +24,7 @@
         {
             using(var scavenger = await CreateScavenger())
             {
-                var checkpoint = await scavenger.GetCheckpoint();
+                var checkpoint = scavenger.GetCheckpoint();
 
                 checkpoint.ShouldBeNull();
             }
@@ -43,7 +43,7 @@
 
                 await streamEventProcessed;
 
-                var scavengerStreamEvent = await scavenger.GetStreamEvent(streamId, newStreamEvent.EventId);
+                var scavengerStreamEvent = scavenger.GetStreamEvent(streamId, newStreamEvent.EventId);
                 scavengerStreamEvent.Expires.ShouldBe(DateTime.MaxValue);
             }
         }
@@ -61,7 +61,7 @@
 
                 var streamEvent = await streamEventProcessed;
 
-                var checkpoint = await scavenger.GetCheckpoint();
+                var checkpoint = scavenger.GetCheckpoint();
                 checkpoint.ShouldBe(streamEvent.Checkpoint);
             }
         }
@@ -80,7 +80,7 @@
                 await _store.SetStreamMetadata(streamId, maxAge: 360);
 
                 await streamEventProcessed;
-                var scavengerStreamEvent = await scavenger.GetStreamEvent(streamId, newStreamEvent.EventId);
+                var scavengerStreamEvent = scavenger.GetStreamEvent(streamId, newStreamEvent.EventId);
                 scavengerStreamEvent.Expires.ShouldBeLessThan(DateTime.MaxValue);
                 scavengerStreamEvent.Expires.ShouldBeGreaterThan(_getUtcNow().DateTime);
             }
@@ -100,7 +100,7 @@
 
                 await streamEventProcessed;
 
-                var scavengerStreamEvent = await scavenger.GetStreamEvent(streamId, newStreamEvent.EventId);
+                var scavengerStreamEvent = scavenger.GetStreamEvent(streamId, newStreamEvent.EventId);
                 scavengerStreamEvent.Expires.ShouldBe(_getUtcNow().DateTime.AddSeconds(360));
             }
         }
@@ -130,7 +130,7 @@
 
                 // Assert
                 await streamEventProcessed;
-                var scavengerStreamEvent = await scavenger.GetStreamEvent(streamId, newStreamEvent.EventId);
+                var scavengerStreamEvent = scavenger.GetStreamEvent(streamId, newStreamEvent.EventId);
                 scavengerStreamEvent.Expires.ShouldBe(_getUtcNow().DateTime.AddSeconds(720));
             }
         }

@@ -22,22 +22,22 @@
         private readonly Timer _maxAgePurgeTimer;
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim();
 
-        public InMemoryScavenger(IEventStore eventStore, GetUtcNow getUtcNow = null, int purgeInterval = 60000)
+        public InMemoryScavenger(IEventStore eventStore, GetUtcNow getUtcNow = null, int scavangeInterval = 60000)
         {
             _eventStore = eventStore;
             _getUtcNow = getUtcNow;
-            _maxAgePurgeTimer = new Timer(purgeInterval)
+            _maxAgePurgeTimer = new Timer(scavangeInterval)
             {
                 AutoReset = false,
                 Enabled = true
             };
             _maxAgePurgeTimer.Elapsed += (_, __) => 
             {
-                PurgeExpiredEvents();
+                ScavangeNow();
             };
         }
 
-        public Task PurgeExpiredEvents()
+        public Task ScavangeNow()
         {
             return _taskQueue.Enqueue(async ct =>
             {

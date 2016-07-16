@@ -136,9 +136,9 @@
         }
 
         [Fact]
-        public async Task When_purge_then_should_delete_expired_event()
+        public async Task When_scavange_then_should_delete_expired_event()
         {
-            using(var scavenger = await CreateScavenger())
+            using(var scavenger = await CreateScavenger(scavangeInterval: 1))
             {
                 // Arrange
                 var streamId = "stream-1";
@@ -155,7 +155,6 @@
 
                 // Act
                 _utcNow = _utcNow.AddMinutes(1);
-                await scavenger.PurgeExpiredEvents();
                 var streamEvent = await eventDeletedProcessed;
 
                 // Assert
@@ -166,9 +165,9 @@
             }
         }
 
-        private async Task<InMemoryScavenger> CreateScavenger()
+        private async Task<InMemoryScavenger> CreateScavenger(int scavangeInterval = 60000)
         {
-            var scavenger = new InMemoryScavenger(_store, _getUtcNow);
+            var scavenger = new InMemoryScavenger(_store, _getUtcNow, scavangeInterval: scavangeInterval);
             await scavenger.Initialize();
             return scavenger;
         }

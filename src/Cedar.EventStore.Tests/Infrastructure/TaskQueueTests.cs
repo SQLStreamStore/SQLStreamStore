@@ -68,34 +68,6 @@
         }
 
         [Fact]
-        public async Task When_disposed_then_queued_tasks_should_be_cancelled()
-        {
-            var block = new ManualResetEventSlim();
-            var taskQueue = new TaskQueue();
-            var blockingTask = taskQueue.Enqueue(() =>
-            {
-                block.Wait();
-            });
-
-            int firstTaskToComplete = 0;
-            int taskNumber = 1;
-            int highPriorityTaskNumber = 2;
-            var task = taskQueue.Enqueue(() =>
-            {
-                Interlocked.CompareExchange(ref firstTaskToComplete, taskNumber, 0);
-            });
-            var highPriorityTask = taskQueue.EnqueueHighPriority(() =>
-            {
-                Interlocked.CompareExchange(ref firstTaskToComplete, highPriorityTaskNumber, 0);
-            });
-            block.Set();
-
-            await Task.WhenAll(blockingTask, task, highPriorityTask);
-
-            firstTaskToComplete.ShouldBe(highPriorityTaskNumber);
-        }
-
-        [Fact]
         public async Task When_enqueued_function_throws_then_should_propagate_exception()
         {
             using(var taskQueue = new TaskQueue())

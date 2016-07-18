@@ -8,7 +8,6 @@
     public class TaskQueue : IDisposable
     {
         private readonly ConcurrentQueue<Func<Task>> _taskQueue = new ConcurrentQueue<Func<Task>>();
-        private readonly ConcurrentQueue<Func<Task>> _highPriorityTaskQueue = new ConcurrentQueue<Func<Task>>();
         private readonly CancellationTokenSource _isDisposed = new CancellationTokenSource();
         private readonly InterlockedBoolean _isProcessing = new InterlockedBoolean();
 
@@ -45,41 +44,6 @@
         public Task<TResult> Enqueue<TResult>(Func<CancellationToken, Task<TResult>> function)
         {
             return EnqueueInternal(_taskQueue, function);
-        }
-
-        public Task EnqueueHighPriority(Action action)
-        {
-            var task = EnqueueHighPriority(_ =>
-            {
-                action();
-                return TaskHelpers.CompletedTask;
-            });
-            return task;
-        }
-
-        public Task<T> EnqueueHighPriority<T>(Func<T> function)
-        {
-            var task = EnqueueHighPriority(_ =>
-            {
-                var result = function();
-                return Task.FromResult(result);
-            });
-            return task;
-        }
-
-        public Task EnqueueHighPriority(Func<CancellationToken, Task> function)
-        {
-            var task = EnqueueHighPriority(async ct =>
-            {
-                await function(ct);
-                return true;
-            });
-            return task;
-        }
-
-        public Task<TResult> EnqueueHighPriority<TResult>(Func<CancellationToken, Task<TResult>> function)
-        {
-            return EnqueueInternal(_highPriorityTaskQueue, function);
         }
 
         private Task<TResult> EnqueueInternal<TResult>(
@@ -126,17 +90,12 @@
             do
             {
                 Func<Task> function;
-                if(_highPriorityTaskQueue.TryDequeue(out function))
-                {
-                    await function();
-                }
-                else if(_taskQueue.TryDequeue(out function))
+                if(_taskQueue.TryDequeue(out function))
                 {
                     await function();
                 }
                 _isProcessing.Set(false);
-            } while( (_highPriorityTaskQueue.Count > 0 || _taskQueue.Count > 0) 
-                && _isProcessing.CompareExchange(true, false) == false);
+            } while( _taskQueue.Count > 0 && _isProcessing.CompareExchange(true, false) == false);
         }
 
         public void Dispose()

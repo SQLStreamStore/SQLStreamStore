@@ -50,6 +50,7 @@
 
                         if(scavengerStreamEvent.Expires < utcNow)
                         {
+                            // todo, retries and exception logging.
                             await _eventStore
                                 .DeleteEvent(scavengerStreamEvent.StreamId, scavengerStreamEvent.EventId, ct);
                         }

@@ -25,6 +25,7 @@ namespace Cedar.EventStore
             = new ConcurrentDictionary<string, InMemoryStream>();
         private readonly Subject<Unit> _subscriptions = new Subject<Unit>();
         private bool _isDisposed;
+        private int _currentCheckpoint = 0;
 
         public InMemoryEventStore(GetUtcNow getUtcNow = null, string logName = null)
             : base(logName ?? nameof(InMemoryEventStore))
@@ -97,7 +98,8 @@ namespace Cedar.EventStore
                         streamId,
                         _allStream,
                         _getUtcNow,
-                        _onStreamAppended);
+                        _onStreamAppended,
+                        () => _currentCheckpoint++);
                     inMemoryStream.AppendToStream(expectedVersion, events);
                     _streams.TryAdd(streamId, inMemoryStream);
                 }

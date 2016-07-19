@@ -416,6 +416,46 @@
             }
         }
 
+        [Fact]
+        public async Task When_delete_then_deleted_event_should_have_correct_checkpoint()
+        {
+            using(var fixture = GetFixture())
+            {
+                using(var eventStore = await fixture.GetEventStore())
+                {
+                    // Arrange
+                    string streamId1 = "stream-1";
+
+                    var receiveEvents = new TaskCompletionSource<StreamEvent>();
+                    List<StreamEvent> receivedEvents = new List<StreamEvent>();
+                    using (await eventStore.SubscribeToAll(
+                        null,
+                        streamEvent =>
+                        {
+                            _testOutputHelper.WriteLine($"Received event {streamEvent.StreamId} " +
+                                                        $"{streamEvent.StreamVersion} {streamEvent.Checkpoint}");
+                            receivedEvents.Add(streamEvent);
+                            if (streamEvent.StreamId == Deleted.DeletedStreamId 
+                                && streamEvent.Type == Deleted.StreamDeletedEventType)
+                            {
+                                receiveEvents.SetResult(streamEvent);
+                            }
+                            return Task.CompletedTask;
+                        }))
+                    {
+                        await AppendEvents(eventStore, streamId1, 1);
+
+                        // Act
+                        await eventStore.DeleteStream(streamId1);
+                        await receiveEvents.Task.WithTimeout();
+
+                        // Assert
+                        receivedEvents.Last().Checkpoint.ShouldBe(1);
+                    }
+                }
+            }
+        }
+
         private static async Task AppendEvents(IEventStore eventStore, string streamId, int numberOfEvents)
         {
             for(int i = 0; i < numberOfEvents; i++)

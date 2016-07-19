@@ -12,6 +12,7 @@ namespace Cedar.EventStore.InMemory
         private readonly InMemoryAllStream _inMemoryAllStream;
         private readonly GetUtcNow _getUtcNow;
         private readonly Action _onStreamAppended;
+        private readonly Func<int> _getNextCheckpoint;
         private readonly List<InMemoryStreamEvent> _events = new List<InMemoryStreamEvent>();
         private readonly Dictionary<Guid, InMemoryStreamEvent> _eventsById = new Dictionary<Guid, InMemoryStreamEvent>();
         private int _currentVersion = -1;
@@ -20,12 +21,14 @@ namespace Cedar.EventStore.InMemory
             string streamId,
             InMemoryAllStream inMemoryAllStream,
             GetUtcNow getUtcNow,
-            Action onStreamAppended)
+            Action onStreamAppended,
+            Func<int> getNextCheckpoint)
         {
             _streamId = streamId;
             _inMemoryAllStream = inMemoryAllStream;
             _getUtcNow = getUtcNow;
             _onStreamAppended = onStreamAppended;
+            _getNextCheckpoint = getNextCheckpoint;
         }
 
         internal IReadOnlyList<InMemoryStreamEvent> Events => _events;
@@ -133,18 +136,16 @@ namespace Cedar.EventStore.InMemory
 
         private void AppendEvents(NewStreamEvent[] newEvents)
         {
-            long checkPoint = _inMemoryAllStream.Last.Value.Checkpoint;
-
             foreach(var newStreamEvent in newEvents)
             {
-                checkPoint++;
+                var checkpoint = _getNextCheckpoint();
                 _currentVersion++;
 
                 var inMemoryStreamEvent = new InMemoryStreamEvent(
                     _streamId,
                     newStreamEvent.EventId,
                     _currentVersion,
-                    checkPoint,
+                    checkpoint,
                     _getUtcNow().DateTime,
                     newStreamEvent.Type,
                     newStreamEvent.JsonData,

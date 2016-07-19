@@ -1,7 +1,7 @@
 ﻿<SolutionConfiguration>
   <FileVersion>1</FileVersion>
   <InferProjectReferencesUsingAssemblyNames>false</InferProjectReferencesUsingAssemblyNames>
-  <AllowParallelTestExecution>false</AllowParallelTestExecution>
+  <AllowParallelTestExecution>true</AllowParallelTestExecution>
   <AllowTestsToRunInParallelWithThemselves>false</AllowTestsToRunInParallelWithThemselves>
   <FrameworkUtilisationTypeForNUnit>UseDynamicAnalysis</FrameworkUtilisationTypeForNUnit>
   <FrameworkUtilisationTypeForGallio>UseStaticAnalysis</FrameworkUtilisationTypeForGallio>

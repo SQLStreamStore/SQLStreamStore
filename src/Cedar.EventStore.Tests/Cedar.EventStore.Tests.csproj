@@ -118,6 +118,7 @@
     <Compile Include="InMemory\InMemoryEventStoreFixture.cs" />
     <Compile Include="LoggingHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Scavenging\InMemoryScavengerExtensions.cs" />
     <Compile Include="Scavenging\InMemoryScavengerTests.cs" />
     <Compile Include="SteamEventTests.cs" />
     <Compile Include="Subscriptions\StreanSubscriptionTests.cs" />

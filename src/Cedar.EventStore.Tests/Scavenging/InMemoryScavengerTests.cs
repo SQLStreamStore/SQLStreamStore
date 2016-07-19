@@ -207,6 +207,31 @@
             }
         }
 
+        [Fact]
+        public async Task When_underlying_event_store_is_disposed()
+        {
+            using (var scavenger = await CreateScavenger(scavangeInterval: 1))
+            {
+                // Arrange
+                var streamId = "stream-1";
+                var newStreamEvent = new NewStreamEvent(Guid.NewGuid(), "type", "json");
+                var metadataProcessed = scavenger
+                    .WaitForStreamEventProcessed(@event => @event.StreamId == $"$${streamId}");
+                var eventDeletedProcessed = scavenger
+                    .WaitForStreamEventProcessed(
+                        @event => @event.StreamId == Deleted.DeletedStreamId
+                        && @event.Type == Deleted.EventDeletedEventType);
+                await _store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamEvent);
+                await _store.SetStreamMetadata(streamId, maxAge: 1);
+                await metadataProcessed;
+
+                // Act
+                _utcNow = _utcNow.AddMinutes(1);
+                _store.Dispose();
+                await scavenger.ScavangeNow();
+            }
+        }
+
         private async Task<InMemoryScavenger> CreateScavenger(int scavangeInterval = 60000)
         {
             var scavenger = new InMemoryScavenger(_store, _getUtcNow, scavangeInterval: scavangeInterval);

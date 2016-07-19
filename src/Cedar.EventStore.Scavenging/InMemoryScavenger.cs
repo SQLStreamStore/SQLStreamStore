@@ -7,6 +7,13 @@
     using Cedar.EventStore.Streams;
     using Timer = System.Timers.Timer;
 
+
+    /// <summary>
+    ///     An scavenger that periodically deletes events from streams that have expired
+    ///     and truncates streams that have exceeded there max count. This class maintains
+    ///     an in-memory index of events and their expiries and is only suitable for
+    ///     test scenarios.
+    /// </summary>
     public class InMemoryScavenger : IDisposable
     {
         private readonly IEventStore _eventStore;
@@ -47,8 +54,20 @@
                         if(scavengerStreamEvent.Expires < utcNow)
                         {
                             // todo, retries and exception logging.
-                            await _eventStore
-                                .DeleteEvent(scavengerStreamEvent.StreamId, scavengerStreamEvent.EventId, ct);
+                             try
+                            {
+                                await _eventStore
+                                    .DeleteEvent(scavengerStreamEvent.StreamId, scavengerStreamEvent.EventId, ct);
+                            }
+                            catch(ObjectDisposedException)
+                            {
+                                break;
+                            }
+                            catch(Exception ex)
+                            {
+                                //TODO Log
+                            }
+
                         }
                     }
                 }
@@ -140,7 +159,6 @@
 
             _streamEventCollection.AddOrUpdate(streamMetadata);
         }
-
 
         private void HandleEventDeleted(StreamEvent streamEvent)
         {

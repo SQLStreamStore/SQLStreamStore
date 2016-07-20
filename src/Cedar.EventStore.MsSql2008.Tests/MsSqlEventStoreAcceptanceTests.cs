@@ -44,5 +44,54 @@
                 }
             }
         }
+
+        [Fact]
+        public async Task Can_get_stream_event_count()
+        {
+            using (var fixture = new MsSqlEventStoreFixture("dbo"))
+            {
+                using (var store = await fixture.GetMsSqlEventStore())
+                {
+                    var streamId = "stream-1";
+                    await store.AppendToStream(
+                        streamId,
+                        ExpectedVersion.NoStream,
+                        CreateNewStreamEvents(1, 2, 3, 4, 5));
+
+                    var streamCount = await store.GetStreamEventCount(streamId);
+
+                    streamCount.ShouldBe(5);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Can_get_stream_expired_event_count()
+        {
+            using (var fixture = new MsSqlEventStoreFixture("dbo"))
+            {
+                using (var store = await fixture.GetMsSqlEventStore())
+                {
+                    fixture.GetUtcNow = () => new DateTime(2016, 1, 1, 0, 0, 0);
+
+                    var streamId = "stream-1";
+                    await store.AppendToStream(
+                        streamId,
+                        ExpectedVersion.NoStream,
+                        CreateNewStreamEvents(1, 2, 3));
+
+                    fixture.GetUtcNow = () => new DateTime(2016, 1, 1, 0, 1, 0);
+
+                    await store.AppendToStream(
+                        streamId,
+                        ExpectedVersion.Any,
+                        CreateNewStreamEvents(4, 5, 6));
+
+                    var streamCount = await store.GetStreamEventCount(streamId, new DateTime(2016, 1, 1, 0, 1, 0));
+
+                    streamCount.ShouldBe(3);
+                }
+            }
+        }
     }
 }

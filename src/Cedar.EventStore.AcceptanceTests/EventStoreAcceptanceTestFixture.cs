@@ -8,9 +8,9 @@ namespace Cedar.EventStore
     {
         public abstract Task<IEventStore> GetEventStore();
 
-        public virtual GetUtcNow GetUtcNow => SystemClock.GetUtcNow;
+        public GetUtcNow GetUtcNow { get; set; } = SystemClock.GetUtcNow;
 
         public virtual void Dispose()
-        { }
+        {}
     }
 }

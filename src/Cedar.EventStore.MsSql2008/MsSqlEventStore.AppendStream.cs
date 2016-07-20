@@ -13,16 +13,6 @@
 
     public partial class MsSqlEventStore
     {
-       private readonly SqlMetaData[] _appendToStreamSqlMetadata =
-       {
-            new SqlMetaData("StreamVersion", SqlDbType.Int, true, false, SortOrder.Unspecified, -1),
-            new SqlMetaData("Id", SqlDbType.UniqueIdentifier),
-            new SqlMetaData("Created", SqlDbType.DateTime, true, false, SortOrder.Unspecified, -1),
-            new SqlMetaData("Type", SqlDbType.NVarChar, 128),
-            new SqlMetaData("JsonData", SqlDbType.NVarChar, SqlMetaData.Max),
-            new SqlMetaData("JsonMetadata", SqlDbType.NVarChar, SqlMetaData.Max),
-        };
-
         protected override async Task AppendToStreamInternal(
            string streamId,
            int expectedVersion,
@@ -195,7 +185,6 @@
                     if(ex.IsUniqueConstraintViolationOnIndex("IX_Streams_Id"))
                     {
                         // Idempotency handling. Check if the events have already been written.
-
                         var page = await ReadStreamInternal(
                             streamId,
                             StreamVersion.Start,
@@ -311,10 +300,12 @@
 
         private SqlDataRecord[] CreateSqlDataRecords(NewStreamEvent[] events)
         {
+            var dateTime = _getUtcNow().DateTime;
             var sqlDataRecords = events.Select(@event =>
             {
                 var record = new SqlDataRecord(_appendToStreamSqlMetadata);
                 record.SetGuid(1, @event.EventId);
+                record.SetDateTime(2, dateTime);
                 record.SetString(3, @event.Type);
                 record.SetString(4, @event.JsonData);
                 record.SetString(5, @event.JsonMetadata);

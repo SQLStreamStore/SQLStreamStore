@@ -33,7 +33,11 @@ namespace Cedar.EventStore
         {
             await CreateDatabase();
 
-            var eventStore = new MsSqlEventStore(ConnectionString, Poller.CreateEventStoreNotifier(), _schema);
+            var eventStore = new MsSqlEventStore(
+                ConnectionString,
+                Poller.CreateEventStoreNotifier(),
+                _schema,
+                getUtcNow: () => GetUtcNow());
             await eventStore.DropAll(ignoreErrors: true);
             await eventStore.InitializeStore();
 
@@ -42,7 +46,26 @@ namespace Cedar.EventStore
 
         public async Task<IEventStore> GetEventStore(string schema)
         {
-            var eventStore = new MsSqlEventStore(ConnectionString, Poller.CreateEventStoreNotifier(), schema);
+            var eventStore = new MsSqlEventStore(
+                ConnectionString,
+                Poller.CreateEventStoreNotifier(),
+                schema,
+                getUtcNow: () => GetUtcNow());
+            await eventStore.InitializeStore();
+
+            return eventStore;
+        }
+
+        public async Task<MsSqlEventStore> GetMsSqlEventStore()
+        {
+            await CreateDatabase();
+
+            var eventStore = new MsSqlEventStore(
+                ConnectionString,
+                Poller.CreateEventStoreNotifier(),
+                _schema,
+                getUtcNow: () => GetUtcNow());
+            await eventStore.DropAll(ignoreErrors: true);
             await eventStore.InitializeStore();
 
             return eventStore;

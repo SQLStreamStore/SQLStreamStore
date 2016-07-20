@@ -65,7 +65,7 @@
             var tasks = new List<Task>();
             int count = -1;
 
-            for(int i = 0; i < Environment.ProcessorCount; i++)
+            /*for(int i = 0; i < Environment.ProcessorCount; i++)
             {
                 var taskNumber = i;
                 var task = Task.Run(async () =>
@@ -101,7 +101,22 @@
                 },cts.Token);
                 tasks.Add(task);
             }
-            await Task.WhenAll(tasks);
+            await Task.WhenAll(tasks);*/
+
+            var random = new Random();
+            for (int i = 0; i < 2000000; i++)
+            {
+                int streamNumber = random.Next(0, 50000);
+                var newStreamEvents = EventStoreAcceptanceTests
+                    .CreateNewStreamEvents(i * 2 + 1, i * 2 + 2);
+
+                await eventStore.AppendToStream(
+                    $"stream-{streamNumber}",
+                    ExpectedVersion.Any,
+                    newStreamEvents,
+                    cts.Token);
+                Console.Write($"\r{i}");
+            }
         }
     }
 }

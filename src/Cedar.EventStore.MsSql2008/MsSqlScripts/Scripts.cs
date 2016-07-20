@@ -29,6 +29,10 @@
 
         internal string DropAll => GetScript(nameof(DropAll));
 
+        internal string GetStreamEventCount => GetScript(nameof(GetStreamEventCount));
+
+        internal string GetStreamEventBeforeCreatedCount => GetScript(nameof(GetStreamEventBeforeCreatedCount));
+
         internal string InitializeStore => GetScript(nameof(InitializeStore));
 
         internal string ReadAllForward => GetScript(nameof(ReadAllForward));

@@ -7,7 +7,6 @@
     using Cedar.EventStore.Streams;
     using Timer = System.Timers.Timer;
 
-
     /// <summary>
     ///     An scavenger that periodically deletes events from streams that have expired
     ///     and truncates streams that have exceeded there max count. This class maintains

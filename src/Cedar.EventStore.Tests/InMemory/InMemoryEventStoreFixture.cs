@@ -6,7 +6,7 @@ namespace Cedar.EventStore.InMemory
     {
         public override Task<IEventStore> GetEventStore()
         {
-            IEventStore eventStore = new InMemoryEventStore();
+            IEventStore eventStore = new InMemoryEventStore(() => GetUtcNow());
             return Task.FromResult(eventStore);
         }
     }

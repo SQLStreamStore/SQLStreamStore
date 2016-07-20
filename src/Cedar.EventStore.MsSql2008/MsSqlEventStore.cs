@@ -1,6 +1,7 @@
 ﻿namespace Cedar.EventStore
 {
     using System;
+    using System.Data;
     using System.Data.SqlClient;
     using System.Security.Cryptography;
     using System.Text;
@@ -10,18 +11,22 @@
     using Cedar.EventStore.SqlScripts;
     using Cedar.EventStore.Subscriptions;
     using EnsureThat;
+    using Microsoft.SqlServer.Server;
 
     public sealed partial class MsSqlEventStore : EventStoreBase
     {
         private readonly Func<SqlConnection> _createConnection;
         private readonly AsyncLazy<IEventStoreNotifier> _eventStoreNotifier;
         private readonly Scripts _scripts;
+        private readonly GetUtcNow _getUtcNow;
+        private readonly SqlMetaData[] _appendToStreamSqlMetadata;
 
         public MsSqlEventStore(
             string connectionString,
             CreateEventStoreNotifier createEventStoreNotifier,
             string schema = "dbo",
-            string logName = "MsSqlEventStore")
+            string logName = "MsSqlEventStore",
+            GetUtcNow getUtcNow = null)
             :base(logName)
         {
             Ensure.That(connectionString, nameof(connectionString)).IsNotNullOrWhiteSpace();
@@ -32,12 +37,33 @@
                 {
                     if(createEventStoreNotifier == null)
                     {
-                        throw new ArgumentNullException(
+                        throw new InvalidOperationException(
                             "Cannot create notifier because supplied createEventStoreNotifier was null");
                     }
                     return await createEventStoreNotifier(this).NotOnCapturedContext();
                 });
+            _getUtcNow = getUtcNow;
             _scripts = new Scripts(schema);
+
+            _appendToStreamSqlMetadata = _getUtcNow == null
+                ? new[]
+                {
+                    new SqlMetaData("StreamVersion", SqlDbType.Int, true, false, SortOrder.Unspecified, -1),
+                    new SqlMetaData("Id", SqlDbType.UniqueIdentifier),
+                    new SqlMetaData("Created", SqlDbType.DateTime, true, false, SortOrder.Unspecified, -1),
+                    new SqlMetaData("Type", SqlDbType.NVarChar, 128),
+                    new SqlMetaData("JsonData", SqlDbType.NVarChar, SqlMetaData.Max),
+                    new SqlMetaData("JsonMetadata", SqlDbType.NVarChar, SqlMetaData.Max),
+                }
+                : new[]
+                {
+                    new SqlMetaData("StreamVersion", SqlDbType.Int, true, false, SortOrder.Unspecified, -1),
+                    new SqlMetaData("Id", SqlDbType.UniqueIdentifier),
+                    new SqlMetaData("Created", SqlDbType.DateTime),
+                    new SqlMetaData("Type", SqlDbType.NVarChar, 128),
+                    new SqlMetaData("JsonData", SqlDbType.NVarChar, SqlMetaData.Max),
+                    new SqlMetaData("JsonMetadata", SqlDbType.NVarChar, SqlMetaData.Max),
+                };
         }
 
         public async Task InitializeStore(
@@ -95,9 +121,60 @@
                     }
                     else
                     {
-                        await command.ExecuteNonQueryAsync(cancellationToken)
+                        await command
+                            .ExecuteNonQueryAsync(cancellationToken)
                             .NotOnCapturedContext();
                     }
+                }
+            }
+        }
+
+        public async Task<int> GetStreamEventCount(
+            string streamId,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckIfDisposed();
+
+            using(var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                using(var command = new SqlCommand(_scripts.GetStreamEventCount, connection))
+                {
+                    var streamIdInfo = new StreamIdInfo(streamId);
+                    command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
+
+                    var result = await command
+                        .ExecuteScalarAsync(cancellationToken)
+                        .NotOnCapturedContext();
+
+                    return (int) result;
+                }
+            }
+        }
+
+        public async Task<int> GetStreamEventCount(
+            string streamId,
+            DateTime createdBefore,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            CheckIfDisposed();
+
+            using (var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                using (var command = new SqlCommand(_scripts.GetStreamEventBeforeCreatedCount, connection))
+                {
+                    var streamIdInfo = new StreamIdInfo(streamId);
+                    command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
+                    command.Parameters.AddWithValue("created", createdBefore);
+
+                    var result = await command
+                        .ExecuteScalarAsync(cancellationToken)
+                        .NotOnCapturedContext();
+
+                    return (int)result;
                 }
             }
         }

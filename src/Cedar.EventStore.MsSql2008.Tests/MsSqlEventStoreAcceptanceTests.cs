@@ -66,7 +66,7 @@
         }
 
         [Fact]
-        public async Task Can_get_stream_expired_event_count()
+        public async Task Can_get_stream_event_count_with_created_before_date()
         {
             using (var fixture = new MsSqlEventStoreFixture("dbo"))
             {

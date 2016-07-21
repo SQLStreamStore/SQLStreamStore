@@ -89,7 +89,7 @@
 
                     var streamCount = await store.GetStreamEventCount(streamId, new DateTime(2016, 1, 1, 0, 1, 0));
 
-                    streamCount.ShouldBe(3);
+                    streamCount.ShouldBe(3); // The first 3
                 }
             }
         }

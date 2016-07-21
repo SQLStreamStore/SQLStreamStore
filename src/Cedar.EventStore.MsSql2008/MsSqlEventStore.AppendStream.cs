@@ -55,9 +55,8 @@
                     streamIdInfo,
                     events,
                     cancellationToken);
-                return;
             }
-            if (expectedVersion == ExpectedVersion.NoStream)
+            else if(expectedVersion == ExpectedVersion.NoStream)
             {
                 await AppendToStreamExpectedVersionNoStream(
                     connection,
@@ -66,16 +65,19 @@
                     events,
                     streamIdInfo,
                     cancellationToken);
-                return;
             }
-            await AppendToStreamExpectedVersion(
-                connection,
-                transaction,
-                streamId,
-                expectedVersion,
-                events,
-                streamIdInfo,
-                cancellationToken);
+            else
+            {
+                await AppendToStreamExpectedVersion(
+                    connection,
+                    transaction,
+                    streamId,
+                    expectedVersion,
+                    events,
+                    streamIdInfo,
+                    cancellationToken);
+            }
+            await CheckStreamMeta(streamId, cancellationToken);
         }
 
         private async Task RetryOnDeadLock(Func<Task> operation)
@@ -294,6 +296,35 @@
                             ex);
                     }
                     throw;
+                }
+            }
+        }
+
+        private async Task CheckStreamMeta(string streamId, CancellationToken cancellationToken)
+        {
+            var metadataResult = await GetStreamMetadata(streamId, cancellationToken);
+            if(metadataResult.MetadataStreamVersion == -1)
+            {
+                return;
+            }
+
+            if(metadataResult.MaxCount.HasValue)
+            {
+                var count = await GetStreamEventCount(streamId, cancellationToken);
+                if(count > metadataResult.MaxCount.Value)
+                {
+                    int toPurge = count - metadataResult.MaxCount.Value;
+
+                    var streamEventsPage = await ReadStreamForwardsInternal(streamId, StreamVersion.Start,
+                        toPurge, cancellationToken);
+
+                    if(streamEventsPage.Status == PageReadStatus.Success)
+                    {
+                        foreach(var streamEvent in streamEventsPage.Events)
+                        {
+                            await DeleteEventInternal(streamId, streamEvent.EventId, cancellationToken);
+                        }
+                    }
                 }
             }
         }

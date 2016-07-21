@@ -3,7 +3,6 @@
 namespace Cedar.EventStore
 {
     using System;
-    using System.Collections.Concurrent;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
@@ -21,8 +20,7 @@ namespace Cedar.EventStore
         private readonly GetUtcNow _getUtcNow;
         private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
         private readonly Action _onStreamAppended;
-        private readonly ConcurrentDictionary<string, InMemoryStream> _streams 
-            = new ConcurrentDictionary<string, InMemoryStream>();
+        private readonly Dictionary<string, InMemoryStream> _streams = new Dictionary<string, InMemoryStream>();
         private readonly Subject<Unit> _subscriptions = new Subject<Unit>();
         private bool _isDisposed;
         private int _currentCheckpoint = 0;
@@ -46,17 +44,20 @@ namespace Cedar.EventStore
 
         protected override void Dispose(bool disposing)
         {
-            _lock.EnterWriteLock();
-            try
+            using(_lock.UseWriteLock())
             {
                 _subscriptions.OnCompleted();
                 _allStream.Clear();
                 _streams.Clear();
                 _isDisposed = true;
             }
-            finally
+        }
+
+        public override Task<int> GetStreamEventCount(string streamId, CancellationToken cancellationToken = new CancellationToken())
+        {
+            using(_lock.UseReadLock())
             {
-                _lock.ExitWriteLock();
+                return Task.FromResult(!_streams.ContainsKey(streamId) ? 0 : _streams[streamId].Events.Count);
             }
         }
 
@@ -68,15 +69,10 @@ namespace Cedar.EventStore
         {
             GuardAgainstDisposed();
 
-            _lock.EnterWriteLock();
-            try
+            using(_lock.UseWriteLock())
             {
                 AppendToStreamInternal(streamId, expectedVersion, events);
                 return Task.FromResult(0);
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
             }
         }
 
@@ -101,7 +97,7 @@ namespace Cedar.EventStore
                         _onStreamAppended,
                         () => _currentCheckpoint++);
                     inMemoryStream.AppendToStream(expectedVersion, events);
-                    _streams.TryAdd(streamId, inMemoryStream);
+                    _streams.Add(streamId, inMemoryStream);
                 }
                 return;
             }
@@ -118,10 +114,9 @@ namespace Cedar.EventStore
         {
             GuardAgainstDisposed();
 
-            _lock.EnterWriteLock();
-            try
+            using (_lock.UseWriteLock())
             {
-                if(!_streams.ContainsKey(streamId))
+                if (!_streams.ContainsKey(streamId))
                 {
                     return Task.FromResult(0);
                 }
@@ -129,7 +124,7 @@ namespace Cedar.EventStore
                 var inMemoryStream = _streams[streamId];
                 bool deleted = inMemoryStream.DeleteEvent(eventId);
 
-                if(deleted)
+                if (deleted)
                 {
                     var eventDeletedEvent = CreateEventDeletedEvent(streamId, eventId);
                     AppendToStreamInternal(DeletedStreamId, ExpectedVersion.Any, new[] { eventDeletedEvent });
@@ -137,25 +132,20 @@ namespace Cedar.EventStore
 
                 return Task.FromResult(0);
             }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
         }
 
         protected override async Task<StreamMetadataResult> GetStreamMetadataInternal(
             string streamId,
             CancellationToken cancellationToken)
         {
-            _lock.EnterReadLock();
-            try
+            using (_lock.UseReadLock())
             {
                 string metaStreamId = $"$${streamId}";
 
                 var eventsPage = await ReadStreamBackwardsInternal(metaStreamId, StreamVersion.End,
                     1, cancellationToken);
 
-                if(eventsPage.Status == PageReadStatus.StreamNotFound)
+                if (eventsPage.Status == PageReadStatus.StreamNotFound)
                 {
                     return new StreamMetadataResult(streamId, -1);
                 }
@@ -170,10 +160,6 @@ namespace Cedar.EventStore
                     metadataMessage.MaxCount,
                     metadataMessage.MetaJson);
             }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
         }
 
         protected override Task SetStreamMetadataInternal(
@@ -184,8 +170,7 @@ namespace Cedar.EventStore
             string metadataJson,
             CancellationToken cancellationToken)
         {
-            _lock.EnterWriteLock();
-            try
+            using(_lock.UseWriteLock())
             {
                 string metaStreamId = $"$${streamId}";
 
@@ -203,21 +188,17 @@ namespace Cedar.EventStore
 
                 return Task.FromResult(0);
             }
-            finally
-            {
-                _lock.ExitWriteLock();
-            }
         }
 
-        protected override Task DeleteStreamInternal(
+        protected override
+            Task DeleteStreamInternal(
             string streamId,
             int expectedVersion,
             CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
 
-            _lock.EnterWriteLock();
-            try
+            using(_lock.UseWriteLock())
             {
                 DeleteStream(streamId, expectedVersion);
 
@@ -225,10 +206,6 @@ namespace Cedar.EventStore
                 DeleteStream($"$${streamId}", ExpectedVersion.Any);
 
                 return Task.FromResult(0);
-            }
-            finally
-            {
-                _lock.ExitWriteLock();
             }
         }
 
@@ -249,8 +226,8 @@ namespace Cedar.EventStore
                 throw new WrongExpectedVersionException(
                         Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
             }
-            InMemoryStream inMemoryStream;
-            _streams.TryRemove(streamId, out inMemoryStream);
+            InMemoryStream inMemoryStream = _streams[streamId];
+            _streams.Remove(streamId);
             inMemoryStream.DeleteAllEvents(ExpectedVersion.Any);
 
             var streamDeletedEvent = CreateStreamDeletedEvent(streamId);
@@ -264,10 +241,8 @@ namespace Cedar.EventStore
         {
             GuardAgainstDisposed();
 
-            _lock.EnterReadLock();
-            try
+            using(_lock.UseReadLock())
             {
-
                 // Find the node to start from (it may not be equal to the exact checkpoint)
                 var current = _allStream.First;
                 if(current.Next == null) //Empty store
@@ -322,10 +297,6 @@ namespace Cedar.EventStore
 
                 return Task.FromResult(page);
             }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
         }
 
         protected override Task<AllEventsPage> ReadAllBackwardsInternal(
@@ -335,10 +306,9 @@ namespace Cedar.EventStore
         {
             GuardAgainstDisposed();
 
-            _lock.EnterReadLock();
-            try
+            using (_lock.UseReadLock())
             {
-                if(fromCheckpointExclusive == Checkpoint.End)
+                if (fromCheckpointExclusive == Checkpoint.End)
                 {
                     fromCheckpointExclusive = _allStream.Last.Value.Checkpoint;
                 }
@@ -408,10 +378,6 @@ namespace Cedar.EventStore
 
                 return Task.FromResult(page);
             }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
         }
 
         protected override Task<StreamEventsPage> ReadStreamForwardsInternal(
@@ -422,10 +388,8 @@ namespace Cedar.EventStore
         {
             GuardAgainstDisposed();
 
-            _lock.EnterReadLock();
-            try
+            using(_lock.UseReadLock())
             {
-
                 InMemoryStream stream;
                 if(!_streams.TryGetValue(streamId, out stream))
                 {
@@ -476,10 +440,6 @@ namespace Cedar.EventStore
 
                 return Task.FromResult(page);
             }
-            finally
-            {
-                _lock.ExitReadLock();
-            }
         }
 
         protected override Task<StreamEventsPage> ReadStreamBackwardsInternal(
@@ -490,11 +450,10 @@ namespace Cedar.EventStore
         {
             GuardAgainstDisposed();
 
-            _lock.EnterReadLock();
-            try
+            using (_lock.UseReadLock())
             {
                 InMemoryStream stream;
-                if(!_streams.TryGetValue(streamId, out stream))
+                if (!_streams.TryGetValue(streamId, out stream))
                 {
                     var notFound = new StreamEventsPage(streamId,
                         PageReadStatus.StreamNotFound,
@@ -508,7 +467,7 @@ namespace Cedar.EventStore
 
                 var events = new List<StreamEvent>();
                 var i = fromVersionInclusive == StreamVersion.End ? stream.Events.Count - 1 : fromVersionInclusive;
-                while(i >= 0 && count > 0)
+                while (i >= 0 && count > 0)
                 {
                     var inMemoryStreamEvent = stream.Events[i];
                     var streamEvent = new StreamEvent(
@@ -541,10 +500,6 @@ namespace Cedar.EventStore
                     events.ToArray());
 
                 return Task.FromResult(page);
-            }
-            finally
-            {
-                _lock.ExitReadLock();
             }
         }
 

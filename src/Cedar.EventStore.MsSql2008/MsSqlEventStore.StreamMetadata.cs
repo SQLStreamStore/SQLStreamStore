@@ -69,6 +69,8 @@
                     transaction.Commit();
                 }
             }
+
+            await CheckStreamMaxCount(streamId, maxCount, cancellationToken);
         }
     }
 }

@@ -72,6 +72,10 @@ namespace Cedar.EventStore.Infrastructure
                 cancellationToken);
         }
 
+        public abstract Task<int> GetStreamEventCount(
+            string streamId,
+            CancellationToken cancellationToken = default(CancellationToken));
+
         protected abstract Task AppendToStreamInternal(
             string streamId,
             int expectedVersion,
@@ -99,5 +103,28 @@ namespace Cedar.EventStore.Infrastructure
            int? maxCount,
            string metadataJson,
            CancellationToken cancellationToken);
+
+        protected async Task CheckStreamMaxCount(string streamId, int? maxCount, CancellationToken cancellationToken)
+        {
+            if (maxCount.HasValue)
+            {
+                var count = await GetStreamEventCount(streamId, cancellationToken);
+                if (count > maxCount.Value)
+                {
+                    int toPurge = count - maxCount.Value;
+
+                    var streamEventsPage = await ReadStreamForwardsInternal(streamId, StreamVersion.Start,
+                        toPurge, cancellationToken);
+
+                    if (streamEventsPage.Status == PageReadStatus.Success)
+                    {
+                        foreach (var streamEvent in streamEventsPage.Events)
+                        {
+                            await DeleteEventInternal(streamId, streamEvent.EventId, cancellationToken);
+                        }
+                    }
+                }
+            }
+        }
     }
 }

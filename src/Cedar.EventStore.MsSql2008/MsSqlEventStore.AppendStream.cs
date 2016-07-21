@@ -309,19 +309,24 @@
                 return;
             }
 
-            if(metadataResult.MaxCount.HasValue)
+            await CheckStreamMaxCount(streamId, metadataResult.MaxCount, cancellationToken);
+        }
+
+        private async Task CheckStreamMaxCount(string streamId, int? maxCount, CancellationToken cancellationToken)
+        {
+            if (maxCount.HasValue)
             {
                 var count = await GetStreamEventCount(streamId, cancellationToken);
-                if(count > metadataResult.MaxCount.Value)
+                if (count > maxCount.Value)
                 {
-                    int toPurge = count - metadataResult.MaxCount.Value;
+                    int toPurge = count - maxCount.Value;
 
                     var streamEventsPage = await ReadStreamForwardsInternal(streamId, StreamVersion.Start,
                         toPurge, cancellationToken);
 
-                    if(streamEventsPage.Status == PageReadStatus.Success)
+                    if (streamEventsPage.Status == PageReadStatus.Success)
                     {
-                        foreach(var streamEvent in streamEventsPage.Events)
+                        foreach (var streamEvent in streamEventsPage.Events)
                         {
                             await DeleteEventInternal(streamId, streamEvent.EventId, cancellationToken);
                         }

@@ -128,7 +128,7 @@
             }
         }
 
-        public async Task<int> GetStreamEventCount(
+        public override async Task<int> GetStreamEventCount(
             string streamId,
             CancellationToken cancellationToken = default(CancellationToken))
         {

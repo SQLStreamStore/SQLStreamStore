@@ -66,6 +66,22 @@
         }
 
         [Fact]
+        public async Task When_stream_does_not_exist_then_stream_event_count_should_be_zero()
+        {
+            using (var fixture = new MsSqlEventStoreFixture("dbo"))
+            {
+                using (var store = await fixture.GetMsSqlEventStore())
+                {
+                    var streamId = "stream-doesnotexist";
+
+                    var streamCount = await store.GetStreamEventCount(streamId);
+
+                    streamCount.ShouldBe(0);
+                }
+            }
+        }
+
+        [Fact]
         public async Task Can_get_stream_event_count_with_created_before_date()
         {
             using (var fixture = new MsSqlEventStoreFixture("dbo"))

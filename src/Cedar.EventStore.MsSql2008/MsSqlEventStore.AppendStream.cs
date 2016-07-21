@@ -30,6 +30,8 @@
 
                 await AppendToStreamInternal(connection, null, streamId, expectedVersion, events, cancellationToken);
             }
+
+            await CheckStreamMeta(streamId, cancellationToken);
         }
 
         private async Task AppendToStreamInternal(
@@ -77,7 +79,6 @@
                     streamIdInfo,
                     cancellationToken);
             }
-            await CheckStreamMeta(streamId, cancellationToken);
         }
 
         private async Task RetryOnDeadLock(Func<Task> operation)

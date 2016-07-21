@@ -238,17 +238,8 @@
 
                 Id = id;
 
-                // Metadata Id starts with "$$", we don't want to include
-                // that in the hashing function. This means streams + their
-                // metadata counterparts can correlated visually.
-                string temp = id;
-                if(id.StartsWith("$$"))
-                {
-                    temp = id.Substring(2);
-                }
-
                 Guid _;
-                if(Guid.TryParse(temp, out _))
+                if(Guid.TryParse(id, out _))
                 {
                     Hash = id; //If the ID is a GUID, don't bother hashing it.
 
@@ -256,7 +247,7 @@
                 }
                 using(var sha1 = SHA1.Create())
                 {
-                    var hashBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(temp));
+                    var hashBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(id));
                     Hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
                 }
             }

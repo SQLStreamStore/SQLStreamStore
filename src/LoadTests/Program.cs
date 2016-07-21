@@ -65,25 +65,28 @@
             var tasks = new List<Task>();
             int count = -1;
 
-            /*for(int i = 0; i < Environment.ProcessorCount; i++)
+            for(int i = 0; i < Environment.ProcessorCount; i++)
             {
-                var taskNumber = i;
+                var random = new Random();
                 var task = Task.Run(async () =>
                 {
                     while(!cts.IsCancellationRequested)
                     {
+                        string info;
                         try
                         {
+                            int streamNumber = random.Next(0, 100000);
+
                             var eventNumber = Interlocked.Increment(ref count);
                             var newStreamEvents = EventStoreAcceptanceTests
                                 .CreateNewStreamEvents(eventNumber*2 + 1, eventNumber*2 + 2);
 
-                            var info = $"{taskNumber} - {newStreamEvents[0].EventId}," +
+                            info = $"{streamNumber} - {newStreamEvents[0].EventId}," +
                                        $"{newStreamEvents[1].EventId}";
 
                             Log.Logger.Information($"Begin {info}");
                             await eventStore.AppendToStream(
-                                $"stream-{taskNumber}",
+                                $"stream-{streamNumber}",
                                 ExpectedVersion.Any,
                                 newStreamEvents,
                                 cts.Token);
@@ -101,22 +104,7 @@
                 },cts.Token);
                 tasks.Add(task);
             }
-            await Task.WhenAll(tasks);*/
-
-            var random = new Random();
-            for (int i = 0; i < 2000000; i++)
-            {
-                int streamNumber = random.Next(0, 50000);
-                var newStreamEvents = EventStoreAcceptanceTests
-                    .CreateNewStreamEvents(i * 2 + 1, i * 2 + 2);
-
-                await eventStore.AppendToStream(
-                    $"stream-{streamNumber}",
-                    ExpectedVersion.Any,
-                    newStreamEvents,
-                    cts.Token);
-                Console.Write($"\r{i}");
-            }
+            await Task.WhenAll(tasks);
         }
     }
 }

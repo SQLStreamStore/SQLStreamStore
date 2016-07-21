@@ -1,6 +1,7 @@
 ﻿namespace Cedar.EventStore
 {
     using System;
+    using System.Collections.Generic;
     using System.Data;
     using System.Data.SqlClient;
     using System.Security.Cryptography;
@@ -45,25 +46,23 @@
             _getUtcNow = getUtcNow;
             _scripts = new Scripts(schema);
 
-            _appendToStreamSqlMetadata = _getUtcNow == null
-                ? new[]
-                {
-                    new SqlMetaData("StreamVersion", SqlDbType.Int, true, false, SortOrder.Unspecified, -1),
-                    new SqlMetaData("Id", SqlDbType.UniqueIdentifier),
-                    new SqlMetaData("Created", SqlDbType.DateTime, true, false, SortOrder.Unspecified, -1),
-                    new SqlMetaData("Type", SqlDbType.NVarChar, 128),
-                    new SqlMetaData("JsonData", SqlDbType.NVarChar, SqlMetaData.Max),
-                    new SqlMetaData("JsonMetadata", SqlDbType.NVarChar, SqlMetaData.Max),
-                }
-                : new[]
-                {
-                    new SqlMetaData("StreamVersion", SqlDbType.Int, true, false, SortOrder.Unspecified, -1),
-                    new SqlMetaData("Id", SqlDbType.UniqueIdentifier),
-                    new SqlMetaData("Created", SqlDbType.DateTime),
-                    new SqlMetaData("Type", SqlDbType.NVarChar, 128),
-                    new SqlMetaData("JsonData", SqlDbType.NVarChar, SqlMetaData.Max),
-                    new SqlMetaData("JsonMetadata", SqlDbType.NVarChar, SqlMetaData.Max),
-                };
+            var sqlMetaData = new List<SqlMetaData>()
+            {
+                new SqlMetaData("StreamVersion", SqlDbType.Int, true, false, SortOrder.Unspecified, -1),
+                new SqlMetaData("Id", SqlDbType.UniqueIdentifier),
+                new SqlMetaData("Created", SqlDbType.DateTime, true, false, SortOrder.Unspecified, -1),
+                new SqlMetaData("Type", SqlDbType.NVarChar, 128),
+                new SqlMetaData("JsonData", SqlDbType.NVarChar, SqlMetaData.Max),
+                new SqlMetaData("JsonMetadata", SqlDbType.NVarChar, SqlMetaData.Max)
+            };
+
+            if(_getUtcNow != null)
+            {
+                // Created will be client supplied so should prevent using of the column default function
+                sqlMetaData[2] = new SqlMetaData("Created", SqlDbType.DateTime);
+            }
+
+            _appendToStreamSqlMetadata = sqlMetaData.ToArray();
         }
 
         public async Task InitializeStore(

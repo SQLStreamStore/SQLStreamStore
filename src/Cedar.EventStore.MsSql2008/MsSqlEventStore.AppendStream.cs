@@ -1,6 +1,7 @@
 ﻿namespace Cedar.EventStore
 {
     using System;
+    using System.Collections.Generic;
     using System.Data;
     using System.Data.SqlClient;
     using System.Linq;
@@ -108,11 +109,34 @@
 
                 try
                 {
-                    await command
-                        .ExecuteNonQueryAsync(cancellationToken)
-                        .NotOnCapturedContext();
+                    using(var reader = await command
+                        .ExecuteReaderAsync(cancellationToken)
+                        .NotOnCapturedContext())
+                    {
+                       /* if(await reader.NextResultAsync(cancellationToken).NotOnCapturedContext())
+                        {*/
+                            if(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                            {
+                                var columns = new List<string>();
+                                for (int i = 0; i < reader.FieldCount; i++)
+                                {
+                                    columns.Add(reader.GetName(i));
+                                }
+                            var blah = reader.GetString(0);
+                            var streamVersion1 = reader.GetInt32(1);
+                                var jsonData = reader.GetString(2);
+
+                                var x = Json.SimpleJson.DeserializeObject<MetadataMessage>(jsonData);
+                                var result = new StreamMetadataResult(sqlStreamId.IdOriginal,
+                                    streamVersion1,
+                                    x.MaxAge,
+                                    x.MaxCount,
+                                    x.MetaJson);
+                            }
+                        /*}*/
+                    }
                 }
-                // Check for unique constraint violation on 
+                    // Check for unique constraint violation on 
                 // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
                 catch(SqlException ex)
                     when(ex.IsUniqueConstraintViolationOnIndex("IX_Events_StreamIdInternal_Id"))

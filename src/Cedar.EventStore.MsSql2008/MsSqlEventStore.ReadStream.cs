@@ -70,65 +70,67 @@
 
                 var streamEvents = new List<StreamEvent>();
 
-                var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext();
-                bool b = await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
-                if(!b)
+                using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
                 {
+                    bool b = await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
+                    if(!b)
+                    {
+                        return new StreamEventsPage(
+                            sqlStreamId.IdOriginal,
+                            PageReadStatus.StreamNotFound,
+                            start,
+                            -1,
+                            -1,
+                            direction,
+                            isEndOfStream: true);
+                    }
+
+                    // Read Events result set
+                    do
+                    {
+                        var streamVersion1 = reader.GetInt32(0);
+                        var ordinal = reader.GetInt64(1);
+                        var eventId = reader.GetGuid(2);
+                        var created = reader.GetDateTime(3);
+                        var type = reader.GetString(4);
+                        var jsonData = reader.GetString(5);
+                        var jsonMetadata = reader.GetString(6);
+
+                        var streamEvent = new StreamEvent(
+                            sqlStreamId.IdOriginal,
+                            eventId,
+                            streamVersion1,
+                            ordinal,
+                            created,
+                            type,
+                            jsonData,
+                            jsonMetadata);
+
+                        streamEvents.Add(streamEvent);
+                    } while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext());
+
+                    // Read last event revision result set
+                    await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
+                    await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
+                    var lastStreamVersion = reader.GetInt32(0);
+
+                    var isEnd = true;
+                    if(streamEvents.Count == count + 1)
+                    {
+                        isEnd = false;
+                        streamEvents.RemoveAt(count);
+                    }
+
                     return new StreamEventsPage(
                         sqlStreamId.IdOriginal,
-                        PageReadStatus.StreamNotFound,
+                        PageReadStatus.Success,
                         start,
-                        -1,
-                        -1,
+                        getNextSequenceNumber(streamEvents),
+                        lastStreamVersion,
                         direction,
-                        isEndOfStream: true);
+                        isEnd,
+                        streamEvents.ToArray());
                 }
-
-                // Read Events result set
-                do
-                {
-                    var streamVersion1 = reader.GetInt32(0);
-                    var ordinal = reader.GetInt64(1);
-                    var eventId = reader.GetGuid(2);
-                    var created = reader.GetDateTime(3);
-                    var type = reader.GetString(4);
-                    var jsonData = reader.GetString(5);
-                    var jsonMetadata = reader.GetString(6);
-
-                    var streamEvent = new StreamEvent(
-                        sqlStreamId.IdOriginal,
-                        eventId,
-                        streamVersion1,
-                        ordinal,
-                        created,
-                        type,
-                        jsonData,
-                        jsonMetadata);
-
-                    streamEvents.Add(streamEvent);
-                } while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext());
-
-                // Read last event revision result set
-                await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
-                await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
-                var lastStreamVersion = reader.GetInt32(0);
-
-                var isEnd = true;
-                if(streamEvents.Count == count + 1)
-                {
-                    isEnd = false;
-                    streamEvents.RemoveAt(count);
-                }
-
-                return new StreamEventsPage(
-                    sqlStreamId.IdOriginal,
-                    PageReadStatus.Success,
-                    start,
-                    getNextSequenceNumber(streamEvents),
-                    lastStreamVersion,
-                    direction,
-                    isEnd,
-                    streamEvents.ToArray());
             }
         }
     }

@@ -7,7 +7,7 @@ SET @SQL = 'ALTER DATABASE '+@DBName+' SET ALLOW_SNAPSHOT_ISOLATION ON; ALTER DA
 exec(@sql)
 
 CREATE TABLE dbo.Streams(
-    Id                  CHAR(40)                                NOT NULL,
+    Id                  CHAR(42)                                NOT NULL,
     IdOriginal          NVARCHAR(1000)                          NOT NULL,
     IdInternal          INT                 IDENTITY(1,1)       NOT NULL,
     [Version]           INT                 DEFAULT(-1)         NOT NULL,

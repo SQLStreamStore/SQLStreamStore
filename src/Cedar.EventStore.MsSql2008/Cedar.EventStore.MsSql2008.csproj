@@ -54,6 +54,7 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MsSqlExceptionExtensions.cs" />
     <Compile Include="MsSqlScripts\Scripts.cs" />
+    <Compile Include="StreamIdInfo.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Cedar.EventStore.MsSql.nuspec" />

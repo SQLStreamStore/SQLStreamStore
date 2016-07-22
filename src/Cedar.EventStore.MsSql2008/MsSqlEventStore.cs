@@ -4,8 +4,6 @@
     using System.Collections.Generic;
     using System.Data;
     using System.Data.SqlClient;
-    using System.Security.Cryptography;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Infrastructure;
@@ -141,7 +139,7 @@
                 using(var command = new SqlCommand(_scripts.GetStreamEventCount, connection))
                 {
                     var streamIdInfo = new StreamIdInfo(streamId);
-                    command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
+                    command.Parameters.AddWithValue("streamId", streamIdInfo.SqlStreamId.Id);
 
                     var result = await command
                         .ExecuteScalarAsync(cancellationToken)
@@ -166,7 +164,7 @@
                 using (var command = new SqlCommand(_scripts.GetStreamEventBeforeCreatedCount, connection))
                 {
                     var streamIdInfo = new StreamIdInfo(streamId);
-                    command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
+                    command.Parameters.AddWithValue("streamId", streamIdInfo.SqlStreamId.Id);
                     command.Parameters.AddWithValue("created", createdBefore);
 
                     var result = await command
@@ -224,32 +222,6 @@
             catch
             {
                 return default(T);
-            }
-        }
-
-        private struct StreamIdInfo
-        {
-            public readonly string Hash;
-            public readonly string Id;
-
-            public StreamIdInfo(string id)
-            {
-                Ensure.That(id, "streamId").IsNotNullOrWhiteSpace();
-
-                Id = id;
-
-                Guid _;
-                if(Guid.TryParse(id, out _))
-                {
-                    Hash = id; //If the ID is a GUID, don't bother hashing it.
-
-                    return;
-                }
-                using(var sha1 = SHA1.Create())
-                {
-                    var hashBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(id));
-                    Hash = BitConverter.ToString(hashBytes).Replace("-", string.Empty);
-                }
             }
         }
     }

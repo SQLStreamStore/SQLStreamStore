@@ -1,4 +1,3 @@
-/* SQL Server 2008+ */
      SELECT TOP(@count)
             dbo.Streams.IdOriginal As StreamId,
             dbo.Events.StreamVersion,

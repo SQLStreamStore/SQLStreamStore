@@ -33,12 +33,12 @@
 
                 using (var transaction = connection.BeginTransaction())
                 {
-                    var streamIdInfo = new StreamIdInfo(streamId);
+                    var sqlStreamId = new StreamIdInfo(streamId).SqlStreamId;
 
                     bool deleted;
                     using (var command = new SqlCommand(_scripts.DeleteStreamEvent, connection, transaction))
                     {
-                        command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
+                        command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
                         command.Parameters.AddWithValue("eventId", eventId);
                         var count  = await command
                             .ExecuteScalarAsync(cancellationToken)
@@ -49,11 +49,11 @@
 
                     if(deleted)
                     {
-                        var eventDeletedEvent = CreateEventDeletedEvent(streamIdInfo.Id, eventId);
+                        var eventDeletedEvent = CreateEventDeletedEvent(sqlStreamId.IdOriginal, eventId);
                         await AppendToStreamExpectedVersionAny(
                             connection,
                             transaction,
-                            new StreamIdInfo(DeletedStreamId),
+                            SqlStreamId.Deleted,
                             new[] { eventDeletedEvent },
                             cancellationToken);
                     }
@@ -76,7 +76,7 @@
                 {
                     using(var command = new SqlCommand(_scripts.DeleteStreamExpectedVersion, connection, transaction))
                     {
-                        command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
+                        command.Parameters.AddWithValue("streamId", streamIdInfo.SqlStreamId.Id);
                         command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
                         try
                         {
@@ -90,23 +90,22 @@
                             if(ex.Message.StartsWith("WrongExpectedVersion"))
                             {
                                 throw new WrongExpectedVersionException(
-                                    Messages.DeleteStreamFailedWrongExpectedVersion(streamIdInfo.Id, expectedVersion),
-                                    ex);
+                                    Messages.DeleteStreamFailedWrongExpectedVersion(
+                                        streamIdInfo.SqlStreamId.IdOriginal, expectedVersion), ex);
                             }
                             throw;
                         }
 
-                        var streamDeletedEvent = CreateStreamDeletedEvent(streamIdInfo.Id);
+                        var streamDeletedEvent = CreateStreamDeletedEvent(streamIdInfo.SqlStreamId.IdOriginal);
                         await AppendToStreamExpectedVersionAny(
                             connection,
                             transaction,
-                            new StreamIdInfo(DeletedStreamId),
+                            SqlStreamId.Deleted,
                             new[] { streamDeletedEvent },
                             cancellationToken);
 
                         // Delete metadata stream (if it exists)
-                        var metadataStreamIdInfo = new StreamIdInfo($"$${streamIdInfo.Id}");
-                        await DeleteStreamAnyVersion(connection, transaction, metadataStreamIdInfo, cancellationToken);
+                        await DeleteStreamAnyVersion(connection, transaction, streamIdInfo.MetadataSqlStreamId, cancellationToken);
 
                         transaction.Commit();
                     }
@@ -124,11 +123,10 @@
 
                 using (var transaction = connection.BeginTransaction())
                 {
-                    await DeleteStreamAnyVersion(connection, transaction, streamIdInfo, cancellationToken);
+                    await DeleteStreamAnyVersion(connection, transaction, streamIdInfo.SqlStreamId, cancellationToken);
 
                     // Delete metadata stream (if it exists)
-                    var metadataStreamIdInfo = new StreamIdInfo($"$${streamIdInfo.Id}");
-                    await DeleteStreamAnyVersion(connection, transaction, metadataStreamIdInfo, cancellationToken);
+                    await DeleteStreamAnyVersion(connection, transaction, streamIdInfo.MetadataSqlStreamId, cancellationToken);
 
                     transaction.Commit();
                 }
@@ -138,13 +136,13 @@
         private async Task DeleteStreamAnyVersion(
            SqlConnection connection,
            SqlTransaction transaction,
-           StreamIdInfo streamIdInfo,
+           SqlStreamId sqlStreamId,
            CancellationToken cancellationToken)
         {
             bool aStreamIsDeleted;
             using (var command = new SqlCommand(_scripts.DeleteStreamAnyVersion, connection, transaction))
             {
-                command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
+                command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
                 var i = await command
                     .ExecuteScalarAsync(cancellationToken)
                     .NotOnCapturedContext();
@@ -154,11 +152,11 @@
 
             if(aStreamIsDeleted)
             {
-                var streamDeletedEvent = CreateStreamDeletedEvent(streamIdInfo.Id);
+                var streamDeletedEvent = CreateStreamDeletedEvent(sqlStreamId.IdOriginal);
                 await AppendToStreamExpectedVersionAny(
                     connection,
                     transaction,
-                    new StreamIdInfo(DeletedStreamId),
+                    SqlStreamId.Deleted,
                     new[] { streamDeletedEvent },
                     cancellationToken);
             }

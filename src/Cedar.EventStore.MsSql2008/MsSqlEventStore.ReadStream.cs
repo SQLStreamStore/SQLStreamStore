@@ -20,8 +20,8 @@
             using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
-                return await ReadStreamInternal(streamId, start, count, ReadDirection.Forward, connection, cancellationToken);
+                var streamIdInfo = new StreamIdInfo(streamId);
+                return await ReadStreamInternal(streamIdInfo.SqlStreamId, start, count, ReadDirection.Forward, connection, cancellationToken);
             }
         }
 
@@ -34,21 +34,19 @@
             using (var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
-                return await ReadStreamInternal(streamId, start, count, ReadDirection.Backward, connection, cancellationToken);
+                var streamIdInfo = new StreamIdInfo(streamId);
+                return await ReadStreamInternal(streamIdInfo.SqlStreamId, start, count, ReadDirection.Backward, connection, cancellationToken);
             }
         }
 
         private async Task<StreamEventsPage> ReadStreamInternal(
-            string streamId,
+            SqlStreamId sqlStreamId,
             int start,
             int count,
             ReadDirection direction,
             SqlConnection connection,
             CancellationToken cancellationToken)
         {
-            var streamIdInfo = new StreamIdInfo(streamId);
-
             // To read backwards from end, need to use int MaxValue
             var streamVersion = start == StreamVersion.End ? int.MaxValue : start;
             string commandText;
@@ -66,7 +64,7 @@
 
             using(var command = new SqlCommand(commandText, connection))
             {
-                command.Parameters.AddWithValue("streamId", streamIdInfo.Hash);
+                command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
                 command.Parameters.AddWithValue("count", count + 1); //Read extra row to see if at end or not
                 command.Parameters.AddWithValue("StreamVersion", streamVersion);
 
@@ -77,7 +75,7 @@
                 if(!b)
                 {
                     return new StreamEventsPage(
-                        streamId,
+                        sqlStreamId.IdOriginal,
                         PageReadStatus.StreamNotFound,
                         start,
                         -1,
@@ -98,7 +96,7 @@
                     var jsonMetadata = reader.GetString(6);
 
                     var streamEvent = new StreamEvent(
-                        streamId,
+                        sqlStreamId.IdOriginal,
                         eventId,
                         streamVersion1,
                         ordinal,
@@ -123,7 +121,7 @@
                 }
 
                 return new StreamEventsPage(
-                    streamId,
+                    sqlStreamId.IdOriginal,
                     PageReadStatus.Success,
                     start,
                     getNextSequenceNumber(streamEvents),

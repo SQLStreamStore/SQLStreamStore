@@ -35,7 +35,32 @@
             {
                 using(var eventStore = await fixture.GetEventStore())
                 {
-                    string streamId = Guid.NewGuid().ToString();
+                    var streamId = "stream-1";
+                    await eventStore
+                        .SetStreamMetadata(streamId, maxAge: 2, maxCount: 3, metadataJson: "meta");
+
+                    var metadata = await eventStore.GetStreamMetadata(streamId);
+
+                    metadata.StreamId.ShouldBe(streamId);
+                    metadata.MaxAge.ShouldBe(2);
+                    metadata.MetadataStreamVersion.ShouldBe(0);
+                    metadata.MaxCount.ShouldBe(3);
+                    metadata.MetadataJson.ShouldBe("meta");
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Can_set_and_get_stream_metadata_2()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var eventStore = await fixture.GetEventStore())
+                {
+                    string streamId = "stream-1";
+
+                    await eventStore
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEventSequence(1, 4));
                     await eventStore
                         .SetStreamMetadata(streamId, maxAge: 2, maxCount: 3, metadataJson: "meta");
 

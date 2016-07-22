@@ -3,6 +3,7 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Cedar.EventStore.Infrastructure;
     using Cedar.EventStore.Json;
     using Cedar.EventStore.Streams;
 
@@ -12,10 +13,14 @@
             string streamId,
             CancellationToken cancellationToken)
         {
-            string metaStreamId = $"$${streamId}";
+            var streamIdInfo = new StreamIdInfo(streamId);
 
-            var eventsPage = await ReadStreamBackwardsInternal(
-                metaStreamId, StreamVersion.End, 1, cancellationToken);
+            StreamEventsPage eventsPage;
+            using (var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                eventsPage = await ReadStreamInternal(streamIdInfo.MetadataSqlStreamId, StreamVersion.End, 1, ReadDirection.Backward, connection, cancellationToken);
+            }
 
             if(eventsPage.Status == PageReadStatus.StreamNotFound)
             {
@@ -46,7 +51,7 @@
 
                 using(var transaction = connection.BeginTransaction())
                 {
-                    string metaStreamId = $"$${streamId}";
+                    var streamIdInfo = new StreamIdInfo(streamId);
 
                     var metadataMessage = new MetadataMessage
                     {
@@ -61,7 +66,7 @@
                     await AppendToStreamInternal(
                         connection,
                         transaction,
-                        metaStreamId,
+                        streamIdInfo.MetadataSqlStreamId,
                         expectedStreamMetadataVersion,
                         new[] { newStreamEvent },
                         cancellationToken);

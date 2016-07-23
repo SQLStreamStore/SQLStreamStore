@@ -7,10 +7,7 @@ database "MS Sql DB" as DB
 autonumber
 User -> Lib : AppendToStream
 Lib -> DB : AppendToStream
-Lib -> DB : GetStreamMetadata
-note right
-        +1 network operation
-end note
+DB -> Lib : return StreamMetadata
 Lib -> Lib : if (metadata == null\n    || !metadata.MaxCount.HasValue)
 Lib -> User : return
 Lib -> DB : else GetStreamCount

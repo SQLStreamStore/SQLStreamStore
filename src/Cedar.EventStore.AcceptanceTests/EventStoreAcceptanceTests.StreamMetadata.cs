@@ -115,7 +115,7 @@
                     await store
                         .SetStreamMetadata(streamId, maxAge: 2, maxCount: maxCount, metadataJson: "meta");
                     await store
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3, 4));
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3, 4));
 
                     var eventsPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 4);
 

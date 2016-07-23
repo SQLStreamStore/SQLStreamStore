@@ -48,24 +48,19 @@ BEGIN TRANSACTION AppendStream ;
          SET dbo.Streams.[Version] = @latestStreamVersion
        WHERE dbo.Streams.IdInternal = @streamIdInternal
 
+COMMIT TRANSACTION AppendStream;
+
 /* Select Metadata */
     DECLARE @metadataStreamId as NVARCHAR(42)
+    DECLARE @metadataStreamIdInternal as INT
         SET @metadataStreamId = '$$' + @streamId
 
-     SELECT @streamIdInternal = dbo.Streams.IdInternal,
-            @latestStreamVersion = dbo.Streams.[Version]
+     SELECT @metadataStreamIdInternal = dbo.Streams.IdInternal
        FROM dbo.Streams
       WHERE dbo.Streams.Id = @metadataStreamId;
 
      SELECT TOP(1)
-            dbo.Streams.IdOriginal As StreamId,
-            dbo.Events.StreamVersion,
             dbo.Events.JsonData
        FROM dbo.Events
- INNER JOIN dbo.Streams
-         ON dbo.Events.StreamIdInternal = dbo.Streams.IdInternal
+      WHERE dbo.Events.StreamIdInternal = @metadataStreamIdInternal
    ORDER BY dbo.Events.Ordinal DESC;
-
-COMMIT TRANSACTION AppendStream;
-
-        

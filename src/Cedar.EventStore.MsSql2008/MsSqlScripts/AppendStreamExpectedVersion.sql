@@ -43,3 +43,18 @@ INSERT INTO dbo.Events (StreamIdInternal, StreamVersion, Id, Created, [Type], Js
       WHERE dbo.Streams.IdInternal = @streamIdInternal
 
 COMMIT TRANSACTION AppendStream;
+
+/* Select Metadata */
+    DECLARE @metadataStreamId as NVARCHAR(42)
+    DECLARE @metadataStreamIdInternal as INT
+        SET @metadataStreamId = '$$' + @streamId
+
+     SELECT @metadataStreamIdInternal = dbo.Streams.IdInternal
+       FROM dbo.Streams
+      WHERE dbo.Streams.Id = @metadataStreamId;
+
+     SELECT TOP(1)
+            dbo.Events.JsonData
+       FROM dbo.Events
+      WHERE dbo.Events.StreamIdInternal = @metadataStreamIdInternal
+   ORDER BY dbo.Events.Ordinal DESC;

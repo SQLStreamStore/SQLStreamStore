@@ -27,5 +27,19 @@ BEGIN TRANSACTION CreateStream;
                SET dbo.Streams.[Version] = @latestStreamVersion
              WHERE dbo.Streams.IdInternal = @streamIdInternal
     END;
-    SELECT @streamIdInternal;
 COMMIT TRANSACTION CreateStream;
+
+/* Select Metadata */
+    DECLARE @metadataStreamId as NVARCHAR(42)
+    DECLARE @metadataStreamIdInternal as INT
+        SET @metadataStreamId = '$$' + @streamId
+
+     SELECT @metadataStreamIdInternal = dbo.Streams.IdInternal
+       FROM dbo.Streams
+      WHERE dbo.Streams.Id = @metadataStreamId;
+
+     SELECT TOP(1)
+            dbo.Events.JsonData
+       FROM dbo.Events
+      WHERE dbo.Events.StreamIdInternal = @metadataStreamIdInternal
+   ORDER BY dbo.Events.Ordinal DESC;

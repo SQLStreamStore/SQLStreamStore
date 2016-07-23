@@ -29,7 +29,8 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                 var streamIdInfo = new StreamIdInfo(streamId);
-                maxCount = await AppendToStreamInternal(connection, null, streamIdInfo.SqlStreamId, expectedVersion, events, cancellationToken);
+                maxCount = await AppendToStreamInternal(connection, null, streamIdInfo.SqlStreamId, expectedVersion,
+                    events, cancellationToken);
             }
 
             if(maxCount != null)

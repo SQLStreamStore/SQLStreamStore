@@ -118,8 +118,6 @@
     <Compile Include="InMemory\InMemoryEventStoreFixture.cs" />
     <Compile Include="LoggingHelper.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="Scavenging\InMemoryScavengerExtensions.cs" />
-    <Compile Include="Scavenging\InMemoryScavengerTests.cs" />
     <Compile Include="SteamEventTests.cs" />
     <Compile Include="Subscriptions\StreanSubscriptionTests.cs" />
   </ItemGroup>
@@ -127,10 +125,6 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Cedar.EventStore.Scavenging\Cedar.EventStore.Scavenging.csproj">
-      <Project>{85EBA53E-BC97-424E-B047-8256A52180BB}</Project>
-      <Name>Cedar.EventStore.Scavenging</Name>
-    </ProjectReference>
     <ProjectReference Include="..\Cedar.EventStore\Cedar.EventStore.csproj">
       <Project>{5a8df1a1-9b3b-499d-b9e9-a5e0f6f06953}</Project>
       <Name>Cedar.EventStore</Name>

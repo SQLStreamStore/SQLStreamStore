@@ -61,7 +61,7 @@ namespace Cedar.EventStore
             }
         }
 
-        protected override Task AppendToStreamInternal(
+        protected override async Task AppendToStreamInternal(
             string streamId,
             int expectedVersion,
             NewStreamEvent[] events,
@@ -72,7 +72,31 @@ namespace Cedar.EventStore
             using(_lock.UseWriteLock())
             {
                 AppendToStreamInternal(streamId, expectedVersion, events);
-                return Task.FromResult(0);
+            }
+            var result = await GetStreamMetadataInternal(streamId, cancellationToken);
+            await CheckStreamMaxCount(streamId, result.MaxCount, cancellationToken);
+        }
+
+        private async Task CheckStreamMaxCount(string streamId, int? maxCount, CancellationToken cancellationToken)
+        {
+            if (maxCount.HasValue)
+            {
+                var count = await GetStreamEventCount(streamId, cancellationToken);
+                if (count > maxCount.Value)
+                {
+                    int toPurge = count - maxCount.Value;
+
+                    var streamEventsPage = await ReadStreamForwardsInternal(streamId, StreamVersion.Start,
+                        toPurge, cancellationToken);
+
+                    if (streamEventsPage.Status == PageReadStatus.Success)
+                    {
+                        foreach (var streamEvent in streamEventsPage.Events)
+                        {
+                            await DeleteEventInternal(streamId, streamEvent.EventId, cancellationToken);
+                        }
+                    }
+                }
             }
         }
 
@@ -162,7 +186,7 @@ namespace Cedar.EventStore
             }
         }
 
-        protected override Task SetStreamMetadataInternal(
+        protected override async Task SetStreamMetadataInternal(
             string streamId,
             int expectedStreamMetadataVersion,
             int? maxAge,
@@ -186,7 +210,7 @@ namespace Cedar.EventStore
 
                 AppendToStreamInternal(metaStreamId, expectedStreamMetadataVersion, new[] { newStreamEvent });
 
-                return Task.FromResult(0);
+                await CheckStreamMaxCount(streamId, metadataMessage.MaxCount, cancellationToken);
             }
         }
 

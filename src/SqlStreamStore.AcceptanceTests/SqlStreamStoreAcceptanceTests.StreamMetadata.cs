@@ -14,11 +14,11 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     string streamId = Guid.NewGuid().ToString();
 
-                    var metadata = await eventStore.GetStreamMetadata(streamId);
+                    var metadata = await store.GetStreamMetadata(streamId);
 
                     metadata.StreamId.ShouldBe(streamId);
                     metadata.MaxAge.ShouldBeNull();
@@ -34,13 +34,13 @@
         {
             using(var fixture = GetFixture())
             {
-                using(var eventStore = await fixture.GetStreamStore())
+                using(var store = await fixture.GetStreamStore())
                 {
                     var streamId = "stream-1";
-                    await eventStore
+                    await store
                         .SetStreamMetadata(streamId, maxAge: 2, maxCount: 3, metadataJson: "meta");
 
-                    var metadata = await eventStore.GetStreamMetadata(streamId);
+                    var metadata = await store.GetStreamMetadata(streamId);
 
                     metadata.StreamId.ShouldBe(streamId);
                     metadata.MaxAge.ShouldBe(2);
@@ -56,17 +56,17 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     string streamId = "stream-1";
 
-                    await eventStore
+                    await store
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEventSequence(1, 4));
 
-                    await eventStore
+                    await store
                         .SetStreamMetadata(streamId, maxAge: 2, maxCount: 3, metadataJson: "meta");
 
-                    var metadata = await eventStore.GetStreamMetadata(streamId);
+                    var metadata = await store.GetStreamMetadata(streamId);
 
                     metadata.StreamId.ShouldBe(streamId);
                     metadata.MaxAge.ShouldBe(2);
@@ -82,17 +82,17 @@
         {
             using(var fixture = GetFixture())
             {
-                using(var eventStore = await fixture.GetStreamStore())
+                using(var store = await fixture.GetStreamStore())
                 {
                     string streamId = "059846C3-6701-45E9-A72A-20986539D4D3";
-                    await eventStore
+                    await store
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-                    await eventStore
+                    await store
                         .SetStreamMetadata(streamId, maxCount: 3, metadataJson: "meta");
 
-                    await eventStore.DeleteStream(streamId);
+                    await store.DeleteStream(streamId);
 
-                    var allEventsPage = await eventStore.ReadAllForwards(Checkpoint.Start, 10);
+                    var allEventsPage = await store.ReadAllForwards(Checkpoint.Start, 10);
                     allEventsPage.StreamMessages.Length.ShouldBe(2);
                     allEventsPage.StreamMessages[0].Type.ShouldBe(Deleted.StreamDeletedEventType);
                     allEventsPage.StreamMessages[0].JsonDataAs<Deleted.StreamDeleted>()

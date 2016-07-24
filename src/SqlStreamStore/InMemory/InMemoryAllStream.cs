@@ -2,6 +2,6 @@ namespace SqlStreamStore.InMemory
 {
     using System.Collections.Generic;
 
-    internal class InMemoryAllStream : LinkedList<InMemoryStreamEvent>
+    internal class InMemoryAllStream : LinkedList<InMemoryStreamMessage>
     {}
 }

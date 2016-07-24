@@ -7,13 +7,13 @@
     using SqlStreamStore;
     using Timer = System.Timers.Timer;
 
-    public sealed class PollingEventStoreNotifier : IEventStoreNotifier
+    public sealed class PollingStreamStoreNotifier : IStreamStoreNotifier
     {
-        public static CreateEventStoreNotifier CreateEventStoreNotifier(int interval = 1000)
+        public static CreateStreamStoreNotifier CreateStreamStoreNotifier(int interval = 1000)
         {
-            return async readOnlyEventStore =>
+            return async readonlyStreamStore =>
             {
-                var poller = new PollingEventStoreNotifier(readOnlyEventStore, interval);
+                var poller = new PollingStreamStoreNotifier(readonlyStreamStore, interval);
                 await poller.Start().NotOnCapturedContext();
                 return poller;
             };
@@ -25,7 +25,7 @@
         private readonly Timer _timer;
         private long _headCheckpoint = -1;
 
-        public PollingEventStoreNotifier(IReadonlyStreamStore readonlyStreamStore, int interval = 1000)
+        public PollingStreamStoreNotifier(IReadonlyStreamStore readonlyStreamStore, int interval = 1000)
         {
             _readonlyStreamStore = readonlyStreamStore;
             _timer = new Timer(interval)

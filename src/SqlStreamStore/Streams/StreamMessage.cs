@@ -42,7 +42,7 @@
         /// <filterpriority>2</filterpriority>
         public override string ToString()
         {
-            return $"EventId={EventId} StreamId={StreamId} StreamVersion={StreamVersion} Checkpoint={Checkpoint} Type={Type}";
+            return $"MessageId={EventId} StreamId={StreamId} StreamVersion={StreamVersion} Checkpoint={Checkpoint} Type={Type}";
         }
     }
 }

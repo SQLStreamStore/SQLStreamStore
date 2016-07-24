@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore
+namespace SqlStreamStore
 {
     using System;
     using EnsureThat;
@@ -18,8 +18,8 @@
 
         public string ConnectionString { get; private set; }
 
-        public CreateEventStoreNotifier CreateEventStoreNotifier { get; set; } =
-            PollingEventStoreNotifier.CreateEventStoreNotifier();
+        public CreateStreamStoreNotifier CreateStreamStoreNotifier { get; set; } =
+            PollingStreamStoreNotifier.CreateStreamStoreNotifier();
 
         public string Schema
         {

@@ -40,14 +40,14 @@ namespace SqlStreamStore.Infrastructure
             return DeleteStreamInternal(streamId, expectedVersion, cancellationToken);
         }
 
-        public Task DeleteEvent(
+        public Task DeleteMessage(
             string streamId,
-            Guid eventId,
+            Guid messageId,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
 
-            return DeleteEventInternal(streamId, eventId, cancellationToken);
+            return DeleteEventInternal(streamId, messageId, cancellationToken);
         }
 
         public Task SetStreamMetadata(

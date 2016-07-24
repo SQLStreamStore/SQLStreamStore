@@ -15,15 +15,15 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream";
 
-                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-                    await eventStore.DeleteStream(streamId);
+                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await store.DeleteStream(streamId);
 
                     var streamEventsPage =
-                        await eventStore.ReadStreamForwards(streamId, StreamVersion.Start, 10);
+                        await store.ReadStreamForwards(streamId, StreamVersion.Start, 10);
 
                     streamEventsPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
                 }
@@ -35,15 +35,15 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream";
 
-                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-                    await eventStore.DeleteStream(streamId);
+                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await store.DeleteStream(streamId);
 
                     var streamEventsPage =
-                        await eventStore.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
+                        await store.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
 
                     streamEventsPage.Status.ShouldBe(PageReadStatus.Success);
                     var streamEvent = streamEventsPage.Messages.Single();
@@ -59,14 +59,14 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream";
 
-                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-                    await eventStore.DeleteStream(streamId);
+                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await store.DeleteStream(streamId);
 
-                    var allEventsPage = await eventStore.ReadAllForwards(Checkpoint.Start, 10);
+                    var allEventsPage = await store.ReadAllForwards(Checkpoint.Start, 10);
 
                     allEventsPage.StreamMessages.Any(streamEvent => streamEvent.StreamId == streamId).ShouldBeFalse();
                 }
@@ -78,10 +78,10 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "notexist";
-                    Func<Task> act = () => eventStore.DeleteStream(streamId);
+                    Func<Task> act = () => store.DeleteStream(streamId);
 
                     act.ShouldNotThrow();
                 }
@@ -93,15 +93,15 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream";
 
-                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-                    await eventStore.DeleteStream(streamId, 2);
+                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await store.DeleteStream(streamId, 2);
 
                     var streamEventsPage =
-                        await eventStore.ReadStreamForwards(streamId, StreamVersion.Start, 10);
+                        await store.ReadStreamForwards(streamId, StreamVersion.Start, 10);
 
                     streamEventsPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
                 }
@@ -113,15 +113,15 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream";
 
-                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-                    await eventStore.DeleteStream(streamId, 2);
+                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await store.DeleteStream(streamId, 2);
 
                     var streamEventsPage =
-                        await eventStore.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
+                        await store.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
 
                     streamEventsPage.Status.ShouldBe(PageReadStatus.Success);
                     var streamEvent = streamEventsPage.Messages.Single();
@@ -137,14 +137,14 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream";
 
-                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-                    await eventStore.DeleteStream(streamId);
+                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await store.DeleteStream(streamId);
 
-                    var allEventsPage = await eventStore.ReadAllForwards(Checkpoint.Start, 10);
+                    var allEventsPage = await store.ReadAllForwards(Checkpoint.Start, 10);
 
                     allEventsPage.StreamMessages.Any(streamEvent => streamEvent.StreamId == streamId).ShouldBeFalse();
                 }
@@ -156,11 +156,11 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "notexist";
 
-                    var exception = await Record.ExceptionAsync(() => eventStore.DeleteStream(streamId));
+                    var exception = await Record.ExceptionAsync(() => store.DeleteStream(streamId));
 
                     exception.ShouldBeNull();
                 }
@@ -172,13 +172,13 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "notexist";
                     const int expectedVersion = 1;
 
                     var exception = await Record.ExceptionAsync(() =>
-                        eventStore.DeleteStream(streamId, expectedVersion));
+                        store.DeleteStream(streamId, expectedVersion));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
                         Messages.DeleteStreamFailedWrongExpectedVersion(streamId, expectedVersion));
@@ -191,13 +191,13 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream";
-                    await eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
 
                     var exception = await Record.ExceptionAsync(() =>
-                        eventStore.DeleteStream(streamId, 100));
+                        store.DeleteStream(streamId, 100));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
                             Messages.DeleteStreamFailedWrongExpectedVersion(streamId, 100));

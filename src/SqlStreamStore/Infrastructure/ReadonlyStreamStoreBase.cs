@@ -30,7 +30,7 @@ namespace SqlStreamStore.Infrastructure
                 metadataMaxAgeCacheMaxSize, GetUtcNow);
         }
 
-        public async Task<AllEventsPage> ReadAllForwards(
+        public async Task<AllMessagesPage> ReadAllForwards(
             long fromCheckpointInclusive,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -44,7 +44,7 @@ namespace SqlStreamStore.Infrastructure
             return await FilterExpired(page, cancellationToken);
         }
 
-        public async Task<AllEventsPage> ReadAllBackwards(
+        public async Task<AllMessagesPage> ReadAllBackwards(
             long fromCheckpointInclusive,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -93,19 +93,19 @@ namespace SqlStreamStore.Infrastructure
         public Task<IStreamSubscription> SubscribeToStream(
             string streamId,
             int fromVersionExclusive,
-            StreamEventReceived streamEventReceived,
+            StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace();
-            Ensure.That(streamEventReceived, nameof(streamEventReceived)).IsNotNull();
+            Ensure.That(streamMessageReceived, nameof(streamMessageReceived)).IsNotNull();
 
             CheckIfDisposed();
 
             return SubscribeToStreamInternal(streamId,
                 fromVersionExclusive,
-                streamEventReceived,
+                streamMessageReceived,
                 subscriptionDropped,
                 name,
                 cancellationToken);
@@ -113,17 +113,17 @@ namespace SqlStreamStore.Infrastructure
 
         public Task<IAllStreamSubscription> SubscribeToAll(
             long? fromCheckpointExclusive,
-            StreamEventReceived streamEventReceived,
+            StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            Ensure.That(streamEventReceived, nameof(streamEventReceived)).IsNotNull();
+            Ensure.That(streamMessageReceived, nameof(streamMessageReceived)).IsNotNull();
 
             CheckIfDisposed();
 
             return SubscribeToAllInternal(fromCheckpointExclusive,
-                streamEventReceived,
+                streamMessageReceived,
                 subscriptionDropped,
                 name,
                 cancellationToken);
@@ -152,12 +152,12 @@ namespace SqlStreamStore.Infrastructure
             _isDisposed = true;
         }
 
-        protected abstract Task<AllEventsPage> ReadAllForwardsInternal(
+        protected abstract Task<AllMessagesPage> ReadAllForwardsInternal(
             long fromCheckpointExlusive,
             int maxCount,
             CancellationToken cancellationToken);
 
-        protected abstract Task<AllEventsPage> ReadAllBackwardsInternal(
+        protected abstract Task<AllMessagesPage> ReadAllBackwardsInternal(
             long fromCheckpointExclusive,
             int maxCount,
             CancellationToken cancellationToken);
@@ -179,14 +179,14 @@ namespace SqlStreamStore.Infrastructure
         protected abstract Task<IStreamSubscription> SubscribeToStreamInternal(
             string streamId,
             int startVersion,
-            StreamEventReceived streamEventReceived,
+            StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             string name,
             CancellationToken cancellationToken);
 
         protected abstract Task<IAllStreamSubscription> SubscribeToAllInternal(
             long? fromCheckpoint,
-            StreamEventReceived streamEventReceived,
+            StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             string name,
             CancellationToken cancellationToken);
@@ -248,8 +248,8 @@ namespace SqlStreamStore.Infrastructure
                 valid.ToArray());
         }
 
-        private async Task<AllEventsPage> FilterExpired(
-           AllEventsPage page,
+        private async Task<AllMessagesPage> FilterExpired(
+           AllMessagesPage page,
            CancellationToken cancellationToken)
         {
             var valid = new List<StreamMessage>();
@@ -276,7 +276,7 @@ namespace SqlStreamStore.Infrastructure
                     PurgeExpiredEvent(streamEvent);
                 }
             }
-            return new AllEventsPage(
+            return new AllMessagesPage(
                 page.FromCheckpoint,
                 page.NextCheckpoint,
                 page.IsEnd,

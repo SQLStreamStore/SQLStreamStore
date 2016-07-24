@@ -28,7 +28,7 @@ namespace SqlStreamStore
             : base(TimeSpan.FromMinutes(1), 10000, getUtcNow, logName ?? nameof(InMemoryStreamStore))
         {
             _getUtcNow = getUtcNow ?? SystemClock.GetUtcNow;
-            _allStream.AddFirst(new InMemoryStreamEvent(
+            _allStream.AddFirst(new InMemoryStreamMessage(
                 "<in-memory-root-event>",
                 Guid.NewGuid(),
                 -1,
@@ -257,7 +257,7 @@ namespace SqlStreamStore
             AppendToStreamInternal(DeletedStreamId, ExpectedVersion.Any, new[] { streamDeletedEvent });
         }
 
-        protected override Task<AllEventsPage> ReadAllForwardsInternal(
+        protected override Task<AllMessagesPage> ReadAllForwardsInternal(
             long fromCheckpointExlusive,
             int maxCount,
             CancellationToken cancellationToken)
@@ -271,7 +271,7 @@ namespace SqlStreamStore
                 if(current.Next == null) //Empty store
                 {
                     return Task.FromResult(
-                        new AllEventsPage(Checkpoint.Start, Checkpoint.Start, true, ReadDirection.Forward));
+                        new AllMessagesPage(Checkpoint.Start, Checkpoint.Start, true, ReadDirection.Forward));
                 }
 
                 var previous = current.Previous;
@@ -280,7 +280,7 @@ namespace SqlStreamStore
                     if(current.Next == null) // fromCheckpoint is past end of store
                     {
                         return Task.FromResult(
-                            new AllEventsPage(fromCheckpointExlusive,
+                            new AllMessagesPage(fromCheckpointExlusive,
                                 fromCheckpointExlusive,
                                 true,
                                 ReadDirection.Forward));
@@ -294,7 +294,7 @@ namespace SqlStreamStore
                 {
                     var streamEvent = new StreamMessage(
                         current.Value.StreamId,
-                        current.Value.EventId,
+                        current.Value.MessageId,
                         current.Value.StreamVersion,
                         current.Value.Checkpoint,
                         current.Value.Created,
@@ -311,7 +311,7 @@ namespace SqlStreamStore
                 var nextCheckPoint = current?.Value.Checkpoint ?? previous.Value.Checkpoint + 1;
                 fromCheckpointExlusive = streamEvents.Any() ? streamEvents[0].Checkpoint : 0;
 
-                var page = new AllEventsPage(
+                var page = new AllMessagesPage(
                     fromCheckpointExlusive,
                     nextCheckPoint,
                     isEnd,
@@ -322,7 +322,7 @@ namespace SqlStreamStore
             }
         }
 
-        protected override Task<AllEventsPage> ReadAllBackwardsInternal(
+        protected override Task<AllMessagesPage> ReadAllBackwardsInternal(
             long fromCheckpointExclusive,
             int maxCount,
             CancellationToken cancellationToken)
@@ -341,7 +341,7 @@ namespace SqlStreamStore
                 if(current.Next == null) //Empty store
                 {
                     return Task.FromResult(
-                        new AllEventsPage(Checkpoint.Start, Checkpoint.Start, true, ReadDirection.Backward));
+                        new AllMessagesPage(Checkpoint.Start, Checkpoint.Start, true, ReadDirection.Backward));
                 }
 
                 var previous = current.Previous;
@@ -350,7 +350,7 @@ namespace SqlStreamStore
                     if(current.Next == null) // fromCheckpoint is past end of store
                     {
                         return Task.FromResult(
-                            new AllEventsPage(fromCheckpointExclusive,
+                            new AllMessagesPage(fromCheckpointExclusive,
                                 fromCheckpointExclusive,
                                 true,
                                 ReadDirection.Backward));
@@ -364,7 +364,7 @@ namespace SqlStreamStore
                 {
                     var streamEvent = new StreamMessage(
                         current.Value.StreamId,
-                        current.Value.EventId,
+                        current.Value.MessageId,
                         current.Value.StreamVersion,
                         current.Value.Checkpoint,
                         current.Value.Created,
@@ -392,7 +392,7 @@ namespace SqlStreamStore
 
                 fromCheckpointExclusive = streamEvents.Any() ? streamEvents[0].Checkpoint : 0;
 
-                var page = new AllEventsPage(
+                var page = new AllMessagesPage(
                     fromCheckpointExclusive,
                     nextCheckPoint,
                     isEnd,
@@ -434,7 +434,7 @@ namespace SqlStreamStore
                     var inMemoryStreamEvent = stream.Events[i];
                     var streamEvent = new StreamMessage(
                         streamId,
-                        inMemoryStreamEvent.EventId,
+                        inMemoryStreamEvent.MessageId,
                         inMemoryStreamEvent.StreamVersion,
                         inMemoryStreamEvent.Checkpoint,
                         inMemoryStreamEvent.Created,
@@ -495,7 +495,7 @@ namespace SqlStreamStore
                     var inMemoryStreamEvent = stream.Events[i];
                     var streamEvent = new StreamMessage(
                         streamId,
-                        inMemoryStreamEvent.EventId,
+                        inMemoryStreamEvent.MessageId,
                         inMemoryStreamEvent.StreamVersion,
                         inMemoryStreamEvent.Checkpoint,
                         inMemoryStreamEvent.Created,
@@ -529,7 +529,7 @@ namespace SqlStreamStore
         protected override async Task<IStreamSubscription> SubscribeToStreamInternal(
             string streamId,
             int startVersion,
-            StreamEventReceived streamEventReceived,
+            StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             string name,
             CancellationToken cancellationToken)
@@ -539,7 +539,7 @@ namespace SqlStreamStore
                 startVersion,
                 this,
                 _subscriptions,
-                streamEventReceived,
+                streamMessageReceived,
                 subscriptionDropped,
                 name);
             await subscription.Start(cancellationToken);
@@ -554,7 +554,7 @@ namespace SqlStreamStore
 
         protected override async Task<IAllStreamSubscription> SubscribeToAllInternal(
             long? fromCheckpoint,
-            StreamEventReceived streamEventReceived,
+            StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             string name,
             CancellationToken cancellationToken)
@@ -563,7 +563,7 @@ namespace SqlStreamStore
                 fromCheckpoint,
                 this,
                 _subscriptions,
-                streamEventReceived,
+                streamMessageReceived,
                 subscriptionDropped,
                 name);
 

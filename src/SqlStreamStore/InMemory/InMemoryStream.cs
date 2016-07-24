@@ -13,8 +13,8 @@ namespace SqlStreamStore.InMemory
         private readonly GetUtcNow _getUtcNow;
         private readonly Action _onStreamAppended;
         private readonly Func<int> _getNextCheckpoint;
-        private readonly List<InMemoryStreamEvent> _events = new List<InMemoryStreamEvent>();
-        private readonly Dictionary<Guid, InMemoryStreamEvent> _eventsById = new Dictionary<Guid, InMemoryStreamEvent>();
+        private readonly List<InMemoryStreamMessage> _events = new List<InMemoryStreamMessage>();
+        private readonly Dictionary<Guid, InMemoryStreamMessage> _eventsById = new Dictionary<Guid, InMemoryStreamMessage>();
         private int _currentVersion = -1;
 
         internal InMemoryStream(
@@ -31,7 +31,7 @@ namespace SqlStreamStore.InMemory
             _getNextCheckpoint = getNextCheckpoint;
         }
 
-        internal IReadOnlyList<InMemoryStreamEvent> Events => _events;
+        internal IReadOnlyList<InMemoryStreamMessage> Events => _events;
 
         internal void AppendToStream(int expectedVersion, NewStreamMessage[] newMessages)
         {
@@ -69,7 +69,7 @@ namespace SqlStreamStore.InMemory
                         throw new WrongExpectedVersionException(
                             Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
                     }
-                    if(_events[index].EventId != newMessages[i].EventId)
+                    if(_events[index].MessageId != newMessages[i].EventId)
                     {
                         throw new WrongExpectedVersionException(
                             Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
@@ -122,7 +122,7 @@ namespace SqlStreamStore.InMemory
                         Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
                 }
 
-                if(newMessages.Where((@event, index) => _events[index].EventId != @event.EventId).Any())
+                if(newMessages.Where((@event, index) => _events[index].MessageId != @event.EventId).Any())
                 {
                     throw new WrongExpectedVersionException(
                         Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
@@ -141,7 +141,7 @@ namespace SqlStreamStore.InMemory
                 var checkpoint = _getNextCheckpoint();
                 _currentVersion++;
 
-                var inMemoryStreamEvent = new InMemoryStreamEvent(
+                var inMemoryStreamEvent = new InMemoryStreamMessage(
                     _streamId,
                     newStreamEvent.EventId,
                     _currentVersion,
@@ -177,14 +177,14 @@ namespace SqlStreamStore.InMemory
 
         public bool DeleteEvent(Guid eventId)
         {
-            InMemoryStreamEvent inMemoryStreamEvent;
-            if(!_eventsById.TryGetValue(eventId, out inMemoryStreamEvent))
+            InMemoryStreamMessage inMemoryStreamMessage;
+            if(!_eventsById.TryGetValue(eventId, out inMemoryStreamMessage))
             {
                 return false;
             }
 
-            _events.Remove(inMemoryStreamEvent);
-            _inMemoryAllStream.Remove(inMemoryStreamEvent);
+            _events.Remove(inMemoryStreamMessage);
+            _inMemoryAllStream.Remove(inMemoryStreamMessage);
             _eventsById.Remove(eventId);
             return true;
         }

@@ -16,25 +16,25 @@
         {
             using(var fixture = GetFixture())
             {
-                using(var eventStore = await fixture.GetStreamStore())
+                using(var store = await fixture.GetStreamStore())
                 {
-                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-                    await eventStore.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
+                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await store.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
 
                     var streamEventsPage =
-                        await eventStore.ReadStreamForwards(theory.StreamId, theory.Start, theory.PageSize);
+                        await store.ReadStreamForwards(theory.StreamId, theory.Start, theory.PageSize);
 
-                    var expectedStreamEventsPage = theory.ExpectedStreamMessagesPage;
+                    var ExpectedStreamMessagesPage = theory.ExpectedStreamMessagesPage;
                     var expectedEvents = theory.ExpectedStreamMessagesPage.Messages.ToArray();
 
-                    streamEventsPage.FromStreamVersion.ShouldBe(expectedStreamEventsPage.FromStreamVersion);
-                    streamEventsPage.LastStreamVersion.ShouldBe(expectedStreamEventsPage.LastStreamVersion);
-                    streamEventsPage.NextStreamVersion.ShouldBe(expectedStreamEventsPage.NextStreamVersion);
-                    streamEventsPage.ReadDirection.ShouldBe(expectedStreamEventsPage.ReadDirection);
-                    streamEventsPage.IsEndOfStream.ShouldBe(expectedStreamEventsPage.IsEndOfStream);
-                    streamEventsPage.Status.ShouldBe(expectedStreamEventsPage.Status);
-                    streamEventsPage.StreamId.ShouldBe(expectedStreamEventsPage.StreamId);
-                    streamEventsPage.Messages.Length.ShouldBe(expectedStreamEventsPage.Messages.Length);
+                    streamEventsPage.FromStreamVersion.ShouldBe(ExpectedStreamMessagesPage.FromStreamVersion);
+                    streamEventsPage.LastStreamVersion.ShouldBe(ExpectedStreamMessagesPage.LastStreamVersion);
+                    streamEventsPage.NextStreamVersion.ShouldBe(ExpectedStreamMessagesPage.NextStreamVersion);
+                    streamEventsPage.ReadDirection.ShouldBe(ExpectedStreamMessagesPage.ReadDirection);
+                    streamEventsPage.IsEndOfStream.ShouldBe(ExpectedStreamMessagesPage.IsEndOfStream);
+                    streamEventsPage.Status.ShouldBe(ExpectedStreamMessagesPage.Status);
+                    streamEventsPage.StreamId.ShouldBe(ExpectedStreamMessagesPage.StreamId);
+                    streamEventsPage.Messages.Length.ShouldBe(ExpectedStreamMessagesPage.Messages.Length);
 
                     for (int i = 0; i < streamEventsPage.Messages.Length; i++)
                     {
@@ -61,25 +61,25 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
-                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-                    await eventStore.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
+                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await store.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
 
                     var streamEventsPage =
-                        await eventStore.ReadStreamBackwards(theory.StreamId, theory.Start, theory.PageSize);
+                        await store.ReadStreamBackwards(theory.StreamId, theory.Start, theory.PageSize);
 
-                    var expectedStreamEventsPage = theory.ExpectedStreamMessagesPage;
+                    var ExpectedStreamMessagesPage = theory.ExpectedStreamMessagesPage;
                     var expectedEvents = theory.ExpectedStreamMessagesPage.Messages.ToArray();
 
-                    streamEventsPage.FromStreamVersion.ShouldBe(expectedStreamEventsPage.FromStreamVersion);
-                    streamEventsPage.LastStreamVersion.ShouldBe(expectedStreamEventsPage.LastStreamVersion);
-                    streamEventsPage.NextStreamVersion.ShouldBe(expectedStreamEventsPage.NextStreamVersion);
-                    streamEventsPage.ReadDirection.ShouldBe(expectedStreamEventsPage.ReadDirection);
-                    streamEventsPage.IsEndOfStream.ShouldBe(expectedStreamEventsPage.IsEndOfStream);
-                    streamEventsPage.Status.ShouldBe(expectedStreamEventsPage.Status);
-                    streamEventsPage.StreamId.ShouldBe(expectedStreamEventsPage.StreamId);
-                    streamEventsPage.Messages.Length.ShouldBe(expectedStreamEventsPage.Messages.Length);
+                    streamEventsPage.FromStreamVersion.ShouldBe(ExpectedStreamMessagesPage.FromStreamVersion);
+                    streamEventsPage.LastStreamVersion.ShouldBe(ExpectedStreamMessagesPage.LastStreamVersion);
+                    streamEventsPage.NextStreamVersion.ShouldBe(ExpectedStreamMessagesPage.NextStreamVersion);
+                    streamEventsPage.ReadDirection.ShouldBe(ExpectedStreamMessagesPage.ReadDirection);
+                    streamEventsPage.IsEndOfStream.ShouldBe(ExpectedStreamMessagesPage.IsEndOfStream);
+                    streamEventsPage.Status.ShouldBe(ExpectedStreamMessagesPage.Status);
+                    streamEventsPage.StreamId.ShouldBe(ExpectedStreamMessagesPage.StreamId);
+                    streamEventsPage.Messages.Length.ShouldBe(ExpectedStreamMessagesPage.Messages.Length);
 
                     for (int i = 0; i < streamEventsPage.Messages.Length; i++)
                     {
@@ -105,10 +105,10 @@
         {
             using(var fixture = GetFixture())
             {
-                using(var eventStore = await fixture.GetStreamStore())
+                using(var store = await fixture.GetStreamStore())
                 {
                     var streamEventsPage =
-                        await eventStore.ReadStreamForwards("stream-does-not-exist", StreamVersion.Start, 1);
+                        await store.ReadStreamForwards("stream-does-not-exist", StreamVersion.Start, 1);
 
                     streamEventsPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
                 }
@@ -120,10 +120,10 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     var streamEventsPage =
-                        await eventStore.ReadStreamBackwards("stream-does-not-exist", StreamVersion.End, 1);
+                        await store.ReadStreamBackwards("stream-does-not-exist", StreamVersion.End, 1);
 
                     streamEventsPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
                 }
@@ -135,13 +135,13 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
-                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-                    await eventStore.DeleteStream("stream-1");
+                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await store.DeleteStream("stream-1");
 
                     var streamEventsPage =
-                        await eventStore.ReadStreamForwards("stream-1", StreamVersion.Start, 1);
+                        await store.ReadStreamForwards("stream-1", StreamVersion.Start, 1);
 
                     streamEventsPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
                 }
@@ -153,13 +153,13 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
-                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-                    await eventStore.DeleteStream("stream-1");
+                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await store.DeleteStream("stream-1");
 
                     var streamEventsPage =
-                        await eventStore.ReadStreamBackwards("stream-1", StreamVersion.Start, 1);
+                        await store.ReadStreamBackwards("stream-1", StreamVersion.Start, 1);
 
                     streamEventsPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
                 }
@@ -173,16 +173,16 @@
             {
                 new ReadStreamTheory("stream-1", StreamVersion.Start, 2,
                     new StreamMessagesPage("stream-1", PageReadStatus.Success, 0, 2, 2, ReadDirection.Forward, false,
-                          ExpectedStreamEvent("stream-1", 1, 0, SystemClock.GetUtcNow().UtcDateTime),
-                          ExpectedStreamEvent("stream-1", 2, 1, SystemClock.GetUtcNow().UtcDateTime))),
+                          ExpectedStreamMessage("stream-1", 1, 0, SystemClock.GetUtcNow().UtcDateTime),
+                          ExpectedStreamMessage("stream-1", 2, 1, SystemClock.GetUtcNow().UtcDateTime))),
 
                 new ReadStreamTheory("not-exist", 1, 2,
                     new StreamMessagesPage("not-exist", PageReadStatus.StreamNotFound, 1, -1, -1, ReadDirection.Forward, true)),
 
                 new ReadStreamTheory("stream-2", 1, 2,
                     new StreamMessagesPage("stream-2", PageReadStatus.Success, 1, 3, 2, ReadDirection.Forward, true,
-                          ExpectedStreamEvent("stream-2", 5, 1, SystemClock.GetUtcNow().UtcDateTime),
-                          ExpectedStreamEvent("stream-2", 6, 2, SystemClock.GetUtcNow().UtcDateTime)))
+                          ExpectedStreamMessage("stream-2", 5, 1, SystemClock.GetUtcNow().UtcDateTime),
+                          ExpectedStreamMessage("stream-2", 6, 2, SystemClock.GetUtcNow().UtcDateTime)))
             };
 
             return theories.Select(t => new object[] { t });
@@ -194,14 +194,14 @@
             {
                new ReadStreamTheory("stream-1", StreamVersion.End, 2,
                     new StreamMessagesPage("stream-1", PageReadStatus.Success, -1, 0, 2, ReadDirection.Backward, false,
-                          ExpectedStreamEvent("stream-1", 3, 2, SystemClock.GetUtcNow().UtcDateTime),
-                          ExpectedStreamEvent("stream-1", 2, 1, SystemClock.GetUtcNow().UtcDateTime))),
+                          ExpectedStreamMessage("stream-1", 3, 2, SystemClock.GetUtcNow().UtcDateTime),
+                          ExpectedStreamMessage("stream-1", 2, 1, SystemClock.GetUtcNow().UtcDateTime))),
 
                  new ReadStreamTheory("stream-1", StreamVersion.End, 4,
                     new StreamMessagesPage("stream-1", PageReadStatus.Success, -1, -1, 2, ReadDirection.Backward, true,
-                          ExpectedStreamEvent("stream-1", 3, 2, SystemClock.GetUtcNow().UtcDateTime),
-                          ExpectedStreamEvent("stream-1", 2, 1, SystemClock.GetUtcNow().UtcDateTime),
-                          ExpectedStreamEvent("stream-1", 1, 0, SystemClock.GetUtcNow().UtcDateTime)))
+                          ExpectedStreamMessage("stream-1", 3, 2, SystemClock.GetUtcNow().UtcDateTime),
+                          ExpectedStreamMessage("stream-1", 2, 1, SystemClock.GetUtcNow().UtcDateTime),
+                          ExpectedStreamMessage("stream-1", 1, 0, SystemClock.GetUtcNow().UtcDateTime)))
             };
 
             return theories.Select(t => new object[] { t });

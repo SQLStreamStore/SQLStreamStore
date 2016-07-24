@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore
+namespace SqlStreamStore
 {
     using System.Collections.Generic;
     using System.Data.SqlClient;
@@ -10,7 +10,7 @@
 
     public partial class MsSqlStreamStore
     {
-        protected override async Task<AllEventsPage> ReadAllForwardsInternal(
+        protected override async Task<AllMessagesPage> ReadAllForwardsInternal(
             long fromCheckpointExlusive,
             int maxCount,
             CancellationToken cancellationToken)
@@ -32,7 +32,7 @@
                     List<StreamMessage> streamEvents = new List<StreamMessage>();
                     if (!reader.HasRows)
                     {
-                        return new AllEventsPage(
+                        return new AllMessagesPage(
                             fromCheckpointExlusive,
                             fromCheckpointExlusive,
                             true,
@@ -74,7 +74,7 @@
 
                     var nextCheckpoint = streamEvents[streamEvents.Count - 1].Checkpoint + 1;
 
-                    return new AllEventsPage(
+                    return new AllMessagesPage(
                         fromCheckpointExlusive,
                         nextCheckpoint,
                         isEnd,
@@ -84,7 +84,7 @@
             }
         }
 
-        protected override async Task<AllEventsPage> ReadAllBackwardsInternal(
+        protected override async Task<AllMessagesPage> ReadAllBackwardsInternal(
             long fromCheckpointExclusive,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -108,7 +108,7 @@
                     {
                         // When reading backwards and there are no more items, then next checkpoint is LongCheckpoint.Start,
                         // regardles of what the fromCheckpoint is.
-                        return new AllEventsPage(
+                        return new AllMessagesPage(
                             Checkpoint.Start,
                             Checkpoint.Start,
                             true,
@@ -152,7 +152,7 @@
 
                     fromCheckpointExclusive = streamEvents.Any() ? streamEvents[0].Checkpoint : 0;
 
-                    return new AllEventsPage(
+                    return new AllMessagesPage(
                         fromCheckpointExclusive,
                         nextCheckpoint,
                         isEnd,

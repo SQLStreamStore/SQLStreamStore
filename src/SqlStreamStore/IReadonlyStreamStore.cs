@@ -8,12 +8,12 @@
 
     public interface IReadonlyStreamStore : IDisposable
     {
-        Task<AllEventsPage> ReadAllForwards(
+        Task<AllMessagesPage> ReadAllForwards(
             long fromCheckpointInclusive,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken));
 
-        Task<AllEventsPage> ReadAllBackwards(
+        Task<AllMessagesPage> ReadAllBackwards(
             long fromCheckpointInclusive,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken));
@@ -33,14 +33,14 @@
         Task<IStreamSubscription> SubscribeToStream(
             string streamId,
             int fromVersionExclusive,
-            StreamEventReceived streamEventReceived,
+            StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null,
             CancellationToken cancellationToken = default(CancellationToken));
 
         Task<IAllStreamSubscription> SubscribeToAll(
             long? fromCheckpointExclusive,
-            StreamEventReceived streamEventReceived,
+            StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null,
             CancellationToken cancellationToken = default(CancellationToken));

@@ -14,11 +14,11 @@
         public AllStreamSubscription(
             long? fromCheckpoint,
             IReadonlyStreamStore readonlyStreamStore,
-            IObservable<Unit> eventStoreAppendedNotification,
-            StreamEventReceived streamEventReceived,
+            IObservable<Unit> streamStoreAppendedNotification,
+            StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null)
-            :base(readonlyStreamStore, eventStoreAppendedNotification, streamEventReceived, subscriptionDropped, name)
+            :base(readonlyStreamStore, streamStoreAppendedNotification, streamMessageReceived, subscriptionDropped, name)
         {
             FromCheckpoint = fromCheckpoint;
             LastCheckpoint = fromCheckpoint;
@@ -64,7 +64,7 @@
                 }
                 try
                 {
-                    await StreamEventReceived(streamEvent).NotOnCapturedContext();
+                    await StreamMessageReceived(streamEvent).NotOnCapturedContext();
                     LastCheckpoint = streamEvent.Checkpoint;
                     _nextCheckpoint = streamEvent.Checkpoint + 1;
                 }

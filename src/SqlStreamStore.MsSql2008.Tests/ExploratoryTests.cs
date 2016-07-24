@@ -12,15 +12,15 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
-                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
 
                     var stopwatch = Stopwatch.StartNew();
 
                     for(int i = 0; i < 1000; i++)
                     {
-                        await eventStore.ReadHeadCheckpoint();
+                        await store.ReadHeadCheckpoint();
                     }
 
                     _testOutputHelper.WriteLine(stopwatch.ElapsedMilliseconds.ToString());

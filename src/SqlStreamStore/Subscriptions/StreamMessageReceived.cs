@@ -3,5 +3,5 @@
     using System.Threading.Tasks;
     using SqlStreamStore.Streams;
 
-    public delegate Task StreamEventReceived(StreamMessage streamMessage);
+    public delegate Task StreamMessageReceived(StreamMessage streamMessage);
 }

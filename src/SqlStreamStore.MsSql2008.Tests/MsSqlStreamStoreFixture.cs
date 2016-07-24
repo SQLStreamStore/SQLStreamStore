@@ -37,27 +37,27 @@ namespace SqlStreamStore
                 Schema = _schema,
                 GetUtcNow = () => GetUtcNow()
             };
-            var eventStore = new MsSqlStreamStore(settings);
-            await eventStore.DropAll(ignoreErrors: true);
-            await eventStore.InitializeStore();
+            var store = new MsSqlStreamStore(settings);
+            await store.DropAll(ignoreErrors: true);
+            await store.InitializeStore();
 
-            return eventStore;
+            return store;
         }
 
-        public async Task<IStreamStore> GetEventStore(string schema)
+        public async Task<IStreamStore> GetStreamStore(string schema)
         {
             var settings = new MsSqlStreamStoreSettings(ConnectionString)
             {
                 Schema = schema,
                 GetUtcNow = () => GetUtcNow()
             };
-            var eventStore = new MsSqlStreamStore(settings);
-            await eventStore.InitializeStore();
+            var store = new MsSqlStreamStore(settings);
+            await store.InitializeStore();
 
-            return eventStore;
+            return store;
         }
 
-        public async Task<MsSqlStreamStore> GetMsSqlEventStore()
+        public async Task<MsSqlStreamStore> GetMsSqlStreamStore()
         {
             await CreateDatabase();
 
@@ -67,11 +67,11 @@ namespace SqlStreamStore
                 GetUtcNow = () => GetUtcNow()
             };
 
-            var eventStore = new MsSqlStreamStore(settings);
-            await eventStore.DropAll(ignoreErrors: true);
-            await eventStore.InitializeStore();
+            var store = new MsSqlStreamStore(settings);
+            await store.DropAll(ignoreErrors: true);
+            await store.InitializeStore();
 
-            return eventStore;
+            return store;
         }
 
         public override void Dispose()

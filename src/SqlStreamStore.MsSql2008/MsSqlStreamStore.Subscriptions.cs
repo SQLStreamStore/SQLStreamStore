@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore
+namespace SqlStreamStore
 {
     using System.Threading;
     using System.Threading.Tasks;
@@ -9,7 +9,7 @@
         protected override async Task<IStreamSubscription> SubscribeToStreamInternal(
             string streamId,
             int startVersion,
-            StreamEventReceived streamEventReceived,
+            StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             string name,
             CancellationToken cancellationToken)
@@ -19,7 +19,7 @@
                 startVersion,
                 this,
                 GetStoreObservable,
-                streamEventReceived,
+                streamMessageReceived,
                 subscriptionDropped);
 
             await subscription.Start(cancellationToken);
@@ -29,7 +29,7 @@
 
         protected override async Task<IAllStreamSubscription> SubscribeToAllInternal(
             long? fromCheckpoint,
-            StreamEventReceived streamEventReceived,
+            StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             string name,
             CancellationToken cancellationToken)
@@ -38,7 +38,7 @@
                 fromCheckpoint,
                 this,
                 GetStoreObservable,
-                streamEventReceived,
+                streamMessageReceived,
                 subscriptionDropped, 
                 name);
 

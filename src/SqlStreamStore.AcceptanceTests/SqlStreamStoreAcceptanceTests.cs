@@ -72,20 +72,20 @@
             {
                 var eventNumber = startId + i;
                 var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
-                var newStreamEvent = new NewStreamMessage(eventId, "type", "\"data\"", "\"metadata\"");
-                streamEvents.Add(newStreamEvent);
+                var newStreamMessage = new NewStreamMessage(eventId, "type", "\"data\"", "\"metadata\"");
+                streamEvents.Add(newStreamMessage);
             }
             return streamEvents.ToArray();
         }
 
-        private static StreamMessage ExpectedStreamEvent(
+        private static StreamMessage ExpectedStreamMessage(
             string streamId,
             int eventNumber,
             int sequenceNumber,
             DateTime created)
         {
-            var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
-            return new StreamMessage(streamId, eventId, sequenceNumber, 0, created, "type", "\"data\"", "\"metadata\"");
+            var id = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
+            return new StreamMessage(streamId, id, sequenceNumber, 0, created, "type", "\"data\"", "\"metadata\"");
         }
     }
 

@@ -17,11 +17,11 @@
             string streamId,
             int startVersion,
             IReadonlyStreamStore readonlyStreamStore,
-            IObservable<Unit> eventStoreAppendedNotification,
-            StreamEventReceived streamEventReceived,
+            IObservable<Unit> streamStoreAppendedNotification,
+            StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             string name = null)
-            :base(readonlyStreamStore, eventStoreAppendedNotification, streamEventReceived, subscriptionDropped, name)
+            :base(readonlyStreamStore, streamStoreAppendedNotification, streamMessageReceived, subscriptionDropped, name)
         {
             _streamId = streamId;
             _nextVersion = startVersion;
@@ -70,7 +70,7 @@
                 _lastVersion = streamEvent.StreamVersion;
                 try
                 {
-                    await StreamEventReceived(streamEvent).NotOnCapturedContext();
+                    await StreamMessageReceived(streamEvent).NotOnCapturedContext();
                 }
                 catch(Exception ex)
                 {

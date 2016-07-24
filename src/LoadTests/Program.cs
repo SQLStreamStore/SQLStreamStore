@@ -44,11 +44,11 @@
             {
                 using(var fixture = new MsSqlStreamStoreFixture("dbo"))
                 {
-                    using(var eventStore = await fixture.GetStreamStore())
+                    using(var store = await fixture.GetStreamStore())
                     {
                         using(var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
                         {
-                            await RunLoadTest(cts, eventStore);
+                            await RunLoadTest(cts, store);
                         }
                     }
                 }

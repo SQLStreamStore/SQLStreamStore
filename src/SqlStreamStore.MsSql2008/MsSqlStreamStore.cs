@@ -15,7 +15,7 @@
     public sealed partial class MsSqlStreamStore : StreamStoreBase
     {
         private readonly Func<SqlConnection> _createConnection;
-        private readonly AsyncLazy<IEventStoreNotifier> _eventStoreNotifier;
+        private readonly AsyncLazy<IStreamStoreNotifier> _streamStoreNotifier;
         private readonly Scripts _scripts;
         private readonly SqlMetaData[] _appendToStreamSqlMetadata;
 
@@ -26,15 +26,15 @@
             Ensure.That(settings, nameof(settings)).IsNotNull();
 
             _createConnection = () => new SqlConnection(settings.ConnectionString);
-            _eventStoreNotifier = new AsyncLazy<IEventStoreNotifier>(
+            _streamStoreNotifier = new AsyncLazy<IStreamStoreNotifier>(
                 async () =>
                 {
-                    if(settings.CreateEventStoreNotifier == null)
+                    if(settings.CreateStreamStoreNotifier == null)
                     {
                         throw new InvalidOperationException(
-                            "Cannot create notifier because supplied createEventStoreNotifier was null");
+                            "Cannot create notifier because supplied createStreamStoreNotifier was null");
                     }
-                    return await settings.CreateEventStoreNotifier(this).NotOnCapturedContext();
+                    return await settings.CreateStreamStoreNotifier(this).NotOnCapturedContext();
                 });
             _scripts = new Scripts(settings.Schema);
 
@@ -197,15 +197,15 @@
         {
             if(disposing)
             {
-                if(_eventStoreNotifier.IsValueCreated)
+                if(_streamStoreNotifier.IsValueCreated)
                 {
-                    _eventStoreNotifier.Value.Dispose();
+                    _streamStoreNotifier.Value.Dispose();
                 }
             }
             base.Dispose(disposing);
         }
 
-        private IObservable<Unit> GetStoreObservable => _eventStoreNotifier.Value.Result;
+        private IObservable<Unit> GetStoreObservable => _streamStoreNotifier.Value.Result;
 
         private static async Task<T> ExecuteAndIgnoreErrors<T>(Func<Task<T>> operation)
         {

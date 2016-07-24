@@ -25,11 +25,11 @@
         {
             using (var fixture = GetFixture())
             {
-                var eventStore = await fixture.GetStreamStore();
+                var store = await fixture.GetStreamStore();
 
-                await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
 
-                var head = await eventStore.ReadHeadCheckpoint();
+                var head = await store.ReadHeadCheckpoint();
 
                 head.ShouldBe(2);
             }

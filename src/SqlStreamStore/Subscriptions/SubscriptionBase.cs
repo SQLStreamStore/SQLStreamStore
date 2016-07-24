@@ -9,21 +9,21 @@
     public abstract class SubscriptionBase : IDisposable
     {
         private int _pageSize = 50;
-        private IDisposable _eventStoreAppendedSubscription;
+        private IDisposable _streamStoreAppendedSubscription;
         private readonly InterlockedBoolean _shouldFetch = new InterlockedBoolean();
         private readonly InterlockedBoolean _isFetching = new InterlockedBoolean();
         private readonly CancellationTokenSource _isDisposed = new CancellationTokenSource();
 
         protected SubscriptionBase(
             IReadonlyStreamStore readonlyStreamStore,
-            IObservable<Unit> eventStoreAppendedNotification,
-            StreamEventReceived streamEventReceived,
+            IObservable<Unit> streamStoreAppendedNotification,
+            StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null)
         {
             ReadonlyStreamStore = readonlyStreamStore;
-            EventStoreAppendedNotification = eventStoreAppendedNotification;
-            StreamEventReceived = streamEventReceived;
+            StreamStoreAppendedNotification = streamStoreAppendedNotification;
+            StreamMessageReceived = streamMessageReceived;
             Name = string.IsNullOrWhiteSpace(name) ? Guid.NewGuid().ToString() : name;
             SubscriptionDropped = subscriptionDropped ?? ((_, __) => { });
         }
@@ -36,19 +36,19 @@
             set { _pageSize = (value <= 0) ? 1 : value; }
         }
 
-        protected IObservable<Unit> EventStoreAppendedNotification { get; }
+        protected IObservable<Unit> StreamStoreAppendedNotification { get; }
 
         protected CancellationToken IsDisposed => _isDisposed.Token;
 
         protected IReadonlyStreamStore ReadonlyStreamStore { get; }
 
-        protected StreamEventReceived StreamEventReceived { get; }
+        protected StreamMessageReceived StreamMessageReceived { get; }
 
         protected SubscriptionDropped SubscriptionDropped { get; }
 
         public virtual Task Start(CancellationToken cancellationToken)
         {
-            _eventStoreAppendedSubscription = EventStoreAppendedNotification.Subscribe(_ =>
+            _streamStoreAppendedSubscription = StreamStoreAppendedNotification.Subscribe(_ =>
             {
                 _shouldFetch.Set(true);
                 Fetch();
@@ -72,7 +72,7 @@
         {
             if (disposing)
             {
-                _eventStoreAppendedSubscription?.Dispose();
+                _streamStoreAppendedSubscription?.Dispose();
                 _isDisposed.Cancel();
             }
         }

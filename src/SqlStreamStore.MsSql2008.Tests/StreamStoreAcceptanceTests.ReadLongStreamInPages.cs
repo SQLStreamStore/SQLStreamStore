@@ -15,14 +15,13 @@ namespace SqlStreamStore
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     var eventsToWrite = CreateNewStreamEvents();
 
-                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, eventsToWrite);
+                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, eventsToWrite);
 
-
-                    var readEvents = await new PagedEventStore(eventStore).GetAsync("stream-1");
+                    var readEvents = await new PagedStreamStore(store).GetAsync("stream-1");
 
                     readEvents.Count().ShouldBe(eventsToWrite.Length);
                 }
@@ -44,11 +43,11 @@ namespace SqlStreamStore
         }
     }
 
-    public class PagedEventStore
+    public class PagedStreamStore
     {
         private readonly IStreamStore _streamStore;
 
-        public PagedEventStore(IStreamStore streamStore)
+        public PagedStreamStore(IStreamStore streamStore)
         {
             _streamStore = streamStore;
         }

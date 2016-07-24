@@ -14,7 +14,7 @@
             using(var store = new InMemoryStreamStore())
             {
                 var eventReceivedException = new TaskCompletionSource<Exception>();
-                StreamEventReceived eventReceived = _ =>
+                StreamMessageReceived messageReceived = _ =>
                 {
                     throw new Exception();
                 };
@@ -23,7 +23,7 @@
                     eventReceivedException.SetResult(exception);
                 };
                 string streamId = "stream-1";
-                using(await store.SubscribeToStream("stream-1", StreamVersion.Start, eventReceived, subscriptionDropped))
+                using(await store.SubscribeToStream("stream-1", StreamVersion.Start, messageReceived, subscriptionDropped))
                 {
                     await store.AppendToStream(streamId,
                         ExpectedVersion.NoStream,

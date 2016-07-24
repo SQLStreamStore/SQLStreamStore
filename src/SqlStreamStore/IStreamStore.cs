@@ -52,13 +52,13 @@
 
         /// <summary>
         ///     Hard deletes an event from the stream. Deleting an event message will result in an '$event-deleted'
-        ///     event being appended to the '$deleted' stream.
+        ///     message being appended to the '$deleted' stream.
         /// </summary>
         /// <param name="streamId">
         ///     The stream Id to delete.
         /// </param>
-        /// <param name="eventId">
-        ///     The Id of the event to delete. If the event doesn't exist, nothing occurs.
+        /// <param name="messageId">
+        ///     The Id of the message to delete. If the message  doesn't exist, nothing occurs.
         /// </param>
         /// <param name="cancellationToken">
         ///     The cancellation instruction.
@@ -66,9 +66,9 @@
         /// <returns>
         ///     A task representing the asynchronous operation.
         /// </returns>
-        Task DeleteEvent(
+        Task DeleteMessage(
             string streamId,
-            Guid eventId,
+            Guid messageId,
             CancellationToken cancellationToken = default(CancellationToken));
 
         Task SetStreamMetadata(

@@ -1,6 +1,6 @@
 ﻿namespace SqlStreamStore.Streams
 {
-    public sealed class AllEventsPage
+    public sealed class AllMessagesPage
     {
         public readonly long FromCheckpoint;
         public readonly long NextCheckpoint;
@@ -8,7 +8,7 @@
         public readonly ReadDirection Direction;
         public readonly StreamMessage[] StreamMessages;
 
-        public AllEventsPage(
+        public AllMessagesPage(
             long fromCheckpoint,
             long nextCheckpoint,
             bool isEnd,

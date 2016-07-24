@@ -26,7 +26,7 @@
             {
                 using(var dboStore = await fixture.GetStreamStore())
                 {
-                    using(var barStore = await fixture.GetEventStore("bar"))
+                    using(var barStore = await fixture.GetStreamStore("bar"))
                     {
                         await dboStore.AppendToStream("stream-1",
                                 ExpectedVersion.NoStream,
@@ -50,7 +50,7 @@
         {
             using (var fixture = new MsSqlStreamStoreFixture("dbo"))
             {
-                using (var store = await fixture.GetMsSqlEventStore())
+                using (var store = await fixture.GetMsSqlStreamStore())
                 {
                     var streamId = "stream-1";
                     await store.AppendToStream(
@@ -70,7 +70,7 @@
         {
             using (var fixture = new MsSqlStreamStoreFixture("dbo"))
             {
-                using (var store = await fixture.GetMsSqlEventStore())
+                using (var store = await fixture.GetMsSqlStreamStore())
                 {
                     var streamId = "stream-doesnotexist";
 
@@ -86,7 +86,7 @@
         {
             using (var fixture = new MsSqlStreamStoreFixture("dbo"))
             {
-                using (var store = await fixture.GetMsSqlEventStore())
+                using (var store = await fixture.GetMsSqlStreamStore())
                 {
                     fixture.GetUtcNow = () => new DateTime(2016, 1, 1, 0, 0, 0);
 

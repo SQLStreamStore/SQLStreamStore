@@ -51,6 +51,7 @@
     <Compile Include="MsSqlEventStore.StreamMetadata.cs" />
     <Compile Include="MsSqlEventStore.ReadAll.cs" />
     <Compile Include="MsSqlEventStore.Subscriptions.cs" />
+    <Compile Include="MsSqlEventStoreSettings.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="MsSqlExceptionExtensions.cs" />
     <Compile Include="MsSqlScripts\Scripts.cs" />

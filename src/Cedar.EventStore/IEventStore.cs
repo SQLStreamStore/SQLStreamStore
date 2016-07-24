@@ -71,10 +71,6 @@
             Guid eventId,
             CancellationToken cancellationToken = default(CancellationToken));
 
-        Task<StreamMetadataResult> GetStreamMetadata(
-            string streamId,
-            CancellationToken cancellationToken = default(CancellationToken));
-
         Task SetStreamMetadata(
             string streamId,
             int expectedStreamMetadataVersion = ExpectedVersion.Any,

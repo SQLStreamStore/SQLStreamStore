@@ -46,5 +46,9 @@
             CancellationToken cancellationToken = default(CancellationToken));
 
         Task<long> ReadHeadCheckpoint(CancellationToken cancellationToken = default(CancellationToken));
+
+        Task<StreamMetadataResult> GetStreamMetadata(
+            string streamId,
+            CancellationToken cancellationToken = default(CancellationToken));
     }
 }

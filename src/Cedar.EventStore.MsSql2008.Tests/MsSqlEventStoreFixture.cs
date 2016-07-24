@@ -4,7 +4,6 @@ namespace Cedar.EventStore
     using System.Data.SqlClient;
     using System.Data.SqlLocalDb;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Subscriptions;
 
     public class MsSqlEventStoreFixture : EventStoreAcceptanceTestFixture
     {
@@ -33,11 +32,12 @@ namespace Cedar.EventStore
         {
             await CreateDatabase();
 
-            var eventStore = new MsSqlEventStore(
-                ConnectionString,
-                Poller.CreateEventStoreNotifier(),
-                _schema,
-                getUtcNow: () => GetUtcNow());
+            var settings = new MsSqlEventStoreSettings(ConnectionString)
+            {
+                Schema = _schema,
+                GetUtcNow = () => GetUtcNow()
+            };
+            var eventStore = new MsSqlEventStore(settings);
             await eventStore.DropAll(ignoreErrors: true);
             await eventStore.InitializeStore();
 
@@ -46,11 +46,12 @@ namespace Cedar.EventStore
 
         public async Task<IEventStore> GetEventStore(string schema)
         {
-            var eventStore = new MsSqlEventStore(
-                ConnectionString,
-                Poller.CreateEventStoreNotifier(),
-                schema,
-                getUtcNow: () => GetUtcNow());
+            var settings = new MsSqlEventStoreSettings(ConnectionString)
+            {
+                Schema = schema,
+                GetUtcNow = () => GetUtcNow()
+            };
+            var eventStore = new MsSqlEventStore(settings);
             await eventStore.InitializeStore();
 
             return eventStore;
@@ -60,11 +61,13 @@ namespace Cedar.EventStore
         {
             await CreateDatabase();
 
-            var eventStore = new MsSqlEventStore(
-                ConnectionString,
-                Poller.CreateEventStoreNotifier(),
-                _schema,
-                getUtcNow: () => GetUtcNow());
+            var settings = new MsSqlEventStoreSettings(ConnectionString)
+            {
+                Schema = _schema,
+                GetUtcNow = () => GetUtcNow()
+            };
+
+            var eventStore = new MsSqlEventStore(settings);
             await eventStore.DropAll(ignoreErrors: true);
             await eventStore.InitializeStore();
 

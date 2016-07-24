@@ -49,6 +49,7 @@
     </Compile>
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
     <Compile Include="Infrastructure\AsyncLazy.cs" />
+    <Compile Include="Infrastructure\MetadataMaxAgeCache.cs" />
     <Compile Include="Infrastructure\ReaderWriterLockSlimExtension.cs" />
     <Compile Include="Infrastructure\TaskQueue.cs" />
     <Compile Include="Infrastructure\EnsureThatExtensions.cs" />
@@ -82,7 +83,7 @@
     <Compile Include="Streams\Messages.cs" />
     <Compile Include="Subscriptions\CreateEventStoreNotifier.cs" />
     <Compile Include="Subscriptions\IEventStoreNotifier.cs" />
-    <Compile Include="Subscriptions\Poller.cs" />
+    <Compile Include="Subscriptions\PollingEventStoreNotifier.cs" />
     <Compile Include="Subscriptions\StreamEventReceived.cs" />
     <Compile Include="Streams\ExpectedVersion.cs" />
     <Compile Include="Streams\NewStreamEvent.cs" />

@@ -26,7 +26,7 @@ namespace Cedar.EventStore
         private int _currentCheckpoint = 0;
 
         public InMemoryEventStore(GetUtcNow getUtcNow = null, string logName = null)
-            : base(logName ?? nameof(InMemoryEventStore))
+            : base(TimeSpan.FromMinutes(1), 10000, getUtcNow, logName ?? nameof(InMemoryEventStore))
         {
             _getUtcNow = getUtcNow ?? SystemClock.GetUtcNow;
             _allStream.AddFirst(new InMemoryStreamEvent(

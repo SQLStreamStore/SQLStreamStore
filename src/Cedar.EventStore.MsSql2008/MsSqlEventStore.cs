@@ -17,34 +17,28 @@
         private readonly Func<SqlConnection> _createConnection;
         private readonly AsyncLazy<IEventStoreNotifier> _eventStoreNotifier;
         private readonly Scripts _scripts;
-        private readonly GetUtcNow _getUtcNow;
         private readonly SqlMetaData[] _appendToStreamSqlMetadata;
 
-        public MsSqlEventStore(
-            string connectionString,
-            CreateEventStoreNotifier createEventStoreNotifier,
-            string schema = "dbo",
-            string logName = "MsSqlEventStore",
-            GetUtcNow getUtcNow = null)
-            :base(logName)
+        public MsSqlEventStore(MsSqlEventStoreSettings settings)
+            :base(settings.MetadataMaxAgeCacheExpire, settings.MetadataMaxAgeCacheMaxSize,
+                 settings.GetUtcNow, settings.LogName)
         {
-            Ensure.That(connectionString, nameof(connectionString)).IsNotNullOrWhiteSpace();
+            Ensure.That(settings, nameof(settings)).IsNotNull();
 
-            _createConnection = () => new SqlConnection(connectionString);
+            _createConnection = () => new SqlConnection(settings.ConnectionString);
             _eventStoreNotifier = new AsyncLazy<IEventStoreNotifier>(
                 async () =>
                 {
-                    if(createEventStoreNotifier == null)
+                    if(settings.CreateEventStoreNotifier == null)
                     {
                         throw new InvalidOperationException(
                             "Cannot create notifier because supplied createEventStoreNotifier was null");
                     }
-                    return await createEventStoreNotifier(this).NotOnCapturedContext();
+                    return await settings.CreateEventStoreNotifier(this).NotOnCapturedContext();
                 });
-            _getUtcNow = getUtcNow;
-            _scripts = new Scripts(schema);
+            _scripts = new Scripts(settings.Schema);
 
-            var sqlMetaData = new List<SqlMetaData>()
+            var sqlMetaData = new List<SqlMetaData>
             {
                 new SqlMetaData("StreamVersion", SqlDbType.Int, true, false, SortOrder.Unspecified, -1),
                 new SqlMetaData("Id", SqlDbType.UniqueIdentifier),
@@ -54,9 +48,9 @@
                 new SqlMetaData("JsonMetadata", SqlDbType.NVarChar, SqlMetaData.Max)
             };
 
-            if(_getUtcNow != null)
+            if(settings.GetUtcNow != null)
             {
-                // Created will be client supplied so should prevent using of the column default function
+                // Created column value will be client supplied so should prevent using of the column default function
                 sqlMetaData[2] = new SqlMetaData("Created", SqlDbType.DateTime);
             }
 

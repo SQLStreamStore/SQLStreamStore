@@ -6,13 +6,13 @@
     using Cedar.EventStore.Infrastructure;
     using Timer = System.Timers.Timer;
 
-    public sealed class Poller : IEventStoreNotifier
+    public sealed class PollingEventStoreNotifier : IEventStoreNotifier
     {
         public static CreateEventStoreNotifier CreateEventStoreNotifier(int interval = 1000)
         {
             return async readOnlyEventStore =>
             {
-                var poller = new Poller(readOnlyEventStore, interval);
+                var poller = new PollingEventStoreNotifier(readOnlyEventStore, interval);
                 await poller.Start().NotOnCapturedContext();
                 return poller;
             };
@@ -24,7 +24,7 @@
         private readonly Timer _timer;
         private long _headCheckpoint = -1;
 
-        public Poller(IReadOnlyEventStore readOnlyEventStore, int interval = 1000)
+        public PollingEventStoreNotifier(IReadOnlyEventStore readOnlyEventStore, int interval = 1000)
         {
             _readOnlyEventStore = readOnlyEventStore;
             _timer = new Timer(interval)

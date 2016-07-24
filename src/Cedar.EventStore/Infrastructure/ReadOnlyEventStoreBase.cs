@@ -1,6 +1,7 @@
 namespace Cedar.EventStore.Infrastructure
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using Cedar.EventStore.Logging;
@@ -10,12 +11,22 @@ namespace Cedar.EventStore.Infrastructure
 
     public abstract class ReadOnlyEventStoreBase : IReadOnlyEventStore
     {
+        protected readonly GetUtcNow GetUtcNow;
         protected readonly ILog Logger;
         private bool _isDisposed;
+        private readonly MetadataMaxAgeCache _metadataMaxAgeCache;
 
-        protected ReadOnlyEventStoreBase(string logName)
+        protected ReadOnlyEventStoreBase(
+            TimeSpan metadataMaxAgeCacheExpiry,
+            int metadataMaxAgeCacheMaxSize,
+            GetUtcNow getUtcNow,
+            string logName)
         {
+            GetUtcNow = getUtcNow ?? SystemClock.GetUtcNow;
             Logger = LogProvider.GetLogger(logName);
+
+            _metadataMaxAgeCache = new MetadataMaxAgeCache(this, metadataMaxAgeCacheExpiry,
+                metadataMaxAgeCacheMaxSize, GetUtcNow);
         }
 
         public async Task<AllEventsPage> ReadAllForwards(
@@ -28,15 +39,11 @@ namespace Cedar.EventStore.Infrastructure
 
             CheckIfDisposed();
 
-            Func<Task<AllEventsPage>> operation =
-                () => ReadAllForwardsInternal(fromCheckpointInclusive, maxCount, cancellationToken);
-
-            return await operation.Measure(Logger,
-                (page, elapsed) => $"{nameof(ReadAllForwards)} from {fromCheckpointInclusive} with max of {maxCount} " +
-                                   $"returned [{page}]");
+            var page = await ReadAllForwardsInternal(fromCheckpointInclusive, maxCount, cancellationToken);
+            return await FilterExpired(page, cancellationToken);
         }
 
-        public Task<AllEventsPage> ReadAllBackwards(
+        public async Task<AllEventsPage> ReadAllBackwards(
             long fromCheckpointInclusive,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -46,10 +53,11 @@ namespace Cedar.EventStore.Infrastructure
 
             CheckIfDisposed();
 
-            return ReadAllBackwardsInternal(fromCheckpointInclusive, maxCount, cancellationToken);
+            var page = await ReadAllBackwardsInternal(fromCheckpointInclusive, maxCount, cancellationToken);
+            return await FilterExpired(page, cancellationToken);
         }
 
-        public Task<StreamEventsPage> ReadStreamForwards(
+        public async Task<StreamEventsPage> ReadStreamForwards(
             string streamId,
             int fromVersionInclusive,
             int maxCount,
@@ -61,10 +69,11 @@ namespace Cedar.EventStore.Infrastructure
 
             CheckIfDisposed();
 
-            return ReadStreamForwardsInternal(streamId, fromVersionInclusive, maxCount, cancellationToken);
+            var page = await ReadStreamForwardsInternal(streamId, fromVersionInclusive, maxCount, cancellationToken);
+            return await FilterExpired(page, cancellationToken);
         }
 
-        public Task<StreamEventsPage> ReadStreamBackwards(
+        public async Task<StreamEventsPage> ReadStreamBackwards(
             string streamId,
             int fromVersionInclusive,
             int maxCount,
@@ -76,7 +85,8 @@ namespace Cedar.EventStore.Infrastructure
 
             CheckIfDisposed();
 
-            return ReadStreamBackwardsInternal(streamId, fromVersionInclusive, maxCount, cancellationToken);
+            var page = await ReadStreamBackwardsInternal(streamId, fromVersionInclusive, maxCount, cancellationToken);
+            return await FilterExpired(page, cancellationToken);
         }
 
         public Task<IStreamSubscription> SubscribeToStream(
@@ -118,6 +128,15 @@ namespace Cedar.EventStore.Infrastructure
                 cancellationToken);
         }
 
+        public Task<StreamMetadataResult> GetStreamMetadata(
+           string streamId,
+           CancellationToken cancellationToken = default(CancellationToken))
+        {
+            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
+
+            return GetStreamMetadataInternal(streamId, cancellationToken);
+        }
+
         public Task<long> ReadHeadCheckpoint(CancellationToken cancellationToken)
         {
             CheckIfDisposed();
@@ -154,6 +173,8 @@ namespace Cedar.EventStore.Infrastructure
             int count,
             CancellationToken cancellationToken);
 
+        protected abstract Task<long> ReadHeadCheckpointInternal(CancellationToken cancellationToken);
+
         protected abstract Task<IStreamSubscription> SubscribeToStreamInternal(
             string streamId,
             int startVersion,
@@ -162,13 +183,15 @@ namespace Cedar.EventStore.Infrastructure
             string name,
             CancellationToken cancellationToken);
 
-        protected abstract Task<long> ReadHeadCheckpointInternal(CancellationToken cancellationToken);
-
         protected abstract Task<IAllStreamSubscription> SubscribeToAllInternal(
             long? fromCheckpoint,
             StreamEventReceived streamEventReceived,
             SubscriptionDropped subscriptionDropped,
             string name,
+            CancellationToken cancellationToken);
+
+        protected abstract Task<StreamMetadataResult> GetStreamMetadataInternal(
+            string streamId,
             CancellationToken cancellationToken);
 
         protected virtual void Dispose(bool disposing)
@@ -180,6 +203,84 @@ namespace Cedar.EventStore.Infrastructure
             {
                 throw new ObjectDisposedException(GetType().Name);
             }
+        }
+
+        protected virtual void PurgeExpiredEvent(StreamEvent streamEvent)
+        {
+            //This is a no-op as this class is ReadOnly.
+        }
+
+        private async Task<StreamEventsPage> FilterExpired(
+            StreamEventsPage page,
+            CancellationToken cancellationToken)
+        {
+            if(page.StreamId.StartsWith("$"))
+            {
+                return page;
+            }
+            var maxAge = await _metadataMaxAgeCache.GetMaxAge(page.StreamId, cancellationToken);
+            if (!maxAge.HasValue)
+            {
+                return page;
+            }
+            var currentUtc = GetUtcNow().DateTime;
+            var valid = new List<StreamEvent>();
+            foreach(var streamEvent in page.Events)
+            {
+                if(streamEvent.Created.AddSeconds(maxAge.Value) > currentUtc)
+                {
+                    valid.Add(streamEvent);
+                }
+                else
+                {
+                    PurgeExpiredEvent(streamEvent);
+                }
+            }
+            return new StreamEventsPage(
+                page.StreamId,
+                page.Status,
+                page.FromStreamVersion,
+                page.NextStreamVersion,
+                page.LastStreamVersion,
+                page.ReadDirection,
+                page.IsEndOfStream,
+                valid.ToArray());
+        }
+
+        private async Task<AllEventsPage> FilterExpired(
+           AllEventsPage page,
+           CancellationToken cancellationToken)
+        {
+            var valid = new List<StreamEvent>();
+            var currentUtc = GetUtcNow().DateTime;
+            foreach (var streamEvent in page.StreamEvents)
+            {
+                if(streamEvent.StreamId.StartsWith("$"))
+                {
+                    valid.Add(streamEvent);
+                    continue;
+                }
+                var maxAge = await _metadataMaxAgeCache.GetMaxAge(streamEvent.StreamId, cancellationToken);
+                if (!maxAge.HasValue)
+                {
+                    valid.Add(streamEvent);
+                    continue;
+                }
+                if (streamEvent.Created.AddSeconds(maxAge.Value) > currentUtc)
+                {
+                    valid.Add(streamEvent);
+                }
+                else
+                {
+                    PurgeExpiredEvent(streamEvent);
+                }
+            }
+            return new AllEventsPage(
+                page.FromCheckpoint,
+                page.NextCheckpoint,
+                page.IsEnd,
+                page.Direction,
+                valid.ToArray());
         }
 
         ~ReadOnlyEventStoreBase()

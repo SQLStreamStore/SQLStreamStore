@@ -348,7 +348,7 @@
 
         private SqlDataRecord[] CreateSqlDataRecords(NewStreamEvent[] events)
         {
-            var dateTime = _getUtcNow().DateTime;
+            var dateTime = GetUtcNow().DateTime;
             var sqlDataRecords = events.Select(@event =>
             {
                 var record = new SqlDataRecord(_appendToStreamSqlMetadata);

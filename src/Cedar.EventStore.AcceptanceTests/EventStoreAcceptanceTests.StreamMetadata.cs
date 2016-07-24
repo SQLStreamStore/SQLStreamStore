@@ -1,6 +1,7 @@
 ﻿namespace Cedar.EventStore
 {
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
     using Cedar.EventStore.Streams;
     using Shouldly;
@@ -29,7 +30,7 @@
         }
 
         [Fact]
-        public async Task Can_set_and_get_stream_metadata()
+        public async Task Can_set_and_get_stream_metadata_for_non_existent_stream()
         {
             using(var fixture = GetFixture())
             {
@@ -51,7 +52,7 @@
         }
 
         [Fact]
-        public async Task Can_set_and_get_stream_metadata_2()
+        public async Task Can_set_and_get_stream_metadata_after_stream_is_created()
         {
             using (var fixture = GetFixture())
             {
@@ -60,7 +61,8 @@
                     string streamId = "stream-1";
 
                     await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEventSequence(1, 4));
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEventSequence(1, 4));
+
                     await eventStore
                         .SetStreamMetadata(streamId, maxAge: 2, maxCount: 3, metadataJson: "meta");
 
@@ -86,7 +88,7 @@
                     await eventStore
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
                     await eventStore
-                        .SetStreamMetadata(streamId, maxAge: 2, maxCount: 3, metadataJson: "meta");
+                        .SetStreamMetadata(streamId, maxCount: 3, metadataJson: "meta");
 
                     await eventStore.DeleteStream(streamId);
 
@@ -113,7 +115,7 @@
                     string streamId = "stream-1";
                     int maxCount = 2;
                     await store
-                        .SetStreamMetadata(streamId, maxAge: 2, maxCount: maxCount, metadataJson: "meta");
+                        .SetStreamMetadata(streamId, maxCount: maxCount, metadataJson: "meta");
                     await store
                         .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3, 4));
 
@@ -137,11 +139,137 @@
                     await store
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3, 4));
                     await store
-                        .SetStreamMetadata(streamId, maxAge: 2, maxCount: maxCount, metadataJson: "meta");
+                        .SetStreamMetadata(streamId, maxCount: maxCount, metadataJson: "meta");
 
                     var eventsPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 4);
 
                     eventsPage.Events.Length.ShouldBe(maxCount);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_stream_has_expired_events_and_read_forwards_then_should_not_get_expired_events()
+        {
+            using (var fixture = GetFixture())
+            {
+                var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
+                fixture.GetUtcNow = () => currentUtc;
+                using (var store = await fixture.GetEventStore())
+                {
+                    string streamId = "stream-1";
+                    await store
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3, 4));
+                    currentUtc += TimeSpan.FromSeconds(60);
+                    await store
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(5, 6, 7, 8));
+                    await store
+                        .SetStreamMetadata(streamId, maxAge: 30, metadataJson: "meta");
+
+                    var eventsPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 8);
+
+                    eventsPage.Events.Length.ShouldBe(4);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_stream_has_expired_events_and_read_backward_then_should_not_get_expired_events()
+        {
+            using (var fixture = GetFixture())
+            {
+                var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
+                fixture.GetUtcNow = () => currentUtc;
+                using (var store = await fixture.GetEventStore())
+                {
+                    string streamId = "stream-1";
+                    await store
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3, 4));
+                    currentUtc += TimeSpan.FromSeconds(60);
+                    await store
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(5, 6, 7, 8));
+                    await store
+                        .SetStreamMetadata(streamId, maxAge: 30, metadataJson: "meta");
+
+                    var eventsPage = await store.ReadStreamBackwards(streamId, StreamVersion.End, 8);
+
+                    eventsPage.Events.Length.ShouldBe(4);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_streams_have_expired_events_and_read_all_forwards_then_should_not_get_expired_events()
+        {
+            using (var fixture = GetFixture())
+            {
+                var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
+                fixture.GetUtcNow = () => currentUtc;
+                using (var store = await fixture.GetEventStore())
+                {
+                    // Arrange
+                    string streamId1 = "stream-1", streamId2 = "streamId-2";
+                    await store
+                        .AppendToStream(streamId1, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2));
+                    await store
+                        .AppendToStream(streamId2, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3, 4));
+
+                    currentUtc += TimeSpan.FromSeconds(60);
+
+                    await store
+                        .AppendToStream(streamId1, ExpectedVersion.Any, CreateNewStreamEvents(5, 6));
+                    await store
+                        .AppendToStream(streamId2, ExpectedVersion.Any, CreateNewStreamEvents(5, 6, 7, 8));
+
+                    await store
+                        .SetStreamMetadata(streamId1, maxAge: 30, metadataJson: "meta");
+                    await store
+                        .SetStreamMetadata(streamId2, maxAge: 30, metadataJson: "meta");
+
+                    // Act
+                    var eventsPage = await store.ReadAllForwards(Checkpoint.Start, 20);
+
+                    // Assert
+                    eventsPage.StreamEvents.Where(streamEvent => streamEvent.StreamId == streamId1).Count().ShouldBe(2);
+                    eventsPage.StreamEvents.Where(streamEvent => streamEvent.StreamId == streamId2).Count().ShouldBe(4);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_streams_have_expired_events_and_read_all_backwards_then_should_not_get_expired_events()
+        {
+            using (var fixture = GetFixture())
+            {
+                var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
+                fixture.GetUtcNow = () => currentUtc;
+                using (var store = await fixture.GetEventStore())
+                {
+                    // Arrange
+                    string streamId1 = "stream-1", streamId2 = "streamId-2";
+                    await store
+                        .AppendToStream(streamId1, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2));
+                    await store
+                        .AppendToStream(streamId2, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3, 4));
+
+                    currentUtc += TimeSpan.FromSeconds(60);
+
+                    await store
+                        .AppendToStream(streamId1, ExpectedVersion.Any, CreateNewStreamEvents(5, 6));
+                    await store
+                        .AppendToStream(streamId2, ExpectedVersion.Any, CreateNewStreamEvents(5, 6, 7, 8));
+
+                    await store
+                        .SetStreamMetadata(streamId1, maxAge: 30, metadataJson: "meta");
+                    await store
+                        .SetStreamMetadata(streamId2, maxAge: 30, metadataJson: "meta");
+
+                    // Act
+                    var eventsPage = await store.ReadAllBackwards(Checkpoint.End, 20);
+
+                    // Assert
+                    eventsPage.StreamEvents.Where(streamEvent => streamEvent.StreamId == streamId1).Count().ShouldBe(2);
+                    eventsPage.StreamEvents.Where(streamEvent => streamEvent.StreamId == streamId2).Count().ShouldBe(4);
                 }
             }
         }

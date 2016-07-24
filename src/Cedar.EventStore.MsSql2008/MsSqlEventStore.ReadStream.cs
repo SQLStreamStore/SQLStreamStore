@@ -72,8 +72,7 @@
 
                 using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
                 {
-                    bool b = await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
-                    if(!b)
+                    if(!await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                     {
                         return new StreamEventsPage(
                             sqlStreamId.IdOriginal,

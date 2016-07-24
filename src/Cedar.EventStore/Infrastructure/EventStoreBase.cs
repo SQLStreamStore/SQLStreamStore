@@ -8,8 +8,14 @@ namespace Cedar.EventStore.Infrastructure
 
     public abstract class EventStoreBase : ReadOnlyEventStoreBase, IEventStore
     {
-        protected EventStoreBase(string logName = null)
-            : base(logName)
+        private readonly TaskQueue _taskQueue = new TaskQueue();
+
+        protected EventStoreBase(
+            TimeSpan metadataMaxAgeCacheExpiry,
+            int metadataMaxAgeCacheMaxSize,
+            GetUtcNow getUtcNow,
+            string logName)
+            : base(metadataMaxAgeCacheExpiry, metadataMaxAgeCacheMaxSize, getUtcNow, logName)
         {}
 
         public Task AppendToStream(
@@ -43,21 +49,12 @@ namespace Cedar.EventStore.Infrastructure
             return DeleteEventInternal(streamId, eventId, cancellationToken);
         }
 
-        public Task<StreamMetadataResult> GetStreamMetadata(
-            string streamId,
-            CancellationToken cancellationToken = default(CancellationToken))
-        {
-            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
-
-            return GetStreamMetadataInternal(streamId, cancellationToken);
-        }
-
         public Task SetStreamMetadata(
             string streamId,
             int expectedStreamMetadataVersion,
-            int? maxAge,
-            int? maxCount,
-            string metadataJson,
+            int? maxAge = null,
+            int? maxCount = null,
+            string metadataJson = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
@@ -76,6 +73,11 @@ namespace Cedar.EventStore.Infrastructure
             string streamId,
             CancellationToken cancellationToken = default(CancellationToken));
 
+        protected override void PurgeExpiredEvent(StreamEvent streamEvent)
+        {
+            _taskQueue.Enqueue(ct => DeleteEventInternal(streamEvent.StreamId, streamEvent.EventId, ct));
+        }
+
         protected abstract Task AppendToStreamInternal(
             string streamId,
             int expectedVersion,
@@ -92,10 +94,6 @@ namespace Cedar.EventStore.Infrastructure
             Guid eventId,
             CancellationToken cancellationToken);
 
-        protected abstract Task<StreamMetadataResult> GetStreamMetadataInternal(
-            string streamId,
-            CancellationToken cancellationToken);
-
         protected abstract Task SetStreamMetadataInternal(
            string streamId,
            int expectedStreamMetadataVersion,
@@ -103,5 +101,14 @@ namespace Cedar.EventStore.Infrastructure
            int? maxCount,
            string metadataJson,
            CancellationToken cancellationToken);
+
+        protected override void Dispose(bool disposing)
+        {
+            if(disposing)
+            {
+                _taskQueue.Dispose();
+            }
+            base.Dispose(disposing);
+        }
     }
 }

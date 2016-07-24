@@ -58,17 +58,17 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Cedar.EventStore.MsSql2008.Tests\StreamStore.MsSql2008.Tests.csproj">
+    <ProjectReference Include="..\SqlStreamStore.MsSql2008.Tests\SqlStreamStore.MsSql2008.Tests.csproj">
       <Project>{97aa016b-0b9f-44c2-8228-a13b4e251fb0}</Project>
-      <Name>StreamStore.MsSql2008.Tests</Name>
+      <Name>SqlStreamStore.MsSql2008.Tests</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Cedar.EventStore.MsSql2008\StreamStore.MsSql2008.csproj">
+    <ProjectReference Include="..\SqlStreamStore.MsSql2008\SqlStreamStore.MsSql2008.csproj">
       <Project>{40510896-d9a1-4e22-8d11-e718857611f8}</Project>
-      <Name>StreamStore.MsSql2008</Name>
+      <Name>SqlStreamStore.MsSql2008</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Cedar.EventStore\StreamStore.csproj">
+    <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj">
       <Project>{5a8df1a1-9b3b-499d-b9e9-a5e0f6f06953}</Project>
-      <Name>StreamStore</Name>
+      <Name>SqlStreamStore</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

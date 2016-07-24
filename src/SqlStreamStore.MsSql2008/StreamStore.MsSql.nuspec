@@ -1,16 +1,16 @@
 ﻿<?xml version="1.0"?>
 <package xmlns="http://schemas.microsoft.com/packaging/2010/07/nuspec.xsd">
     <metadata>
-        <id>StreamStore.MsSql2008</id>
+        <id>SqlStreamStore.MsSql2008</id>
         <version>0.0.0.0</version>
         <authors>Damian Hickey</authors>
         <owners>Damian Hickey</owners>
-        <projectUrl>https://github.com/damianh/StreamStore</projectUrl>
-        <licenseUrl>https://github.com/damianh/StreamStore/blob/master/LICENSE</licenseUrl>
+        <projectUrl>https://github.com/damianh/SqlStreamStore</projectUrl>
+        <licenseUrl>https://github.com/damianh/SqlStreamStore/blob/master/LICENSE</licenseUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <title>Stream Store - MS Sql Server (2008+)</title>
         <description>
-            SqlServer provider for StreamStore
+            SqlServer provider (2008+) for SQL StreamStore
         </description>
         <tags>cqrs event-sourcing domain-driven-design event-store</tags>
         <frameworkAssemblies>
@@ -18,12 +18,12 @@
         </frameworkAssemblies>
         <releaseNotes/>
         <dependencies>
-            <dependency id="StreamStore" version="[0.0, 0.2)" />
+            <dependency id="SqlStreamStore" version="[0.0, 0.2)" />
         </dependencies>
     </metadata>
     <files>
-        <file src="..\..\build\merged\StreamStore.MsSql2008.dll" target="lib\net451" />
-        <file src="..\..\build\merged\StreamStore.MsSql2008.pdb" target="lib\net451" />
-        <file src="bin\Release\StreamStore.MsSql2008.xml" target="lib\net451" />
+        <file src="..\..\build\merged\SqlStreamStore.MsSql2008.dll" target="lib\net451" />
+        <file src="..\..\build\merged\SqlStreamStore.MsSql2008.pdb" target="lib\net451" />
+        <file src="bin\Release\SqlStreamStore.MsSql2008.xml" target="lib\net451" />
     </files>
 </package>

@@ -15,7 +15,7 @@ CREATE TABLE dbo.Streams(
 );
 CREATE UNIQUE NONCLUSTERED INDEX IX_Streams_Id ON dbo.Streams (Id);
  
-CREATE TABLE dbo.Events(
+CREATE TABLE dbo.Messages(
     StreamIdInternal    INT                                     NOT NULL,
     StreamVersion       INT                                     NOT NULL,
     Ordinal             BIGINT                 IDENTITY(0,1)    NOT NULL,
@@ -28,13 +28,13 @@ CREATE TABLE dbo.Events(
     CONSTRAINT FK_Events_Streams FOREIGN KEY (StreamIdInternal) REFERENCES dbo.Streams(IdInternal)
 );
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Events_Ordinal ON dbo.Events (Ordinal);
+CREATE UNIQUE NONCLUSTERED INDEX IX_Messages_Ordinal ON dbo.Messages (Ordinal);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Events_StreamIdInternal_Id ON dbo.Events (StreamIdInternal, Id);
+CREATE UNIQUE NONCLUSTERED INDEX IX_Messages_StreamIdInternal_Id ON dbo.Messages (StreamIdInternal, Id);
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Events_StreamIdInternal_Revision ON dbo.Events (StreamIdInternal, StreamVersion);
+CREATE UNIQUE NONCLUSTERED INDEX IX_Messages_StreamIdInternal_Revision ON dbo.Messages (StreamIdInternal, StreamVersion);
 
-CREATE NONCLUSTERED INDEX IX_Events_StreamIdInternal_Created ON dbo.Events (StreamIdInternal, Created);
+CREATE NONCLUSTERED INDEX IX_Messages_StreamIdInternal_Created ON dbo.Messages (StreamIdInternal, Created);
 
 CREATE TYPE dbo.NewStreamMessages AS TABLE (
     StreamVersion       INT IDENTITY(0,1)                       NOT NULL,

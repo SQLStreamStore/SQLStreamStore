@@ -126,7 +126,7 @@
                 // Check for unique constraint violation on 
                 // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
                 catch(SqlException ex)
-                    when(ex.IsUniqueConstraintViolationOnIndex("IX_Events_StreamIdInternal_Id"))
+                    when(ex.IsUniqueConstraintViolationOnIndex("IX_Messages_StreamIdInternal_Id"))
                 {
                     // Idempotency handling. Check if the Messages have already been written.
                     var page = await ReadStreamInternal(

@@ -5,5 +5,5 @@
       WHERE dbo.Streams.Id = @streamId
 
      SELECT COUNT (*)
-       FROM dbo.Events
-      WHERE dbo.Events.StreamIdInternal = @streamIdInternal
+       FROM dbo.Messages
+      WHERE dbo.Messages.StreamIdInternal = @streamIdInternal

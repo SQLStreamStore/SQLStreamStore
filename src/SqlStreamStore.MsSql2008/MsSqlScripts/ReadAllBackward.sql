@@ -1,14 +1,14 @@
      SELECT TOP(@count)
             dbo.Streams.IdOriginal As StreamId,
-            dbo.Events.StreamVersion,
-            dbo.Events.Ordinal,
-            dbo.Events.Id AS EventId,
-            dbo.Events.Created,
-            dbo.Events.Type,
-            dbo.Events.JsonData,
-            dbo.Events.JsonMetadata
-       FROM dbo.Events
+            dbo.Messages.StreamVersion,
+            dbo.Messages.Ordinal,
+            dbo.Messages.Id AS EventId,
+            dbo.Messages.Created,
+            dbo.Messages.Type,
+            dbo.Messages.JsonData,
+            dbo.Messages.JsonMetadata
+       FROM dbo.Messages
  INNER JOIN dbo.Streams
-         ON dbo.Events.StreamIdInternal = dbo.Streams.IdInternal
-      WHERE dbo.Events.Ordinal <= @ordinal
-   ORDER BY dbo.Events.Ordinal DESC;
+         ON dbo.Messages.StreamIdInternal = dbo.Streams.IdInternal
+      WHERE dbo.Messages.Ordinal <= @ordinal
+   ORDER BY dbo.Messages.Ordinal DESC;

@@ -13,10 +13,10 @@ BEGIN TRANSACTION DeleteStream
           END
 
           SELECT TOP(1)
-                @latestStreamVersion = dbo.Events.StreamVersion
-           FROM dbo.Events
-          WHERE dbo.Events.StreamIDInternal = @streamIdInternal
-       ORDER BY dbo.Events.Ordinal DESC;
+                @latestStreamVersion = dbo.Messages.StreamVersion
+           FROM dbo.Messages
+          WHERE dbo.Messages.StreamIDInternal = @streamIdInternal
+       ORDER BY dbo.Messages.Ordinal DESC;
 
          IF @latestStreamVersion != @expectedStreamVersion
          BEGIN
@@ -24,8 +24,8 @@ BEGIN TRANSACTION DeleteStream
             RETURN;
          END
 
-         DELETE FROM dbo.Events
-          WHERE dbo.Events.StreamIdInternal = @streamIdInternal;
+         DELETE FROM dbo.Messages
+          WHERE dbo.Messages.StreamIdInternal = @streamIdInternal;
 
          DELETE FROM dbo.Streams
           WHERE dbo.Streams.Id = @streamId;

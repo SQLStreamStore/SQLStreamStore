@@ -5,8 +5,8 @@ BEGIN TRANSACTION DeleteStream
            FROM dbo.Streams
           WHERE dbo.Streams.Id = @streamId;
 
-    DELETE FROM dbo.Events
-          WHERE dbo.Events.StreamIdInternal = @streamIdInternal AND dbo.Events.Id = @eventId
+    DELETE FROM dbo.Messages
+          WHERE dbo.Messages.StreamIdInternal = @streamIdInternal AND dbo.Messages.Id = @eventId
          SELECT @@ROWCOUNT AS DELETED;
 
 COMMIT TRANSACTION DeleteStream

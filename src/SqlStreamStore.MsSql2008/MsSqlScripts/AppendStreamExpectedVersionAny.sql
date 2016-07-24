@@ -12,7 +12,7 @@ BEGIN TRANSACTION AppendStream ;
                 INSERT INTO dbo.Streams (Id, IdOriginal) VALUES (@streamId, @streamIdOriginal);
                 SELECT @streamIdInternal = SCOPE_IDENTITY();
 
-                INSERT INTO dbo.Events (StreamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata)
+                INSERT INTO dbo.Messages (StreamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata)
                  SELECT @streamIdInternal,
                         StreamVersion,
                         Id,
@@ -26,7 +26,7 @@ BEGIN TRANSACTION AppendStream ;
        ELSE
            BEGIN
 
-            INSERT INTO dbo.Events (StreamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata)
+            INSERT INTO dbo.Messages (StreamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata)
                  SELECT @streamIdInternal,
                         StreamVersion + @latestStreamVersion + 1,
                         Id,
@@ -39,10 +39,10 @@ BEGIN TRANSACTION AppendStream ;
            END
 
       SELECT TOP(1)
-             @latestStreamVersion = dbo.Events.StreamVersion
-        FROM dbo.Events
-       WHERE dbo.Events.StreamIDInternal = @streamIdInternal
-    ORDER BY dbo.Events.Ordinal DESC
+             @latestStreamVersion = dbo.Messages.StreamVersion
+        FROM dbo.Messages
+       WHERE dbo.Messages.StreamIDInternal = @streamIdInternal
+    ORDER BY dbo.Messages.Ordinal DESC
 
       UPDATE dbo.Streams
          SET dbo.Streams.[Version] = @latestStreamVersion
@@ -60,7 +60,7 @@ COMMIT TRANSACTION AppendStream;
       WHERE dbo.Streams.Id = @metadataStreamId;
 
      SELECT TOP(1)
-            dbo.Events.JsonData
-       FROM dbo.Events
-      WHERE dbo.Events.StreamIdInternal = @metadataStreamIdInternal
-   ORDER BY dbo.Events.Ordinal DESC;
+            dbo.Messages.JsonData
+       FROM dbo.Messages
+      WHERE dbo.Messages.StreamIdInternal = @metadataStreamIdInternal
+   ORDER BY dbo.Messages.Ordinal DESC;

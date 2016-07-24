@@ -7,21 +7,21 @@
       WHERE dbo.Streams.Id = @streamId
 
      SELECT TOP(@count)
-            dbo.Events.StreamVersion,
-            dbo.Events.Ordinal,
-            dbo.Events.Id AS EventId,
-            dbo.Events.Created,
-            dbo.Events.Type,
-            dbo.Events.JsonData,
-            dbo.Events.JsonMetadata
-       FROM dbo.Events
+            dbo.Messages.StreamVersion,
+            dbo.Messages.Ordinal,
+            dbo.Messages.Id AS EventId,
+            dbo.Messages.Created,
+            dbo.Messages.Type,
+            dbo.Messages.JsonData,
+            dbo.Messages.JsonMetadata
+       FROM dbo.Messages
  INNER JOIN dbo.Streams
-         ON dbo.Events.StreamIdInternal = dbo.Streams.IdInternal
-      WHERE dbo.Events.StreamIDInternal = @streamIDInternal AND dbo.Events.StreamVersion >= @StreamVersion
-   ORDER BY dbo.Events.Ordinal;
+         ON dbo.Messages.StreamIdInternal = dbo.Streams.IdInternal
+      WHERE dbo.Messages.StreamIDInternal = @streamIDInternal AND dbo.Messages.StreamVersion >= @StreamVersion
+   ORDER BY dbo.Messages.Ordinal;
 
      SELECT TOP(1)
-            dbo.Events.StreamVersion
-       FROM dbo.Events
-      WHERE dbo.Events.StreamIDInternal = @streamIDInternal
-   ORDER BY dbo.Events.Ordinal DESC;
+            dbo.Messages.StreamVersion
+       FROM dbo.Messages
+      WHERE dbo.Messages.StreamIDInternal = @streamIDInternal
+   ORDER BY dbo.Messages.Ordinal DESC;

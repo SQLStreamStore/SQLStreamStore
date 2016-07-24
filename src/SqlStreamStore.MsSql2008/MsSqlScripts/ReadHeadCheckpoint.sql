@@ -1,3 +1,3 @@
 /* SQL Server 2008+ */
-     SELECT MAX(dbo.Events.Ordinal)
-       FROM dbo.Events
+     SELECT MAX(dbo.Messages.Ordinal)
+       FROM dbo.Messages

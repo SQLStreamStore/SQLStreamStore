@@ -1,8 +1,8 @@
-namespace StreamStore
+namespace SqlStreamStore
 {
     using System;
     using System.Threading.Tasks;
-    using StreamStore.Infrastructure;
+    using SqlStreamStore.Infrastructure;
 
     public abstract class StreamStoreAcceptanceTestFixture : IDisposable
     {

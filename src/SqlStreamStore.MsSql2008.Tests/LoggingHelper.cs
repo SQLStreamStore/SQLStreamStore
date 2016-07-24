@@ -1,4 +1,4 @@
-﻿namespace StreamStore
+﻿namespace SqlStreamStore
 {
     using System;
     using System.IO;
@@ -7,7 +7,7 @@
     using Serilog;
     using Serilog.Events;
     using Serilog.Formatting.Display;
-    using StreamStore.Infrastructure;
+    using SqlStreamStore.Infrastructure;
     using Xunit.Abstractions;
 
     internal static class LoggingHelper

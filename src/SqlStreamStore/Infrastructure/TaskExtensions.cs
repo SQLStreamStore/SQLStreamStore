@@ -1,4 +1,4 @@
-﻿namespace StreamStore.Infrastructure
+﻿namespace SqlStreamStore.Infrastructure
 {
     using System.Runtime.CompilerServices;
     using System.Threading.Tasks;

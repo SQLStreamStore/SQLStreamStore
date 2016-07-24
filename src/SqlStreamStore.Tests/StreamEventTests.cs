@@ -1,8 +1,8 @@
-﻿namespace StreamStore
+﻿namespace SqlStreamStore
 {
     using System;
     using Shouldly;
-    using StreamStore.Streams;
+    using SqlStreamStore.Streams;
     using Xunit;
 
     public class StreamEventTests

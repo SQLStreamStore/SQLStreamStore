@@ -1,12 +1,12 @@
-﻿namespace StreamStore
+﻿namespace SqlStreamStore
 {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
-    using StreamStore.Streams;
     using Shouldly;
+    using SqlStreamStore.Streams;
     using Xunit;
     using Xunit.Abstractions;
 

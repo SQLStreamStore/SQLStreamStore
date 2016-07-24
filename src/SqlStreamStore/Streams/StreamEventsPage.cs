@@ -1,4 +1,4 @@
-﻿namespace StreamStore.Streams
+﻿namespace SqlStreamStore.Streams
 {
     public sealed class StreamEventsPage
     {

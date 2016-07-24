@@ -1,4 +1,4 @@
-﻿namespace StreamStore.Infrastructure
+﻿namespace SqlStreamStore.Infrastructure
 {
     // From http://blogs.msdn.com/b/pfxteam/archive/2011/01/15/asynclazy-lt-t-gt.aspx
     using System;

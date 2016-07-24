@@ -1,9 +1,9 @@
-﻿namespace StreamStore.Infrastructure
+﻿namespace SqlStreamStore.Infrastructure
 {
     using System;
     using System.Threading.Tasks;
     using Shouldly;
-    using StreamStore.Streams;
+    using SqlStreamStore.Streams;
     using Xunit;
 
     public class MetadataMaxAgeCacheTests : IDisposable

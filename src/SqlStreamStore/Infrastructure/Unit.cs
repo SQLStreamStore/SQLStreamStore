@@ -1,6 +1,6 @@
 ﻿// Copyright (c) Microsoft Open Technologies, Inc. All rights reserved. See License.txt in the project root for license information.
 
-namespace StreamStore.Infrastructure
+namespace SqlStreamStore.Infrastructure
 {
     using System;
     using System.Runtime.InteropServices;

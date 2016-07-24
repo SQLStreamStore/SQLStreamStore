@@ -1,4 +1,4 @@
-namespace StreamStore
+namespace SqlStreamStore
 {
     using System;
     using System.Security.Cryptography;

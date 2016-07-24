@@ -1,8 +1,8 @@
 ﻿ // ReSharper disable once CheckNamespace
-namespace StreamStore
+namespace SqlStreamStore
 {
     using System;
-    using StreamStore.InMemory;
+    using SqlStreamStore.InMemory;
     using Xunit.Abstractions;
 
     public partial class StreamStoreAcceptanceTests

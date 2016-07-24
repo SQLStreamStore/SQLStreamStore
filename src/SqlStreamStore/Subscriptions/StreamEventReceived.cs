@@ -1,7 +1,7 @@
-﻿namespace StreamStore.Subscriptions
+﻿namespace SqlStreamStore.Subscriptions
 {
     using System.Threading.Tasks;
-    using StreamStore.Streams;
+    using SqlStreamStore.Streams;
 
     public delegate Task StreamEventReceived(StreamEvent streamEvent);
 }

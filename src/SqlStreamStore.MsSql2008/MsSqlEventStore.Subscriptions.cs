@@ -1,8 +1,8 @@
-﻿namespace StreamStore
+﻿namespace SqlStreamStore
 {
     using System.Threading;
     using System.Threading.Tasks;
-    using StreamStore.Subscriptions;
+    using SqlStreamStore.Subscriptions;
 
     public sealed partial class MsSqlEventStore
     {

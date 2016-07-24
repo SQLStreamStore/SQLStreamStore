@@ -1,4 +1,4 @@
-﻿namespace StreamStore.Subscriptions
+﻿namespace SqlStreamStore.Subscriptions
 {
     using System;
 

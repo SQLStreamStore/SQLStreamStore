@@ -1,9 +1,9 @@
-﻿namespace StreamStore
+﻿namespace SqlStreamStore
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using StreamStore.Streams;
+    using SqlStreamStore.Streams;
 
     public interface IEventStore : IReadOnlyEventStore
     {

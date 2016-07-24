@@ -1,10 +1,10 @@
-﻿namespace StreamStore
+﻿namespace SqlStreamStore
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using StreamStore.Streams;
-    using StreamStore.Subscriptions;
+    using SqlStreamStore.Streams;
+    using SqlStreamStore.Subscriptions;
 
     public interface IReadOnlyEventStore : IDisposable
     {

@@ -1,7 +1,7 @@
-namespace StreamStore.InMemory
+namespace SqlStreamStore.InMemory
 {
     using System.Threading.Tasks;
-    using StreamStore;
+    using SqlStreamStore;
 
     public class InMemoryStreamStoreFixture : StreamStoreAcceptanceTestFixture
     {

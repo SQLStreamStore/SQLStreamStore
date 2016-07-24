@@ -1,17 +1,17 @@
 ﻿// ReSharper disable once CheckNamespace
-namespace StreamStore
+namespace SqlStreamStore
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using StreamStore.Infrastructure;
-    using StreamStore.InMemory;
-    using StreamStore.Streams;
-    using StreamStore.Subscriptions;
+    using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.InMemory;
+    using SqlStreamStore.Streams;
+    using SqlStreamStore.Subscriptions;
     using StreamStoreStore.Json;
-    using static StreamStore.Streams.Deleted;
+    using static Streams.Deleted;
 
     public sealed class InMemoryEventStore : EventStoreBase
     {

@@ -1,7 +1,7 @@
-namespace StreamStore.Subscriptions
+namespace SqlStreamStore.Subscriptions
 {
     using System;
-    using StreamStore.Infrastructure;
+    using SqlStreamStore.Infrastructure;
 
     public interface IEventStoreNotifier : IObservable<Unit>, IDisposable
     {}

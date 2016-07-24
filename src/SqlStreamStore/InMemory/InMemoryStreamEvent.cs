@@ -1,4 +1,4 @@
-﻿namespace StreamStore.InMemory
+﻿namespace SqlStreamStore.InMemory
 {
     using System;
 

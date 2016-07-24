@@ -1,8 +1,8 @@
-﻿namespace StreamStore
+﻿namespace SqlStreamStore
 {
     using System.Diagnostics;
     using System.Threading.Tasks;
-    using StreamStore.Streams;
+    using SqlStreamStore.Streams;
     using Xunit;
 
     public partial class StreamStoreAcceptanceTests

@@ -1,12 +1,12 @@
-﻿namespace StreamStore
+﻿namespace SqlStreamStore
 {
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-    using StreamStore.Streams;
     using Shouldly;
+    using SqlStreamStore.Streams;
     using Xunit;
-    using static StreamStore.Streams.Deleted;
+    using static Streams.Deleted;
 
     public partial class StreamStoreAcceptanceTests
     {

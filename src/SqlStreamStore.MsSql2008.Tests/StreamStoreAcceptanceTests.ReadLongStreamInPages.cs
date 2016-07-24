@@ -1,11 +1,11 @@
-namespace StreamStore
+namespace SqlStreamStore
 {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using System.Linq;
     using Shouldly;
-    using StreamStore.Streams;
+    using SqlStreamStore.Streams;
     using Xunit;
 
     public partial class StreamStoreAcceptanceTests

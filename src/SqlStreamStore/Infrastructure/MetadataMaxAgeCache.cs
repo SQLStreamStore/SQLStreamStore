@@ -1,11 +1,11 @@
-namespace StreamStore.Infrastructure
+namespace SqlStreamStore.Infrastructure
 {
     using System;
     using System.Collections.Concurrent;
     using System.Threading;
     using System.Threading.Tasks;
     using EnsureThat;
-    using StreamStore;
+    using SqlStreamStore;
 
     public class MetadataMaxAgeCache
     {

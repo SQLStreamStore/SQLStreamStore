@@ -1,14 +1,14 @@
-namespace StreamStore.Infrastructure
+namespace SqlStreamStore.Infrastructure
 {
     using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using EnsureThat;
-    using StreamStore;
-    using StreamStore.Logging;
-    using StreamStore.Streams;
-    using StreamStore.Subscriptions;
+    using SqlStreamStore.Logging;
+    using SqlStreamStore.Streams;
+    using SqlStreamStore.Subscriptions;
+    using SqlStreamStore;
 
     public abstract class ReadOnlyEventStoreBase : IReadOnlyEventStore
     {

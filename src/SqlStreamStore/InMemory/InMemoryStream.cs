@@ -1,10 +1,10 @@
-namespace StreamStore.InMemory
+namespace SqlStreamStore.InMemory
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using StreamStore.Infrastructure;
-    using StreamStore.Streams;
+    using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.Streams;
 
     internal class InMemoryStream
     {

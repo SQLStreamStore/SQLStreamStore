@@ -1,4 +1,4 @@
-﻿namespace StreamStore.Streams
+﻿namespace SqlStreamStore.Streams
 {
     /// <summary>
     /// Constants for stream version

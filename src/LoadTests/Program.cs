@@ -5,8 +5,8 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Serilog;
-    using StreamStore;
-    using StreamStore.Streams;
+    using SqlStreamStore;
+    using SqlStreamStore.Streams;
 
     internal class Program
     {

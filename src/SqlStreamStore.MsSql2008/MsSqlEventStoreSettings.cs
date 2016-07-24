@@ -1,9 +1,9 @@
-﻿namespace StreamStore
+﻿namespace SqlStreamStore
 {
     using System;
     using EnsureThat;
-    using StreamStore.Infrastructure;
-    using StreamStore.Subscriptions;
+    using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.Subscriptions;
 
     public class MsSqlEventStoreSettings
     {

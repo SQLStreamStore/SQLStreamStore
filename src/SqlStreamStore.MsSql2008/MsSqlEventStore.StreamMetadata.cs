@@ -1,10 +1,10 @@
-﻿namespace StreamStore
+﻿namespace SqlStreamStore
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using StreamStore.Infrastructure;
-    using StreamStore.Streams;
+    using SqlStreamStore.Streams;
+    using SqlStreamStore.Infrastructure;
     using StreamStoreStore.Json;
 
     public partial class MsSqlEventStore

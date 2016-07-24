@@ -8,8 +8,8 @@
     <ProjectGuid>{F3FB96CF-4A3D-448D-A25E-6BC66E370BF6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>StreamStore</RootNamespace>
-    <AssemblyName>StreamStore.Tests</AssemblyName>
+    <RootNamespace>SqlStreamStore</RootNamespace>
+    <AssemblyName>SqlStreamStore.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>

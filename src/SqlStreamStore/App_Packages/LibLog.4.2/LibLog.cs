@@ -46,19 +46,19 @@ using System.Diagnostics.CodeAnalysis;
 // If you copied this file manually, you need to change all "YourRootNameSpace" so not to clash with other libraries
 // that use LibLog
 #if LIBLOG_PROVIDERS_ONLY
-namespace StreamStore.LibLog
+namespace SqlStreamStore.LibLog
 #else
-namespace StreamStore.Logging
+namespace SqlStreamStore.Logging
 #endif
 {
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
 #if LIBLOG_PROVIDERS_ONLY
-    using StreamStore.LibLog.LogProviders;
+    using SqlStreamStore.LibLog.LogProviders;
 #else
-    using StreamStore.Logging.LogProviders;
 #endif
     using System;
+    using SqlStreamStore.Logging.LogProviders;
 #if !LIBLOG_PROVIDERS_ONLY
     using System.Diagnostics;
 #if !LIBLOG_PORTABLE
@@ -728,7 +728,7 @@ namespace StreamStore.Logging
 #if LIBLOG_PROVIDERS_ONLY
 namespace StreamStore.LibLog.LogProviders
 #else
-namespace StreamStore.Logging.LogProviders
+namespace SqlStreamStore.Logging.LogProviders
 #endif
 {
     using System;

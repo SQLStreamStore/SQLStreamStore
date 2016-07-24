@@ -71,7 +71,7 @@ using System.Text;
 // ReSharper disable LoopCanBeConvertedToQuery
 // ReSharper disable RedundantExplicitArrayCreation
 // ReSharper disable SuggestUseVarKeywordEvident
-namespace StreamStore.Json
+namespace SqlStreamStore.Json
 {
     using StreamStoreStore.Json;
 
@@ -488,7 +488,7 @@ namespace StreamStore.Json
 
 namespace StreamStoreStore.Json
 {
-    using StreamStore.Json;
+    using SqlStreamStore.Json;
     using StreamStoreStore.Json.Reflection;
 
     /// <summary>

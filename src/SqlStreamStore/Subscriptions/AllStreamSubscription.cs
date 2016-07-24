@@ -1,11 +1,11 @@
-﻿namespace StreamStore.Subscriptions
+﻿namespace SqlStreamStore.Subscriptions
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using StreamStore;
-    using StreamStore.Infrastructure;
-    using StreamStore.Streams;
+    using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.Streams;
+    using SqlStreamStore;
 
     public sealed class AllStreamSubscription : SubscriptionBase, IAllStreamSubscription
     {

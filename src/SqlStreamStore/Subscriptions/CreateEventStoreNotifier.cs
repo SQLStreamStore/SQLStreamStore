@@ -1,7 +1,7 @@
-﻿namespace StreamStore.Subscriptions
+﻿namespace SqlStreamStore.Subscriptions
 {
     using System.Threading.Tasks;
-    using StreamStore;
+    using SqlStreamStore;
 
     public delegate Task<IEventStoreNotifier> CreateEventStoreNotifier(IReadOnlyEventStore readOnlyEventStore);
 }

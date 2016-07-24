@@ -1,9 +1,9 @@
-﻿namespace StreamStore
+﻿namespace SqlStreamStore
 {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using StreamStore.Streams;
+    using SqlStreamStore.Streams;
 
     public static class EventStoreExtensions
     {

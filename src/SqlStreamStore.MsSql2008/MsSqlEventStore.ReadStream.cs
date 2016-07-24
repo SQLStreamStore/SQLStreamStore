@@ -1,4 +1,4 @@
-﻿namespace StreamStore
+﻿namespace SqlStreamStore
 {
     using System;
     using System.Collections.Generic;
@@ -6,8 +6,8 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using StreamStore.Infrastructure;
-    using StreamStore.Streams;
+    using SqlStreamStore.Streams;
+    using SqlStreamStore.Infrastructure;
 
     public partial class MsSqlEventStore
     {

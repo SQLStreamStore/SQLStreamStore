@@ -1,9 +1,9 @@
-﻿namespace StreamStore.Subscriptions
+﻿namespace SqlStreamStore.Subscriptions
 {
     using System;
     using System.Threading.Tasks;
     using Shouldly;
-    using StreamStore.Streams;
+    using SqlStreamStore.Streams;
     using Xunit;
 
     public class StreamSubscriptionTests

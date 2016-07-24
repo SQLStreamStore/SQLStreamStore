@@ -1,4 +1,4 @@
-﻿namespace StreamStore.MsSqlScripts
+﻿namespace SqlStreamStore.MsSqlScripts
 {
     using System;
     using System.Collections.Concurrent;
@@ -54,7 +54,7 @@
                 {
                     using(Stream stream = typeof(Scripts)
                         .Assembly
-                        .GetManifestResourceStream("StreamStore.MsSqlScripts." + key + ".sql"))
+                        .GetManifestResourceStream("SqlStreamStore.MsSqlScripts." + key + ".sql"))
                     {
                         if(stream == null)
                         {

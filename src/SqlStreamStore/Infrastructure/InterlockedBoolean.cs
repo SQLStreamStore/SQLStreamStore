@@ -17,7 +17,7 @@
 // 
 
 
-namespace StreamStore.Infrastructure
+namespace SqlStreamStore.Infrastructure
 {
     using System.Threading;
 

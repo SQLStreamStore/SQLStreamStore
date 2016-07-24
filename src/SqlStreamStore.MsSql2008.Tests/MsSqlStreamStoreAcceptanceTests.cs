@@ -1,9 +1,9 @@
-﻿namespace StreamStore
+﻿namespace SqlStreamStore
 {
     using System;
     using System.Threading.Tasks;
     using Shouldly;
-    using StreamStore.Streams;
+    using SqlStreamStore.Streams;
     using Xunit;
     using Xunit.Abstractions;
 

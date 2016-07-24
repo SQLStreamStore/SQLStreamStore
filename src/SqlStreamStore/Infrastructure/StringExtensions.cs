@@ -1,4 +1,4 @@
-namespace StreamStore.Infrastructure
+namespace SqlStreamStore.Infrastructure
 {
     public static class StringExtensions
     {

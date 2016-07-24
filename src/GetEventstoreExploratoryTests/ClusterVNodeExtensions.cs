@@ -1,9 +1,9 @@
-﻿namespace Cedar.EventStore
+﻿namespace GetEventstoreExploratoryTests
 {
     using System.Threading.Tasks;
-    using global::EventStore.Core;
-    using global::EventStore.Core.Bus;
-    using global::EventStore.Core.Messages;
+    using EventStore.Core;
+    using EventStore.Core.Bus;
+    using EventStore.Core.Messages;
 
     internal static class ClusterVNodeExtensions
     {

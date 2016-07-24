@@ -1,12 +1,12 @@
-﻿namespace Cedar.EventStore
+﻿namespace StreamStore
 {
     using System;
     using System.Data.SqlClient;
     using System.Threading;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Infrastructure;
-    using Cedar.EventStore.Streams;
-    using static Cedar.EventStore.Streams.Deleted;
+    using StreamStore.Infrastructure;
+    using StreamStore.Streams;
+    using static StreamStore.Streams.Deleted;
 
     public partial class MsSqlEventStore
     {

@@ -1,7 +1,6 @@
-﻿namespace Cedar.EventStore.Infrastructure
+﻿namespace StreamStore.Infrastructure
 {
     // From http://blogs.msdn.com/b/pfxteam/archive/2011/01/15/asynclazy-lt-t-gt.aspx
-
     using System;
     using System.Threading;
     using System.Threading.Tasks;

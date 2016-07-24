@@ -4,9 +4,9 @@
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using Cedar.EventStore;
-    using Cedar.EventStore.Streams;
     using Serilog;
+    using StreamStore;
+    using StreamStore.Streams;
 
     internal class Program
     {
@@ -42,7 +42,7 @@
         {
             try
             {
-                using(var fixture = new MsSqlEventStoreFixture("dbo"))
+                using(var fixture = new MsSqlStreamStoreFixture("dbo"))
                 {
                     using(var eventStore = await fixture.GetEventStore())
                     {
@@ -78,7 +78,7 @@
                             int streamNumber = random.Next(0, 100000);
 
                             var eventNumber = Interlocked.Increment(ref count);
-                            var newStreamEvents = EventStoreAcceptanceTests
+                            var newStreamEvents = StreamStoreAcceptanceTests
                                 .CreateNewStreamEvents(eventNumber*2 + 1, eventNumber*2 + 2);
 
                             info = $"{streamNumber} - {newStreamEvents[0].EventId}," +

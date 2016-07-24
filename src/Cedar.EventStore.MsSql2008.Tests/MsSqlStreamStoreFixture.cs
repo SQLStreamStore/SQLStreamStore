@@ -1,29 +1,29 @@
-namespace Cedar.EventStore
+namespace StreamStore
 {
     using System;
     using System.Data.SqlClient;
     using System.Data.SqlLocalDb;
     using System.Threading.Tasks;
 
-    public class MsSqlEventStoreFixture : EventStoreAcceptanceTestFixture
+    public class MsSqlStreamStoreFixture : StreamStoreAcceptanceTestFixture
     {
         public readonly string ConnectionString;
         private readonly string _schema;
         private readonly ISqlLocalDbInstance _localDbInstance;
         private readonly string _databaseName;
 
-        public MsSqlEventStoreFixture(string schema)
+        public MsSqlStreamStoreFixture(string schema)
         {
             _schema = schema;
             var localDbProvider = new SqlLocalDbProvider
             {
                 Version = "10.5"
             };
-            _localDbInstance = localDbProvider.GetOrCreateInstance("CedarEventStoreTests");
+            _localDbInstance = localDbProvider.GetOrCreateInstance("StreamStoreTests");
             _localDbInstance.Start();
 
             var uniqueName = Guid.NewGuid().ToString().Replace("-", string.Empty);
-            _databaseName = $"CedarEventStoreTests_{uniqueName}";
+            _databaseName = $"StreamStoreTests_{uniqueName}";
 
             ConnectionString = CreateConnectionString();
         }

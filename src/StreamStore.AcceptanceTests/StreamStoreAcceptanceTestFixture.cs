@@ -1,10 +1,10 @@
-namespace Cedar.EventStore
+namespace StreamStore
 {
     using System;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Infrastructure;
+    using StreamStore.Infrastructure;
 
-    public abstract class EventStoreAcceptanceTestFixture : IDisposable
+    public abstract class StreamStoreAcceptanceTestFixture : IDisposable
     {
         public abstract Task<IEventStore> GetEventStore();
 

@@ -1,7 +1,7 @@
-﻿namespace Cedar.EventStore.Streams
+﻿namespace StreamStore.Streams
 {
     using System;
-    using Cedar.EventStore.Json;
+    using StreamStoreStore.Json;
 
     public static class Deleted
     {

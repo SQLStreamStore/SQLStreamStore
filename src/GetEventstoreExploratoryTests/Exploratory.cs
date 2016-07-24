@@ -1,13 +1,13 @@
-namespace Cedar.EventStore
+namespace GetEventstoreExploratoryTests
 {
     using System;
     using System.Net;
     using System.Text;
     using System.Threading.Tasks;
-    using global::EventStore.ClientAPI;
-    using global::EventStore.ClientAPI.Embedded;
-    using global::EventStore.ClientAPI.SystemData;
-    using global::EventStore.Core;
+    using EventStore.ClientAPI;
+    using EventStore.ClientAPI.Embedded;
+    using EventStore.ClientAPI.SystemData;
+    using EventStore.Core;
     using Shouldly;
     using Xunit;
     using Xunit.Abstractions;

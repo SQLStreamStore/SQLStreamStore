@@ -1,8 +1,9 @@
-namespace Cedar.EventStore.InMemory
+namespace StreamStore.InMemory
 {
     using System.Threading.Tasks;
+    using StreamStore;
 
-    public class InMemoryEventStoreFixture : EventStoreAcceptanceTestFixture
+    public class InMemoryStreamStoreFixture : StreamStoreAcceptanceTestFixture
     {
         public override Task<IEventStore> GetEventStore()
         {

@@ -1,4 +1,4 @@
 using System.Reflection;
 
-[assembly: AssemblyTitle("Cedar.EventStore.Tests")]
+[assembly: AssemblyTitle("StreamStore.Tests")]
 [assembly: AssemblyDescription("")]

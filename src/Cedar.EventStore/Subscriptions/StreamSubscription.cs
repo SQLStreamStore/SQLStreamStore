@@ -1,10 +1,11 @@
-﻿namespace Cedar.EventStore.Subscriptions
+﻿namespace StreamStore.Subscriptions
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Infrastructure;
-    using Cedar.EventStore.Streams;
+    using StreamStore;
+    using StreamStore.Infrastructure;
+    using StreamStore.Streams;
 
     public sealed class StreamSubscription : SubscriptionBase, IStreamSubscription
     {

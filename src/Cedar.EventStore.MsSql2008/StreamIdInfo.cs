@@ -1,4 +1,4 @@
-namespace Cedar.EventStore
+namespace StreamStore
 {
     using System;
     using System.Security.Cryptography;

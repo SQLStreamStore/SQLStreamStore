@@ -1,13 +1,14 @@
-namespace Cedar.EventStore.Infrastructure
+namespace StreamStore.Infrastructure
 {
     using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Logging;
-    using Cedar.EventStore.Streams;
-    using Cedar.EventStore.Subscriptions;
     using EnsureThat;
+    using StreamStore;
+    using StreamStore.Logging;
+    using StreamStore.Streams;
+    using StreamStore.Subscriptions;
 
     public abstract class ReadOnlyEventStoreBase : IReadOnlyEventStore
     {

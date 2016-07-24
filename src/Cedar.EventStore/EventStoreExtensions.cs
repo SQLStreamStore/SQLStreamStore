@@ -1,9 +1,9 @@
-﻿namespace Cedar.EventStore
+﻿namespace StreamStore
 {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Streams;
+    using StreamStore.Streams;
 
     public static class EventStoreExtensions
     {

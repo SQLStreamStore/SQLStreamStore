@@ -1,17 +1,17 @@
-﻿namespace Cedar.EventStore
+﻿namespace StreamStore
 {
     using System;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Streams;
     using Shouldly;
+    using StreamStore.Streams;
     using Xunit;
     using Xunit.Abstractions;
 
-    public partial class EventStoreAcceptanceTests
+    public partial class StreamStoreAcceptanceTests
     {
-        private EventStoreAcceptanceTestFixture GetFixture(string schema = "foo")
+        private StreamStoreAcceptanceTestFixture GetFixture(string schema = "foo")
         {
-            return new MsSqlEventStoreFixture(schema);
+            return new MsSqlStreamStoreFixture(schema);
         }
 
         private IDisposable CaptureLogs(ITestOutputHelper testOutputHelper)
@@ -22,7 +22,7 @@
         [Fact]
         public async Task Can_use_multiple_schemas()
         {
-            using(var fixture = new MsSqlEventStoreFixture("dbo"))
+            using(var fixture = new MsSqlStreamStoreFixture("dbo"))
             {
                 using(var dboEventStore = await fixture.GetEventStore())
                 {
@@ -48,7 +48,7 @@
         [Fact]
         public async Task Can_get_stream_event_count()
         {
-            using (var fixture = new MsSqlEventStoreFixture("dbo"))
+            using (var fixture = new MsSqlStreamStoreFixture("dbo"))
             {
                 using (var store = await fixture.GetMsSqlEventStore())
                 {
@@ -68,7 +68,7 @@
         [Fact]
         public async Task When_stream_does_not_exist_then_stream_event_count_should_be_zero()
         {
-            using (var fixture = new MsSqlEventStoreFixture("dbo"))
+            using (var fixture = new MsSqlStreamStoreFixture("dbo"))
             {
                 using (var store = await fixture.GetMsSqlEventStore())
                 {
@@ -84,7 +84,7 @@
         [Fact]
         public async Task Can_get_stream_event_count_with_created_before_date()
         {
-            using (var fixture = new MsSqlEventStoreFixture("dbo"))
+            using (var fixture = new MsSqlStreamStoreFixture("dbo"))
             {
                 using (var store = await fixture.GetMsSqlEventStore())
                 {

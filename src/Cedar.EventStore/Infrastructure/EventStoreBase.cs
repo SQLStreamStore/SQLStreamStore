@@ -1,10 +1,11 @@
-namespace Cedar.EventStore.Infrastructure
+namespace StreamStore.Infrastructure
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Streams;
     using EnsureThat;
+    using StreamStore;
+    using StreamStore.Streams;
 
     public abstract class EventStoreBase : ReadOnlyEventStoreBase, IEventStore
     {

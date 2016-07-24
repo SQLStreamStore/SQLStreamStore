@@ -2,27 +2,27 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
 VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.Tests", "Cedar.EventStore.Tests\Cedar.EventStore.Tests.csproj", "{F3FB96CF-4A3D-448D-A25E-6BC66E370BF6}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StreamStore.Tests", "Cedar.EventStore.Tests\StreamStore.Tests.csproj", "{F3FB96CF-4A3D-448D-A25E-6BC66E370BF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.MsSql2008", "Cedar.EventStore.MsSql2008\Cedar.EventStore.MsSql2008.csproj", "{40510896-D9A1-4E22-8D11-E718857611F8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StreamStore.MsSql2008", "Cedar.EventStore.MsSql2008\StreamStore.MsSql2008.csproj", "{40510896-D9A1-4E22-8D11-E718857611F8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore.MsSql2008.Tests", "Cedar.EventStore.MsSql2008.Tests\Cedar.EventStore.MsSql2008.Tests.csproj", "{97AA016B-0B9F-44C2-8228-A13B4E251FB0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StreamStore.MsSql2008.Tests", "Cedar.EventStore.MsSql2008.Tests\StreamStore.MsSql2008.Tests.csproj", "{97AA016B-0B9F-44C2-8228-A13B4E251FB0}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Cedar.EventStore.AcceptanceTests", "Cedar.EventStore.AcceptanceTests", "{833038D7-0582-4D07-9458-8230A83CAC1F}"
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "StreamStore.AcceptanceTests", "StreamStore.AcceptanceTests", "{833038D7-0582-4D07-9458-8230A83CAC1F}"
 	ProjectSection(SolutionItems) = preProject
-		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTestFixture.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTestFixture.cs
-		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.AppendStream.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.AppendStream.cs
-		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.cs
-		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.DeleteEvent.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.DeleteEvent.cs
-		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.DeleteStream.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.DeleteStream.cs
-		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadAll.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadAll.cs
-		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadHeadCheckpoint.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadHeadCheckpoint.cs
-		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadStream.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadStream.cs
-		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.StreamMetadata.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.StreamMetadata.cs
-		Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.Subscriptions.cs = Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.Subscriptions.cs
+		StreamStore.AcceptanceTests\StreamStoreAcceptanceTestFixture.cs = StreamStore.AcceptanceTests\StreamStoreAcceptanceTestFixture.cs
+		StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.AppendStream.cs = StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.AppendStream.cs
+		StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.cs = StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.cs
+		StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.DeleteEvent.cs = StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.DeleteEvent.cs
+		StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.DeleteStream.cs = StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.DeleteStream.cs
+		StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.ReadAll.cs = StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.ReadAll.cs
+		StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.ReadHeadCheckpoint.cs = StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.ReadHeadCheckpoint.cs
+		StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.ReadStream.cs = StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.ReadStream.cs
+		StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.StreamMetadata.cs = StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.StreamMetadata.cs
+		StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.Subscriptions.cs = StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.Subscriptions.cs
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Cedar.EventStore", "Cedar.EventStore\Cedar.EventStore.csproj", "{5A8DF1A1-9B3B-499D-B9E9-A5E0F6F06953}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StreamStore", "Cedar.EventStore\StreamStore.csproj", "{5A8DF1A1-9B3B-499D-B9E9-A5E0F6F06953}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GetEventstoreExploratoryTests", "GetEventstoreExploratoryTests\GetEventstoreExploratoryTests.csproj", "{2E25DAFA-D0C8-4EB8-BA00-33E8CC8B6DAF}"
 EndProject

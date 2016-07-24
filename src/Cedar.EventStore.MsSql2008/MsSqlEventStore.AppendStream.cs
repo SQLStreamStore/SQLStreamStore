@@ -1,4 +1,4 @@
-﻿namespace Cedar.EventStore
+﻿namespace StreamStore
 {
     using System;
     using System.Data;
@@ -6,10 +6,11 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Infrastructure;
-    using Cedar.EventStore.Streams;
     using EnsureThat;
     using Microsoft.SqlServer.Server;
+    using StreamStore.Infrastructure;
+    using StreamStore.Streams;
+    using StreamStoreStore.Json;
 
     public partial class MsSqlEventStore
     {
@@ -116,7 +117,7 @@
                         if(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                         {
                             var jsonData = reader.GetString(0);
-                            var metadataMessage = Json.SimpleJson.DeserializeObject<MetadataMessage>(jsonData);
+                            var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(jsonData);
                             return metadataMessage.MaxCount;
                         }
                     }
@@ -188,7 +189,7 @@
                         if(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                         {
                             var jsonData = reader.GetString(0);
-                            var metadataMessage = Json.SimpleJson.DeserializeObject<MetadataMessage>(jsonData);
+                            var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(jsonData);
                             return metadataMessage.MaxCount;
                         }
                     }
@@ -268,7 +269,7 @@
                         if (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                         {
                             var jsonData = reader.GetString(0);
-                            var metadataMessage = Json.SimpleJson.DeserializeObject<MetadataMessage>(jsonData);
+                            var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(jsonData);
                             return metadataMessage.MaxCount;
                         }
                     }

@@ -5,11 +5,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{97AA016B-0B9F-44C2-8228-A13B4E251FB0}</ProjectGuid>
+    <ProjectGuid>{F3FB96CF-4A3D-448D-A25E-6BC66E370BF6}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>Cedar.EventStore</RootNamespace>
-    <AssemblyName>Cedar.EventStore.MsSql2008.Tests</AssemblyName>
+    <RootNamespace>StreamStore</RootNamespace>
+    <AssemblyName>StreamStore.Tests</AssemblyName>
     <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <NuGetPackageImportStamp>
@@ -49,9 +49,8 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Data" />
-    <Reference Include="System.Data.SqlLocalDb, Version=1.15.0.0, Culture=neutral, PublicKeyToken=9a192a7522c9e1a0, processorArchitecture=MSIL">
-      <HintPath>..\packages\System.Data.SqlLocalDb.1.15.0\lib\net40\System.Data.SqlLocalDb.dll</HintPath>
+    <Reference Include="System.Data.SQLite, Version=1.0.102.0, Culture=neutral, PublicKeyToken=db937bc2d44ff139, processorArchitecture=MSIL">
+      <HintPath>..\packages\System.Data.SQLite.Core.1.0.102.0\lib\net46\System.Data.SQLite.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System.Reactive.Core, Version=2.2.5.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35, processorArchitecture=MSIL">
@@ -81,70 +80,71 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTestFixture.cs">
-      <Link>EventStoreAcceptanceTestFixture.cs</Link>
+    <Compile Include="..\StreamStore.AcceptanceTests\StreamStoreAcceptanceTestFixture.cs">
+      <Link>InMemory\StreamStoreAcceptanceTestFixture.cs</Link>
     </Compile>
-    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.AppendStream.cs">
-      <Link>EventStoreAcceptanceTests.AppendStream.cs</Link>
+    <Compile Include="..\StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.AppendStream.cs">
+      <Link>InMemory\StreamStoreAcceptanceTests.AppendStream.cs</Link>
     </Compile>
-    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.cs">
-      <Link>EventStoreAcceptanceTests.cs</Link>
+    <Compile Include="..\StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.cs">
+      <Link>InMemory\StreamStoreAcceptanceTests.cs</Link>
     </Compile>
-    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.DeleteEvent.cs">
-      <Link>EventStoreAcceptanceTests.DeleteEvent.cs</Link>
+    <Compile Include="..\StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.DeleteEvent.cs">
+      <Link>InMemory\StreamStoreAcceptanceTests.DeleteEvent.cs</Link>
     </Compile>
-    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.DeleteStream.cs">
-      <Link>EventStoreAcceptanceTests.DeleteStream.cs</Link>
+    <Compile Include="..\StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.DeleteStream.cs">
+      <Link>InMemory\StreamStoreAcceptanceTests.DeleteStream.cs</Link>
     </Compile>
-    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadAll.cs">
-      <Link>EventStoreAcceptanceTests.ReadAll.cs</Link>
+    <Compile Include="..\StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.ReadAll.cs">
+      <Link>InMemory\StreamStoreAcceptanceTests.ReadAll.cs</Link>
     </Compile>
-    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadHeadCheckpoint.cs">
-      <Link>EventStoreAcceptanceTests.ReadHeadCheckpoint.cs</Link>
+    <Compile Include="..\StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.ReadHeadCheckpoint.cs">
+      <Link>InMemory\StreamStoreAcceptanceTests.ReadHeadCheckpoint.cs</Link>
     </Compile>
-    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.ReadStream.cs">
-      <Link>EventStoreAcceptanceTests.ReadStream.cs</Link>
+    <Compile Include="..\StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.ReadStream.cs">
+      <Link>InMemory\StreamStoreAcceptanceTests.ReadStream.cs</Link>
     </Compile>
-    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.StreamMetadata.cs">
-      <Link>EventStoreAcceptanceTests.StreamMetadata.cs</Link>
+    <Compile Include="..\StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.StreamMetadata.cs">
+      <Link>InMemory\StreamStoreAcceptanceTests.StreamMetadata.cs</Link>
     </Compile>
-    <Compile Include="..\Cedar.EventStore.AcceptanceTests\EventStoreAcceptanceTests.Subscriptions.cs">
-      <Link>EventStoreAcceptanceTests.Subscriptions.cs</Link>
+    <Compile Include="..\StreamStore.AcceptanceTests\StreamStoreAcceptanceTests.Subscriptions.cs">
+      <Link>InMemory\StreamStoreAcceptanceTests.Subscriptions.cs</Link>
     </Compile>
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Infrastructure\MetadataMaxAgeCacheTests.cs" />
+    <Compile Include="Infrastructure\TaskQueueTests.cs" />
+    <Compile Include="InMemory\InMemoryStreamStoreAcceptanceTests.cs" />
+    <Compile Include="InMemory\InMemoryStreamStoreFixture.cs" />
     <Compile Include="LoggingHelper.cs" />
-    <Compile Include="EventStoreAcceptanceTests.ReadLongStreamInPages.cs" />
-    <Compile Include="ExploratoryTests.cs" />
-    <Compile Include="MsSqlEventStoreFixture.cs" />
-    <Compile Include="MsSqlEventStoreAcceptanceTests.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="StreamEventTests.cs" />
+    <Compile Include="Subscriptions\StreamSubscriptionTests.cs" />
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Cedar.EventStore.MsSql2008\Cedar.EventStore.MsSql2008.csproj">
-      <Project>{40510896-D9A1-4E22-8D11-E718857611F8}</Project>
-      <Name>Cedar.EventStore.MsSql2008</Name>
-    </ProjectReference>
-    <ProjectReference Include="..\Cedar.EventStore\Cedar.EventStore.csproj">
+    <ProjectReference Include="..\Cedar.EventStore\StreamStore.csproj">
       <Project>{5a8df1a1-9b3b-499d-b9e9-a5e0f6f06953}</Project>
-      <Name>Cedar.EventStore</Name>
+      <Name>StreamStore</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
     <Service Include="{82A7F48D-3B50-4B1E-B82E-3ADA8210C358}" />
   </ItemGroup>
+  <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
     <PropertyGroup>
       <ErrorText>This project references NuGet package(s) that are missing on this computer. Use NuGet Package Restore to download them.  For more information, see http://go.microsoft.com/fwlink/?LinkID=322105. The missing file is {0}.</ErrorText>
     </PropertyGroup>
     <Error Condition="!Exists('..\packages\xunit.runner.visualstudio.2.1.0\build\net20\xunit.runner.visualstudio.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\xunit.runner.visualstudio.2.1.0\build\net20\xunit.runner.visualstudio.props'))" />
+    <Error Condition="!Exists('..\packages\System.Data.SQLite.Core.1.0.102.0\build\net46\System.Data.SQLite.Core.targets')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\System.Data.SQLite.Core.1.0.102.0\build\net46\System.Data.SQLite.Core.targets'))" />
   </Target>
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+  <Import Project="..\packages\System.Data.SQLite.Core.1.0.102.0\build\net46\System.Data.SQLite.Core.targets" Condition="Exists('..\packages\System.Data.SQLite.Core.1.0.102.0\build\net46\System.Data.SQLite.Core.targets')" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it.
        Other similar extension points exist, see Microsoft.Common.targets.
   <Target Name="BeforeBuild">
   </Target>

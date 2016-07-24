@@ -1,14 +1,14 @@
-﻿namespace Cedar.EventStore
+﻿namespace StreamStore
 {
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Streams;
+    using StreamStore.Streams;
     using Shouldly;
     using Xunit;
-    using static Cedar.EventStore.Streams.Deleted;
+    using static StreamStore.Streams.Deleted;
 
-    public partial class EventStoreAcceptanceTests
+    public partial class StreamStoreAcceptanceTests
     {
         [Fact]
         public async Task When_delete_stream_with_no_expected_version_and_read_then_should_get_StreamNotFound()
@@ -198,7 +198,7 @@
 
                     var exception = await Record.ExceptionAsync(() =>
                         eventStore.DeleteStream(streamId, 100));
-                    
+
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
                             Messages.DeleteStreamFailedWrongExpectedVersion(streamId, 100));
                 }

@@ -1,4 +1,4 @@
-﻿namespace Cedar.EventStore
+﻿namespace StreamStore
 {
     using System;
     using System.Collections.Generic;
@@ -6,8 +6,8 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Infrastructure;
-    using Cedar.EventStore.Streams;
+    using StreamStore.Infrastructure;
+    using StreamStore.Streams;
 
     public partial class MsSqlEventStore
     {

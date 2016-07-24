@@ -1,15 +1,15 @@
-﻿namespace Cedar.EventStore
+﻿namespace StreamStore
 {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Streams;
+    using StreamStore.Streams;
     using Shouldly;
     using Xunit;
 
-    public partial class EventStoreAcceptanceTests
+    public partial class StreamStoreAcceptanceTests
     {
         [Fact]
         public async Task Can_subscribe_to_a_stream_from_start()
@@ -281,7 +281,7 @@
                             return Task.CompletedTask;
                         }))
                     {
-                        
+
                         await AppendEvents(eventStore, streamId1, 10);
 
                         await receiveEvents.Task.WithTimeout();
@@ -436,7 +436,7 @@
                             _testOutputHelper.WriteLine($"Received event {streamEvent.StreamId} " +
                                                         $"{streamEvent.StreamVersion} {streamEvent.Checkpoint}");
                             receivedEvents.Add(streamEvent);
-                            if (streamEvent.StreamId == Deleted.DeletedStreamId 
+                            if (streamEvent.StreamId == Deleted.DeletedStreamId
                                 && streamEvent.Type == Deleted.StreamDeletedEventType)
                             {
                                 receiveEvents.SetResult(streamEvent);

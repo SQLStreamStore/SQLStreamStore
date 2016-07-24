@@ -1,4 +1,4 @@
-﻿namespace Cedar.EventStore.SqlScripts
+﻿namespace StreamStore.MsSqlScripts
 {
     using System;
     using System.Collections.Concurrent;
@@ -54,7 +54,7 @@
                 {
                     using(Stream stream = typeof(Scripts)
                         .Assembly
-                        .GetManifestResourceStream("Cedar.EventStore.MsSqlScripts." + key + ".sql"))
+                        .GetManifestResourceStream("StreamStore.MsSqlScripts." + key + ".sql"))
                     {
                         if(stream == null)
                         {

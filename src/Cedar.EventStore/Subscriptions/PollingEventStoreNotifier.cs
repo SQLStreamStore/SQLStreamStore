@@ -1,9 +1,10 @@
-﻿namespace Cedar.EventStore.Subscriptions
+﻿namespace StreamStore.Subscriptions
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Infrastructure;
+    using StreamStore;
+    using StreamStore.Infrastructure;
     using Timer = System.Timers.Timer;
 
     public sealed class PollingEventStoreNotifier : IEventStoreNotifier

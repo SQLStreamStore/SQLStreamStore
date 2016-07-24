@@ -17,7 +17,7 @@
 // 
 
 
-namespace Cedar.EventStore.Infrastructure
+namespace StreamStore.Infrastructure
 {
     using System.Threading;
 

@@ -1,11 +1,11 @@
-﻿namespace Cedar.EventStore
+﻿namespace StreamStore
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Infrastructure;
-    using Cedar.EventStore.Json;
-    using Cedar.EventStore.Streams;
+    using StreamStore.Infrastructure;
+    using StreamStore.Streams;
+    using StreamStoreStore.Json;
 
     public partial class MsSqlEventStore
     {

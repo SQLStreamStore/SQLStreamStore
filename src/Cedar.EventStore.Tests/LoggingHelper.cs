@@ -1,13 +1,13 @@
-﻿namespace Cedar.EventStore
+﻿namespace StreamStore
 {
     using System;
     using System.IO;
     using System.Reactive.Linq;
     using System.Runtime.Remoting.Messaging;
-    using Cedar.EventStore.Infrastructure;
     using Serilog;
     using Serilog.Events;
     using Serilog.Formatting.Display;
+    using StreamStore.Infrastructure;
     using Xunit.Abstractions;
 
     internal static class LoggingHelper

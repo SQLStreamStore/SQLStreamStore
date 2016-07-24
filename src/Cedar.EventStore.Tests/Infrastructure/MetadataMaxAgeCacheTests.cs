@@ -1,9 +1,9 @@
-﻿namespace Cedar.EventStore.Infrastructure
+﻿namespace StreamStore.Infrastructure
 {
     using System;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Streams;
     using Shouldly;
+    using StreamStore.Streams;
     using Xunit;
 
     public class MetadataMaxAgeCacheTests : IDisposable

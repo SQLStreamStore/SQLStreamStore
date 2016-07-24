@@ -1,14 +1,14 @@
-﻿namespace Cedar.EventStore
+﻿namespace StreamStore
 {
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Streams;
+    using StreamStore.Streams;
     using Shouldly;
     using Xunit;
-    using static Cedar.EventStore.Streams.Deleted;
+    using static StreamStore.Streams.Deleted;
 
-    public partial class EventStoreAcceptanceTests
+    public partial class StreamStoreAcceptanceTests
     {
         [Fact]
         public async Task When_delete_event_then_event_should_be_removed_from_stream()

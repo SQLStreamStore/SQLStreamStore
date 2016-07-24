@@ -1,15 +1,15 @@
 ﻿ // ReSharper disable once CheckNamespace
-namespace Cedar.EventStore
+namespace StreamStore
 {
     using System;
-    using Cedar.EventStore.InMemory;
+    using StreamStore.InMemory;
     using Xunit.Abstractions;
 
-    public partial class EventStoreAcceptanceTests
+    public partial class StreamStoreAcceptanceTests
     {
-        private EventStoreAcceptanceTestFixture GetFixture()
+        private StreamStoreAcceptanceTestFixture GetFixture()
         {
-            return new InMemoryEventStoreFixture();
+            return new InMemoryStreamStoreFixture();
         }
 
         private IDisposable CaptureLogs(ITestOutputHelper testOutputHelper)

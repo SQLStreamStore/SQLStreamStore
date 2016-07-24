@@ -1,9 +1,9 @@
-﻿namespace Cedar.EventStore
+﻿namespace StreamStore
 {
     using System;
-    using Cedar.EventStore.Infrastructure;
-    using Cedar.EventStore.Subscriptions;
     using EnsureThat;
+    using StreamStore.Infrastructure;
+    using StreamStore.Subscriptions;
 
     public class MsSqlEventStoreSettings
     {

@@ -1,13 +1,13 @@
-﻿namespace Cedar.EventStore
+﻿namespace StreamStore
 {
     using System;
     using System.Linq;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Streams;
+    using StreamStore.Streams;
     using Shouldly;
     using Xunit;
 
-    public partial class EventStoreAcceptanceTests
+    public partial class StreamStoreAcceptanceTests
     {
         [Fact]
         public async Task When_get_non_existent_metadata_then_meta_stream_version_should_be_negative()
@@ -135,7 +135,7 @@
                 {
                     string streamId = "stream-1";
                     int maxCount = 2;
-                    
+
                     await store
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3, 4));
                     await store

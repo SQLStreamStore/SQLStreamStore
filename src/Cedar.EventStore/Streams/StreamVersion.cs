@@ -1,4 +1,4 @@
-﻿namespace Cedar.EventStore.Streams
+﻿namespace StreamStore.Streams
 {
     /// <summary>
     /// Constants for stream version

@@ -1,11 +1,11 @@
-﻿namespace Cedar.EventStore
+﻿namespace StreamStore
 {
     using System;
-    using Cedar.EventStore.Streams;
     using Shouldly;
+    using StreamStore.Streams;
     using Xunit;
 
-    public class SteamEventTests
+    public class StreamEventTests
     {
         [Fact]
         public void Can_deserialize()

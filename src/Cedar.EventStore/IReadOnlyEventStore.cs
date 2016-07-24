@@ -1,10 +1,10 @@
-﻿namespace Cedar.EventStore
+﻿namespace StreamStore
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Streams;
-    using Cedar.EventStore.Subscriptions;
+    using StreamStore.Streams;
+    using StreamStore.Subscriptions;
 
     public interface IReadOnlyEventStore : IDisposable
     {

@@ -1,21 +1,21 @@
-﻿namespace Cedar.EventStore
+﻿namespace StreamStore
 {
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Streams;
+    using StreamStore.Streams;
     using Shouldly;
     using Xunit;
     using Xunit.Abstractions;
 
-    public partial class EventStoreAcceptanceTests : IDisposable
+    public partial class StreamStoreAcceptanceTests : IDisposable
     {
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly IDisposable _logCapture;
 
-        public EventStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
+        public StreamStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
             _logCapture = CaptureLogs(testOutputHelper);

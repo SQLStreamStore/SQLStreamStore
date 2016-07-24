@@ -1,14 +1,14 @@
-﻿namespace Cedar.EventStore
+﻿namespace StreamStore
 {
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Infrastructure;
-    using Cedar.EventStore.Streams;
+    using StreamStore.Infrastructure;
+    using StreamStore.Streams;
     using Shouldly;
     using Xunit;
 
-    public partial class EventStoreAcceptanceTests
+    public partial class StreamStoreAcceptanceTests
     {
         [Theory]
         [MemberData("GetReadStreamForwardsTheories")]
@@ -171,15 +171,15 @@
         {
             var theories = new[]
             {
-                new ReadStreamTheory("stream-1", StreamVersion.Start, 2, 
+                new ReadStreamTheory("stream-1", StreamVersion.Start, 2,
                     new StreamEventsPage("stream-1", PageReadStatus.Success, 0, 2, 2, ReadDirection.Forward, false,
                           ExpectedStreamEvent("stream-1", 1, 0, SystemClock.GetUtcNow().UtcDateTime),
                           ExpectedStreamEvent("stream-1", 2, 1, SystemClock.GetUtcNow().UtcDateTime))),
 
-                new ReadStreamTheory("not-exist", 1, 2, 
+                new ReadStreamTheory("not-exist", 1, 2,
                     new StreamEventsPage("not-exist", PageReadStatus.StreamNotFound, 1, -1, -1, ReadDirection.Forward, true)),
 
-                new ReadStreamTheory("stream-2", 1, 2, 
+                new ReadStreamTheory("stream-2", 1, 2,
                     new StreamEventsPage("stream-2", PageReadStatus.Success, 1, 3, 2, ReadDirection.Forward, true,
                           ExpectedStreamEvent("stream-2", 5, 1, SystemClock.GetUtcNow().UtcDateTime),
                           ExpectedStreamEvent("stream-2", 6, 2, SystemClock.GetUtcNow().UtcDateTime)))

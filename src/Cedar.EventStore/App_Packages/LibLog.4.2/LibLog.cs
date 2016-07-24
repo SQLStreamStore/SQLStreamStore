@@ -40,23 +40,23 @@
 
 using System.Diagnostics.CodeAnalysis;
 
-[assembly: SuppressMessage("Microsoft.Design", "CA1020:AvoidNamespacesWithFewTypes", Scope = "namespace", Target = "Cedar.EventStore.Logging")]
-[assembly: SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed", Scope = "member", Target = "Cedar.EventStore.Logging.Logger.#Invoke(Cedar.EventStore.Logging.LogLevel,System.Func`1<System.String>,System.Exception,System.Object[])")]
+[assembly: SuppressMessage("Microsoft.Design", "CA1020:AvoidNamespacesWithFewTypes", Scope = "namespace", Target = "StreamStore.Logging")]
+[assembly: SuppressMessage("Microsoft.Design", "CA1026:DefaultParametersShouldNotBeUsed", Scope = "member", Target = "StreamStore.Logging.Logger.#Invoke(StreamStore.Logging.LogLevel,System.Func`1<System.String>,System.Exception,System.Object[])")]
 
 // If you copied this file manually, you need to change all "YourRootNameSpace" so not to clash with other libraries
 // that use LibLog
 #if LIBLOG_PROVIDERS_ONLY
-namespace Cedar.EventStore.LibLog
+namespace StreamStore.LibLog
 #else
-namespace Cedar.EventStore.Logging
+namespace StreamStore.Logging
 #endif
 {
     using System.Collections.Generic;
     using System.Diagnostics.CodeAnalysis;
 #if LIBLOG_PROVIDERS_ONLY
-    using Cedar.EventStore.LibLog.LogProviders;
+    using StreamStore.LibLog.LogProviders;
 #else
-    using Cedar.EventStore.Logging.LogProviders;
+    using StreamStore.Logging.LogProviders;
 #endif
     using System;
 #if !LIBLOG_PROVIDERS_ONLY
@@ -426,7 +426,7 @@ namespace Cedar.EventStore.Logging
         /// The disable logging environment variable. If the environment variable is set to 'true', then logging
         /// will be disabled.
         /// </summary>
-        public const string DisableLoggingEnvironmentVariable = "Cedar.EventStore_LIBLOG_DISABLE";
+        public const string DisableLoggingEnvironmentVariable = "StreamStore_LIBLOG_DISABLE";
         private const string NullLogProvider = "Current Log Provider is not set. Call SetCurrentLogProvider " +
                                                "with a non-null value first.";
         private static dynamic s_currentLogProvider;
@@ -726,9 +726,9 @@ namespace Cedar.EventStore.Logging
 }
 
 #if LIBLOG_PROVIDERS_ONLY
-namespace Cedar.EventStore.LibLog.LogProviders
+namespace StreamStore.LibLog.LogProviders
 #else
-namespace Cedar.EventStore.Logging.LogProviders
+namespace StreamStore.Logging.LogProviders
 #endif
 {
     using System;

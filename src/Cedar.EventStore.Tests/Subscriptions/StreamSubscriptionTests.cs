@@ -1,12 +1,12 @@
-﻿namespace Cedar.EventStore.Subscriptions
+﻿namespace StreamStore.Subscriptions
 {
     using System;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Streams;
     using Shouldly;
+    using StreamStore.Streams;
     using Xunit;
 
-    public class StreanSubscriptionTests
+    public class StreamSubscriptionTests
     {
         [Fact]
         public async Task When_exception_throw_by_subscription_event_received_then_should_drop_subscription()

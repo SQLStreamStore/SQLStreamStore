@@ -1,10 +1,11 @@
-namespace Cedar.EventStore.Infrastructure
+namespace StreamStore.Infrastructure
 {
     using System;
     using System.Collections.Concurrent;
     using System.Threading;
     using System.Threading.Tasks;
     using EnsureThat;
+    using StreamStore;
 
     public class MetadataMaxAgeCache
     {

@@ -1,11 +1,11 @@
-﻿namespace Cedar.EventStore
+﻿namespace StreamStore
 {
     using System.Threading.Tasks;
-    using Cedar.EventStore.Streams;
+    using StreamStore.Streams;
     using Shouldly;
     using Xunit;
 
-    public partial class EventStoreAcceptanceTests
+    public partial class StreamStoreAcceptanceTests
     {
         [Fact]
         public async Task Given_empty_store_when_get_head_checkpoint_Then_should_be_minus_one()

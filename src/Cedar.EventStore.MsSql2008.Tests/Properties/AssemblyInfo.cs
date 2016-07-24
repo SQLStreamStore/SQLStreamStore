@@ -1,4 +1,4 @@
 ﻿using System.Reflection;
 
-[assembly: AssemblyTitle("Cedar.EventStore.MsSql.Tests")]
+[assembly: AssemblyTitle("StreamStore.MsSql.Tests")]
 [assembly: AssemblyDescription("")]

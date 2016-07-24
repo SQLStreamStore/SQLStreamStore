@@ -67,13 +67,14 @@ using System.Globalization;
 using System.Reflection;
 using System.Runtime.Serialization;
 using System.Text;
-using Cedar.EventStore.Json.Reflection;
 
 // ReSharper disable LoopCanBeConvertedToQuery
 // ReSharper disable RedundantExplicitArrayCreation
 // ReSharper disable SuggestUseVarKeywordEvident
-namespace Cedar.EventStore.Json
+namespace StreamStore.Json
 {
+    using StreamStoreStore.Json;
+
     /// <summary>
     /// Represents the json array.
     /// </summary>
@@ -485,8 +486,11 @@ namespace Cedar.EventStore.Json
     }
 }
 
-namespace Cedar.EventStore.Json
+namespace StreamStoreStore.Json
 {
+    using StreamStore.Json;
+    using StreamStoreStore.Json.Reflection;
+
     /// <summary>
     /// This class encodes and decodes JSON strings.
     /// Spec. details, see http://www.json.org/

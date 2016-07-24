@@ -1,11 +1,11 @@
-﻿namespace Cedar.EventStore
+﻿namespace StreamStore
 {
     using System.Threading.Tasks;
-    using Cedar.EventStore.Streams;
+    using StreamStore.Streams;
     using Shouldly;
     using Xunit;
 
-    public partial class EventStoreAcceptanceTests
+    public partial class StreamStoreAcceptanceTests
     {
         [Fact]
         public async Task When_append_stream_second_time_with_no_stream_expected_and_different_event_then_should_throw()

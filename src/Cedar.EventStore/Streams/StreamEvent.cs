@@ -1,4 +1,4 @@
-﻿namespace Cedar.EventStore.Streams
+﻿namespace StreamStore.Streams
 {
     using System;
 

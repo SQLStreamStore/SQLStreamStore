@@ -1,4 +1,4 @@
-﻿namespace Cedar.EventStore.InMemory
+﻿namespace StreamStore.InMemory
 {
     using System;
 

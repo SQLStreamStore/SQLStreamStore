@@ -1,7 +1,7 @@
-namespace Cedar.EventStore.Subscriptions
+namespace StreamStore.Subscriptions
 {
     using System;
-    using Cedar.EventStore.Infrastructure;
+    using StreamStore.Infrastructure;
 
     public interface IEventStoreNotifier : IObservable<Unit>, IDisposable
     {}

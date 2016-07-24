@@ -1,14 +1,14 @@
-﻿namespace Cedar.EventStore
+namespace StreamStore
 {
     using System;
     using System.Collections.Generic;
     using System.Threading.Tasks;
     using System.Linq;
-    using Cedar.EventStore.Streams;
     using Shouldly;
+    using StreamStore.Streams;
     using Xunit;
 
-    public partial class EventStoreAcceptanceTests
+    public partial class StreamStoreAcceptanceTests
     {
         [Fact]
         public async Task Given_large_event_stream_can_be_read_back_in_pages()

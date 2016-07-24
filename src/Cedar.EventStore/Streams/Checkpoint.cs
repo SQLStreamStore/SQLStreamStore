@@ -1,4 +1,4 @@
-﻿namespace Cedar.EventStore
+﻿namespace StreamStore.Streams
 {
     public static class Checkpoint
     {

@@ -1,11 +1,11 @@
-﻿namespace Cedar.EventStore
+﻿namespace StreamStore
 {
     using System.Diagnostics;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Streams;
+    using StreamStore.Streams;
     using Xunit;
 
-    public partial class EventStoreAcceptanceTests
+    public partial class StreamStoreAcceptanceTests
     {
         [Fact]
         public async Task Time_to_take_to_read_1000_read_head_checkpoints()

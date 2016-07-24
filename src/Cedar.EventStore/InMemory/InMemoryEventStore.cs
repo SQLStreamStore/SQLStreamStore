@@ -1,18 +1,17 @@
 ﻿// ReSharper disable once CheckNamespace
-
-namespace Cedar.EventStore
+namespace StreamStore
 {
     using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Infrastructure;
-    using Cedar.EventStore.InMemory;
-    using Cedar.EventStore.Json;
-    using Cedar.EventStore.Streams;
-    using Cedar.EventStore.Subscriptions;
-    using static Cedar.EventStore.Streams.Deleted;
+    using StreamStore.Infrastructure;
+    using StreamStore.InMemory;
+    using StreamStore.Streams;
+    using StreamStore.Subscriptions;
+    using StreamStoreStore.Json;
+    using static StreamStore.Streams.Deleted;
 
     public sealed class InMemoryEventStore : EventStoreBase
     {

@@ -1,8 +1,8 @@
-﻿namespace Cedar.EventStore
+﻿namespace StreamStore
 {
     using System.Threading;
     using System.Threading.Tasks;
-    using Cedar.EventStore.Subscriptions;
+    using StreamStore.Subscriptions;
 
     public sealed partial class MsSqlEventStore
     {

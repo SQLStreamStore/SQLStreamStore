@@ -1,4 +1,4 @@
-namespace Cedar.EventStore.Infrastructure
+namespace StreamStore.Infrastructure
 {
     public static class StringExtensions
     {

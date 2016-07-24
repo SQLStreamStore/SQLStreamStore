@@ -54,7 +54,7 @@
         }
 
         [Fact]
-        public async Task Can_subscribe_to_a_stream_from_start_before_events_are_written()
+        public async Task Can_subscribe_to_a_stream_from_start_before_messages_are_written()
         {
             using (var fixture = GetFixture())
             {
@@ -131,7 +131,7 @@
         }
 
         [Fact]
-        public async Task Can_subscribe_to_all_stream_from_start_before_events_are_written()
+        public async Task Can_subscribe_to_all_stream_from_start_before_messages_are_written()
         {
             using (var fixture = GetFixture())
             {
@@ -418,7 +418,7 @@
         }
 
         [Fact]
-        public async Task When_delete_then_deleted_event_should_have_correct_checkpoint()
+        public async Task When_delete_then_deleted_message_should_have_correct_checkpoint()
         {
             using(var fixture = GetFixture())
             {

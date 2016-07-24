@@ -46,7 +46,7 @@
         }
 
         [Fact]
-        public async Task Can_get_stream_event_count()
+        public async Task Can_get_stream_message_count()
         {
             using (var fixture = new MsSqlStreamStoreFixture("dbo"))
             {
@@ -66,7 +66,7 @@
         }
 
         [Fact]
-        public async Task When_stream_does_not_exist_then_stream_event_count_should_be_zero()
+        public async Task When_stream_does_not_exist_then_stream_message_count_should_be_zero()
         {
             using (var fixture = new MsSqlStreamStoreFixture("dbo"))
             {
@@ -82,7 +82,7 @@
         }
 
         [Fact]
-        public async Task Can_get_stream_event_count_with_created_before_date()
+        public async Task Can_get_stream_message_count_with_created_before_date()
         {
             using (var fixture = new MsSqlStreamStoreFixture("dbo"))
             {

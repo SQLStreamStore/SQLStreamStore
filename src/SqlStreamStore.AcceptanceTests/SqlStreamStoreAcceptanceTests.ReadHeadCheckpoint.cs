@@ -21,7 +21,7 @@
         }
 
         [Fact]
-        public async Task Given_store_with_events_then_can_get_head_checkpoint()
+        public async Task Given_store_with_messages_then_can_get_head_checkpoint()
         {
             using (var fixture = GetFixture())
             {

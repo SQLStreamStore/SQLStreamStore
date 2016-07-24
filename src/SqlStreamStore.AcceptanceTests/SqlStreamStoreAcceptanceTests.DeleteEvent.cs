@@ -11,7 +11,7 @@
     public partial class StreamStoreAcceptanceTests
     {
         [Fact]
-        public async Task When_delete_event_then_event_should_be_removed_from_stream()
+        public async Task When_delete_message_then_message_should_be_removed_from_stream()
         {
             using(var fixture = GetFixture())
             {
@@ -33,7 +33,7 @@
         }
 
         [Fact]
-        public async Task When_delete_event_then_deleted_event_should_be_appended_to_deleted_stream()
+        public async Task When_delete_message_then_deleted_message_should_be_appended_to_deleted_stream()
         {
             using (var fixture = GetFixture())
             {
@@ -57,7 +57,7 @@
         }
 
         [Fact]
-        public async Task When_delete_event_that_does_not_exist_then_nothing_should_happen()
+        public async Task When_delete_message_that_does_not_exist_then_nothing_should_happen()
         {
             using (var fixture = GetFixture())
             {
@@ -79,7 +79,7 @@
         }
 
         [Fact]
-        public async Task When_delete_last_event_in_stream_and_append_then_it_should_have_subsequent_version_number()
+        public async Task When_delete_last_message_in_stream_and_append_then_it_should_have_subsequent_version_number()
         {
             using (var fixture = GetFixture())
             {

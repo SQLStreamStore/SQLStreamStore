@@ -73,7 +73,7 @@ namespace GetEventstoreExploratoryTests
         }
 
         [Fact]
-        public async Task Can_append_event_with_duplicate_id_to_stream()
+        public async Task Can_append_message_with_duplicate_id_to_stream()
         {
             await _node.StartAndWaitUntilInitialized();
 
@@ -129,7 +129,7 @@ namespace GetEventstoreExploratoryTests
         }
 
         [Fact]
-        public async Task Read_all_events_forwards()
+        public async Task Read_all_messages_forwards()
         {
             await _node.StartAndWaitUntilInitialized();
 
@@ -152,7 +152,7 @@ namespace GetEventstoreExploratoryTests
         }
 
         [Fact]
-        public async Task Read_all_events_backwards()
+        public async Task Read_all_messages_backwards()
         {
             await _node.StartAndWaitUntilInitialized();
 

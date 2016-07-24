@@ -11,7 +11,7 @@ namespace SqlStreamStore
     public partial class StreamStoreAcceptanceTests
     {
         [Fact]
-        public async Task Given_large_event_stream_can_be_read_back_in_pages()
+        public async Task Given_large_message_stream_can_be_read_back_in_pages()
         {
             using (var fixture = GetFixture())
             {

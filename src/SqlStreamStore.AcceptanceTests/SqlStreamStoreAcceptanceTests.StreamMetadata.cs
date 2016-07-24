@@ -149,7 +149,7 @@
         }
 
         [Fact]
-        public async Task When_stream_has_expired_events_and_read_forwards_then_should_not_get_expired_events()
+        public async Task When_stream_has_expired_messages_and_read_forwards_then_should_not_get_expired_events()
         {
             using (var fixture = GetFixture())
             {
@@ -174,7 +174,7 @@
         }
 
         [Fact]
-        public async Task When_stream_has_expired_events_and_read_backward_then_should_not_get_expired_events()
+        public async Task When_stream_has_expired_messages_and_read_backward_then_should_not_get_expired_events()
         {
             using (var fixture = GetFixture())
             {
@@ -199,7 +199,7 @@
         }
 
         [Fact]
-        public async Task When_streams_have_expired_events_and_read_all_forwards_then_should_not_get_expired_events()
+        public async Task When_streams_have_expired_messages_and_read_all_forwards_then_should_not_get_expired_events()
         {
             using (var fixture = GetFixture())
             {
@@ -237,7 +237,7 @@
         }
 
         [Fact]
-        public async Task When_streams_have_expired_events_and_read_all_backwards_then_should_not_get_expired_events()
+        public async Task When_streams_have_expired_messages_and_read_all_backwards_then_should_not_get_expired_events()
         {
             using (var fixture = GetFixture())
             {

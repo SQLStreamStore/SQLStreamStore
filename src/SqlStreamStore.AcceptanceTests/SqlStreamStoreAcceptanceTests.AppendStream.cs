@@ -8,7 +8,7 @@
     public partial class StreamStoreAcceptanceTests
     {
         [Fact]
-        public async Task When_append_stream_second_time_with_no_stream_expected_and_different_event_then_should_throw()
+        public async Task When_append_stream_second_time_with_no_stream_expected_and_different_message_then_should_throw()
         {
             using(var fixture = GetFixture())
             {
@@ -28,7 +28,7 @@
         }
 
         [Fact]
-        public async Task When_append_stream_second_time_with_no_stream_expected_and_same_events_then_should_then_should_be_idempotent()
+        public async Task When_append_stream_second_time_with_no_stream_expected_and_same_messages_then_should_then_should_be_idempotent()
         {
             // Idempotency
             using (var fixture = GetFixture())
@@ -48,7 +48,7 @@
         }
 
         [Fact]
-        public async Task When_append_stream_second_time_with_no_stream_expected_and_additonal_events_then_should_throw()
+        public async Task When_append_stream_second_time_with_no_stream_expected_and_additonal_messages_then_should_throw()
         {
             // Idempotency
             using (var fixture = GetFixture())
@@ -69,7 +69,7 @@
         }
 
         [Fact]
-        public async Task When_append_stream_second_time_with_no_stream_expected_and_same_inital_event_then_should_be_idempotent()
+        public async Task When_append_stream_second_time_with_no_stream_expected_and_same_inital_message_then_should_be_idempotent()
         {
             // Idempotency
             using (var fixture = GetFixture())
@@ -89,7 +89,7 @@
         }
 
         [Fact]
-        public async Task When_append_stream_second_time_with_no_stream_expected_and_different_inital_events_then_should_throw()
+        public async Task When_append_stream_second_time_with_no_stream_expected_and_different_inital_messages_then_should_throw()
         {
             using (var fixture = GetFixture())
             {
@@ -145,7 +145,7 @@
         }
 
         [Fact]
-        public async Task When_append_stream_with_correct_expected_version_second_time_with_same_events_then_should_not_throw()
+        public async Task When_append_stream_with_correct_expected_version_second_time_with_same_messages_then_should_not_throw()
         {
             using (var fixture = GetFixture())
             {
@@ -165,7 +165,7 @@
         }
 
         [Fact]
-        public async Task When_append_stream_with_correct_expected_version_second_time_with_same_initial_events_then_should_not_throw()
+        public async Task When_append_stream_with_correct_expected_version_second_time_with_same_initial_messages_then_should_not_throw()
         {
             using (var fixture = GetFixture())
             {
@@ -185,7 +185,7 @@
         }
 
         [Fact]
-        public async Task When_append_stream_with_correct_expected_version_second_time_with_additional_events_then_should_throw()
+        public async Task When_append_stream_with_correct_expected_version_second_time_with_additional_messages_then_should_throw()
         {
             using (var fixture = GetFixture())
             {
@@ -225,7 +225,7 @@
         }
 
         [Fact]
-        public async Task When_append_stream_second_time_with_expected_version_any_and_all_events_comitted_then_should_be_idempotent()
+        public async Task When_append_stream_second_time_with_expected_version_any_and_all_messages_comitted_then_should_be_idempotent()
         {
             using (var fixture = GetFixture())
             {
@@ -247,7 +247,7 @@
         }
 
         [Fact]
-        public async Task When_append_stream_with_expected_version_any_and_some_of_the_events_previously_comitted_then_should_be_idempotent()
+        public async Task When_append_stream_with_expected_version_any_and_some_of_the_messages_previously_comitted_then_should_be_idempotent()
         {
             using (var fixture = GetFixture())
             {
@@ -269,7 +269,7 @@
         }
 
         [Fact]
-        public async Task Can_append_stream_with_expected_version_any_and_none_of_then_events_previously_comitted()
+        public async Task Can_append_stream_with_expected_version_any_and_none_of_then_messages_previously_comitted()
         {
             using (var fixture = GetFixture())
             {
@@ -291,7 +291,7 @@
         }
 
         [Fact]
-        public async Task When_append_stream_with_expected_version_any_and_some_of_the_events_previously_comitted_and_with_additional_events_then_should_throw()
+        public async Task When_append_stream_with_expected_version_any_and_some_of_the_messages_previously_comitted_and_with_additional_messages_then_should_throw()
         {
             using (var fixture = GetFixture())
             {
@@ -311,7 +311,7 @@
         }
 
         [Fact]
-        public async Task When_append_stream_with_expected_version_and_duplicate_event_Id_then_should_throw()
+        public async Task When_append_stream_with_expected_version_and_duplicate_message_Id_then_should_throw()
         {
             using (var fixture = GetFixture())
             {

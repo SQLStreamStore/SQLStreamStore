@@ -9,7 +9,7 @@
     public class StreamSubscriptionTests
     {
         [Fact]
-        public async Task When_exception_throw_by_subscription_event_received_then_should_drop_subscription()
+        public async Task When_exception_throw_by_subscription_message_received_then_should_drop_subscription()
         {
             using(var store = new InMemoryStreamStore())
             {

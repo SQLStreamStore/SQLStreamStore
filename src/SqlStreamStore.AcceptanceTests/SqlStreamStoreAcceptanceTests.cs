@@ -31,7 +31,7 @@
         {
             using(var fixture = GetFixture())
             {
-                var store = await fixture.GetEventStore();
+                var store = await fixture.GetStreamStore();
                 store.Dispose();
 
                 Func<Task> act = () => store.ReadAllForwards(Checkpoint.Start, 10);
@@ -45,7 +45,7 @@
         {
             using (var fixture = GetFixture())
             {
-                var store = await fixture.GetEventStore();
+                var store = await fixture.GetStreamStore();
                 store.Dispose();
 
                 Action act = store.Dispose;
@@ -54,38 +54,38 @@
             }
         }
 
-        public static NewStreamEvent[] CreateNewStreamEvents(params int[] eventNumbers)
+        public static NewStreamMessage[] CreateNewStreamMessages(params int[] eventNumbers)
         {
             return eventNumbers
                 .Select(eventNumber =>
                 {
                     var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
-                    return new NewStreamEvent(eventId, "type", "\"data\"", "\"metadata\"");
+                    return new NewStreamMessage(eventId, "type", "\"data\"", "\"metadata\"");
                 })
                 .ToArray();
         }
 
-        private static NewStreamEvent[] CreateNewStreamEventSequence(int startId, int count)
+        private static NewStreamMessage[] CreateNewStreamEventSequence(int startId, int count)
         {
-            var streamEvents = new List<NewStreamEvent>();
+            var streamEvents = new List<NewStreamMessage>();
             for(int i = 0; i < count; i++)
             {
                 var eventNumber = startId + i;
                 var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
-                var newStreamEvent = new NewStreamEvent(eventId, "type", "\"data\"", "\"metadata\"");
+                var newStreamEvent = new NewStreamMessage(eventId, "type", "\"data\"", "\"metadata\"");
                 streamEvents.Add(newStreamEvent);
             }
             return streamEvents.ToArray();
         }
 
-        private static StreamEvent ExpectedStreamEvent(
+        private static StreamMessage ExpectedStreamEvent(
             string streamId,
             int eventNumber,
             int sequenceNumber,
             DateTime created)
         {
             var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
-            return new StreamEvent(streamId, eventId, sequenceNumber, 0, created, "type", "\"data\"", "\"metadata\"");
+            return new StreamMessage(streamId, eventId, sequenceNumber, 0, created, "type", "\"data\"", "\"metadata\"");
         }
     }
 

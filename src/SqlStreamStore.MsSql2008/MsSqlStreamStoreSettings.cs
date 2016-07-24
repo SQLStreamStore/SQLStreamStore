@@ -5,11 +5,11 @@
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Subscriptions;
 
-    public class MsSqlEventStoreSettings
+    public class MsSqlStreamStoreSettings
     {
         private string _schema = "dbo";
 
-        public MsSqlEventStoreSettings(string connectionString)
+        public MsSqlStreamStoreSettings(string connectionString)
         {
             Ensure.That(connectionString, nameof(connectionString)).IsNotNullOrWhiteSpace();
 
@@ -40,6 +40,6 @@
 
         public GetUtcNow GetUtcNow { get; set; }
 
-        public string LogName { get; set; } = "MsSqlEventStore";
+        public string LogName { get; set; } = "MsSqlStreamStore";
     }
 }

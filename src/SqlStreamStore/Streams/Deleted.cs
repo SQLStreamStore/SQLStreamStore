@@ -11,20 +11,20 @@
 
         public const string EventDeletedEventType = "$event-deleted";
 
-        public static NewStreamEvent CreateStreamDeletedEvent(string streamId)
+        public static NewStreamMessage CreateStreamDeletedEvent(string streamId)
         {
             var streamDeleted = new StreamDeleted { StreamId = streamId };
             var eventJson = SimpleJson.SerializeObject(streamDeleted);
 
-            return new NewStreamEvent(Guid.NewGuid(), StreamDeletedEventType, eventJson);
+            return new NewStreamMessage(Guid.NewGuid(), StreamDeletedEventType, eventJson);
         }
 
-        public static NewStreamEvent CreateEventDeletedEvent(string streamId, Guid eventId)
+        public static NewStreamMessage CreateEventDeletedEvent(string streamId, Guid eventId)
         {
             var eventDeleted = new EventDeleted { StreamId = streamId, EventId = eventId };
             var eventJson = SimpleJson.SerializeObject(eventDeleted);
 
-            return new NewStreamEvent(Guid.NewGuid(), EventDeletedEventType, eventJson);
+            return new NewStreamMessage(Guid.NewGuid(), EventDeletedEventType, eventJson);
         }
 
         public class StreamDeleted

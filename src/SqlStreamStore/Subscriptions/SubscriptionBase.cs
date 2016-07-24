@@ -15,13 +15,13 @@
         private readonly CancellationTokenSource _isDisposed = new CancellationTokenSource();
 
         protected SubscriptionBase(
-            IReadOnlyEventStore readOnlyEventStore,
+            IReadonlyStreamStore readonlyStreamStore,
             IObservable<Unit> eventStoreAppendedNotification,
             StreamEventReceived streamEventReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null)
         {
-            ReadOnlyEventStore = readOnlyEventStore;
+            ReadonlyStreamStore = readonlyStreamStore;
             EventStoreAppendedNotification = eventStoreAppendedNotification;
             StreamEventReceived = streamEventReceived;
             Name = string.IsNullOrWhiteSpace(name) ? Guid.NewGuid().ToString() : name;
@@ -40,7 +40,7 @@
 
         protected CancellationToken IsDisposed => _isDisposed.Token;
 
-        protected IReadOnlyEventStore ReadOnlyEventStore { get; }
+        protected IReadonlyStreamStore ReadonlyStreamStore { get; }
 
         protected StreamEventReceived StreamEventReceived { get; }
 

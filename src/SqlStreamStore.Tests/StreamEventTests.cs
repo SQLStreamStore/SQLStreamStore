@@ -10,7 +10,7 @@
         [Fact]
         public void Can_deserialize()
         {
-            var streamEvent = new StreamEvent(
+            var streamEvent = new StreamMessage(
                 "stream",
                 Guid.NewGuid(),
                 1,

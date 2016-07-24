@@ -9,9 +9,9 @@
     using SqlStreamStore.Streams;
     using SqlStreamStore.Infrastructure;
 
-    public partial class MsSqlEventStore
+    public partial class MsSqlStreamStore
     {
-        protected override async Task<StreamEventsPage> ReadStreamForwardsInternal(
+        protected override async Task<StreamMessagesPage> ReadStreamForwardsInternal(
             string streamId,
             int start,
             int count,
@@ -25,7 +25,7 @@
             }
         }
 
-        protected override async Task<StreamEventsPage> ReadStreamBackwardsInternal(
+        protected override async Task<StreamMessagesPage> ReadStreamBackwardsInternal(
             string streamId,
             int start,
             int count,
@@ -39,7 +39,7 @@
             }
         }
 
-        private async Task<StreamEventsPage> ReadStreamInternal(
+        private async Task<StreamMessagesPage> ReadStreamInternal(
             SqlStreamId sqlStreamId,
             int start,
             int count,
@@ -50,7 +50,7 @@
             // To read backwards from end, need to use int MaxValue
             var streamVersion = start == StreamVersion.End ? int.MaxValue : start;
             string commandText;
-            Func<List<StreamEvent>, int> getNextSequenceNumber;
+            Func<List<StreamMessage>, int> getNextSequenceNumber;
             if(direction == ReadDirection.Forward)
             {
                 commandText = _scripts.ReadStreamForward;
@@ -68,13 +68,13 @@
                 command.Parameters.AddWithValue("count", count + 1); //Read extra row to see if at end or not
                 command.Parameters.AddWithValue("StreamVersion", streamVersion);
 
-                var streamEvents = new List<StreamEvent>();
+                var streamEvents = new List<StreamMessage>();
 
                 using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
                 {
                     if(!await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                     {
-                        return new StreamEventsPage(
+                        return new StreamMessagesPage(
                             sqlStreamId.IdOriginal,
                             PageReadStatus.StreamNotFound,
                             start,
@@ -84,7 +84,7 @@
                             isEndOfStream: true);
                     }
 
-                    // Read Events result set
+                    // Read Messages result set
                     do
                     {
                         var streamVersion1 = reader.GetInt32(0);
@@ -95,7 +95,7 @@
                         var jsonData = reader.GetString(5);
                         var jsonMetadata = reader.GetString(6);
 
-                        var streamEvent = new StreamEvent(
+                        var streamEvent = new StreamMessage(
                             sqlStreamId.IdOriginal,
                             eventId,
                             streamVersion1,
@@ -120,7 +120,7 @@
                         streamEvents.RemoveAt(count);
                     }
 
-                    return new StreamEventsPage(
+                    return new StreamMessagesPage(
                         sqlStreamId.IdOriginal,
                         PageReadStatus.Success,
                         start,

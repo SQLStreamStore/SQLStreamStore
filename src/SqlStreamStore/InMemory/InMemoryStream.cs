@@ -33,23 +33,23 @@ namespace SqlStreamStore.InMemory
 
         internal IReadOnlyList<InMemoryStreamEvent> Events => _events;
 
-        internal void AppendToStream(int expectedVersion, NewStreamEvent[] newEvents)
+        internal void AppendToStream(int expectedVersion, NewStreamMessage[] newMessages)
         {
             switch(expectedVersion)
             {
                 case ExpectedVersion.Any:
-                    AppendToStreamExpectedVersionAny(expectedVersion, newEvents);
+                    AppendToStreamExpectedVersionAny(expectedVersion, newMessages);
                     return;
                 case ExpectedVersion.NoStream:
-                    AppendToStreamExpectedVersionNoStream(expectedVersion, newEvents);
+                    AppendToStreamExpectedVersionNoStream(expectedVersion, newMessages);
                     return;
                 default:
-                    AppendToStreamExpectedVersion(expectedVersion, newEvents);
+                    AppendToStreamExpectedVersion(expectedVersion, newMessages);
                     return;
             }
         }
 
-        private void AppendToStreamExpectedVersion(int expectedVersion, NewStreamEvent[] newEvents)
+        private void AppendToStreamExpectedVersion(int expectedVersion, NewStreamMessage[] newMessages)
         {
             // Need to do optimistic concurrency check...
             if(expectedVersion > _currentVersion)
@@ -61,7 +61,7 @@ namespace SqlStreamStore.InMemory
             if(_currentVersion >= 0 && expectedVersion < _currentVersion)
             {
                 // expectedVersion < currentVersion, Idempotency test
-                for(int i = 0; i < newEvents.Length; i++)
+                for(int i = 0; i < newMessages.Length; i++)
                 {
                     int index = expectedVersion + i + 1;
                     if(index >= _events.Count)
@@ -69,7 +69,7 @@ namespace SqlStreamStore.InMemory
                         throw new WrongExpectedVersionException(
                             Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
                     }
-                    if(_events[index].EventId != newEvents[i].EventId)
+                    if(_events[index].EventId != newMessages[i].EventId)
                     {
                         throw new WrongExpectedVersionException(
                             Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
@@ -79,50 +79,50 @@ namespace SqlStreamStore.InMemory
             }
 
             // expectedVersion == currentVersion)
-            if(newEvents.Any(newStreamEvent => _eventsById.ContainsKey(newStreamEvent.EventId)))
+            if(newMessages.Any(newStreamEvent => _eventsById.ContainsKey(newStreamEvent.EventId)))
             {
                 throw new WrongExpectedVersionException(
                     Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
             }
 
-            AppendEvents(newEvents);
+            AppendEvents(newMessages);
         }
 
-        private void AppendToStreamExpectedVersionAny(int expectedVersion, NewStreamEvent[] newEvents)
+        private void AppendToStreamExpectedVersionAny(int expectedVersion, NewStreamMessage[] newMessages)
         {
-            // idemponcy check - how many newEvents have already been written?
-            var newEventIds = new HashSet<Guid>(newEvents.Select(e => e.EventId));
+            // idemponcy check - how many newMessages have already been written?
+            var newEventIds = new HashSet<Guid>(newMessages.Select(e => e.EventId));
             newEventIds.ExceptWith(_eventsById.Keys);
 
             if(newEventIds.Count == 0)
             {
-                // All events have already been written, we're idempotent
+                // All Messages have already been written, we're idempotent
                 return;
             }
 
-            if(newEventIds.Count != newEvents.Length)
+            if(newEventIds.Count != newMessages.Length)
             {
-                // Some of the events have already been written, bad request
+                // Some of the Messages have already been written, bad request
                 throw new WrongExpectedVersionException(
                     Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
             }
 
-            // None of the events were written previously...
-            AppendEvents(newEvents);
+            // None of the Messages were written previously...
+            AppendEvents(newMessages);
         }
 
-        private void AppendToStreamExpectedVersionNoStream(int expectedVersion, NewStreamEvent[] newEvents)
+        private void AppendToStreamExpectedVersionNoStream(int expectedVersion, NewStreamMessage[] newMessages)
         {
             if(_events.Count > 0)
             {
-                //Already committed events, do idempotency check
-                if(newEvents.Length > _events.Count)
+                //Already committed Messages, do idempotency check
+                if(newMessages.Length > _events.Count)
                 {
                     throw new WrongExpectedVersionException(
                         Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
                 }
 
-                if(newEvents.Where((@event, index) => _events[index].EventId != @event.EventId).Any())
+                if(newMessages.Where((@event, index) => _events[index].EventId != @event.EventId).Any())
                 {
                     throw new WrongExpectedVersionException(
                         Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
@@ -130,13 +130,13 @@ namespace SqlStreamStore.InMemory
                 return;
             }
 
-            // None of the events were written previously...
-            AppendEvents(newEvents);
+            // None of the Messages were written previously...
+            AppendEvents(newMessages);
         }
 
-        private void AppendEvents(NewStreamEvent[] newEvents)
+        private void AppendEvents(NewStreamMessage[] newMessages)
         {
-            foreach(var newStreamEvent in newEvents)
+            foreach(var newStreamEvent in newMessages)
             {
                 var checkpoint = _getNextCheckpoint();
                 _currentVersion++;

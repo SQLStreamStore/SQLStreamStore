@@ -8,7 +8,7 @@
     using SqlStreamStore.Streams;
     using SqlStreamStore.Infrastructure;
 
-    public partial class MsSqlEventStore
+    public partial class MsSqlStreamStore
     {
         protected override async Task<AllEventsPage> ReadAllForwardsInternal(
             long fromCheckpointExlusive,
@@ -29,7 +29,7 @@
                         .ExecuteReaderAsync(cancellationToken)
                         .NotOnCapturedContext();
 
-                    List<StreamEvent> streamEvents = new List<StreamEvent>();
+                    List<StreamMessage> streamEvents = new List<StreamMessage>();
                     if (!reader.HasRows)
                     {
                         return new AllEventsPage(
@@ -52,7 +52,7 @@
                         var jsonData = reader.GetString(6);
                         var jsonMetadata = reader.GetString(7);
 
-                        var streamEvent = new StreamEvent(streamId,
+                        var streamEvent = new StreamMessage(streamId,
                             eventId,
                             streamVersion,
                             ordinal,
@@ -103,7 +103,7 @@
                         .ExecuteReaderAsync(cancellationToken)
                         .NotOnCapturedContext();
 
-                    List<StreamEvent> streamEvents = new List<StreamEvent>();
+                    List<StreamMessage> streamEvents = new List<StreamMessage>();
                     if (!reader.HasRows)
                     {
                         // When reading backwards and there are no more items, then next checkpoint is LongCheckpoint.Start,
@@ -128,7 +128,7 @@
                         var jsonData = reader.GetString(6);
                         var jsonMetadata = reader.GetString(7);
 
-                        var streamEvent = new StreamEvent(streamId,
+                        var streamEvent = new StreamMessage(streamId,
                             eventId,
                             streamVersion,
                             ordinal,

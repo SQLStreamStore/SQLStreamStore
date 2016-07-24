@@ -12,14 +12,14 @@
         {
             using(var fixture = GetFixture())
             {
-                using(var eventStore = await fixture.GetEventStore())
+                using(var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
-                    await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+                    await store
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
 
-                    var exception = await Record.ExceptionAsync(() => eventStore
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(2, 3, 4)));
+                    var exception = await Record.ExceptionAsync(() => store
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(2, 3, 4)));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
                         Messages.AppendFailedWrongExpectedVersion(streamId, ExpectedVersion.NoStream));
@@ -33,14 +33,14 @@
             // Idempotency
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
-                    await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2));
+                    await store
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2));
 
-                    var exception = await Record.ExceptionAsync(() => eventStore
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2)));
+                    var exception = await Record.ExceptionAsync(() => store
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2)));
 
                     exception.ShouldBeNull();
                 }
@@ -53,14 +53,14 @@
             // Idempotency
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
-                    await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2));
+                    await store
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2));
 
                     var exception = await Record.ExceptionAsync(() => 
-                        eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3)));
+                        store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3)));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
                         Messages.AppendFailedWrongExpectedVersion(streamId, ExpectedVersion.NoStream));
@@ -74,14 +74,14 @@
             // Idempotency
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
                     await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2));
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2));
 
                     var exception = await Record.ExceptionAsync(() =>
-                       eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1)));
+                       eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1)));
 
                     exception.ShouldBeNull();
                 }
@@ -93,14 +93,14 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
                     await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2));
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2));
 
                     var exception = await Record.ExceptionAsync(() =>
-                        eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(2)));
+                        eventStore.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(2)));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
                             Messages.AppendFailedWrongExpectedVersion(streamId, ExpectedVersion.NoStream));
@@ -113,14 +113,14 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
                     await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
 
                     var exception = await Record.ExceptionAsync(() =>
-                        eventStore.AppendToStream(streamId, 1, CreateNewStreamEvents(4, 5, 6)));
+                        eventStore.AppendToStream(streamId, 1, CreateNewStreamMessages(4, 5, 6)));
                     
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
                         Messages.AppendFailedWrongExpectedVersion(streamId, 1));
@@ -133,13 +133,13 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
                     await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
 
-                    await eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(4, 5, 6));
+                    await eventStore.AppendToStream(streamId, 2, CreateNewStreamMessages(4, 5, 6));
                 }
             }
         }
@@ -149,15 +149,15 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
                     await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
-                    await eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(4, 5, 6));
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await eventStore.AppendToStream(streamId, 2, CreateNewStreamMessages(4, 5, 6));
 
                     var exception = await Record.ExceptionAsync(() => 
-                        eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(4, 5, 6)));
+                        eventStore.AppendToStream(streamId, 2, CreateNewStreamMessages(4, 5, 6)));
 
                     exception.ShouldBeNull();
                 }
@@ -169,15 +169,15 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
                     await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
-                    await eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(4, 5, 6));
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await eventStore.AppendToStream(streamId, 2, CreateNewStreamMessages(4, 5, 6));
 
                     var exception = await Record.ExceptionAsync(() =>
-                        eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(4, 5)));
+                        eventStore.AppendToStream(streamId, 2, CreateNewStreamMessages(4, 5)));
 
                     exception.ShouldBeNull();
                 }
@@ -189,15 +189,15 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
                     await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
-                    await eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(4, 5, 6));
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await eventStore.AppendToStream(streamId, 2, CreateNewStreamMessages(4, 5, 6));
 
                     var exception = await Record.ExceptionAsync(() =>
-                        eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(4, 5, 6, 7)));
+                        eventStore.AppendToStream(streamId, 2, CreateNewStreamMessages(4, 5, 6, 7)));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
                             Messages.AppendFailedWrongExpectedVersion(streamId, 2));
@@ -210,16 +210,16 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
                     var exception = await Record.ExceptionAsync(() => 
-                        eventStore.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3)));
+                        eventStore.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1, 2, 3)));
                     exception.ShouldBeNull();
 
                     var page = await eventStore
                         .ReadStreamForwards(streamId, StreamVersion.Start, 4);
-                    page.Events.Length.ShouldBe(3);
+                    page.Messages.Length.ShouldBe(3);
                 }
             }
         }
@@ -229,19 +229,19 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
 
                     await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3));
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1, 2, 3));
 
                     await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3));
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1, 2, 3));
 
                     var page = await eventStore
                         .ReadStreamForwards(streamId, StreamVersion.Start, 10);
-                    page.Events.Length.ShouldBe(3);
+                    page.Messages.Length.ShouldBe(3);
                 }
             }
         }
@@ -251,19 +251,19 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
 
                     await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3));
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1, 2, 3));
 
                     await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2));
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1, 2));
 
                     var page = await eventStore
                         .ReadStreamForwards(streamId, StreamVersion.Start, 10);
-                    page.Events.Length.ShouldBe(3);
+                    page.Messages.Length.ShouldBe(3);
                 }
             }
         }
@@ -273,19 +273,19 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
 
                     await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3));
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1, 2, 3));
 
                     await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(4, 5, 6));
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(4, 5, 6));
 
                     var page = await eventStore
                         .ReadStreamForwards(streamId, StreamVersion.Start, 10);
-                    page.Events.Length.ShouldBe(6);
+                    page.Messages.Length.ShouldBe(6);
                 }
             }
         }
@@ -295,14 +295,14 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
                     await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3));
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1, 2, 3));
 
                     var exception = await Record.ExceptionAsync(() =>
-                        eventStore.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(2, 3, 4)));
+                        eventStore.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(2, 3, 4)));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
                             Messages.AppendFailedWrongExpectedVersion(streamId, ExpectedVersion.Any));
@@ -315,14 +315,14 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
                     await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
 
                     var exception = await Record.ExceptionAsync(() =>
-                        eventStore.AppendToStream(streamId, 2, CreateNewStreamEvents(1)));
+                        eventStore.AppendToStream(streamId, 2, CreateNewStreamMessages(1)));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
                             Messages.AppendFailedWrongExpectedVersion(streamId, 2));

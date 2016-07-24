@@ -5,10 +5,10 @@ namespace SqlStreamStore.InMemory
 
     public class InMemoryStreamStoreFixture : StreamStoreAcceptanceTestFixture
     {
-        public override Task<IEventStore> GetEventStore()
+        public override Task<IStreamStore> GetStreamStore()
         {
-            IEventStore eventStore = new InMemoryEventStore(() => GetUtcNow());
-            return Task.FromResult(eventStore);
+            IStreamStore streamStore = new InMemoryStreamStore(() => GetUtcNow());
+            return Task.FromResult(streamStore);
         }
     }
 }

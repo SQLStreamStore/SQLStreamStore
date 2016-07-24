@@ -29,7 +29,7 @@ INSERT INTO dbo.Events (StreamIdInternal, StreamVersion, Id, Created, [Type], Js
             [Type],
             JsonData,
             JsonMetadata
-       FROM @newEvents
+       FROM @newMessages
    ORDER BY StreamVersion;
 
   SELECT TOP(1)

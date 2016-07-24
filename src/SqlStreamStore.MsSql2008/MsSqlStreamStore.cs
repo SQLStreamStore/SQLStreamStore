@@ -12,14 +12,14 @@
     using SqlStreamStore.MsSqlScripts;
     using SqlStreamStore.Subscriptions;
 
-    public sealed partial class MsSqlEventStore : EventStoreBase
+    public sealed partial class MsSqlStreamStore : StreamStoreBase
     {
         private readonly Func<SqlConnection> _createConnection;
         private readonly AsyncLazy<IEventStoreNotifier> _eventStoreNotifier;
         private readonly Scripts _scripts;
         private readonly SqlMetaData[] _appendToStreamSqlMetadata;
 
-        public MsSqlEventStore(MsSqlEventStoreSettings settings)
+        public MsSqlStreamStore(MsSqlStreamStoreSettings settings)
             :base(settings.MetadataMaxAgeCacheExpire, settings.MetadataMaxAgeCacheMaxSize,
                  settings.GetUtcNow, settings.LogName)
         {

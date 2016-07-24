@@ -36,7 +36,7 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Events_StreamIdInternal_Revision ON dbo.Even
 
 CREATE NONCLUSTERED INDEX IX_Events_StreamIdInternal_Created ON dbo.Events (StreamIdInternal, Created);
 
-CREATE TYPE dbo.NewStreamEvents AS TABLE (
+CREATE TYPE dbo.NewStreamMessages AS TABLE (
     StreamVersion       INT IDENTITY(0,1)                       NOT NULL,
     Id                  UNIQUEIDENTIFIER                        NOT NULL,
     Created             DATETIME          DEFAULT(GETUTCDATE()) NOT NULL,

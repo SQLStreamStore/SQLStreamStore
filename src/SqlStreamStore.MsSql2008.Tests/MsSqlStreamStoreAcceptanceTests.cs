@@ -24,19 +24,19 @@
         {
             using(var fixture = new MsSqlStreamStoreFixture("dbo"))
             {
-                using(var dboEventStore = await fixture.GetEventStore())
+                using(var dboStore = await fixture.GetStreamStore())
                 {
-                    using(var barEventStore = await fixture.GetEventStore("bar"))
+                    using(var barStore = await fixture.GetEventStore("bar"))
                     {
-                        await dboEventStore.AppendToStream("stream-1",
+                        await dboStore.AppendToStream("stream-1",
                                 ExpectedVersion.NoStream,
-                                CreateNewStreamEvents(1, 2));
-                        await barEventStore.AppendToStream("stream-1",
+                                CreateNewStreamMessages(1, 2));
+                        await barStore.AppendToStream("stream-1",
                                 ExpectedVersion.NoStream,
-                                CreateNewStreamEvents(1, 2));
+                                CreateNewStreamMessages(1, 2));
 
-                        var dboHeadCheckpoint = await dboEventStore.ReadHeadCheckpoint();
-                        var fooHeadCheckpoint = await dboEventStore.ReadHeadCheckpoint();
+                        var dboHeadCheckpoint = await dboStore.ReadHeadCheckpoint();
+                        var fooHeadCheckpoint = await dboStore.ReadHeadCheckpoint();
 
                         dboHeadCheckpoint.ShouldBe(1);
                         fooHeadCheckpoint.ShouldBe(1);
@@ -56,7 +56,7 @@
                     await store.AppendToStream(
                         streamId,
                         ExpectedVersion.NoStream,
-                        CreateNewStreamEvents(1, 2, 3, 4, 5));
+                        CreateNewStreamMessages(1, 2, 3, 4, 5));
 
                     var streamCount = await store.GetStreamEventCount(streamId);
 
@@ -94,14 +94,14 @@
                     await store.AppendToStream(
                         streamId,
                         ExpectedVersion.NoStream,
-                        CreateNewStreamEvents(1, 2, 3));
+                        CreateNewStreamMessages(1, 2, 3));
 
                     fixture.GetUtcNow = () => new DateTime(2016, 1, 1, 0, 1, 0);
 
                     await store.AppendToStream(
                         streamId,
                         ExpectedVersion.Any,
-                        CreateNewStreamEvents(4, 5, 6));
+                        CreateNewStreamMessages(4, 5, 6));
 
                     var streamCount = await store.GetStreamEventCount(streamId, new DateTime(2016, 1, 1, 0, 1, 0));
 

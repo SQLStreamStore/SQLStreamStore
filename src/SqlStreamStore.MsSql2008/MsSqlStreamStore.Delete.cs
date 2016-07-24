@@ -8,7 +8,7 @@
     using SqlStreamStore.Infrastructure;
     using static Streams.Deleted;
 
-    public partial class MsSqlEventStore
+    public partial class MsSqlStreamStore
     {
         protected override Task DeleteStreamInternal(
             string streamId,

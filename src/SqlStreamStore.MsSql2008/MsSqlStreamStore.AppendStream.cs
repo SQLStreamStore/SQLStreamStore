@@ -12,17 +12,17 @@
     using SqlStreamStore.Infrastructure;
     using StreamStoreStore.Json;
 
-    public partial class MsSqlEventStore
+    public partial class MsSqlStreamStore
     {
         protected override async Task AppendToStreamInternal(
            string streamId,
            int expectedVersion,
-           NewStreamEvent[] events,
+           NewStreamMessage[] messages,
            CancellationToken cancellationToken)
         {
             Ensure.That(streamId, "streamId").IsNotNullOrWhiteSpace();
             Ensure.That(expectedVersion, "expectedVersion").IsGte(-2);
-            Ensure.That(events, "events").IsNotNull();
+            Ensure.That(messages, "Messages").IsNotNull();
             CheckIfDisposed();
 
             int? maxCount;
@@ -31,7 +31,7 @@
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                 var streamIdInfo = new StreamIdInfo(streamId);
                 maxCount = await AppendToStreamInternal(connection, null, streamIdInfo.SqlStreamId, expectedVersion,
-                    events, cancellationToken);
+                    messages, cancellationToken);
             }
 
             if(maxCount != null)
@@ -45,7 +45,7 @@
            SqlTransaction transaction,
            SqlStreamId sqlStreamId,
            int expectedVersion,
-           NewStreamEvent[] events,
+           NewStreamMessage[] messages,
            CancellationToken cancellationToken)
         {
             CheckIfDisposed();
@@ -56,7 +56,7 @@
                     connection,
                     transaction,
                     sqlStreamId,
-                    events,
+                    messages,
                     cancellationToken);
             }
             if(expectedVersion == ExpectedVersion.NoStream)
@@ -65,7 +65,7 @@
                     connection,
                     transaction,
                     sqlStreamId,
-                    events,
+                    messages,
                     cancellationToken);
             }
             return await AppendToStreamExpectedVersion(
@@ -73,7 +73,7 @@
                 transaction,
                 sqlStreamId,
                 expectedVersion,
-                events,
+                messages,
                 cancellationToken);
         }
 
@@ -98,14 +98,14 @@
             SqlConnection connection,
             SqlTransaction transaction,
             SqlStreamId sqlStreamId,
-            NewStreamEvent[] events,
+            NewStreamMessage[] messages,
             CancellationToken cancellationToken)
         {
             using(var command = new SqlCommand(_scripts.AppendStreamExpectedVersionAny, connection, transaction))
             {
                 command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
                 command.Parameters.AddWithValue("streamIdOriginal", sqlStreamId.IdOriginal);
-                var eventsParam = CreateNewEventsSqlParameter(CreateSqlDataRecords(events));
+                var eventsParam = CreateNewMessagesSqlParameter(CreateSqlDataRecords(messages));
                 command.Parameters.Add(eventsParam);
 
                 try
@@ -128,26 +128,26 @@
                 catch(SqlException ex)
                     when(ex.IsUniqueConstraintViolationOnIndex("IX_Events_StreamIdInternal_Id"))
                 {
-                    // Idempotency handling. Check if the events have already been written.
+                    // Idempotency handling. Check if the Messages have already been written.
                     var page = await ReadStreamInternal(
                         sqlStreamId,
                         StreamVersion.Start,
-                        events.Length,
+                        messages.Length,
                         ReadDirection.Forward,
                         connection,
                         cancellationToken)
                         .NotOnCapturedContext();
 
-                    if(events.Length > page.Events.Length)
+                    if(messages.Length > page.Messages.Length)
                     {
                         throw new WrongExpectedVersionException(
                             Messages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, ExpectedVersion.Any),
                             ex);
                     }
 
-                    for(int i = 0; i < Math.Min(events.Length, page.Events.Length); i++)
+                    for(int i = 0; i < Math.Min(messages.Length, page.Messages.Length); i++)
                     {
-                        if(events[i].EventId != page.Events[i].EventId)
+                        if(messages[i].EventId != page.Messages[i].EventId)
                         {
                             throw new WrongExpectedVersionException(
                                 Messages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, ExpectedVersion.Any),
@@ -169,15 +169,15 @@
             SqlConnection connection,
             SqlTransaction transaction,
             SqlStreamId sqlStreamId,
-            NewStreamEvent[] events,
+            NewStreamMessage[] messages,
             CancellationToken cancellationToken)
         {
             using(var command = new SqlCommand(_scripts.AppendStreamExpectedVersionNoStream, connection, transaction))
             {
                 command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
                 command.Parameters.AddWithValue("streamIdOriginal", sqlStreamId.IdOriginal);
-                var sqlDataRecords = CreateSqlDataRecords(events);
-                var eventsParam = CreateNewEventsSqlParameter(sqlDataRecords);
+                var sqlDataRecords = CreateSqlDataRecords(messages);
+                var eventsParam = CreateNewMessagesSqlParameter(sqlDataRecords);
                 command.Parameters.Add(eventsParam);
 
                 try
@@ -200,26 +200,26 @@
                     // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
                     if(ex.IsUniqueConstraintViolationOnIndex("IX_Streams_Id"))
                     {
-                        // Idempotency handling. Check if the events have already been written.
+                        // Idempotency handling. Check if the Messages have already been written.
                         var page = await ReadStreamInternal(
                             sqlStreamId,
                             StreamVersion.Start,
-                            events.Length,
+                            messages.Length,
                             ReadDirection.Forward,
                             connection,
                             cancellationToken)
                             .NotOnCapturedContext();
 
-                        if(events.Length > page.Events.Length)
+                        if(messages.Length > page.Messages.Length)
                         {
                             throw new WrongExpectedVersionException(
                                 Messages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, ExpectedVersion.NoStream),
                                 ex);
                         }
 
-                        for(int i = 0; i < Math.Min(events.Length, page.Events.Length); i++)
+                        for(int i = 0; i < Math.Min(messages.Length, page.Messages.Length); i++)
                         {
-                            if(events[i].EventId != page.Events[i].EventId)
+                            if(messages[i].EventId != page.Messages[i].EventId)
                             {
                                 throw new WrongExpectedVersionException(
                                     Messages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, ExpectedVersion.NoStream),
@@ -248,16 +248,16 @@
             SqlTransaction transaction,
             SqlStreamId sqlStreamId,
             int expectedVersion,
-            NewStreamEvent[] events,
+            NewStreamMessage[] messages,
             CancellationToken cancellationToken)
         {
-            var sqlDataRecords = CreateSqlDataRecords(events);
+            var sqlDataRecords = CreateSqlDataRecords(messages);
 
             using(var command = new SqlCommand(_scripts.AppendStreamExpectedVersion, connection, transaction))
             {
                 command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
                 command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
-                var eventsParam = CreateNewEventsSqlParameter(sqlDataRecords);
+                var eventsParam = CreateNewMessagesSqlParameter(sqlDataRecords);
                 command.Parameters.Add(eventsParam);
 
                 try
@@ -281,27 +281,27 @@
                         var sqlError = ex.Errors[0];
                         if(sqlError.Message == "WrongExpectedVersion")
                         {
-                            // Idempotency handling. Check if the events have already been written.
+                            // Idempotency handling. Check if the Messages have already been written.
 
                             var page = await ReadStreamInternal(
                                 sqlStreamId,
                                 expectedVersion + 1,
-                                // when reading for already written events, it's from the one after the expected
-                                events.Length,
+                                // when reading for already written Messages, it's from the one after the expected
+                                messages.Length,
                                 ReadDirection.Forward,
                                 connection,
                                 cancellationToken);
 
-                            if(events.Length > page.Events.Length)
+                            if(messages.Length > page.Messages.Length)
                             {
                                 throw new WrongExpectedVersionException(
                                     Messages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, expectedVersion),
                                     ex);
                             }
 
-                            for(int i = 0; i < Math.Min(events.Length, page.Events.Length); i++)
+                            for(int i = 0; i < Math.Min(messages.Length, page.Messages.Length); i++)
                             {
-                                if(events[i].EventId != page.Events[i].EventId)
+                                if(messages[i].EventId != page.Messages[i].EventId)
                                 {
                                     throw new WrongExpectedVersionException(
                                         Messages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, expectedVersion),
@@ -338,7 +338,7 @@
 
                     if (streamEventsPage.Status == PageReadStatus.Success)
                     {
-                        foreach (var streamEvent in streamEventsPage.Events)
+                        foreach (var streamEvent in streamEventsPage.Messages)
                         {
                             await DeleteEventInternal(streamId, streamEvent.EventId, cancellationToken);
                         }
@@ -347,10 +347,10 @@
             }
         }
 
-        private SqlDataRecord[] CreateSqlDataRecords(NewStreamEvent[] events)
+        private SqlDataRecord[] CreateSqlDataRecords(NewStreamMessage[] messages)
         {
             var dateTime = GetUtcNow().DateTime;
-            var sqlDataRecords = events.Select(@event =>
+            var sqlDataRecords = messages.Select(@event =>
             {
                 var record = new SqlDataRecord(_appendToStreamSqlMetadata);
                 record.SetGuid(1, @event.EventId);
@@ -363,11 +363,11 @@
             return sqlDataRecords;
         }
 
-        private SqlParameter CreateNewEventsSqlParameter(SqlDataRecord[] sqlDataRecords)
+        private SqlParameter CreateNewMessagesSqlParameter(SqlDataRecord[] sqlDataRecords)
         {
-            var eventsParam = new SqlParameter("newEvents", SqlDbType.Structured)
+            var eventsParam = new SqlParameter("newMessages", SqlDbType.Structured)
             {
-                TypeName = $"{_scripts.Schema}.NewStreamEvents",
+                TypeName = $"{_scripts.Schema}.NewStreamMessages",
                 Value = sqlDataRecords
             };
             return eventsParam;

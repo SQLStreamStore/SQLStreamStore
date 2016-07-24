@@ -28,46 +28,46 @@ namespace SqlStreamStore
             ConnectionString = CreateConnectionString();
         }
 
-        public override async Task<IEventStore> GetEventStore()
+        public override async Task<IStreamStore> GetStreamStore()
         {
             await CreateDatabase();
 
-            var settings = new MsSqlEventStoreSettings(ConnectionString)
+            var settings = new MsSqlStreamStoreSettings(ConnectionString)
             {
                 Schema = _schema,
                 GetUtcNow = () => GetUtcNow()
             };
-            var eventStore = new MsSqlEventStore(settings);
+            var eventStore = new MsSqlStreamStore(settings);
             await eventStore.DropAll(ignoreErrors: true);
             await eventStore.InitializeStore();
 
             return eventStore;
         }
 
-        public async Task<IEventStore> GetEventStore(string schema)
+        public async Task<IStreamStore> GetEventStore(string schema)
         {
-            var settings = new MsSqlEventStoreSettings(ConnectionString)
+            var settings = new MsSqlStreamStoreSettings(ConnectionString)
             {
                 Schema = schema,
                 GetUtcNow = () => GetUtcNow()
             };
-            var eventStore = new MsSqlEventStore(settings);
+            var eventStore = new MsSqlStreamStore(settings);
             await eventStore.InitializeStore();
 
             return eventStore;
         }
 
-        public async Task<MsSqlEventStore> GetMsSqlEventStore()
+        public async Task<MsSqlStreamStore> GetMsSqlEventStore()
         {
             await CreateDatabase();
 
-            var settings = new MsSqlEventStoreSettings(ConnectionString)
+            var settings = new MsSqlStreamStoreSettings(ConnectionString)
             {
                 Schema = _schema,
                 GetUtcNow = () => GetUtcNow()
             };
 
-            var eventStore = new MsSqlEventStore(settings);
+            var eventStore = new MsSqlStreamStore(settings);
             await eventStore.DropAll(ignoreErrors: true);
             await eventStore.InitializeStore();
 

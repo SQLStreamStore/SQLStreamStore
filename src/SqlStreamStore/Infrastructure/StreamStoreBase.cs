@@ -7,11 +7,11 @@ namespace SqlStreamStore.Infrastructure
     using SqlStreamStore.Streams;
     using SqlStreamStore;
 
-    public abstract class EventStoreBase : ReadOnlyEventStoreBase, IEventStore
+    public abstract class StreamStoreBase : ReadonlyStreamStoreBase, IStreamStore
     {
         private readonly TaskQueue _taskQueue = new TaskQueue();
 
-        protected EventStoreBase(
+        protected StreamStoreBase(
             TimeSpan metadataMaxAgeCacheExpiry,
             int metadataMaxAgeCacheMaxSize,
             GetUtcNow getUtcNow,
@@ -22,12 +22,12 @@ namespace SqlStreamStore.Infrastructure
         public Task AppendToStream(
             string streamId,
             int expectedVersion,
-            NewStreamEvent[] events,
+            NewStreamMessage[] messages,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
 
-            return AppendToStreamInternal(streamId, expectedVersion, events, cancellationToken);
+            return AppendToStreamInternal(streamId, expectedVersion, messages, cancellationToken);
         }
 
         public Task DeleteStream(
@@ -74,15 +74,15 @@ namespace SqlStreamStore.Infrastructure
             string streamId,
             CancellationToken cancellationToken = default(CancellationToken));
 
-        protected override void PurgeExpiredEvent(StreamEvent streamEvent)
+        protected override void PurgeExpiredEvent(StreamMessage streamMessage)
         {
-            _taskQueue.Enqueue(ct => DeleteEventInternal(streamEvent.StreamId, streamEvent.EventId, ct));
+            _taskQueue.Enqueue(ct => DeleteEventInternal(streamMessage.StreamId, streamMessage.EventId, ct));
         }
 
         protected abstract Task AppendToStreamInternal(
             string streamId,
             int expectedVersion,
-            NewStreamEvent[] events,
+            NewStreamMessage[] messages,
             CancellationToken cancellationToken);
 
         protected abstract Task DeleteStreamInternal(

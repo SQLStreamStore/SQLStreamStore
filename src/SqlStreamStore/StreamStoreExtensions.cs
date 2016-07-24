@@ -5,24 +5,24 @@
     using System.Threading.Tasks;
     using SqlStreamStore.Streams;
 
-    public static class EventStoreExtensions
+    public static class StreamStoreExtensions
     {
         public static Task AppendToStream(
-            this IEventStore eventStore,
+            this IStreamStore streamStore,
             string streamId,
             int expectedVersion,
-            NewStreamEvent newStreamEvent)
+            NewStreamMessage newStreamMessage)
         {
-            return eventStore.AppendToStream(streamId, expectedVersion, new[] { newStreamEvent });
+            return streamStore.AppendToStream(streamId, expectedVersion, new[] { newStreamMessage });
         }
 
         public static Task AppendToStream(
-            this IEventStore eventStore,
+            this IStreamStore streamStore,
             string streamId,
             int expectedVersion,
-            IEnumerable<NewStreamEvent> events)
+            IEnumerable<NewStreamMessage> events)
         {
-            return eventStore.AppendToStream(streamId, expectedVersion, events.ToArray());
+            return streamStore.AppendToStream(streamId, expectedVersion, events.ToArray());
         }
     }
 }

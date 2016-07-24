@@ -13,7 +13,7 @@ namespace SqlStreamStore
     using StreamStoreStore.Json;
     using static Streams.Deleted;
 
-    public sealed class InMemoryEventStore : EventStoreBase
+    public sealed class InMemoryStreamStore : StreamStoreBase
     {
         private readonly InMemoryAllStream _allStream = new InMemoryAllStream();
         private readonly GetUtcNow _getUtcNow;
@@ -24,8 +24,8 @@ namespace SqlStreamStore
         private bool _isDisposed;
         private int _currentCheckpoint = 0;
 
-        public InMemoryEventStore(GetUtcNow getUtcNow = null, string logName = null)
-            : base(TimeSpan.FromMinutes(1), 10000, getUtcNow, logName ?? nameof(InMemoryEventStore))
+        public InMemoryStreamStore(GetUtcNow getUtcNow = null, string logName = null)
+            : base(TimeSpan.FromMinutes(1), 10000, getUtcNow, logName ?? nameof(InMemoryStreamStore))
         {
             _getUtcNow = getUtcNow ?? SystemClock.GetUtcNow;
             _allStream.AddFirst(new InMemoryStreamEvent(
@@ -63,14 +63,14 @@ namespace SqlStreamStore
         protected override async Task AppendToStreamInternal(
             string streamId,
             int expectedVersion,
-            NewStreamEvent[] events,
+            NewStreamMessage[] messages,
             CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
 
             using(_lock.UseWriteLock())
             {
-                AppendToStreamInternal(streamId, expectedVersion, events);
+                AppendToStreamInternal(streamId, expectedVersion, messages);
             }
             var result = await GetStreamMetadataInternal(streamId, cancellationToken);
             await CheckStreamMaxCount(streamId, result.MaxCount, cancellationToken);
@@ -90,7 +90,7 @@ namespace SqlStreamStore
 
                     if (streamEventsPage.Status == PageReadStatus.Success)
                     {
-                        foreach (var streamEvent in streamEventsPage.Events)
+                        foreach (var streamEvent in streamEventsPage.Messages)
                         {
                             await DeleteEventInternal(streamId, streamEvent.EventId, cancellationToken);
                         }
@@ -102,14 +102,14 @@ namespace SqlStreamStore
         private void AppendToStreamInternal(
             string streamId,
             int expectedVersion,
-            NewStreamEvent[] events)
+            NewStreamMessage[] messages)
         {
             InMemoryStream inMemoryStream;
             if (expectedVersion == ExpectedVersion.NoStream || expectedVersion == ExpectedVersion.Any)
             {
                 if (_streams.TryGetValue(streamId, out inMemoryStream))
                 {
-                    inMemoryStream.AppendToStream(expectedVersion, events);
+                    inMemoryStream.AppendToStream(expectedVersion, messages);
                 }
                 else
                 {
@@ -119,7 +119,7 @@ namespace SqlStreamStore
                         _getUtcNow,
                         _onStreamAppended,
                         () => _currentCheckpoint++);
-                    inMemoryStream.AppendToStream(expectedVersion, events);
+                    inMemoryStream.AppendToStream(expectedVersion, messages);
                     _streams.Add(streamId, inMemoryStream);
                 }
                 return;
@@ -130,7 +130,7 @@ namespace SqlStreamStore
                 throw new WrongExpectedVersionException(
                     Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
             }
-            inMemoryStream.AppendToStream(expectedVersion, events);
+            inMemoryStream.AppendToStream(expectedVersion, messages);
         }
 
         protected override Task DeleteEventInternal(string streamId, Guid eventId, CancellationToken cancellationToken)
@@ -174,7 +174,7 @@ namespace SqlStreamStore
                 }
 
                 var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(
-                    eventsPage.Events[0].JsonData);
+                    eventsPage.Messages[0].JsonData);
 
                 return new StreamMetadataResult(
                     streamId,
@@ -205,7 +205,7 @@ namespace SqlStreamStore
                     MetaJson = metadataJson
                 };
                 var json = SimpleJson.SerializeObject(metadataMessage);
-                var newStreamEvent = new NewStreamEvent(Guid.NewGuid(), "$stream-metadata", json);
+                var newStreamEvent = new NewStreamMessage(Guid.NewGuid(), "$stream-metadata", json);
 
                 AppendToStreamInternal(metaStreamId, expectedStreamMetadataVersion, new[] { newStreamEvent });
 
@@ -289,10 +289,10 @@ namespace SqlStreamStore
                     current = current.Next;
                 }
 
-                var streamEvents = new List<StreamEvent>();
+                var streamEvents = new List<StreamMessage>();
                 while(maxCount > 0 && current != null)
                 {
-                    var streamEvent = new StreamEvent(
+                    var streamEvent = new StreamMessage(
                         current.Value.StreamId,
                         current.Value.EventId,
                         current.Value.StreamVersion,
@@ -359,10 +359,10 @@ namespace SqlStreamStore
                     current = current.Next;
                 }
 
-                var streamEvents = new List<StreamEvent>();
+                var streamEvents = new List<StreamMessage>();
                 while(maxCount > 0 && current != _allStream.First)
                 {
-                    var streamEvent = new StreamEvent(
+                    var streamEvent = new StreamMessage(
                         current.Value.StreamId,
                         current.Value.EventId,
                         current.Value.StreamVersion,
@@ -403,7 +403,7 @@ namespace SqlStreamStore
             }
         }
 
-        protected override Task<StreamEventsPage> ReadStreamForwardsInternal(
+        protected override Task<StreamMessagesPage> ReadStreamForwardsInternal(
             string streamId,
             int start,
             int count,
@@ -416,7 +416,7 @@ namespace SqlStreamStore
                 InMemoryStream stream;
                 if(!_streams.TryGetValue(streamId, out stream))
                 {
-                    var notFound = new StreamEventsPage(streamId,
+                    var notFound = new StreamMessagesPage(streamId,
                         PageReadStatus.StreamNotFound,
                         start,
                         -1,
@@ -426,13 +426,13 @@ namespace SqlStreamStore
                     return Task.FromResult(notFound);
                 }
 
-                var events = new List<StreamEvent>();
+                var events = new List<StreamMessage>();
                 var i = start;
 
                 while(i < stream.Events.Count && count > 0)
                 {
                     var inMemoryStreamEvent = stream.Events[i];
-                    var streamEvent = new StreamEvent(
+                    var streamEvent = new StreamMessage(
                         streamId,
                         inMemoryStreamEvent.EventId,
                         inMemoryStreamEvent.StreamVersion,
@@ -451,7 +451,7 @@ namespace SqlStreamStore
                 var nextStreamVersion = events.Last().StreamVersion + 1;
                 var endOfStream = i == stream.Events.Count;
 
-                var page = new StreamEventsPage(
+                var page = new StreamMessagesPage(
                     streamId,
                     PageReadStatus.Success,
                     start,
@@ -465,7 +465,7 @@ namespace SqlStreamStore
             }
         }
 
-        protected override Task<StreamEventsPage> ReadStreamBackwardsInternal(
+        protected override Task<StreamMessagesPage> ReadStreamBackwardsInternal(
             string streamId,
             int fromVersionInclusive,
             int count,
@@ -478,7 +478,7 @@ namespace SqlStreamStore
                 InMemoryStream stream;
                 if (!_streams.TryGetValue(streamId, out stream))
                 {
-                    var notFound = new StreamEventsPage(streamId,
+                    var notFound = new StreamMessagesPage(streamId,
                         PageReadStatus.StreamNotFound,
                         fromVersionInclusive,
                         -1,
@@ -488,12 +488,12 @@ namespace SqlStreamStore
                     return Task.FromResult(notFound);
                 }
 
-                var events = new List<StreamEvent>();
+                var events = new List<StreamMessage>();
                 var i = fromVersionInclusive == StreamVersion.End ? stream.Events.Count - 1 : fromVersionInclusive;
                 while (i >= 0 && count > 0)
                 {
                     var inMemoryStreamEvent = stream.Events[i];
-                    var streamEvent = new StreamEvent(
+                    var streamEvent = new StreamMessage(
                         streamId,
                         inMemoryStreamEvent.EventId,
                         inMemoryStreamEvent.StreamVersion,
@@ -512,7 +512,7 @@ namespace SqlStreamStore
                 var nextStreamVersion = events.Last().StreamVersion - 1;
                 var endOfStream = nextStreamVersion < 0;
 
-                var page = new StreamEventsPage(
+                var page = new StreamMessagesPage(
                     streamId,
                     PageReadStatus.Success,
                     fromVersionInclusive,
@@ -575,7 +575,7 @@ namespace SqlStreamStore
         {
             if (_isDisposed)
             {
-                throw new ObjectDisposedException(nameof(InMemoryEventStore));
+                throw new ObjectDisposedException(nameof(InMemoryStreamStore));
             }
         }
     }

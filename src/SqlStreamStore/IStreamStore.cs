@@ -5,20 +5,20 @@
     using System.Threading.Tasks;
     using SqlStreamStore.Streams;
 
-    public interface IEventStore : IReadOnlyEventStore
+    public interface IStreamStore : IReadonlyStreamStore
     {
         /// <summary>
-        ///     Appends a collection of events to a stream. 
+        ///     Appends a collection of Messages to a stream. 
         /// </summary>
         /// <param name="streamId">
-        ///     The Stream Id to append events to. Must not start with a '$'.
+        ///     The Stream Id to append Messages to. Must not start with a '$'.
         /// </param>
         /// <param name="expectedVersion">
         ///     The version of the stream that is expected. This is used to control concurrency concerns. See
         ///     <see cref="ExpectedVersion"/>.
         /// </param>
-        /// <param name="events">
-        ///     The collection of events to append.
+        /// <param name="messages">
+        ///     The collection of Messages to append.
         /// </param>
         /// <param name="cancellationToken">
         ///     The cancellation instruction.
@@ -28,11 +28,11 @@
         Task AppendToStream(
             string streamId,
             int expectedVersion,
-            NewStreamEvent[] events,
+            NewStreamMessage[] messages,
             CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        ///     Hard deletes a stream and all of its events. Deleting a stream will result in a '$stream-deleted'
+        ///     Hard deletes a stream and all of its Messages. Deleting a stream will result in a '$stream-deleted'
         ///     event being appended to the '$deleted' stream.
         /// </summary>
         /// <param name="streamId">

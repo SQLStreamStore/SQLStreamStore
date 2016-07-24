@@ -15,7 +15,7 @@ namespace SqlStreamStore
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     var eventsToWrite = CreateNewStreamEvents();
 
@@ -29,13 +29,13 @@ namespace SqlStreamStore
             }
         }
 
-        private static NewStreamEvent[] CreateNewStreamEvents()
+        private static NewStreamMessage[] CreateNewStreamEvents()
         {
-            var eventsToWrite = new List<NewStreamEvent>();
+            var eventsToWrite = new List<NewStreamMessage>();
             var largeStreamCount = 7500;
             for (int i = 0; i < largeStreamCount; i++)
             {
-                var envelope = new NewStreamEvent(Guid.NewGuid(), $"event{i}", "{}", $"{i}");
+                var envelope = new NewStreamMessage(Guid.NewGuid(), $"event{i}", "{}", $"{i}");
 
                 eventsToWrite.Add(envelope);
             }
@@ -46,36 +46,36 @@ namespace SqlStreamStore
 
     public class PagedEventStore
     {
-        private readonly IEventStore _eventStore;
+        private readonly IStreamStore _streamStore;
 
-        public PagedEventStore(IEventStore eventStore)
+        public PagedEventStore(IStreamStore streamStore)
         {
-            _eventStore = eventStore;
+            _streamStore = streamStore;
         }
 
-        public async Task<IEnumerable<StreamEvent>> GetAsync(string streamName)
+        public async Task<IEnumerable<StreamMessage>> GetAsync(string streamName)
         {
             var start = 0;
             const int BatchSize = 500;
 
-            StreamEventsPage eventsPage;
-            var events = new List<StreamEvent>();
+            StreamMessagesPage messagesPage;
+            var events = new List<StreamMessage>();
 
             do
             {
-                eventsPage = await _eventStore.ReadStreamForwards(streamName, start, BatchSize);
+                messagesPage = await _streamStore.ReadStreamForwards(streamName, start, BatchSize);
 
-                if (eventsPage.Status == PageReadStatus.StreamNotFound)
+                if (messagesPage.Status == PageReadStatus.StreamNotFound)
                 {
                     throw new Exception("Stream not found");
                 }
 
                 events.AddRange(
-                    eventsPage.Events);
+                    messagesPage.Messages);
 
-                start = eventsPage.NextStreamVersion;
+                start = messagesPage.NextStreamVersion;
             }
-            while (!eventsPage.IsEndOfStream);
+            while (!messagesPage.IsEndOfStream);
 
             return events;
         }

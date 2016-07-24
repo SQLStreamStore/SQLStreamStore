@@ -16,12 +16,12 @@
         public StreamSubscription(
             string streamId,
             int startVersion,
-            IReadOnlyEventStore readOnlyEventStore,
+            IReadonlyStreamStore readonlyStreamStore,
             IObservable<Unit> eventStoreAppendedNotification,
             StreamEventReceived streamEventReceived,
             SubscriptionDropped subscriptionDropped,
             string name = null)
-            :base(readOnlyEventStore, eventStoreAppendedNotification, streamEventReceived, subscriptionDropped, name)
+            :base(readonlyStreamStore, eventStoreAppendedNotification, streamEventReceived, subscriptionDropped, name)
         {
             _streamId = streamId;
             _nextVersion = startVersion;
@@ -37,13 +37,13 @@
             if(_nextVersion == StreamVersion.End)
             {
                 // Get the last stream version and subscribe from there.
-                var eventsPage = await ReadOnlyEventStore.ReadStreamBackwards(
+                var eventsPage = await ReadonlyStreamStore.ReadStreamBackwards(
                     _streamId,
                     StreamVersion.End,
                     1,
                     cancellationToken).NotOnCapturedContext();
 
-                //Only new events, i.e. the one after the current last one 
+                //Only new Messages, i.e. the one after the current last one 
                 _nextVersion = eventsPage.LastStreamVersion + 1;
             }
             await base.Start(cancellationToken);
@@ -51,7 +51,7 @@
 
         protected override async Task<bool> DoFetch()
         {
-            var streamEventsPage = await ReadOnlyEventStore
+            var streamEventsPage = await ReadonlyStreamStore
                 .ReadStreamForwards(
                     _streamId,
                     _nextVersion,
@@ -60,7 +60,7 @@
                 .NotOnCapturedContext();
             bool isEnd = streamEventsPage.IsEndOfStream;
 
-            foreach(var streamEvent in streamEventsPage.Events)
+            foreach(var streamEvent in streamEventsPage.Messages)
             {
                 if(IsDisposed.IsCancellationRequested)
                 {

@@ -1,8 +1,8 @@
 ﻿namespace SqlStreamStore.Streams
 {
-    public sealed class StreamEventsPage
+    public sealed class StreamMessagesPage
     {
-        public readonly StreamEvent[] Events;
+        public readonly StreamMessage[] Messages;
         public readonly int FromStreamVersion;
         public readonly bool IsEndOfStream;
         public readonly int LastStreamVersion;
@@ -11,7 +11,7 @@
         public readonly PageReadStatus Status;
         public readonly string StreamId;
 
-        public StreamEventsPage(
+        public StreamMessagesPage(
             string streamId,
             PageReadStatus status,
             int fromStreamVersion,
@@ -19,7 +19,7 @@
             int lastStreamVersion,
             ReadDirection direction,
             bool isEndOfStream,
-            params StreamEvent[] events)
+            params StreamMessage[] messages)
         {
             StreamId = streamId;
             Status = status;
@@ -28,7 +28,7 @@
             NextStreamVersion = nextStreamVersion;
             ReadDirection = direction;
             IsEndOfStream = isEndOfStream;
-            Events = events;
+            Messages = messages;
         }
     }
 }

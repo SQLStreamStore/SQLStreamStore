@@ -6,7 +6,7 @@
     using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
 
-    public interface IReadOnlyEventStore : IDisposable
+    public interface IReadonlyStreamStore : IDisposable
     {
         Task<AllEventsPage> ReadAllForwards(
             long fromCheckpointInclusive,
@@ -18,13 +18,13 @@
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken));
 
-        Task<StreamEventsPage> ReadStreamForwards(
+        Task<StreamMessagesPage> ReadStreamForwards(
             string streamId,
             int fromVersionInclusive,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken));
 
-        Task<StreamEventsPage> ReadStreamBackwards(
+        Task<StreamMessagesPage> ReadStreamBackwards(
             string streamId,
             int fromVersionInclusive,
             int maxCount,

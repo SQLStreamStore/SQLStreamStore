@@ -16,7 +16,7 @@
         {
             using(var fixture = GetFixture())
             {
-                using(var eventStore = await fixture.GetEventStore())
+                using(var eventStore = await fixture.GetStreamStore())
                 {
                     string streamId1 = "stream-1";
                     await AppendEvents(eventStore, streamId1, 10);
@@ -24,8 +24,8 @@
                     string streamId2 = "stream-2";
                     await AppendEvents(eventStore, streamId2, 10);
 
-                    var done = new TaskCompletionSource<StreamEvent>();
-                    var receivedEvents = new List<StreamEvent>();
+                    var done = new TaskCompletionSource<StreamMessage>();
+                    var receivedEvents = new List<StreamMessage>();
                     using (var subscription = await eventStore.SubscribeToStream(
                         streamId1,
                         StreamVersion.Start,
@@ -58,12 +58,12 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     string streamId = "stream-1";
 
-                    var done = new TaskCompletionSource<StreamEvent>();
-                    var receivedEvents = new List<StreamEvent>();
+                    var done = new TaskCompletionSource<StreamMessage>();
+                    var receivedEvents = new List<StreamMessage>();
                     using (var subscription = await eventStore.SubscribeToStream(
                         streamId,
                         StreamVersion.Start,
@@ -96,7 +96,7 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     string streamId1 = "stream-1";
                     await AppendEvents(eventStore, streamId1, 3);
@@ -104,8 +104,8 @@
                     string streamId2 = "stream-2";
                     await AppendEvents(eventStore, streamId2, 3);
 
-                    var receiveEvents = new TaskCompletionSource<StreamEvent>();
-                    List<StreamEvent> receivedEvents = new List<StreamEvent>();
+                    var receiveEvents = new TaskCompletionSource<StreamMessage>();
+                    List<StreamMessage> receivedEvents = new List<StreamMessage>();
                     using(await eventStore.SubscribeToAll(
                         null,
                         streamEvent =>
@@ -135,14 +135,14 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     string streamId1 = "stream-1";
 
                     string streamId2 = "stream-2";
 
-                    var receiveEvents = new TaskCompletionSource<StreamEvent>();
-                    List<StreamEvent> receivedEvents = new List<StreamEvent>();
+                    var receiveEvents = new TaskCompletionSource<StreamMessage>();
+                    List<StreamMessage> receivedEvents = new List<StreamMessage>();
                     using (await eventStore.SubscribeToAll(
                         null,
                         streamEvent =>
@@ -175,7 +175,7 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     string streamId1 = "stream-1";
                     await AppendEvents(eventStore, streamId1, 10);
@@ -183,7 +183,7 @@
                     string streamId2 = "stream-2";
                     await AppendEvents(eventStore, streamId2, 10);
 
-                    var receiveEvents = new TaskCompletionSource<StreamEvent>();
+                    var receiveEvents = new TaskCompletionSource<StreamMessage>();
                     int receivedCount = 0;
                     using (var subscription = await eventStore.SubscribeToStream(
                         streamId1,
@@ -202,7 +202,7 @@
                         await AppendEvents(eventStore, streamId1, 2);
 
                         var allEventsPage = await eventStore.ReadAllForwards(0, 30);
-                        foreach(var streamEvent in allEventsPage.StreamEvents)
+                        foreach(var streamEvent in allEventsPage.StreamMessages)
                         {
                             _testOutputHelper.WriteLine(streamEvent.ToString());
                         }
@@ -224,7 +224,7 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     string streamId1 = "stream-1";
                     await AppendEvents(eventStore, streamId1, 10);
@@ -232,8 +232,8 @@
                     string streamId2 = "stream-2";
                     await AppendEvents(eventStore, streamId2, 10);
 
-                    var receiveEvents = new TaskCompletionSource<StreamEvent>();
-                    List<StreamEvent> receivedEvents = new List<StreamEvent>();
+                    var receiveEvents = new TaskCompletionSource<StreamMessage>();
+                    List<StreamMessage> receivedEvents = new List<StreamMessage>();
                     using (await eventStore.SubscribeToAll(
                         Checkpoint.End,
                         streamEvent =>
@@ -263,11 +263,11 @@
             var stopwatch = Stopwatch.StartNew();
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     string streamId1 = "stream-1";
-                    var receiveEvents = new TaskCompletionSource<StreamEvent>();
-                    List<StreamEvent> receivedEvents = new List<StreamEvent>();
+                    var receiveEvents = new TaskCompletionSource<StreamMessage>();
+                    List<StreamMessage> receivedEvents = new List<StreamMessage>();
                     using (await eventStore.SubscribeToAll(
                         Checkpoint.End,
                         streamEvent =>
@@ -297,7 +297,7 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     string streamId1 = "stream-1";
                     await AppendEvents(eventStore, streamId1, 10);
@@ -305,7 +305,7 @@
                     string streamId2 = "stream-2";
                     await AppendEvents(eventStore, streamId2, 10);
 
-                    var receiveEvents = new TaskCompletionSource<StreamEvent>();
+                    var receiveEvents = new TaskCompletionSource<StreamMessage>();
                     int receivedCount = 0;
                     using (var subscription = await eventStore.SubscribeToStream(
                         streamId1,
@@ -339,7 +339,7 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     string streamId1 = "stream-1";
                     await AppendEvents(eventStore, streamId1, 2);
@@ -380,7 +380,7 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     string streamId1 = "stream-1";
                     await AppendEvents(eventStore, streamId1, 2);
@@ -422,13 +422,13 @@
         {
             using(var fixture = GetFixture())
             {
-                using(var eventStore = await fixture.GetEventStore())
+                using(var eventStore = await fixture.GetStreamStore())
                 {
                     // Arrange
                     string streamId1 = "stream-1";
 
-                    var receiveEvents = new TaskCompletionSource<StreamEvent>();
-                    List<StreamEvent> receivedEvents = new List<StreamEvent>();
+                    var receiveEvents = new TaskCompletionSource<StreamMessage>();
+                    List<StreamMessage> receivedEvents = new List<StreamMessage>();
                     using (await eventStore.SubscribeToAll(
                         null,
                         streamEvent =>
@@ -457,12 +457,12 @@
             }
         }
 
-        private static async Task AppendEvents(IEventStore eventStore, string streamId, int numberOfEvents)
+        private static async Task AppendEvents(IStreamStore streamStore, string streamId, int numberOfEvents)
         {
             for(int i = 0; i < numberOfEvents; i++)
             {
-                var newStreamEvent = new NewStreamEvent(Guid.NewGuid(), "MyEvent", "{}");
-                await eventStore.AppendToStream(streamId, ExpectedVersion.Any, newStreamEvent);
+                var newStreamEvent = new NewStreamMessage(Guid.NewGuid(), "MyEvent", "{}");
+                await streamStore.AppendToStream(streamId, ExpectedVersion.Any, newStreamEvent);
             }
         }
     }

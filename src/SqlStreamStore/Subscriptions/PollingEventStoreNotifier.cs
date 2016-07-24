@@ -20,14 +20,14 @@
         }
 
         private readonly CancellationTokenSource _disposedTokenSource = new CancellationTokenSource();
-        private readonly IReadOnlyEventStore _readOnlyEventStore;
+        private readonly IReadonlyStreamStore _readonlyStreamStore;
         private readonly Subject<Unit> _storeAppended = new Subject<Unit>();
         private readonly Timer _timer;
         private long _headCheckpoint = -1;
 
-        public PollingEventStoreNotifier(IReadOnlyEventStore readOnlyEventStore, int interval = 1000)
+        public PollingEventStoreNotifier(IReadonlyStreamStore readonlyStreamStore, int interval = 1000)
         {
-            _readOnlyEventStore = readOnlyEventStore;
+            _readonlyStreamStore = readonlyStreamStore;
             _timer = new Timer(interval)
             {
                 AutoReset = false
@@ -48,7 +48,7 @@
 
         public async Task Start()
         {
-            _headCheckpoint = await _readOnlyEventStore.ReadHeadCheckpoint(CancellationToken.None);
+            _headCheckpoint = await _readonlyStreamStore.ReadHeadCheckpoint(CancellationToken.None);
 
             _timer.Start();
         }
@@ -56,7 +56,7 @@
         private async Task Poll()
         {
             // TODO try-catch-log
-            var headCheckpoint = await _readOnlyEventStore.ReadHeadCheckpoint(_disposedTokenSource.Token);
+            var headCheckpoint = await _readonlyStreamStore.ReadHeadCheckpoint(_disposedTokenSource.Token);
 
             if(headCheckpoint > _headCheckpoint)
             {

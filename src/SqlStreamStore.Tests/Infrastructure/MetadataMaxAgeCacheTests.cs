@@ -9,7 +9,7 @@
     public class MetadataMaxAgeCacheTests : IDisposable
     {
         private DateTime _currentUtc;
-        private readonly InMemoryEventStore _store;
+        private readonly InMemoryStreamStore _store;
         private readonly MetadataMaxAgeCache _cache;
         private int _maxSize = 3;
         private readonly TimeSpan _expiry = TimeSpan.FromSeconds(1);
@@ -18,7 +18,7 @@
         {
             _currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
             GetUtcNow getUtcNow = () => _currentUtc;
-            _store = new InMemoryEventStore(getUtcNow);
+            _store = new InMemoryStreamStore(getUtcNow);
             _cache = new MetadataMaxAgeCache(_store, _expiry, _maxSize, getUtcNow);
         }
 

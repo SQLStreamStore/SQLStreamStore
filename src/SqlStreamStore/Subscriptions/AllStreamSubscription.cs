@@ -13,12 +13,12 @@
 
         public AllStreamSubscription(
             long? fromCheckpoint,
-            IReadOnlyEventStore readOnlyEventStore,
+            IReadonlyStreamStore readonlyStreamStore,
             IObservable<Unit> eventStoreAppendedNotification,
             StreamEventReceived streamEventReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null)
-            :base(readOnlyEventStore, eventStoreAppendedNotification, streamEventReceived, subscriptionDropped, name)
+            :base(readonlyStreamStore, eventStoreAppendedNotification, streamEventReceived, subscriptionDropped, name)
         {
             FromCheckpoint = fromCheckpoint;
             LastCheckpoint = fromCheckpoint;
@@ -34,7 +34,7 @@
             if(FromCheckpoint == Checkpoint.End)
             {
                 // Get the last stream version and subscribe from there.
-                var eventsPage = await ReadOnlyEventStore.ReadAllBackwards(
+                var eventsPage = await ReadonlyStreamStore.ReadAllBackwards(
                     Checkpoint.End,
                     1,
                     cancellationToken).NotOnCapturedContext();
@@ -48,7 +48,7 @@
 
         protected override async Task<bool> DoFetch()
         {
-            var allEventsPage = await ReadOnlyEventStore
+            var allEventsPage = await ReadonlyStreamStore
                 .ReadAllForwards(
                     _nextCheckpoint,
                     PageSize,
@@ -56,7 +56,7 @@
                 .NotOnCapturedContext();
             bool isEnd = allEventsPage.IsEnd;
             
-            foreach(var streamEvent in allEventsPage.StreamEvents)
+            foreach(var streamEvent in allEventsPage.StreamMessages)
             {
                 if(IsDisposed.IsCancellationRequested)
                 {

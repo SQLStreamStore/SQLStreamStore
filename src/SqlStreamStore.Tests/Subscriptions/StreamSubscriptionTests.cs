@@ -11,7 +11,7 @@
         [Fact]
         public async Task When_exception_throw_by_subscription_event_received_then_should_drop_subscription()
         {
-            using(var store = new InMemoryEventStore())
+            using(var store = new InMemoryStreamStore())
             {
                 var eventReceivedException = new TaskCompletionSource<Exception>();
                 StreamEventReceived eventReceived = _ =>
@@ -27,7 +27,7 @@
                 {
                     await store.AppendToStream(streamId,
                         ExpectedVersion.NoStream,
-                        new NewStreamEvent(Guid.NewGuid(), "type", "{}"));
+                        new NewStreamMessage(Guid.NewGuid(), "type", "{}"));
 
                     var dropException = await eventReceivedException.Task.WithTimeout();
 

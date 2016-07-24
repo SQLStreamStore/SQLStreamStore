@@ -14,7 +14,7 @@ BEGIN TRANSACTION CreateStream;
                     [Type],
                     JsonData,
                     JsonMetadata
-               FROM @newEvents
+               FROM @newMessages
            ORDER BY StreamVersion;
 
              SELECT TOP(1)

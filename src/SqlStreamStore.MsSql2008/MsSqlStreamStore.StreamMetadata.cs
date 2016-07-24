@@ -7,7 +7,7 @@
     using SqlStreamStore.Infrastructure;
     using StreamStoreStore.Json;
 
-    public partial class MsSqlEventStore
+    public partial class MsSqlStreamStore
     {
         protected override async Task<StreamMetadataResult> GetStreamMetadataInternal(
             string streamId,
@@ -15,23 +15,23 @@
         {
             var streamIdInfo = new StreamIdInfo(streamId);
 
-            StreamEventsPage eventsPage;
+            StreamMessagesPage messagesPage;
             using (var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-                eventsPage = await ReadStreamInternal(streamIdInfo.MetadataSqlStreamId, StreamVersion.End, 1, ReadDirection.Backward, connection, cancellationToken);
+                messagesPage = await ReadStreamInternal(streamIdInfo.MetadataSqlStreamId, StreamVersion.End, 1, ReadDirection.Backward, connection, cancellationToken);
             }
 
-            if(eventsPage.Status == PageReadStatus.StreamNotFound)
+            if(messagesPage.Status == PageReadStatus.StreamNotFound)
             {
                 return new StreamMetadataResult(streamId, -1);
             }
 
-            var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(eventsPage.Events[0].JsonData);
+            var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(messagesPage.Messages[0].JsonData);
 
             return new StreamMetadataResult(
                    streamId,
-                   eventsPage.LastStreamVersion,
+                   messagesPage.LastStreamVersion,
                    metadataMessage.MaxAge,
                    metadataMessage.MaxCount,
                    metadataMessage.MetaJson);
@@ -61,7 +61,7 @@
                         MetaJson = metadataJson
                     };
                     var json = SimpleJson.SerializeObject(metadataMessage);
-                    var newStreamEvent = new NewStreamEvent(Guid.NewGuid(), "$stream-metadata", json);
+                    var newStreamEvent = new NewStreamMessage(Guid.NewGuid(), "$stream-metadata", json);
 
                     await AppendToStreamInternal(
                         connection,

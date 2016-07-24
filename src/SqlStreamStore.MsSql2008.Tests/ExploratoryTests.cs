@@ -12,9 +12,9 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
-                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
 
                     var stopwatch = Stopwatch.StartNew();
 

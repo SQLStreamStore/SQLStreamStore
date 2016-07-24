@@ -44,7 +44,7 @@
             {
                 using(var fixture = new MsSqlStreamStoreFixture("dbo"))
                 {
-                    using(var eventStore = await fixture.GetEventStore())
+                    using(var eventStore = await fixture.GetStreamStore())
                     {
                         using(var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
                         {
@@ -60,7 +60,7 @@
             }
         }
 
-        private static async Task RunLoadTest(CancellationTokenSource cts, IEventStore eventStore)
+        private static async Task RunLoadTest(CancellationTokenSource cts, IStreamStore streamStore)
         {
             var tasks = new List<Task>();
             int count = -1;
@@ -79,13 +79,13 @@
 
                             var eventNumber = Interlocked.Increment(ref count);
                             var newStreamEvents = StreamStoreAcceptanceTests
-                                .CreateNewStreamEvents(eventNumber*2 + 1, eventNumber*2 + 2);
+                                .CreateNewStreamMessages(eventNumber*2 + 1, eventNumber*2 + 2);
 
                             info = $"{streamNumber} - {newStreamEvents[0].EventId}," +
                                        $"{newStreamEvents[1].EventId}";
 
                             Log.Logger.Information($"Begin {info}");
-                            await eventStore.AppendToStream(
+                            await streamStore.AppendToStream(
                                 $"stream-{streamNumber}",
                                 ExpectedVersion.Any,
                                 newStreamEvents,

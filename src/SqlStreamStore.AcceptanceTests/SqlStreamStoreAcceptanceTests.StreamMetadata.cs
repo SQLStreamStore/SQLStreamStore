@@ -14,7 +14,7 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     string streamId = Guid.NewGuid().ToString();
 
@@ -34,7 +34,7 @@
         {
             using(var fixture = GetFixture())
             {
-                using(var eventStore = await fixture.GetEventStore())
+                using(var eventStore = await fixture.GetStreamStore())
                 {
                     var streamId = "stream-1";
                     await eventStore
@@ -56,7 +56,7 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     string streamId = "stream-1";
 
@@ -82,24 +82,24 @@
         {
             using(var fixture = GetFixture())
             {
-                using(var eventStore = await fixture.GetEventStore())
+                using(var eventStore = await fixture.GetStreamStore())
                 {
                     string streamId = "059846C3-6701-45E9-A72A-20986539D4D3";
                     await eventStore
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
                     await eventStore
                         .SetStreamMetadata(streamId, maxCount: 3, metadataJson: "meta");
 
                     await eventStore.DeleteStream(streamId);
 
                     var allEventsPage = await eventStore.ReadAllForwards(Checkpoint.Start, 10);
-                    allEventsPage.StreamEvents.Length.ShouldBe(2);
-                    allEventsPage.StreamEvents[0].Type.ShouldBe(Deleted.StreamDeletedEventType);
-                    allEventsPage.StreamEvents[0].JsonDataAs<Deleted.StreamDeleted>()
+                    allEventsPage.StreamMessages.Length.ShouldBe(2);
+                    allEventsPage.StreamMessages[0].Type.ShouldBe(Deleted.StreamDeletedEventType);
+                    allEventsPage.StreamMessages[0].JsonDataAs<Deleted.StreamDeleted>()
                         .StreamId.ShouldBe(streamId);
 
-                    allEventsPage.StreamEvents[1].Type.ShouldBe(Deleted.StreamDeletedEventType);
-                    allEventsPage.StreamEvents[1].JsonDataAs<Deleted.StreamDeleted>()
+                    allEventsPage.StreamMessages[1].Type.ShouldBe(Deleted.StreamDeletedEventType);
+                    allEventsPage.StreamMessages[1].JsonDataAs<Deleted.StreamDeleted>()
                         .StreamId.ShouldBe($"$${streamId}");
                 }
             }
@@ -110,18 +110,18 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var store = await fixture.GetEventStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     string streamId = "stream-1";
                     int maxCount = 2;
                     await store
                         .SetStreamMetadata(streamId, maxCount: maxCount, metadataJson: "meta");
                     await store
-                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(1, 2, 3, 4));
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1, 2, 3, 4));
 
                     var eventsPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 4);
 
-                    eventsPage.Events.Length.ShouldBe(maxCount);
+                    eventsPage.Messages.Length.ShouldBe(maxCount);
                 }
             }
         }
@@ -131,19 +131,19 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var store = await fixture.GetEventStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     string streamId = "stream-1";
                     int maxCount = 2;
 
                     await store
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3, 4));
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3, 4));
                     await store
                         .SetStreamMetadata(streamId, maxCount: maxCount, metadataJson: "meta");
 
                     var eventsPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 4);
 
-                    eventsPage.Events.Length.ShouldBe(maxCount);
+                    eventsPage.Messages.Length.ShouldBe(maxCount);
                 }
             }
         }
@@ -155,20 +155,20 @@
             {
                 var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
                 fixture.GetUtcNow = () => currentUtc;
-                using (var store = await fixture.GetEventStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     string streamId = "stream-1";
                     await store
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3, 4));
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3, 4));
                     currentUtc += TimeSpan.FromSeconds(60);
                     await store
-                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(5, 6, 7, 8));
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(5, 6, 7, 8));
                     await store
                         .SetStreamMetadata(streamId, maxAge: 30, metadataJson: "meta");
 
                     var eventsPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 8);
 
-                    eventsPage.Events.Length.ShouldBe(4);
+                    eventsPage.Messages.Length.ShouldBe(4);
                 }
             }
         }
@@ -180,20 +180,20 @@
             {
                 var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
                 fixture.GetUtcNow = () => currentUtc;
-                using (var store = await fixture.GetEventStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     string streamId = "stream-1";
                     await store
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3, 4));
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3, 4));
                     currentUtc += TimeSpan.FromSeconds(60);
                     await store
-                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamEvents(5, 6, 7, 8));
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(5, 6, 7, 8));
                     await store
                         .SetStreamMetadata(streamId, maxAge: 30, metadataJson: "meta");
 
                     var eventsPage = await store.ReadStreamBackwards(streamId, StreamVersion.End, 8);
 
-                    eventsPage.Events.Length.ShouldBe(4);
+                    eventsPage.Messages.Length.ShouldBe(4);
                 }
             }
         }
@@ -205,21 +205,21 @@
             {
                 var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
                 fixture.GetUtcNow = () => currentUtc;
-                using (var store = await fixture.GetEventStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     // Arrange
                     string streamId1 = "stream-1", streamId2 = "streamId-2";
                     await store
-                        .AppendToStream(streamId1, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2));
+                        .AppendToStream(streamId1, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2));
                     await store
-                        .AppendToStream(streamId2, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3, 4));
+                        .AppendToStream(streamId2, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3, 4));
 
                     currentUtc += TimeSpan.FromSeconds(60);
 
                     await store
-                        .AppendToStream(streamId1, ExpectedVersion.Any, CreateNewStreamEvents(5, 6));
+                        .AppendToStream(streamId1, ExpectedVersion.Any, CreateNewStreamMessages(5, 6));
                     await store
-                        .AppendToStream(streamId2, ExpectedVersion.Any, CreateNewStreamEvents(5, 6, 7, 8));
+                        .AppendToStream(streamId2, ExpectedVersion.Any, CreateNewStreamMessages(5, 6, 7, 8));
 
                     await store
                         .SetStreamMetadata(streamId1, maxAge: 30, metadataJson: "meta");
@@ -230,8 +230,8 @@
                     var eventsPage = await store.ReadAllForwards(Checkpoint.Start, 20);
 
                     // Assert
-                    eventsPage.StreamEvents.Where(streamEvent => streamEvent.StreamId == streamId1).Count().ShouldBe(2);
-                    eventsPage.StreamEvents.Where(streamEvent => streamEvent.StreamId == streamId2).Count().ShouldBe(4);
+                    eventsPage.StreamMessages.Where(streamEvent => streamEvent.StreamId == streamId1).Count().ShouldBe(2);
+                    eventsPage.StreamMessages.Where(streamEvent => streamEvent.StreamId == streamId2).Count().ShouldBe(4);
                 }
             }
         }
@@ -243,21 +243,21 @@
             {
                 var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
                 fixture.GetUtcNow = () => currentUtc;
-                using (var store = await fixture.GetEventStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     // Arrange
                     string streamId1 = "stream-1", streamId2 = "streamId-2";
                     await store
-                        .AppendToStream(streamId1, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2));
+                        .AppendToStream(streamId1, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2));
                     await store
-                        .AppendToStream(streamId2, ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3, 4));
+                        .AppendToStream(streamId2, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3, 4));
 
                     currentUtc += TimeSpan.FromSeconds(60);
 
                     await store
-                        .AppendToStream(streamId1, ExpectedVersion.Any, CreateNewStreamEvents(5, 6));
+                        .AppendToStream(streamId1, ExpectedVersion.Any, CreateNewStreamMessages(5, 6));
                     await store
-                        .AppendToStream(streamId2, ExpectedVersion.Any, CreateNewStreamEvents(5, 6, 7, 8));
+                        .AppendToStream(streamId2, ExpectedVersion.Any, CreateNewStreamMessages(5, 6, 7, 8));
 
                     await store
                         .SetStreamMetadata(streamId1, maxAge: 30, metadataJson: "meta");
@@ -268,8 +268,8 @@
                     var eventsPage = await store.ReadAllBackwards(Checkpoint.End, 20);
 
                     // Assert
-                    eventsPage.StreamEvents.Where(streamEvent => streamEvent.StreamId == streamId1).Count().ShouldBe(2);
-                    eventsPage.StreamEvents.Where(streamEvent => streamEvent.StreamId == streamId2).Count().ShouldBe(4);
+                    eventsPage.StreamMessages.Where(streamEvent => streamEvent.StreamId == streamId1).Count().ShouldBe(2);
+                    eventsPage.StreamMessages.Where(streamEvent => streamEvent.StreamId == streamId2).Count().ShouldBe(4);
                 }
             }
         }

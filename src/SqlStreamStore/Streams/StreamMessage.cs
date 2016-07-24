@@ -2,7 +2,7 @@
 {
     using System;
 
-    public struct StreamEvent
+    public struct StreamMessage
     {
         public readonly long Checkpoint;
         public readonly DateTime Created;
@@ -13,7 +13,7 @@
         public readonly string StreamId;
         public readonly string Type;
 
-        public StreamEvent(
+        public StreamMessage(
             string streamId,
             Guid eventId,
             int streamVersion,

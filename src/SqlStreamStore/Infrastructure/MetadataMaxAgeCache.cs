@@ -9,7 +9,7 @@ namespace SqlStreamStore.Infrastructure
 
     public class MetadataMaxAgeCache
     {
-        private readonly IReadOnlyEventStore _store;
+        private readonly IReadonlyStreamStore _store;
         private readonly TimeSpan _expiration;
         private readonly int _maxSize;
         private readonly GetUtcNow _getUtcNow;
@@ -18,7 +18,7 @@ namespace SqlStreamStore.Infrastructure
         private readonly ConcurrentQueue<MaxAgeCacheItem> _byCacheStamp = new ConcurrentQueue<MaxAgeCacheItem>();
         private long _cacheHitCount;
 
-        public MetadataMaxAgeCache(IReadOnlyEventStore store, TimeSpan expiration, int maxSize, GetUtcNow getUtcNow)
+        public MetadataMaxAgeCache(IReadonlyStreamStore store, TimeSpan expiration, int maxSize, GetUtcNow getUtcNow)
         {
             Ensure.That(store, nameof(store)).IsNotNull();
             Ensure.That(maxSize).IsGte(0);

@@ -4,7 +4,7 @@
     using System.Threading.Tasks;
     using SqlStreamStore.Subscriptions;
 
-    public sealed partial class MsSqlEventStore
+    public sealed partial class MsSqlStreamStore
     {
         protected override async Task<IStreamSubscription> SubscribeToStreamInternal(
             string streamId,

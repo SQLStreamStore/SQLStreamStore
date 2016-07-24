@@ -14,10 +14,10 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
-                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
-                    await eventStore.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamEvents(4, 5, 6));
+                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await eventStore.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
                     var expectedEvents = new[]
                     {
                         ExpectedStreamEvent("stream-1", 1, 0, fixture.GetUtcNow().UtcDateTime),
@@ -29,12 +29,12 @@
                     };
 
                     var allEventsPage = await eventStore.ReadAllForwards(Checkpoint.Start, 4);
-                    List<StreamEvent> streamEvents = new List<StreamEvent>(allEventsPage.StreamEvents);
+                    List<StreamMessage> streamEvents = new List<StreamMessage>(allEventsPage.StreamMessages);
                     int count = 0;
                     while(!allEventsPage.IsEnd && count <20) //should not take more than 20 iterations.
                     {
                         allEventsPage = await eventStore.ReadAllForwards(allEventsPage.NextCheckpoint, 10);
-                        streamEvents.AddRange(allEventsPage.StreamEvents);
+                        streamEvents.AddRange(allEventsPage.StreamMessages);
                         count++;
                     }
 
@@ -54,7 +54,7 @@
                         streamEvent.StreamVersion.ShouldBe(expectedEvent.StreamVersion);
                         streamEvent.Type.ShouldBe(expectedEvent.Type);
 
-                        // We don't care about streamEvent.Checkpoint and streamEvent.Checkpoint
+                        // We don't care about StreamMessage.Checkpoint and StreamMessage.Checkpoint
                         // as they are non-deterministic
                     }
                 }
@@ -66,10 +66,10 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
-                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamEvents(1, 2, 3));
-                    await eventStore.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamEvents(4, 5, 6));
+                    await eventStore.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await eventStore.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
                     var expectedEvents = new[]
                     {
                         ExpectedStreamEvent("stream-1", 1, 0, fixture.GetUtcNow().UtcDateTime),
@@ -81,12 +81,12 @@
                     }.Reverse().ToArray();
 
                     var allEventsPage = await eventStore.ReadAllBackwards(Checkpoint.End, 4);
-                    List<StreamEvent> streamEvents = new List<StreamEvent>(allEventsPage.StreamEvents);
+                    List<StreamMessage> streamEvents = new List<StreamMessage>(allEventsPage.StreamMessages);
                     int count = 0;
                     while (!allEventsPage.IsEnd && count < 20) //should not take more than 20 iterations.
                     {
                         allEventsPage = await eventStore.ReadAllBackwards(allEventsPage.NextCheckpoint, 10);
-                        streamEvents.AddRange(allEventsPage.StreamEvents);
+                        streamEvents.AddRange(allEventsPage.StreamMessages);
                         count++;
                     }
 
@@ -108,7 +108,7 @@
                         streamEvent.StreamVersion.ShouldBe(expectedEvent.StreamVersion);
                         streamEvent.Type.ShouldBe(expectedEvent.Type);
 
-                        // We don't care about streamEvent.Checkpoint and streamEvent.Checkpoint
+                        // We don't care about StreamMessage.Checkpoint and StreamMessage.Checkpoint
                         // as they are non-deterministic
                     }
                 }
@@ -132,7 +132,7 @@
         {
             using(var fixture = GetFixture())
             {
-                using(var eventStore = await fixture.GetEventStore())
+                using(var eventStore = await fixture.GetStreamStore())
                 {
                     await eventStore.AppendToStream(
                         "stream-1",
@@ -141,7 +141,7 @@
 
                     var allEventsPage = await eventStore.ReadAllForwards(fromCheckpoint, maxCount);
 
-                    allEventsPage.StreamEvents.Length.ShouldBe(expectedCount);
+                    allEventsPage.StreamMessages.Length.ShouldBe(expectedCount);
                     allEventsPage.FromCheckpoint.ShouldBe(expectedFromCheckpoint);
                     allEventsPage.NextCheckpoint.ShouldBe(expectedNextCheckPoint);
                 }
@@ -166,7 +166,7 @@
         {
             using (var fixture = GetFixture())
             {
-                using (var eventStore = await fixture.GetEventStore())
+                using (var eventStore = await fixture.GetStreamStore())
                 {
                     if(numberOfSeedEvents > 0)
                     {
@@ -178,7 +178,7 @@
 
                     var allEventsPage = await eventStore.ReadAllBackwards(fromCheckpoint, maxCount);
 
-                    allEventsPage.StreamEvents.Length.ShouldBe(expectedCount);
+                    allEventsPage.StreamMessages.Length.ShouldBe(expectedCount);
                     allEventsPage.FromCheckpoint.ShouldBe(expectedFromCheckpoint);
                     allEventsPage.NextCheckpoint.ShouldBe(expectedNextCheckPoint);
                 }

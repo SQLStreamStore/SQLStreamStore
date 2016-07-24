@@ -10,14 +10,14 @@ namespace SqlStreamStore.Infrastructure
     using SqlStreamStore.Subscriptions;
     using SqlStreamStore;
 
-    public abstract class ReadOnlyEventStoreBase : IReadOnlyEventStore
+    public abstract class ReadonlyStreamStoreBase : IReadonlyStreamStore
     {
         protected readonly GetUtcNow GetUtcNow;
         protected readonly ILog Logger;
         private bool _isDisposed;
         private readonly MetadataMaxAgeCache _metadataMaxAgeCache;
 
-        protected ReadOnlyEventStoreBase(
+        protected ReadonlyStreamStoreBase(
             TimeSpan metadataMaxAgeCacheExpiry,
             int metadataMaxAgeCacheMaxSize,
             GetUtcNow getUtcNow,
@@ -58,7 +58,7 @@ namespace SqlStreamStore.Infrastructure
             return await FilterExpired(page, cancellationToken);
         }
 
-        public async Task<StreamEventsPage> ReadStreamForwards(
+        public async Task<StreamMessagesPage> ReadStreamForwards(
             string streamId,
             int fromVersionInclusive,
             int maxCount,
@@ -74,7 +74,7 @@ namespace SqlStreamStore.Infrastructure
             return await FilterExpired(page, cancellationToken);
         }
 
-        public async Task<StreamEventsPage> ReadStreamBackwards(
+        public async Task<StreamMessagesPage> ReadStreamBackwards(
             string streamId,
             int fromVersionInclusive,
             int maxCount,
@@ -162,13 +162,13 @@ namespace SqlStreamStore.Infrastructure
             int maxCount,
             CancellationToken cancellationToken);
 
-        protected abstract Task<StreamEventsPage> ReadStreamForwardsInternal(
+        protected abstract Task<StreamMessagesPage> ReadStreamForwardsInternal(
             string streamId,
             int start,
             int count,
             CancellationToken cancellationToken);
 
-        protected abstract Task<StreamEventsPage> ReadStreamBackwardsInternal(
+        protected abstract Task<StreamMessagesPage> ReadStreamBackwardsInternal(
             string streamId,
             int fromVersionInclusive,
             int count,
@@ -206,13 +206,13 @@ namespace SqlStreamStore.Infrastructure
             }
         }
 
-        protected virtual void PurgeExpiredEvent(StreamEvent streamEvent)
+        protected virtual void PurgeExpiredEvent(StreamMessage streamMessage)
         {
             //This is a no-op as this class is ReadOnly.
         }
 
-        private async Task<StreamEventsPage> FilterExpired(
-            StreamEventsPage page,
+        private async Task<StreamMessagesPage> FilterExpired(
+            StreamMessagesPage page,
             CancellationToken cancellationToken)
         {
             if(page.StreamId.StartsWith("$"))
@@ -225,8 +225,8 @@ namespace SqlStreamStore.Infrastructure
                 return page;
             }
             var currentUtc = GetUtcNow().DateTime;
-            var valid = new List<StreamEvent>();
-            foreach(var streamEvent in page.Events)
+            var valid = new List<StreamMessage>();
+            foreach(var streamEvent in page.Messages)
             {
                 if(streamEvent.Created.AddSeconds(maxAge.Value) > currentUtc)
                 {
@@ -237,7 +237,7 @@ namespace SqlStreamStore.Infrastructure
                     PurgeExpiredEvent(streamEvent);
                 }
             }
-            return new StreamEventsPage(
+            return new StreamMessagesPage(
                 page.StreamId,
                 page.Status,
                 page.FromStreamVersion,
@@ -252,9 +252,9 @@ namespace SqlStreamStore.Infrastructure
            AllEventsPage page,
            CancellationToken cancellationToken)
         {
-            var valid = new List<StreamEvent>();
+            var valid = new List<StreamMessage>();
             var currentUtc = GetUtcNow().DateTime;
-            foreach (var streamEvent in page.StreamEvents)
+            foreach (var streamEvent in page.StreamMessages)
             {
                 if(streamEvent.StreamId.StartsWith("$"))
                 {
@@ -284,7 +284,7 @@ namespace SqlStreamStore.Infrastructure
                 valid.ToArray());
         }
 
-        ~ReadOnlyEventStoreBase()
+        ~ReadonlyStreamStoreBase()
         {
             Dispose(false);
         }

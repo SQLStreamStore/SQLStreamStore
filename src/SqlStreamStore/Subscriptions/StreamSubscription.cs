@@ -51,26 +51,26 @@
 
         protected override async Task<bool> DoFetch()
         {
-            var streamEventsPage = await ReadonlyStreamStore
+            var streamMessagesPage = await ReadonlyStreamStore
                 .ReadStreamForwards(
                     _streamId,
                     _nextVersion,
                     PageSize,
                     IsDisposed)
                 .NotOnCapturedContext();
-            bool isEnd = streamEventsPage.IsEndOfStream;
+            bool isEnd = streamMessagesPage.IsEndOfStream;
 
-            foreach(var streamEvent in streamEventsPage.Messages)
+            foreach(var message in streamMessagesPage.Messages)
             {
                 if(IsDisposed.IsCancellationRequested)
                 {
                     return true;
                 }
-                _nextVersion = streamEvent.StreamVersion + 1;
-                _lastVersion = streamEvent.StreamVersion;
+                _nextVersion = message.StreamVersion + 1;
+                _lastVersion = message.StreamVersion;
                 try
                 {
-                    await StreamMessageReceived(streamEvent).NotOnCapturedContext();
+                    await StreamMessageReceived(message).NotOnCapturedContext();
                 }
                 catch(Exception ex)
                 {

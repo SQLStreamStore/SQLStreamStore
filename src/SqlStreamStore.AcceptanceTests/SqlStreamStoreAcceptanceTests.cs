@@ -54,37 +54,37 @@
             }
         }
 
-        public static NewStreamMessage[] CreateNewStreamMessages(params int[] eventNumbers)
+        public static NewStreamMessage[] CreateNewStreamMessages(params int[] messageNumbers)
         {
-            return eventNumbers
-                .Select(eventNumber =>
+            return messageNumbers
+                .Select(number =>
                 {
-                    var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
-                    return new NewStreamMessage(eventId, "type", "\"data\"", "\"metadata\"");
+                    var id = Guid.Parse("00000000-0000-0000-0000-" + number.ToString().PadLeft(12, '0'));
+                    return new NewStreamMessage(id, "type", "\"data\"", "\"metadata\"");
                 })
                 .ToArray();
         }
 
-        private static NewStreamMessage[] CreateNewStreamEventSequence(int startId, int count)
+        private static NewStreamMessage[] CreateNewStreamMessageSequence(int startId, int count)
         {
-            var streamEvents = new List<NewStreamMessage>();
+            var messages = new List<NewStreamMessage>();
             for(int i = 0; i < count; i++)
             {
-                var eventNumber = startId + i;
-                var eventId = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
-                var newStreamMessage = new NewStreamMessage(eventId, "type", "\"data\"", "\"metadata\"");
-                streamEvents.Add(newStreamMessage);
+                var mwssageNumber = startId + i;
+                var messageId = Guid.Parse("00000000-0000-0000-0000-" + mwssageNumber.ToString().PadLeft(12, '0'));
+                var newStreamMessage = new NewStreamMessage(messageId, "type", "\"data\"", "\"metadata\"");
+                messages.Add(newStreamMessage);
             }
-            return streamEvents.ToArray();
+            return messages.ToArray();
         }
 
         private static StreamMessage ExpectedStreamMessage(
             string streamId,
-            int eventNumber,
+            int messageNumber,
             int sequenceNumber,
             DateTime created)
         {
-            var id = Guid.Parse("00000000-0000-0000-0000-" + eventNumber.ToString().PadLeft(12, '0'));
+            var id = Guid.Parse("00000000-0000-0000-0000-" + messageNumber.ToString().PadLeft(12, '0'));
             return new StreamMessage(streamId, id, sequenceNumber, 0, created, "type", "\"data\"", "\"metadata\"");
         }
     }

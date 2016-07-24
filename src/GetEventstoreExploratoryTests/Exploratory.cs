@@ -88,9 +88,9 @@ namespace GetEventstoreExploratoryTests
                 // https://groups.google.com/d/msg/event-store/kq1K2cx3Ggo/9GZve-yzCAAJ
                 await connection.AppendToStreamAsync(streamId, 0, eventData);
 
-                var streamEventsSlice = await connection.ReadStreamEventsForwardAsync(streamId, StreamPosition.Start, 2, true);
+                var messagesSlice = await connection.ReadStreamEventsForwardAsync(streamId, StreamPosition.Start, 2, true);
 
-                streamEventsSlice.Events.Length.ShouldBe(2);
+                messagesSlice.Events.Length.ShouldBe(2);
             }
         }
 
@@ -119,8 +119,8 @@ namespace GetEventstoreExploratoryTests
 
                 await Task.Delay(2000);
 
-                var streamEventsSlice = await connection.ReadStreamEventsForwardAsync(streamId, StreamPosition.Start, 10, true);
-                foreach(var resolvedEvent in streamEventsSlice.Events)
+                var messagesSlice = await connection.ReadStreamEventsForwardAsync(streamId, StreamPosition.Start, 10, true);
+                foreach(var resolvedEvent in messagesSlice.Events)
                 {
                     _testOutputHelper.WriteLine($"Slice {resolvedEvent.OriginalEvent.EventNumber} {resolvedEvent.OriginalEvent.EventType}");
                 }

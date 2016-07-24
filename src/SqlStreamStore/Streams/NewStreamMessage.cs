@@ -6,17 +6,17 @@
     public struct NewStreamMessage
     {
         public readonly string JsonData;
-        public readonly Guid EventId;
+        public readonly Guid MessageId;
         public readonly string Type;
         public readonly string JsonMetadata;
 
-        public NewStreamMessage(Guid eventId, string type, string jsonData, string jsonMetadata = null)
+        public NewStreamMessage(Guid messageId, string type, string jsonData, string jsonMetadata = null)
         {
-            Ensure.That(eventId, "eventId").IsNotEmpty();
+            Ensure.That(messageId, "MessageId").IsNotEmpty();
             Ensure.That(type, "type").IsNotNullOrEmpty();
             Ensure.That(jsonData, "data").IsNotNullOrEmpty();
 
-            EventId = eventId;
+            MessageId = messageId;
             Type = type;
             JsonData = jsonData;
             JsonMetadata = jsonMetadata ?? string.Empty;

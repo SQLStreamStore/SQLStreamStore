@@ -147,7 +147,7 @@
 
                     for(int i = 0; i < Math.Min(messages.Length, page.Messages.Length); i++)
                     {
-                        if(messages[i].EventId != page.Messages[i].EventId)
+                        if(messages[i].MessageId != page.Messages[i].MessageId)
                         {
                             throw new WrongExpectedVersionException(
                                 Messages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, ExpectedVersion.Any),
@@ -219,7 +219,7 @@
 
                         for(int i = 0; i < Math.Min(messages.Length, page.Messages.Length); i++)
                         {
-                            if(messages[i].EventId != page.Messages[i].EventId)
+                            if(messages[i].MessageId != page.Messages[i].MessageId)
                             {
                                 throw new WrongExpectedVersionException(
                                     Messages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, ExpectedVersion.NoStream),
@@ -301,7 +301,7 @@
 
                             for(int i = 0; i < Math.Min(messages.Length, page.Messages.Length); i++)
                             {
-                                if(messages[i].EventId != page.Messages[i].EventId)
+                                if(messages[i].MessageId != page.Messages[i].MessageId)
                                 {
                                     throw new WrongExpectedVersionException(
                                         Messages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, expectedVersion),
@@ -328,19 +328,19 @@
         {
             if (maxCount.HasValue)
             {
-                var count = await GetStreamEventCount(streamId, cancellationToken);
+                var count = await GetmessageCount(streamId, cancellationToken);
                 if (count > maxCount.Value)
                 {
                     int toPurge = count - maxCount.Value;
 
-                    var streamEventsPage = await ReadStreamForwardsInternal(streamId, StreamVersion.Start,
+                    var streamMessagesPage = await ReadStreamForwardsInternal(streamId, StreamVersion.Start,
                         toPurge, cancellationToken);
 
-                    if (streamEventsPage.Status == PageReadStatus.Success)
+                    if (streamMessagesPage.Status == PageReadStatus.Success)
                     {
-                        foreach (var streamEvent in streamEventsPage.Messages)
+                        foreach (var message in streamMessagesPage.Messages)
                         {
-                            await DeleteEventInternal(streamId, streamEvent.EventId, cancellationToken);
+                            await DeleteEventInternal(streamId, message.MessageId, cancellationToken);
                         }
                     }
                 }
@@ -350,14 +350,14 @@
         private SqlDataRecord[] CreateSqlDataRecords(NewStreamMessage[] messages)
         {
             var dateTime = GetUtcNow().DateTime;
-            var sqlDataRecords = messages.Select(@event =>
+            var sqlDataRecords = messages.Select(message =>
             {
                 var record = new SqlDataRecord(_appendToStreamSqlMetadata);
-                record.SetGuid(1, @event.EventId);
+                record.SetGuid(1, message.MessageId);
                 record.SetDateTime(2, dateTime);
-                record.SetString(3, @event.Type);
-                record.SetString(4, @event.JsonData);
-                record.SetString(5, @event.JsonMetadata);
+                record.SetString(3, message.Type);
+                record.SetString(4, message.JsonData);
+                record.SetString(5, message.JsonMetadata);
                 return record;
             }).ToArray();
             return sqlDataRecords;

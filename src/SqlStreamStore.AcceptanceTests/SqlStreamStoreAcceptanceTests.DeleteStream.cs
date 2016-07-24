@@ -22,16 +22,16 @@
                     await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
                     await store.DeleteStream(streamId);
 
-                    var streamEventsPage =
+                    var page =
                         await store.ReadStreamForwards(streamId, StreamVersion.Start, 10);
 
-                    streamEventsPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
+                    page.Status.ShouldBe(PageReadStatus.StreamNotFound);
                 }
             }
         }
 
         [Fact]
-        public async Task When_delete_stream_with_expected_version_any_and_then_read_then_should_stream_deleted_event()
+        public async Task When_delete_stream_with_expected_version_any_and_then_read_then_should_stream_deleted_message()
         {
             using (var fixture = GetFixture())
             {
@@ -42,20 +42,20 @@
                     await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
                     await store.DeleteStream(streamId);
 
-                    var streamEventsPage =
+                    var page =
                         await store.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
 
-                    streamEventsPage.Status.ShouldBe(PageReadStatus.Success);
-                    var streamEvent = streamEventsPage.Messages.Single();
-                    streamEvent.Type.ShouldBe(StreamDeletedEventType);
-                    var streamDeleted = streamEvent.JsonDataAs<StreamDeleted>();
+                    page.Status.ShouldBe(PageReadStatus.Success);
+                    var message = page.Messages.Single();
+                    message.Type.ShouldBe(StreamDeletedMessageType);
+                    var streamDeleted = message.JsonDataAs<StreamDeleted>();
                     streamDeleted.StreamId.ShouldBe("stream");
                 }
             }
         }
 
         [Fact]
-        public async Task When_delete_stream_with_no_expected_version_and_read_all_then_should_not_see_deleted_stream_events()
+        public async Task When_delete_stream_with_no_expected_version_and_read_all_then_should_not_see_deleted_stream_messages()
         {
             using (var fixture = GetFixture())
             {
@@ -66,9 +66,9 @@
                     await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
                     await store.DeleteStream(streamId);
 
-                    var allEventsPage = await store.ReadAllForwards(Checkpoint.Start, 10);
+                    var page = await store.ReadAllForwards(Checkpoint.Start, 10);
 
-                    allEventsPage.StreamMessages.Any(streamEvent => streamEvent.StreamId == streamId).ShouldBeFalse();
+                    page.Messages.Any(message => message.StreamId == streamId).ShouldBeFalse();
                 }
             }
         }
@@ -100,16 +100,16 @@
                     await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
                     await store.DeleteStream(streamId, 2);
 
-                    var streamEventsPage =
+                    var page =
                         await store.ReadStreamForwards(streamId, StreamVersion.Start, 10);
 
-                    streamEventsPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
+                    page.Status.ShouldBe(PageReadStatus.StreamNotFound);
                 }
             }
         }
 
         [Fact]
-        public async Task When_delete_stream_with_a_matching_expected_version_and_read_then_should_get_stream_deleted_event()
+        public async Task When_delete_stream_with_a_matching_expected_version_and_read_then_should_get_stream_deleted_message()
         {
             using (var fixture = GetFixture())
             {
@@ -120,20 +120,20 @@
                     await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
                     await store.DeleteStream(streamId, 2);
 
-                    var streamEventsPage =
+                    var page =
                         await store.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
 
-                    streamEventsPage.Status.ShouldBe(PageReadStatus.Success);
-                    var streamEvent = streamEventsPage.Messages.Single();
-                    streamEvent.Type.ShouldBe(StreamDeletedEventType);
-                    var streamDeleted = streamEvent.JsonDataAs<StreamDeleted>();
+                    page.Status.ShouldBe(PageReadStatus.Success);
+                    var message = page.Messages.Single();
+                    message.Type.ShouldBe(StreamDeletedMessageType);
+                    var streamDeleted = message.JsonDataAs<StreamDeleted>();
                     streamDeleted.StreamId.ShouldBe("stream");
                 }
             }
         }
 
         [Fact]
-        public async Task When_delete_stream_with_a_matching_expected_version_and_read_all_then_should_not_see_deleted_stream_events()
+        public async Task When_delete_stream_with_a_matching_expected_version_and_read_all_then_should_not_see_deleted_stream_messages()
         {
             using (var fixture = GetFixture())
             {
@@ -144,9 +144,9 @@
                     await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
                     await store.DeleteStream(streamId);
 
-                    var allEventsPage = await store.ReadAllForwards(Checkpoint.Start, 10);
+                    var allMessagesPage = await store.ReadAllForwards(Checkpoint.Start, 10);
 
-                    allEventsPage.StreamMessages.Any(streamEvent => streamEvent.StreamId == streamId).ShouldBeFalse();
+                    allMessagesPage.Messages.Any(message => message.StreamId == streamId).ShouldBeFalse();
                 }
             }
         }

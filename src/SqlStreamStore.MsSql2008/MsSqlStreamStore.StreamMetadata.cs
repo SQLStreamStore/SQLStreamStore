@@ -61,14 +61,14 @@
                         MetaJson = metadataJson
                     };
                     var json = SimpleJson.SerializeObject(metadataMessage);
-                    var newStreamEvent = new NewStreamMessage(Guid.NewGuid(), "$stream-metadata", json);
+                    var newmessage = new NewStreamMessage(Guid.NewGuid(), "$stream-metadata", json);
 
                     await AppendToStreamInternal(
                         connection,
                         transaction,
                         streamIdInfo.MetadataSqlStreamId,
                         expectedStreamMetadataVersion,
-                        new[] { newStreamEvent },
+                        new[] { newmessage },
                         cancellationToken);
 
                     transaction.Commit();

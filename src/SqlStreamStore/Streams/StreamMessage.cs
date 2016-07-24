@@ -6,7 +6,7 @@
     {
         public readonly long Checkpoint;
         public readonly DateTime Created;
-        public readonly Guid EventId;
+        public readonly Guid MessageId;
         public readonly string JsonData;
         public readonly string JsonMetadata;
         public readonly int StreamVersion;
@@ -15,7 +15,7 @@
 
         public StreamMessage(
             string streamId,
-            Guid eventId,
+            Guid messageId,
             int streamVersion,
             long checkpoint,
             DateTime created,
@@ -23,7 +23,7 @@
             string jsonData,
             string jsonMetadata)
         {
-            EventId = eventId;
+            MessageId = messageId;
             StreamId = streamId;
             StreamVersion = streamVersion;
             Checkpoint = checkpoint;
@@ -42,7 +42,7 @@
         /// <filterpriority>2</filterpriority>
         public override string ToString()
         {
-            return $"MessageId={EventId} StreamId={StreamId} StreamVersion={StreamVersion} Checkpoint={Checkpoint} Type={Type}";
+            return $"MessageId={MessageId} StreamId={StreamId} StreamVersion={StreamVersion} Checkpoint={Checkpoint} Type={Type}";
         }
     }
 }

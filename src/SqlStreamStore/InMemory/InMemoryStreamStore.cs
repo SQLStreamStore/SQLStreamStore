@@ -29,7 +29,7 @@ namespace SqlStreamStore
         {
             _getUtcNow = getUtcNow ?? SystemClock.GetUtcNow;
             _allStream.AddFirst(new InMemoryStreamMessage(
-                "<in-memory-root-event>",
+                "<in-memory-root-message>",
                 Guid.NewGuid(),
                 -1,
                 -1,
@@ -52,7 +52,7 @@ namespace SqlStreamStore
             }
         }
 
-        public override Task<int> GetStreamEventCount(string streamId, CancellationToken cancellationToken = new CancellationToken())
+        public override Task<int> GetmessageCount(string streamId, CancellationToken cancellationToken = new CancellationToken())
         {
             using(_lock.UseReadLock())
             {
@@ -80,19 +80,19 @@ namespace SqlStreamStore
         {
             if (maxCount.HasValue)
             {
-                var count = await GetStreamEventCount(streamId, cancellationToken);
+                var count = await GetmessageCount(streamId, cancellationToken);
                 if (count > maxCount.Value)
                 {
                     int toPurge = count - maxCount.Value;
 
-                    var streamEventsPage = await ReadStreamForwardsInternal(streamId, StreamVersion.Start,
+                    var streamMessagesPage = await ReadStreamForwardsInternal(streamId, StreamVersion.Start,
                         toPurge, cancellationToken);
 
-                    if (streamEventsPage.Status == PageReadStatus.Success)
+                    if (streamMessagesPage.Status == PageReadStatus.Success)
                     {
-                        foreach (var streamEvent in streamEventsPage.Messages)
+                        foreach (var message in streamMessagesPage.Messages)
                         {
-                            await DeleteEventInternal(streamId, streamEvent.EventId, cancellationToken);
+                            await DeleteEventInternal(streamId, message.MessageId, cancellationToken);
                         }
                     }
                 }
@@ -205,9 +205,9 @@ namespace SqlStreamStore
                     MetaJson = metadataJson
                 };
                 var json = SimpleJson.SerializeObject(metadataMessage);
-                var newStreamEvent = new NewStreamMessage(Guid.NewGuid(), "$stream-metadata", json);
+                var newmessage = new NewStreamMessage(Guid.NewGuid(), "$stream-metadata", json);
 
-                AppendToStreamInternal(metaStreamId, expectedStreamMetadataVersion, new[] { newStreamEvent });
+                AppendToStreamInternal(metaStreamId, expectedStreamMetadataVersion, new[] { newmessage });
 
                 await CheckStreamMaxCount(streamId, metadataMessage.MaxCount, cancellationToken);
             }
@@ -289,10 +289,10 @@ namespace SqlStreamStore
                     current = current.Next;
                 }
 
-                var streamEvents = new List<StreamMessage>();
+                var messages = new List<StreamMessage>();
                 while(maxCount > 0 && current != null)
                 {
-                    var streamEvent = new StreamMessage(
+                    var message = new StreamMessage(
                         current.Value.StreamId,
                         current.Value.MessageId,
                         current.Value.StreamVersion,
@@ -301,7 +301,7 @@ namespace SqlStreamStore
                         current.Value.Type,
                         current.Value.JsonData,
                         current.Value.JsonMetadata);
-                    streamEvents.Add(streamEvent);
+                    messages.Add(message);
                     maxCount--;
                     previous = current;
                     current = current.Next;
@@ -309,14 +309,14 @@ namespace SqlStreamStore
 
                 var isEnd = current == null;
                 var nextCheckPoint = current?.Value.Checkpoint ?? previous.Value.Checkpoint + 1;
-                fromCheckpointExlusive = streamEvents.Any() ? streamEvents[0].Checkpoint : 0;
+                fromCheckpointExlusive = messages.Any() ? messages[0].Checkpoint : 0;
 
                 var page = new AllMessagesPage(
                     fromCheckpointExlusive,
                     nextCheckPoint,
                     isEnd,
                     ReadDirection.Forward,
-                    streamEvents.ToArray());
+                    messages.ToArray());
 
                 return Task.FromResult(page);
             }
@@ -359,10 +359,10 @@ namespace SqlStreamStore
                     current = current.Next;
                 }
 
-                var streamEvents = new List<StreamMessage>();
+                var messages = new List<StreamMessage>();
                 while(maxCount > 0 && current != _allStream.First)
                 {
-                    var streamEvent = new StreamMessage(
+                    var message = new StreamMessage(
                         current.Value.StreamId,
                         current.Value.MessageId,
                         current.Value.StreamVersion,
@@ -371,7 +371,7 @@ namespace SqlStreamStore
                         current.Value.Type,
                         current.Value.JsonData,
                         current.Value.JsonMetadata);
-                    streamEvents.Add(streamEvent);
+                    messages.Add(message);
                     maxCount--;
                     previous = current;
                     current = current.Previous;
@@ -390,14 +390,14 @@ namespace SqlStreamStore
                     ? 0
                     : current.Value.Checkpoint;
 
-                fromCheckpointExclusive = streamEvents.Any() ? streamEvents[0].Checkpoint : 0;
+                fromCheckpointExclusive = messages.Any() ? messages[0].Checkpoint : 0;
 
                 var page = new AllMessagesPage(
                     fromCheckpointExclusive,
                     nextCheckPoint,
                     isEnd,
                     ReadDirection.Backward,
-                    streamEvents.ToArray());
+                    messages.ToArray());
 
                 return Task.FromResult(page);
             }
@@ -431,17 +431,17 @@ namespace SqlStreamStore
 
                 while(i < stream.Events.Count && count > 0)
                 {
-                    var inMemoryStreamEvent = stream.Events[i];
-                    var streamEvent = new StreamMessage(
+                    var inMemorymessage = stream.Events[i];
+                    var message = new StreamMessage(
                         streamId,
-                        inMemoryStreamEvent.MessageId,
-                        inMemoryStreamEvent.StreamVersion,
-                        inMemoryStreamEvent.Checkpoint,
-                        inMemoryStreamEvent.Created,
-                        inMemoryStreamEvent.Type,
-                        inMemoryStreamEvent.JsonData,
-                        inMemoryStreamEvent.JsonMetadata);
-                    events.Add(streamEvent);
+                        inMemorymessage.MessageId,
+                        inMemorymessage.StreamVersion,
+                        inMemorymessage.Checkpoint,
+                        inMemorymessage.Created,
+                        inMemorymessage.Type,
+                        inMemorymessage.JsonData,
+                        inMemorymessage.JsonMetadata);
+                    events.Add(message);
 
                     i++;
                     count--;
@@ -492,17 +492,17 @@ namespace SqlStreamStore
                 var i = fromVersionInclusive == StreamVersion.End ? stream.Events.Count - 1 : fromVersionInclusive;
                 while (i >= 0 && count > 0)
                 {
-                    var inMemoryStreamEvent = stream.Events[i];
-                    var streamEvent = new StreamMessage(
+                    var inMemorymessage = stream.Events[i];
+                    var message = new StreamMessage(
                         streamId,
-                        inMemoryStreamEvent.MessageId,
-                        inMemoryStreamEvent.StreamVersion,
-                        inMemoryStreamEvent.Checkpoint,
-                        inMemoryStreamEvent.Created,
-                        inMemoryStreamEvent.Type,
-                        inMemoryStreamEvent.JsonData,
-                        inMemoryStreamEvent.JsonMetadata);
-                    events.Add(streamEvent);
+                        inMemorymessage.MessageId,
+                        inMemorymessage.StreamVersion,
+                        inMemorymessage.Checkpoint,
+                        inMemorymessage.Created,
+                        inMemorymessage.Type,
+                        inMemorymessage.JsonData,
+                        inMemorymessage.JsonMetadata);
+                    events.Add(message);
 
                     i--;
                     count--;
@@ -548,8 +548,8 @@ namespace SqlStreamStore
 
         protected override Task<long> ReadHeadCheckpointInternal(CancellationToken cancellationToken)
         {
-            var streamEvent = _allStream.LastOrDefault();
-            return streamEvent == null ? Task.FromResult(-1L) : Task.FromResult(streamEvent.Checkpoint);
+            var message = _allStream.LastOrDefault();
+            return message == null ? Task.FromResult(-1L) : Task.FromResult(message.Checkpoint);
         }
 
         protected override async Task<IAllStreamSubscription> SubscribeToAllInternal(

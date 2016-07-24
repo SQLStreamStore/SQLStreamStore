@@ -48,15 +48,15 @@
 
         protected override async Task<bool> DoFetch()
         {
-            var allEventsPage = await ReadonlyStreamStore
+            var allMessagesPage = await ReadonlyStreamStore
                 .ReadAllForwards(
                     _nextCheckpoint,
                     PageSize,
                     IsDisposed)
                 .NotOnCapturedContext();
-            bool isEnd = allEventsPage.IsEnd;
+            bool isEnd = allMessagesPage.IsEnd;
             
-            foreach(var streamEvent in allEventsPage.StreamMessages)
+            foreach(var streamMessage in allMessagesPage.Messages)
             {
                 if(IsDisposed.IsCancellationRequested)
                 {
@@ -64,9 +64,9 @@
                 }
                 try
                 {
-                    await StreamMessageReceived(streamEvent).NotOnCapturedContext();
-                    LastCheckpoint = streamEvent.Checkpoint;
-                    _nextCheckpoint = streamEvent.Checkpoint + 1;
+                    await StreamMessageReceived(streamMessage).NotOnCapturedContext();
+                    LastCheckpoint = streamMessage.Checkpoint;
+                    _nextCheckpoint = streamMessage.Checkpoint + 1;
                 }
                 catch(Exception ex)
                 {

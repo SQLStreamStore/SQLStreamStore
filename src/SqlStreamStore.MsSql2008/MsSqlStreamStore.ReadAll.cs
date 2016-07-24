@@ -29,7 +29,7 @@ namespace SqlStreamStore
                         .ExecuteReaderAsync(cancellationToken)
                         .NotOnCapturedContext();
 
-                    List<StreamMessage> streamEvents = new List<StreamMessage>();
+                    List<StreamMessage> messages = new List<StreamMessage>();
                     if (!reader.HasRows)
                     {
                         return new AllMessagesPage(
@@ -37,7 +37,7 @@ namespace SqlStreamStore
                             fromCheckpointExlusive,
                             true,
                             ReadDirection.Forward,
-                            streamEvents.ToArray());
+                            messages.ToArray());
                     }
 
                     long lastOrdinal = 0;
@@ -52,7 +52,7 @@ namespace SqlStreamStore
                         var jsonData = reader.GetString(6);
                         var jsonMetadata = reader.GetString(7);
 
-                        var streamEvent = new StreamMessage(streamId,
+                        var message = new StreamMessage(streamId,
                             eventId,
                             streamVersion,
                             ordinal,
@@ -61,25 +61,25 @@ namespace SqlStreamStore
                             jsonData,
                             jsonMetadata);
 
-                        streamEvents.Add(streamEvent);
+                        messages.Add(message);
                     }
 
                     bool isEnd = true;
 
-                    if (streamEvents.Count == maxCount + 1) // An extra row was read, we're not at the end
+                    if (messages.Count == maxCount + 1) // An extra row was read, we're not at the end
                     {
                         isEnd = false;
-                        streamEvents.RemoveAt(maxCount);
+                        messages.RemoveAt(maxCount);
                     }
 
-                    var nextCheckpoint = streamEvents[streamEvents.Count - 1].Checkpoint + 1;
+                    var nextCheckpoint = messages[messages.Count - 1].Checkpoint + 1;
 
                     return new AllMessagesPage(
                         fromCheckpointExlusive,
                         nextCheckpoint,
                         isEnd,
                         ReadDirection.Forward,
-                        streamEvents.ToArray());
+                        messages.ToArray());
                 }
             }
         }
@@ -103,7 +103,7 @@ namespace SqlStreamStore
                         .ExecuteReaderAsync(cancellationToken)
                         .NotOnCapturedContext();
 
-                    List<StreamMessage> streamEvents = new List<StreamMessage>();
+                    List<StreamMessage> messages = new List<StreamMessage>();
                     if (!reader.HasRows)
                     {
                         // When reading backwards and there are no more items, then next checkpoint is LongCheckpoint.Start,
@@ -113,7 +113,7 @@ namespace SqlStreamStore
                             Checkpoint.Start,
                             true,
                             ReadDirection.Backward,
-                            streamEvents.ToArray());
+                            messages.ToArray());
                     }
 
                     long lastOrdinal = 0;
@@ -128,7 +128,7 @@ namespace SqlStreamStore
                         var jsonData = reader.GetString(6);
                         var jsonMetadata = reader.GetString(7);
 
-                        var streamEvent = new StreamMessage(streamId,
+                        var message = new StreamMessage(streamId,
                             eventId,
                             streamVersion,
                             ordinal,
@@ -137,27 +137,27 @@ namespace SqlStreamStore
                             jsonData,
                             jsonMetadata);
 
-                        streamEvents.Add(streamEvent);
+                        messages.Add(message);
                         lastOrdinal = ordinal;
                     }
 
                     bool isEnd = true;
                     var nextCheckpoint = lastOrdinal;
 
-                    if (streamEvents.Count == maxCount + 1) // An extra row was read, we're not at the end
+                    if (messages.Count == maxCount + 1) // An extra row was read, we're not at the end
                     {
                         isEnd = false;
-                        streamEvents.RemoveAt(maxCount);
+                        messages.RemoveAt(maxCount);
                     }
 
-                    fromCheckpointExclusive = streamEvents.Any() ? streamEvents[0].Checkpoint : 0;
+                    fromCheckpointExclusive = messages.Any() ? messages[0].Checkpoint : 0;
 
                     return new AllMessagesPage(
                         fromCheckpointExclusive,
                         nextCheckpoint,
                         isEnd,
                         ReadDirection.Backward,
-                        streamEvents.ToArray());
+                        messages.ToArray());
                 }
             }
         }

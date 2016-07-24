@@ -78,17 +78,17 @@
                             int streamNumber = random.Next(0, 100000);
 
                             var eventNumber = Interlocked.Increment(ref count);
-                            var newStreamEvents = StreamStoreAcceptanceTests
+                            var newmessages = StreamStoreAcceptanceTests
                                 .CreateNewStreamMessages(eventNumber*2 + 1, eventNumber*2 + 2);
 
-                            info = $"{streamNumber} - {newStreamEvents[0].EventId}," +
-                                       $"{newStreamEvents[1].EventId}";
+                            info = $"{streamNumber} - {newmessages[0].MessageId}," +
+                                       $"{newmessages[1].MessageId}";
 
                             Log.Logger.Information($"Begin {info}");
                             await streamStore.AppendToStream(
                                 $"stream-{streamNumber}",
                                 ExpectedVersion.Any,
-                                newStreamEvents,
+                                newmessages,
                                 cts.Token);
                             Log.Logger.Information($"End   {info}");
                             Console.Write($"\r{eventNumber*2 + 2}");

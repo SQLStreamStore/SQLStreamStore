@@ -68,7 +68,7 @@
                 command.Parameters.AddWithValue("count", count + 1); //Read extra row to see if at end or not
                 command.Parameters.AddWithValue("StreamVersion", streamVersion);
 
-                var streamEvents = new List<StreamMessage>();
+                var messages = new List<StreamMessage>();
 
                 using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
                 {
@@ -95,7 +95,7 @@
                         var jsonData = reader.GetString(5);
                         var jsonMetadata = reader.GetString(6);
 
-                        var streamEvent = new StreamMessage(
+                        var message = new StreamMessage(
                             sqlStreamId.IdOriginal,
                             eventId,
                             streamVersion1,
@@ -105,30 +105,30 @@
                             jsonData,
                             jsonMetadata);
 
-                        streamEvents.Add(streamEvent);
+                        messages.Add(message);
                     } while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext());
 
-                    // Read last event revision result set
+                    // Read last message revision result set
                     await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
                     await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
                     var lastStreamVersion = reader.GetInt32(0);
 
                     var isEnd = true;
-                    if(streamEvents.Count == count + 1)
+                    if(messages.Count == count + 1)
                     {
                         isEnd = false;
-                        streamEvents.RemoveAt(count);
+                        messages.RemoveAt(count);
                     }
 
                     return new StreamMessagesPage(
                         sqlStreamId.IdOriginal,
                         PageReadStatus.Success,
                         start,
-                        getNextSequenceNumber(streamEvents),
+                        getNextSequenceNumber(messages),
                         lastStreamVersion,
                         direction,
                         isEnd,
-                        streamEvents.ToArray());
+                        messages.ToArray());
                 }
             }
         }

@@ -226,15 +226,15 @@ namespace SqlStreamStore.Infrastructure
             }
             var currentUtc = GetUtcNow().DateTime;
             var valid = new List<StreamMessage>();
-            foreach(var streamEvent in page.Messages)
+            foreach(var message in page.Messages)
             {
-                if(streamEvent.Created.AddSeconds(maxAge.Value) > currentUtc)
+                if(message.Created.AddSeconds(maxAge.Value) > currentUtc)
                 {
-                    valid.Add(streamEvent);
+                    valid.Add(message);
                 }
                 else
                 {
-                    PurgeExpiredEvent(streamEvent);
+                    PurgeExpiredEvent(message);
                 }
             }
             return new StreamMessagesPage(
@@ -249,38 +249,38 @@ namespace SqlStreamStore.Infrastructure
         }
 
         private async Task<AllMessagesPage> FilterExpired(
-           AllMessagesPage page,
+           AllMessagesPage allMessagesPage,
            CancellationToken cancellationToken)
         {
             var valid = new List<StreamMessage>();
             var currentUtc = GetUtcNow().DateTime;
-            foreach (var streamEvent in page.StreamMessages)
+            foreach (var streamMessage in allMessagesPage.Messages)
             {
-                if(streamEvent.StreamId.StartsWith("$"))
+                if(streamMessage.StreamId.StartsWith("$"))
                 {
-                    valid.Add(streamEvent);
+                    valid.Add(streamMessage);
                     continue;
                 }
-                var maxAge = await _metadataMaxAgeCache.GetMaxAge(streamEvent.StreamId, cancellationToken);
+                var maxAge = await _metadataMaxAgeCache.GetMaxAge(streamMessage.StreamId, cancellationToken);
                 if (!maxAge.HasValue)
                 {
-                    valid.Add(streamEvent);
+                    valid.Add(streamMessage);
                     continue;
                 }
-                if (streamEvent.Created.AddSeconds(maxAge.Value) > currentUtc)
+                if (streamMessage.Created.AddSeconds(maxAge.Value) > currentUtc)
                 {
-                    valid.Add(streamEvent);
+                    valid.Add(streamMessage);
                 }
                 else
                 {
-                    PurgeExpiredEvent(streamEvent);
+                    PurgeExpiredEvent(streamMessage);
                 }
             }
             return new AllMessagesPage(
-                page.FromCheckpoint,
-                page.NextCheckpoint,
-                page.IsEnd,
-                page.Direction,
+                allMessagesPage.FromCheckpoint,
+                allMessagesPage.NextCheckpoint,
+                allMessagesPage.IsEnd,
+                allMessagesPage.Direction,
                 valid.ToArray());
         }
 

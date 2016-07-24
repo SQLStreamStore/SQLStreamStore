@@ -21,32 +21,32 @@
                     await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
                     await store.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
 
-                    var streamEventsPage =
+                    var streamMessagesPage =
                         await store.ReadStreamForwards(theory.StreamId, theory.Start, theory.PageSize);
 
-                    var ExpectedStreamMessagesPage = theory.ExpectedStreamMessagesPage;
-                    var expectedEvents = theory.ExpectedStreamMessagesPage.Messages.ToArray();
+                    var expectedStreamMessagesPage = theory.ExpectedStreamMessagesPage;
+                    var expectedMessages = theory.ExpectedStreamMessagesPage.Messages.ToArray();
 
-                    streamEventsPage.FromStreamVersion.ShouldBe(ExpectedStreamMessagesPage.FromStreamVersion);
-                    streamEventsPage.LastStreamVersion.ShouldBe(ExpectedStreamMessagesPage.LastStreamVersion);
-                    streamEventsPage.NextStreamVersion.ShouldBe(ExpectedStreamMessagesPage.NextStreamVersion);
-                    streamEventsPage.ReadDirection.ShouldBe(ExpectedStreamMessagesPage.ReadDirection);
-                    streamEventsPage.IsEndOfStream.ShouldBe(ExpectedStreamMessagesPage.IsEndOfStream);
-                    streamEventsPage.Status.ShouldBe(ExpectedStreamMessagesPage.Status);
-                    streamEventsPage.StreamId.ShouldBe(ExpectedStreamMessagesPage.StreamId);
-                    streamEventsPage.Messages.Length.ShouldBe(ExpectedStreamMessagesPage.Messages.Length);
+                    streamMessagesPage.FromStreamVersion.ShouldBe(expectedStreamMessagesPage.FromStreamVersion);
+                    streamMessagesPage.LastStreamVersion.ShouldBe(expectedStreamMessagesPage.LastStreamVersion);
+                    streamMessagesPage.NextStreamVersion.ShouldBe(expectedStreamMessagesPage.NextStreamVersion);
+                    streamMessagesPage.ReadDirection.ShouldBe(expectedStreamMessagesPage.ReadDirection);
+                    streamMessagesPage.IsEndOfStream.ShouldBe(expectedStreamMessagesPage.IsEndOfStream);
+                    streamMessagesPage.Status.ShouldBe(expectedStreamMessagesPage.Status);
+                    streamMessagesPage.StreamId.ShouldBe(expectedStreamMessagesPage.StreamId);
+                    streamMessagesPage.Messages.Length.ShouldBe(expectedStreamMessagesPage.Messages.Length);
 
-                    for (int i = 0; i < streamEventsPage.Messages.Length; i++)
+                    for (int i = 0; i < streamMessagesPage.Messages.Length; i++)
                     {
-                        var streamEvent = streamEventsPage.Messages.ToArray()[i];
-                        var expectedEvent = expectedEvents[i];
+                        var message = streamMessagesPage.Messages.ToArray()[i];
+                        var expectedMessage = expectedMessages[i];
 
-                        streamEvent.EventId.ShouldBe(expectedEvent.EventId);
-                        streamEvent.JsonData.ShouldBe(expectedEvent.JsonData);
-                        streamEvent.JsonMetadata.ShouldBe(expectedEvent.JsonMetadata);
-                        streamEvent.StreamId.ShouldBe(expectedEvent.StreamId);
-                        streamEvent.StreamVersion.ShouldBe(expectedEvent.StreamVersion);
-                        streamEvent.Type.ShouldBe(expectedEvent.Type);
+                        message.MessageId.ShouldBe(expectedMessage.MessageId);
+                        message.JsonData.ShouldBe(expectedMessage.JsonData);
+                        message.JsonMetadata.ShouldBe(expectedMessage.JsonMetadata);
+                        message.StreamId.ShouldBe(expectedMessage.StreamId);
+                        message.StreamVersion.ShouldBe(expectedMessage.StreamVersion);
+                        message.Type.ShouldBe(expectedMessage.Type);
 
                         // We don't care about StreamMessage.Checkpoint and StreamMessage.Checkpoint
                         // as they are non-deterministic
@@ -66,32 +66,32 @@
                     await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
                     await store.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
 
-                    var streamEventsPage =
+                    var streamMessagesPage =
                         await store.ReadStreamBackwards(theory.StreamId, theory.Start, theory.PageSize);
 
-                    var ExpectedStreamMessagesPage = theory.ExpectedStreamMessagesPage;
-                    var expectedEvents = theory.ExpectedStreamMessagesPage.Messages.ToArray();
+                    var expectedStreamMessagesPage = theory.ExpectedStreamMessagesPage;
+                    var expectedMessages = theory.ExpectedStreamMessagesPage.Messages.ToArray();
 
-                    streamEventsPage.FromStreamVersion.ShouldBe(ExpectedStreamMessagesPage.FromStreamVersion);
-                    streamEventsPage.LastStreamVersion.ShouldBe(ExpectedStreamMessagesPage.LastStreamVersion);
-                    streamEventsPage.NextStreamVersion.ShouldBe(ExpectedStreamMessagesPage.NextStreamVersion);
-                    streamEventsPage.ReadDirection.ShouldBe(ExpectedStreamMessagesPage.ReadDirection);
-                    streamEventsPage.IsEndOfStream.ShouldBe(ExpectedStreamMessagesPage.IsEndOfStream);
-                    streamEventsPage.Status.ShouldBe(ExpectedStreamMessagesPage.Status);
-                    streamEventsPage.StreamId.ShouldBe(ExpectedStreamMessagesPage.StreamId);
-                    streamEventsPage.Messages.Length.ShouldBe(ExpectedStreamMessagesPage.Messages.Length);
+                    streamMessagesPage.FromStreamVersion.ShouldBe(expectedStreamMessagesPage.FromStreamVersion);
+                    streamMessagesPage.LastStreamVersion.ShouldBe(expectedStreamMessagesPage.LastStreamVersion);
+                    streamMessagesPage.NextStreamVersion.ShouldBe(expectedStreamMessagesPage.NextStreamVersion);
+                    streamMessagesPage.ReadDirection.ShouldBe(expectedStreamMessagesPage.ReadDirection);
+                    streamMessagesPage.IsEndOfStream.ShouldBe(expectedStreamMessagesPage.IsEndOfStream);
+                    streamMessagesPage.Status.ShouldBe(expectedStreamMessagesPage.Status);
+                    streamMessagesPage.StreamId.ShouldBe(expectedStreamMessagesPage.StreamId);
+                    streamMessagesPage.Messages.Length.ShouldBe(expectedStreamMessagesPage.Messages.Length);
 
-                    for (int i = 0; i < streamEventsPage.Messages.Length; i++)
+                    for (int i = 0; i < streamMessagesPage.Messages.Length; i++)
                     {
-                        var streamEvent = streamEventsPage.Messages.ToArray()[i];
-                        var expectedEvent = expectedEvents[i];
+                        var streamMessage = streamMessagesPage.Messages.ToArray()[i];
+                        var expectedMessage = expectedMessages[i];
 
-                        streamEvent.EventId.ShouldBe(expectedEvent.EventId);
-                        streamEvent.JsonData.ShouldBe(expectedEvent.JsonData);
-                        streamEvent.JsonMetadata.ShouldBe(expectedEvent.JsonMetadata);
-                        streamEvent.StreamId.ShouldBe(expectedEvent.StreamId);
-                        streamEvent.StreamVersion.ShouldBe(expectedEvent.StreamVersion);
-                        streamEvent.Type.ShouldBe(expectedEvent.Type);
+                        streamMessage.MessageId.ShouldBe(expectedMessage.MessageId);
+                        streamMessage.JsonData.ShouldBe(expectedMessage.JsonData);
+                        streamMessage.JsonMetadata.ShouldBe(expectedMessage.JsonMetadata);
+                        streamMessage.StreamId.ShouldBe(expectedMessage.StreamId);
+                        streamMessage.StreamVersion.ShouldBe(expectedMessage.StreamVersion);
+                        streamMessage.Type.ShouldBe(expectedMessage.Type);
 
                         // We don't care about StreamMessage.Checkpoint and StreamMessage.Checkpoint
                         // as they are non-deterministic
@@ -107,10 +107,10 @@
             {
                 using(var store = await fixture.GetStreamStore())
                 {
-                    var streamEventsPage =
+                    var streamMessagesPage =
                         await store.ReadStreamForwards("stream-does-not-exist", StreamVersion.Start, 1);
 
-                    streamEventsPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
+                    streamMessagesPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
                 }
             }
         }
@@ -122,10 +122,10 @@
             {
                 using (var store = await fixture.GetStreamStore())
                 {
-                    var streamEventsPage =
+                    var streamMessagesPage =
                         await store.ReadStreamBackwards("stream-does-not-exist", StreamVersion.End, 1);
 
-                    streamEventsPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
+                    streamMessagesPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
                 }
             }
         }
@@ -140,10 +140,10 @@
                     await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
                     await store.DeleteStream("stream-1");
 
-                    var streamEventsPage =
+                    var streamMessagesPage =
                         await store.ReadStreamForwards("stream-1", StreamVersion.Start, 1);
 
-                    streamEventsPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
+                    streamMessagesPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
                 }
             }
         }
@@ -158,10 +158,10 @@
                     await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
                     await store.DeleteStream("stream-1");
 
-                    var streamEventsPage =
+                    var streamMessagesPage =
                         await store.ReadStreamBackwards("stream-1", StreamVersion.Start, 1);
 
-                    streamEventsPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
+                    streamMessagesPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
                 }
             }
         }

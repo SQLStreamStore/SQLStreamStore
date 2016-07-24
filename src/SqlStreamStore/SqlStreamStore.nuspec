@@ -10,8 +10,8 @@
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
         <title>SQL Stream Store</title>
         <description>
-            A libray for reading and writing streams (also known as an 'event store') with a focuse
-            on SQL based stores. This contains the core interfaces, abstractions and in-memory implementation.
+            A libray for writing and reading streams (also known as an 'event store') with a focus
+            on SQL based stores. This contains the core interfaces, abstractions and an in-memory implementation.
         </description>
         <tags>cqrs event-sourcing domain-driven-design event-store messaging queue</tags>
         <frameworkAssemblies />

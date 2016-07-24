@@ -23,15 +23,15 @@
 
         internal string DeleteStreamAnyVersion => GetScript(nameof(DeleteStreamAnyVersion));
 
-        internal string DeleteStreamEvent => GetScript(nameof(DeleteStreamEvent));
+        internal string DeleteStreamMessage => GetScript(nameof(DeleteStreamMessage));
 
         internal string DeleteStreamExpectedVersion => GetScript(nameof(DeleteStreamExpectedVersion));
 
         internal string DropAll => GetScript(nameof(DropAll));
 
-        internal string GetStreamEventCount => GetScript(nameof(GetStreamEventCount));
+        internal string GetStreamMessageCount => GetScript(nameof(GetStreamMessageCount));
 
-        internal string GetStreamEventBeforeCreatedCount => GetScript(nameof(GetStreamEventBeforeCreatedCount));
+        internal string GetStreamMessageBeforeCreatedCount => GetScript(nameof(GetStreamMessageBeforeCreatedCount));
 
         internal string InitializeStore => GetScript(nameof(InitializeStore));
 
@@ -58,7 +58,7 @@
                     {
                         if(stream == null)
                         {
-                            throw new Exception("Embedded resource not found. BUG!");
+                            throw new Exception($"Embedded resource, {name}, not found. BUG!");
                         }
                         using(StreamReader reader = new StreamReader(stream))
                         {

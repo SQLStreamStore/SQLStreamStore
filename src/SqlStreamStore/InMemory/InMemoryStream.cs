@@ -69,7 +69,7 @@ namespace SqlStreamStore.InMemory
                         throw new WrongExpectedVersionException(
                             Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
                     }
-                    if(_events[index].MessageId != newMessages[i].EventId)
+                    if(_events[index].MessageId != newMessages[i].MessageId)
                     {
                         throw new WrongExpectedVersionException(
                             Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
@@ -79,7 +79,7 @@ namespace SqlStreamStore.InMemory
             }
 
             // expectedVersion == currentVersion)
-            if(newMessages.Any(newStreamEvent => _eventsById.ContainsKey(newStreamEvent.EventId)))
+            if(newMessages.Any(newmessage => _eventsById.ContainsKey(newmessage.MessageId)))
             {
                 throw new WrongExpectedVersionException(
                     Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
@@ -91,7 +91,7 @@ namespace SqlStreamStore.InMemory
         private void AppendToStreamExpectedVersionAny(int expectedVersion, NewStreamMessage[] newMessages)
         {
             // idemponcy check - how many newMessages have already been written?
-            var newEventIds = new HashSet<Guid>(newMessages.Select(e => e.EventId));
+            var newEventIds = new HashSet<Guid>(newMessages.Select(e => e.MessageId));
             newEventIds.ExceptWith(_eventsById.Keys);
 
             if(newEventIds.Count == 0)
@@ -122,7 +122,7 @@ namespace SqlStreamStore.InMemory
                         Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
                 }
 
-                if(newMessages.Where((@event, index) => _events[index].MessageId != @event.EventId).Any())
+                if(newMessages.Where((message, index) => _events[index].MessageId != message.MessageId).Any())
                 {
                     throw new WrongExpectedVersionException(
                         Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
@@ -136,24 +136,24 @@ namespace SqlStreamStore.InMemory
 
         private void AppendEvents(NewStreamMessage[] newMessages)
         {
-            foreach(var newStreamEvent in newMessages)
+            foreach(var newmessage in newMessages)
             {
                 var checkpoint = _getNextCheckpoint();
                 _currentVersion++;
 
-                var inMemoryStreamEvent = new InMemoryStreamMessage(
+                var inMemorymessage = new InMemoryStreamMessage(
                     _streamId,
-                    newStreamEvent.EventId,
+                    newmessage.MessageId,
                     _currentVersion,
                     checkpoint,
                     _getUtcNow().DateTime,
-                    newStreamEvent.Type,
-                    newStreamEvent.JsonData,
-                    newStreamEvent.JsonMetadata);
+                    newmessage.Type,
+                    newmessage.JsonData,
+                    newmessage.JsonMetadata);
 
-                _inMemoryAllStream.AddAfter(_inMemoryAllStream.Last, inMemoryStreamEvent);
-                _events.Add(inMemoryStreamEvent);
-                _eventsById.Add(newStreamEvent.EventId, inMemoryStreamEvent);
+                _inMemoryAllStream.AddAfter(_inMemoryAllStream.Last, inMemorymessage);
+                _events.Add(inMemorymessage);
+                _eventsById.Add(newmessage.MessageId, inMemorymessage);
 
                 _onStreamAppended();
             }
@@ -167,9 +167,9 @@ namespace SqlStreamStore.InMemory
                    Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
             }
 
-            foreach (var inMemoryStreamEvent in _events)
+            foreach (var inMemorymessage in _events)
             {
-                _inMemoryAllStream.Remove(inMemoryStreamEvent);
+                _inMemoryAllStream.Remove(inMemorymessage);
             }
             _events.Clear();
             _eventsById.Clear();

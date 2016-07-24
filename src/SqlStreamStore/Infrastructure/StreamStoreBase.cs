@@ -70,13 +70,13 @@ namespace SqlStreamStore.Infrastructure
                 cancellationToken);
         }
 
-        public abstract Task<int> GetStreamEventCount(
+        public abstract Task<int> GetmessageCount(
             string streamId,
             CancellationToken cancellationToken = default(CancellationToken));
 
         protected override void PurgeExpiredEvent(StreamMessage streamMessage)
         {
-            _taskQueue.Enqueue(ct => DeleteEventInternal(streamMessage.StreamId, streamMessage.EventId, ct));
+            _taskQueue.Enqueue(ct => DeleteEventInternal(streamMessage.StreamId, streamMessage.MessageId, ct));
         }
 
         protected abstract Task AppendToStreamInternal(

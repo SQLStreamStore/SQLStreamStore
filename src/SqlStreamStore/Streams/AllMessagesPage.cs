@@ -6,26 +6,26 @@
         public readonly long NextCheckpoint;
         public readonly bool IsEnd;
         public readonly ReadDirection Direction;
-        public readonly StreamMessage[] StreamMessages;
+        public readonly StreamMessage[] Messages;
 
         public AllMessagesPage(
             long fromCheckpoint,
             long nextCheckpoint,
             bool isEnd,
             ReadDirection direction,
-            params StreamMessage[] streamMessages)
+            params StreamMessage[] messages)
         {
             FromCheckpoint = fromCheckpoint;
             NextCheckpoint = nextCheckpoint;
             IsEnd = isEnd;
             Direction = direction;
-            StreamMessages = streamMessages;
+            Messages = messages;
         }
 
         public override string ToString()
         {
             return $"FromCheckpoint: {FromCheckpoint}, NextCheckpoint: {NextCheckpoint}, " +
-                   $"IsEnd: {IsEnd}, Direction: {Direction}, SteamEventCount: {StreamMessages.Length}";
+                   $"IsEnd: {IsEnd}, Direction: {Direction}, SteamEventCount: {Messages.Length}";
         }
     }
 }

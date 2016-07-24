@@ -33,7 +33,7 @@
 
         /// <summary>
         ///     Hard deletes a stream and all of its Messages. Deleting a stream will result in a '$stream-deleted'
-        ///     event being appended to the '$deleted' stream.
+        ///     message being appended to the '$deleted' stream.
         /// </summary>
         /// <param name="streamId">
         ///     The stream Id to delete.
@@ -51,7 +51,7 @@
             CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
-        ///     Hard deletes an event from the stream. Deleting an event message will result in an '$event-deleted'
+        ///     Hard deletes a message from the stream. Deleting a message will result in a '$message-deleted'
         ///     message being appended to the '$deleted' stream.
         /// </summary>
         /// <param name="streamId">

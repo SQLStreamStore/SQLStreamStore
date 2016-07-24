@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore
+namespace SqlStreamStore
 {
     using System;
     using System.Data.SqlClient;
@@ -36,7 +36,7 @@
                     var sqlStreamId = new StreamIdInfo(streamId).SqlStreamId;
 
                     bool deleted;
-                    using (var command = new SqlCommand(_scripts.DeleteStreamEvent, connection, transaction))
+                    using (var command = new SqlCommand(_scripts.DeleteStreamMessage, connection, transaction))
                     {
                         command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
                         command.Parameters.AddWithValue("eventId", eventId);

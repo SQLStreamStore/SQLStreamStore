@@ -17,7 +17,7 @@ namespace SqlStreamStore
             {
                 using (var store = await fixture.GetStreamStore())
                 {
-                    var eventsToWrite = CreateNewStreamEvents();
+                    var eventsToWrite = CreateNewmessages();
 
                     await store.AppendToStream("stream-1", ExpectedVersion.NoStream, eventsToWrite);
 
@@ -28,13 +28,13 @@ namespace SqlStreamStore
             }
         }
 
-        private static NewStreamMessage[] CreateNewStreamEvents()
+        private static NewStreamMessage[] CreateNewmessages()
         {
             var eventsToWrite = new List<NewStreamMessage>();
             var largeStreamCount = 7500;
             for (int i = 0; i < largeStreamCount; i++)
             {
-                var envelope = new NewStreamMessage(Guid.NewGuid(), $"event{i}", "{}", $"{i}");
+                var envelope = new NewStreamMessage(Guid.NewGuid(), $"message-{i}", "{}", $"{i}");
 
                 eventsToWrite.Add(envelope);
             }

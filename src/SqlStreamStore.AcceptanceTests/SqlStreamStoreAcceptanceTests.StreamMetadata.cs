@@ -61,7 +61,7 @@
                     string streamId = "stream-1";
 
                     await store
-                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamEventSequence(1, 4));
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessageSequence(1, 4));
 
                     await store
                         .SetStreamMetadata(streamId, maxAge: 2, maxCount: 3, metadataJson: "meta");
@@ -92,14 +92,14 @@
 
                     await store.DeleteStream(streamId);
 
-                    var allEventsPage = await store.ReadAllForwards(Checkpoint.Start, 10);
-                    allEventsPage.StreamMessages.Length.ShouldBe(2);
-                    allEventsPage.StreamMessages[0].Type.ShouldBe(Deleted.StreamDeletedEventType);
-                    allEventsPage.StreamMessages[0].JsonDataAs<Deleted.StreamDeleted>()
+                    var allMessagesPage = await store.ReadAllForwards(Checkpoint.Start, 10);
+                    allMessagesPage.Messages.Length.ShouldBe(2);
+                    allMessagesPage.Messages[0].Type.ShouldBe(Deleted.StreamDeletedMessageType);
+                    allMessagesPage.Messages[0].JsonDataAs<Deleted.StreamDeleted>()
                         .StreamId.ShouldBe(streamId);
 
-                    allEventsPage.StreamMessages[1].Type.ShouldBe(Deleted.StreamDeletedEventType);
-                    allEventsPage.StreamMessages[1].JsonDataAs<Deleted.StreamDeleted>()
+                    allMessagesPage.Messages[1].Type.ShouldBe(Deleted.StreamDeletedMessageType);
+                    allMessagesPage.Messages[1].JsonDataAs<Deleted.StreamDeleted>()
                         .StreamId.ShouldBe($"$${streamId}");
                 }
             }
@@ -119,9 +119,9 @@
                     await store
                         .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1, 2, 3, 4));
 
-                    var eventsPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 4);
+                    var streamMessagesPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 4);
 
-                    eventsPage.Messages.Length.ShouldBe(maxCount);
+                    streamMessagesPage.Messages.Length.ShouldBe(maxCount);
                 }
             }
         }
@@ -141,15 +141,15 @@
                     await store
                         .SetStreamMetadata(streamId, maxCount: maxCount, metadataJson: "meta");
 
-                    var eventsPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 4);
+                    var streamMessagesPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 4);
 
-                    eventsPage.Messages.Length.ShouldBe(maxCount);
+                    streamMessagesPage.Messages.Length.ShouldBe(maxCount);
                 }
             }
         }
 
         [Fact]
-        public async Task When_stream_has_expired_messages_and_read_forwards_then_should_not_get_expired_events()
+        public async Task When_stream_has_expired_messages_and_read_forwards_then_should_not_get_expired_messages()
         {
             using (var fixture = GetFixture())
             {
@@ -166,15 +166,15 @@
                     await store
                         .SetStreamMetadata(streamId, maxAge: 30, metadataJson: "meta");
 
-                    var eventsPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 8);
+                    var streamMessagesPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 8);
 
-                    eventsPage.Messages.Length.ShouldBe(4);
+                    streamMessagesPage.Messages.Length.ShouldBe(4);
                 }
             }
         }
 
         [Fact]
-        public async Task When_stream_has_expired_messages_and_read_backward_then_should_not_get_expired_events()
+        public async Task When_stream_has_expired_messages_and_read_backward_then_should_not_get_expired_messages()
         {
             using (var fixture = GetFixture())
             {
@@ -191,15 +191,15 @@
                     await store
                         .SetStreamMetadata(streamId, maxAge: 30, metadataJson: "meta");
 
-                    var eventsPage = await store.ReadStreamBackwards(streamId, StreamVersion.End, 8);
+                    var streamMessagesPage = await store.ReadStreamBackwards(streamId, StreamVersion.End, 8);
 
-                    eventsPage.Messages.Length.ShouldBe(4);
+                    streamMessagesPage.Messages.Length.ShouldBe(4);
                 }
             }
         }
 
         [Fact]
-        public async Task When_streams_have_expired_messages_and_read_all_forwards_then_should_not_get_expired_events()
+        public async Task When_streams_have_expired_messages_and_read_all_forwards_then_should_not_get_expired_messages()
         {
             using (var fixture = GetFixture())
             {
@@ -227,17 +227,17 @@
                         .SetStreamMetadata(streamId2, maxAge: 30, metadataJson: "meta");
 
                     // Act
-                    var eventsPage = await store.ReadAllForwards(Checkpoint.Start, 20);
+                    var allMessagesPage = await store.ReadAllForwards(Checkpoint.Start, 20);
 
                     // Assert
-                    eventsPage.StreamMessages.Where(streamEvent => streamEvent.StreamId == streamId1).Count().ShouldBe(2);
-                    eventsPage.StreamMessages.Where(streamEvent => streamEvent.StreamId == streamId2).Count().ShouldBe(4);
+                    allMessagesPage.Messages.Where(message => message.StreamId == streamId1).Count().ShouldBe(2);
+                    allMessagesPage.Messages.Where(message => message.StreamId == streamId2).Count().ShouldBe(4);
                 }
             }
         }
 
         [Fact]
-        public async Task When_streams_have_expired_messages_and_read_all_backwards_then_should_not_get_expired_events()
+        public async Task When_streams_have_expired_messages_and_read_all_backwards_then_should_not_get_expired_messages()
         {
             using (var fixture = GetFixture())
             {
@@ -265,11 +265,11 @@
                         .SetStreamMetadata(streamId2, maxAge: 30, metadataJson: "meta");
 
                     // Act
-                    var eventsPage = await store.ReadAllBackwards(Checkpoint.End, 20);
+                    var allMessagesPage = await store.ReadAllBackwards(Checkpoint.End, 20);
 
                     // Assert
-                    eventsPage.StreamMessages.Where(streamEvent => streamEvent.StreamId == streamId1).Count().ShouldBe(2);
-                    eventsPage.StreamMessages.Where(streamEvent => streamEvent.StreamId == streamId2).Count().ShouldBe(4);
+                    allMessagesPage.Messages.Where(message => message.StreamId == streamId1).Count().ShouldBe(2);
+                    allMessagesPage.Messages.Where(message => message.StreamId == streamId2).Count().ShouldBe(4);
                 }
             }
         }

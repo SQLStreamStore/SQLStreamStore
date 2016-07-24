@@ -64,9 +64,9 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="MsSqlScripts\GetStreamEventBeforeCreatedCount.sql" />
-    <EmbeddedResource Include="MsSqlScripts\GetStreamEventCount.sql" />
-    <EmbeddedResource Include="MsSqlScripts\DeleteStreamEvent.sql" />
+    <EmbeddedResource Include="MsSqlScripts\GetStreamMessageBeforeCreatedCount.sql" />
+    <EmbeddedResource Include="MsSqlScripts\GetStreamMessageCount.sql" />
+    <EmbeddedResource Include="MsSqlScripts\DeleteStreamMessage.sql" />
     <EmbeddedResource Include="MsSqlScripts\SetStreamMetadata.sql" />
     <Content Include="MsSqlScripts\DropTestDBs.sql" />
     <EmbeddedResource Include="MsSqlScripts\ReadHeadCheckpoint.sql" />

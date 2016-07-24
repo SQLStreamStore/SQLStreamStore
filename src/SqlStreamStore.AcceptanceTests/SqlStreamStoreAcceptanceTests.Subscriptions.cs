@@ -19,34 +19,34 @@
                 using(var store = await fixture.GetStreamStore())
                 {
                     string streamId1 = "stream-1";
-                    await AppendEvents(store, streamId1, 10);
+                    await AppendMessages(store, streamId1, 10);
 
                     string streamId2 = "stream-2";
-                    await AppendEvents(store, streamId2, 10);
+                    await AppendMessages(store, streamId2, 10);
 
                     var done = new TaskCompletionSource<StreamMessage>();
-                    var receivedEvents = new List<StreamMessage>();
+                    var receivedMessages = new List<StreamMessage>();
                     using (var subscription = await store.SubscribeToStream(
                         streamId1,
                         StreamVersion.Start,
-                        streamEvent =>
+                        message =>
                         {
-                            receivedEvents.Add(streamEvent);
-                            if (streamEvent.StreamVersion == 11)
+                            receivedMessages.Add(message);
+                            if (message.StreamVersion == 11)
                             {
-                                done.SetResult(streamEvent);
+                                done.SetResult(message);
                             }
                             return Task.CompletedTask;
                         }))
                     {
-                        await AppendEvents(store, streamId1, 2);
+                        await AppendMessages(store, streamId1, 2);
 
-                        var receivedEvent = await done.Task.WithTimeout();
+                        var receivedMessage = await done.Task.WithTimeout();
 
-                        receivedEvents.Count.ShouldBe(12);
+                        receivedMessages.Count.ShouldBe(12);
                         subscription.StreamId.ShouldBe(streamId1);
-                        receivedEvent.StreamId.ShouldBe(streamId1);
-                        receivedEvent.StreamVersion.ShouldBe(11);
+                        receivedMessage.StreamId.ShouldBe(streamId1);
+                        receivedMessage.StreamVersion.ShouldBe(11);
                         subscription.LastVersion.ShouldBeGreaterThan(0);
                     }
                 }
@@ -63,28 +63,28 @@
                     string streamId = "stream-1";
 
                     var done = new TaskCompletionSource<StreamMessage>();
-                    var receivedEvents = new List<StreamMessage>();
+                    var receivedMessages = new List<StreamMessage>();
                     using (var subscription = await store.SubscribeToStream(
                         streamId,
                         StreamVersion.Start,
-                        streamEvent =>
+                        message =>
                         {
-                            receivedEvents.Add(streamEvent);
-                            if (streamEvent.StreamVersion == 1)
+                            receivedMessages.Add(message);
+                            if (message.StreamVersion == 1)
                             {
-                                done.SetResult(streamEvent);
+                                done.SetResult(message);
                             }
                             return Task.CompletedTask;
                         }))
                     {
-                        await AppendEvents(store, streamId, 2);
+                        await AppendMessages(store, streamId, 2);
 
-                        var receivedEvent = await done.Task.WithTimeout();
+                        var receivedMessage = await done.Task.WithTimeout();
 
-                        receivedEvents.Count.ShouldBe(2);
+                        receivedMessages.Count.ShouldBe(2);
                         subscription.StreamId.ShouldBe(streamId);
-                        receivedEvent.StreamId.ShouldBe(streamId);
-                        receivedEvent.StreamVersion.ShouldBe(1);
+                        receivedMessage.StreamId.ShouldBe(streamId);
+                        receivedMessage.StreamVersion.ShouldBe(1);
                         subscription.LastVersion.ShouldBeGreaterThan(0);
                     }
                 }
@@ -99,32 +99,32 @@
                 using (var store = await fixture.GetStreamStore())
                 {
                     string streamId1 = "stream-1";
-                    await AppendEvents(store, streamId1, 3);
+                    await AppendMessages(store, streamId1, 3);
 
                     string streamId2 = "stream-2";
-                    await AppendEvents(store, streamId2, 3);
+                    await AppendMessages(store, streamId2, 3);
 
-                    var receiveEvents = new TaskCompletionSource<StreamMessage>();
-                    List<StreamMessage> receivedEvents = new List<StreamMessage>();
+                    var receiveMessages = new TaskCompletionSource<StreamMessage>();
+                    List<StreamMessage> receivedMessages = new List<StreamMessage>();
                     using(await store.SubscribeToAll(
                         null,
-                        streamEvent =>
+                        message =>
                         {
-                            _testOutputHelper.WriteLine($"Received event {streamEvent.StreamId} " +
-                                                        $"{streamEvent.StreamVersion} {streamEvent.Checkpoint}");
-                            receivedEvents.Add(streamEvent);
-                            if (streamEvent.StreamId == streamId1 && streamEvent.StreamVersion == 3)
+                            _testOutputHelper.WriteLine($"Received message {message.StreamId} " +
+                                                        $"{message.StreamVersion} {message.Checkpoint}");
+                            receivedMessages.Add(message);
+                            if (message.StreamId == streamId1 && message.StreamVersion == 3)
                             {
-                                receiveEvents.SetResult(streamEvent);
+                                receiveMessages.SetResult(message);
                             }
                             return Task.CompletedTask;
                         }))
                     {
-                        await AppendEvents(store, streamId1, 1);
+                        await AppendMessages(store, streamId1, 1);
 
-                        await receiveEvents.Task.WithTimeout();
+                        await receiveMessages.Task.WithTimeout();
 
-                        receivedEvents.Count.ShouldBe(7);
+                        receivedMessages.Count.ShouldBe(7);
                     }
                 }
             }
@@ -141,30 +141,30 @@
 
                     string streamId2 = "stream-2";
 
-                    var receiveEvents = new TaskCompletionSource<StreamMessage>();
-                    List<StreamMessage> receivedEvents = new List<StreamMessage>();
+                    var receiveMessages = new TaskCompletionSource<StreamMessage>();
+                    List<StreamMessage> receivedMessages = new List<StreamMessage>();
                     using (await store.SubscribeToAll(
                         null,
-                        streamEvent =>
+                        message =>
                         {
-                            _testOutputHelper.WriteLine($"Received event {streamEvent.StreamId} {streamEvent.StreamVersion} {streamEvent.Checkpoint}");
-                            receivedEvents.Add(streamEvent);
-                            if (streamEvent.StreamId == streamId1 && streamEvent.StreamVersion == 3)
+                            _testOutputHelper.WriteLine($"Received message {message.StreamId} {message.StreamVersion} {message.Checkpoint}");
+                            receivedMessages.Add(message);
+                            if (message.StreamId == streamId1 && message.StreamVersion == 3)
                             {
-                                receiveEvents.SetResult(streamEvent);
+                                receiveMessages.SetResult(message);
                             }
                             return Task.CompletedTask;
                         }))
                     {
-                        await AppendEvents(store, streamId1, 3);
+                        await AppendMessages(store, streamId1, 3);
 
-                        await AppendEvents(store, streamId2, 3);
+                        await AppendMessages(store, streamId2, 3);
 
-                        await AppendEvents(store, streamId1, 1);
+                        await AppendMessages(store, streamId1, 1);
 
-                        await receiveEvents.Task.WithTimeout();
+                        await receiveMessages.Task.WithTimeout();
 
-                        receivedEvents.Count.ShouldBe(7);
+                        receivedMessages.Count.ShouldBe(7);
                     }
                 }
             }
@@ -178,41 +178,41 @@
                 using (var store = await fixture.GetStreamStore())
                 {
                     string streamId1 = "stream-1";
-                    await AppendEvents(store, streamId1, 10);
+                    await AppendMessages(store, streamId1, 10);
 
                     string streamId2 = "stream-2";
-                    await AppendEvents(store, streamId2, 10);
+                    await AppendMessages(store, streamId2, 10);
 
-                    var receiveEvents = new TaskCompletionSource<StreamMessage>();
+                    var receiveMessage = new TaskCompletionSource<StreamMessage>();
                     int receivedCount = 0;
                     using (var subscription = await store.SubscribeToStream(
                         streamId1,
                         StreamVersion.End,
-                        streamEvent =>
+                        message =>
                         {
-                            _testOutputHelper.WriteLine($"Received event {streamEvent.StreamId} {streamEvent.StreamVersion} {streamEvent.Checkpoint}");
+                            _testOutputHelper.WriteLine($"Received message {message.StreamId} {message.StreamVersion} {message.Checkpoint}");
                             receivedCount++;
-                            if (streamEvent.StreamVersion == 11)
+                            if (message.StreamVersion == 11)
                             {
-                                receiveEvents.SetResult(streamEvent);
+                                receiveMessage.SetResult(message);
                             }
                             return Task.CompletedTask;
                         }))
                     {
-                        await AppendEvents(store, streamId1, 2);
+                        await AppendMessages(store, streamId1, 2);
 
-                        var allEventsPage = await store.ReadAllForwards(0, 30);
-                        foreach(var streamEvent in allEventsPage.StreamMessages)
+                        var allMessagesPage = await store.ReadAllForwards(0, 30);
+                        foreach(var streamMessage in allMessagesPage.Messages)
                         {
-                            _testOutputHelper.WriteLine(streamEvent.ToString());
+                            _testOutputHelper.WriteLine(streamMessage.ToString());
                         }
 
-                        var receivedEvent = await receiveEvents.Task.WithTimeout();
+                        var receivedMessage = await receiveMessage.Task.WithTimeout();
 
                         receivedCount.ShouldBe(2);
                         subscription.StreamId.ShouldBe(streamId1);
-                        receivedEvent.StreamId.ShouldBe(streamId1);
-                        receivedEvent.StreamVersion.ShouldBe(11);
+                        receivedMessage.StreamId.ShouldBe(streamId1);
+                        receivedMessage.StreamVersion.ShouldBe(11);
                         subscription.LastVersion.ShouldBeGreaterThan(0);
                     }
                 }
@@ -227,31 +227,31 @@
                 using (var store = await fixture.GetStreamStore())
                 {
                     string streamId1 = "stream-1";
-                    await AppendEvents(store, streamId1, 10);
+                    await AppendMessages(store, streamId1, 10);
 
                     string streamId2 = "stream-2";
-                    await AppendEvents(store, streamId2, 10);
+                    await AppendMessages(store, streamId2, 10);
 
-                    var receiveEvents = new TaskCompletionSource<StreamMessage>();
-                    List<StreamMessage> receivedEvents = new List<StreamMessage>();
+                    var receiveMessages = new TaskCompletionSource<StreamMessage>();
+                    List<StreamMessage> receivedMessages = new List<StreamMessage>();
                     using (await store.SubscribeToAll(
                         Checkpoint.End,
-                        streamEvent =>
+                        message =>
                         {
-                            _testOutputHelper.WriteLine($"StreamId={streamEvent.StreamId} Version={streamEvent.StreamVersion} ");
-                            receivedEvents.Add(streamEvent);
-                            if (streamEvent.StreamId == streamId1 && streamEvent.StreamVersion == 11)
+                            _testOutputHelper.WriteLine($"StreamId={message.StreamId} Version={message.StreamVersion} ");
+                            receivedMessages.Add(message);
+                            if (message.StreamId == streamId1 && message.StreamVersion == 11)
                             {
-                                receiveEvents.SetResult(streamEvent);
+                                receiveMessages.SetResult(message);
                             }
                             return Task.CompletedTask;
                         }))
                     {
-                        await AppendEvents(store, streamId1, 2);
+                        await AppendMessages(store, streamId1, 2);
 
-                        await receiveEvents.Task.WithTimeout();
+                        await receiveMessages.Task.WithTimeout();
 
-                        receivedEvents.Count.ShouldBe(2);
+                        receivedMessages.Count.ShouldBe(2);
                     }
                 }
             }
@@ -266,27 +266,27 @@
                 using (var store = await fixture.GetStreamStore())
                 {
                     string streamId1 = "stream-1";
-                    var receiveEvents = new TaskCompletionSource<StreamMessage>();
-                    List<StreamMessage> receivedEvents = new List<StreamMessage>();
+                    var receiveMessages = new TaskCompletionSource<StreamMessage>();
+                    List<StreamMessage> receivedMessages = new List<StreamMessage>();
                     using (await store.SubscribeToAll(
                         Checkpoint.End,
-                        streamEvent =>
+                        message =>
                         {
-                            _testOutputHelper.WriteLine($"{stopwatch.ElapsedMilliseconds.ToString()} {streamEvent.StreamVersion}");
-                            receivedEvents.Add(streamEvent);
-                            if (streamEvent.StreamId == streamId1 && streamEvent.StreamVersion == 9)
+                            _testOutputHelper.WriteLine($"{stopwatch.ElapsedMilliseconds.ToString()} {message.StreamVersion}");
+                            receivedMessages.Add(message);
+                            if (message.StreamId == streamId1 && message.StreamVersion == 9)
                             {
-                                receiveEvents.SetResult(streamEvent);
+                                receiveMessages.SetResult(message);
                             }
                             return Task.CompletedTask;
                         }))
                     {
 
-                        await AppendEvents(store, streamId1, 10);
+                        await AppendMessages(store, streamId1, 10);
 
-                        await receiveEvents.Task.WithTimeout();
+                        await receiveMessages.Task.WithTimeout();
 
-                        receivedEvents.Count.ShouldBe(10);
+                        receivedMessages.Count.ShouldBe(10);
                     }
                 }
             }
@@ -300,34 +300,34 @@
                 using (var store = await fixture.GetStreamStore())
                 {
                     string streamId1 = "stream-1";
-                    await AppendEvents(store, streamId1, 10);
+                    await AppendMessages(store, streamId1, 10);
 
                     string streamId2 = "stream-2";
-                    await AppendEvents(store, streamId2, 10);
+                    await AppendMessages(store, streamId2, 10);
 
-                    var receiveEvents = new TaskCompletionSource<StreamMessage>();
+                    var receiveMessages = new TaskCompletionSource<StreamMessage>();
                     int receivedCount = 0;
                     using (var subscription = await store.SubscribeToStream(
                         streamId1,
                         8,
-                        streamEvent =>
+                        message =>
                         {
                             receivedCount++;
-                            if (streamEvent.StreamVersion == 11)
+                            if (message.StreamVersion == 11)
                             {
-                                receiveEvents.SetResult(streamEvent);
+                                receiveMessages.SetResult(message);
                             }
                             return Task.CompletedTask;
                         }))
                     {
-                        await AppendEvents(store, streamId1, 2);
+                        await AppendMessages(store, streamId1, 2);
 
-                        var receivedEvent = await receiveEvents.Task.WithTimeout();
+                        var receivedMessage = await receiveMessages.Task.WithTimeout();
 
                         receivedCount.ShouldBe(4);
                         subscription.StreamId.ShouldBe(streamId1);
-                        receivedEvent.StreamId.ShouldBe(streamId1);
-                        receivedEvent.StreamVersion.ShouldBe(11);
+                        receivedMessage.StreamId.ShouldBe(streamId1);
+                        receivedMessage.StreamVersion.ShouldBe(11);
                         subscription.LastVersion.ShouldBeGreaterThan(0);
                     }
                 }
@@ -342,7 +342,7 @@
                 using (var store = await fixture.GetStreamStore())
                 {
                     string streamId1 = "stream-1";
-                    await AppendEvents(store, streamId1, 2);
+                    await AppendMessages(store, streamId1, 2);
 
                     var subscriptionCount = 500;
 
@@ -353,9 +353,9 @@
                     var subscriptions = await Task.WhenAll(Enumerable.Range(0, subscriptionCount)
                         .Select(async index => await store.SubscribeToAll(
                             null,
-                            streamMessageReceived: streamEvent =>
+                            streamMessageReceived: message =>
                             {
-                                if(streamEvent.StreamVersion == 1)
+                                if(message.StreamVersion == 1)
                                 {
                                     completionSources[index].SetResult(0);
                                 }
@@ -383,7 +383,7 @@
                 using (var store = await fixture.GetStreamStore())
                 {
                     string streamId1 = "stream-1";
-                    await AppendEvents(store, streamId1, 2);
+                    await AppendMessages(store, streamId1, 2);
 
                     var subscriptionCount = 500;
 
@@ -395,9 +395,9 @@
                         .Select(async index => await store.SubscribeToStream(
                             streamId1,
                             0,
-                            streamMessageReceived: streamEvent =>
+                            streamMessageReceived: message =>
                             {
-                                if (streamEvent.StreamVersion == 1)
+                                if (message.StreamVersion == 1)
                                 {
                                     completionSources[index].SetResult(0);
                                 }
@@ -427,42 +427,42 @@
                     // Arrange
                     string streamId1 = "stream-1";
 
-                    var receiveEvents = new TaskCompletionSource<StreamMessage>();
-                    List<StreamMessage> receivedEvents = new List<StreamMessage>();
+                    var receiveMessage = new TaskCompletionSource<StreamMessage>();
+                    List<StreamMessage> receivedMessages = new List<StreamMessage>();
                     using (await store.SubscribeToAll(
                         null,
-                        streamEvent =>
+                        message =>
                         {
-                            _testOutputHelper.WriteLine($"Received event {streamEvent.StreamId} " +
-                                                        $"{streamEvent.StreamVersion} {streamEvent.Checkpoint}");
-                            receivedEvents.Add(streamEvent);
-                            if (streamEvent.StreamId == Deleted.DeletedStreamId
-                                && streamEvent.Type == Deleted.StreamDeletedEventType)
+                            _testOutputHelper.WriteLine($"Received message {message.StreamId} " +
+                                                        $"{message.StreamVersion} {message.Checkpoint}");
+                            receivedMessages.Add(message);
+                            if (message.StreamId == Deleted.DeletedStreamId
+                                && message.Type == Deleted.StreamDeletedMessageType)
                             {
-                                receiveEvents.SetResult(streamEvent);
+                                receiveMessage.SetResult(message);
                             }
                             return Task.CompletedTask;
                         }))
                     {
-                        await AppendEvents(store, streamId1, 1);
+                        await AppendMessages(store, streamId1, 1);
 
                         // Act
                         await store.DeleteStream(streamId1);
-                        await receiveEvents.Task.WithTimeout();
+                        await receiveMessage.Task.WithTimeout();
 
                         // Assert
-                        receivedEvents.Last().Checkpoint.ShouldBe(1);
+                        receivedMessages.Last().Checkpoint.ShouldBe(1);
                     }
                 }
             }
         }
 
-        private static async Task AppendEvents(IStreamStore streamStore, string streamId, int numberOfEvents)
+        private static async Task AppendMessages(IStreamStore streamStore, string streamId, int numberOfEvents)
         {
             for(int i = 0; i < numberOfEvents; i++)
             {
-                var newStreamEvent = new NewStreamMessage(Guid.NewGuid(), "MyEvent", "{}");
-                await streamStore.AppendToStream(streamId, ExpectedVersion.Any, newStreamEvent);
+                var newmessage = new NewStreamMessage(Guid.NewGuid(), "MyEvent", "{}");
+                await streamStore.AppendToStream(streamId, ExpectedVersion.Any, newmessage);
             }
         }
     }

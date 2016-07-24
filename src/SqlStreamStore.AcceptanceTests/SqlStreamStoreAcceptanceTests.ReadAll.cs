@@ -18,7 +18,7 @@
                 {
                     await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
                     await store.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
-                    var expectedEvents = new[]
+                    var expectedMessages = new[]
                     {
                         ExpectedStreamMessage("stream-1", 1, 0, fixture.GetUtcNow().UtcDateTime),
                         ExpectedStreamMessage("stream-1", 2, 1, fixture.GetUtcNow().UtcDateTime),
@@ -28,31 +28,31 @@
                         ExpectedStreamMessage("stream-2", 6, 2, fixture.GetUtcNow().UtcDateTime)
                     };
 
-                    var allEventsPage = await store.ReadAllForwards(Checkpoint.Start, 4);
-                    List<StreamMessage> streamEvents = new List<StreamMessage>(allEventsPage.StreamMessages);
+                    var page = await store.ReadAllForwards(Checkpoint.Start, 4);
+                    List<StreamMessage> messages = new List<StreamMessage>(page.Messages);
                     int count = 0;
-                    while(!allEventsPage.IsEnd && count <20) //should not take more than 20 iterations.
+                    while(!page.IsEnd && count <20) //should not take more than 20 iterations.
                     {
-                        allEventsPage = await store.ReadAllForwards(allEventsPage.NextCheckpoint, 10);
-                        streamEvents.AddRange(allEventsPage.StreamMessages);
+                        page = await store.ReadAllForwards(page.NextCheckpoint, 10);
+                        messages.AddRange(page.Messages);
                         count++;
                     }
 
                     count.ShouldBeLessThan(20);
-                    allEventsPage.Direction.ShouldBe(ReadDirection.Forward);
-                    allEventsPage.IsEnd.ShouldBeTrue();
+                    page.Direction.ShouldBe(ReadDirection.Forward);
+                    page.IsEnd.ShouldBeTrue();
 
-                    for (int i = 0; i < streamEvents.Count; i++)
+                    for (int i = 0; i < messages.Count; i++)
                     {
-                        var streamEvent = streamEvents[i];
-                        var expectedEvent = expectedEvents[i];
+                        var message = messages[i];
+                        var expectedMessage = expectedMessages[i];
 
-                        streamEvent.EventId.ShouldBe(expectedEvent.EventId);
-                        streamEvent.JsonData.ShouldBe(expectedEvent.JsonData);
-                        streamEvent.JsonMetadata.ShouldBe(expectedEvent.JsonMetadata);
-                        streamEvent.StreamId.ShouldBe(expectedEvent.StreamId);
-                        streamEvent.StreamVersion.ShouldBe(expectedEvent.StreamVersion);
-                        streamEvent.Type.ShouldBe(expectedEvent.Type);
+                        message.MessageId.ShouldBe(expectedMessage.MessageId);
+                        message.JsonData.ShouldBe(expectedMessage.JsonData);
+                        message.JsonMetadata.ShouldBe(expectedMessage.JsonMetadata);
+                        message.StreamId.ShouldBe(expectedMessage.StreamId);
+                        message.StreamVersion.ShouldBe(expectedMessage.StreamVersion);
+                        message.Type.ShouldBe(expectedMessage.Type);
 
                         // We don't care about StreamMessage.Checkpoint and StreamMessage.Checkpoint
                         // as they are non-deterministic
@@ -70,7 +70,7 @@
                 {
                     await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
                     await store.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
-                    var expectedEvents = new[]
+                    var expectedMessages = new[]
                     {
                         ExpectedStreamMessage("stream-1", 1, 0, fixture.GetUtcNow().UtcDateTime),
                         ExpectedStreamMessage("stream-1", 2, 1, fixture.GetUtcNow().UtcDateTime),
@@ -80,33 +80,33 @@
                         ExpectedStreamMessage("stream-2", 6, 2, fixture.GetUtcNow().UtcDateTime)
                     }.Reverse().ToArray();
 
-                    var allEventsPage = await store.ReadAllBackwards(Checkpoint.End, 4);
-                    List<StreamMessage> streamEvents = new List<StreamMessage>(allEventsPage.StreamMessages);
+                    var page = await store.ReadAllBackwards(Checkpoint.End, 4);
+                    List<StreamMessage> messages = new List<StreamMessage>(page.Messages);
                     int count = 0;
-                    while (!allEventsPage.IsEnd && count < 20) //should not take more than 20 iterations.
+                    while (!page.IsEnd && count < 20) //should not take more than 20 iterations.
                     {
-                        allEventsPage = await store.ReadAllBackwards(allEventsPage.NextCheckpoint, 10);
-                        streamEvents.AddRange(allEventsPage.StreamMessages);
+                        page = await store.ReadAllBackwards(page.NextCheckpoint, 10);
+                        messages.AddRange(page.Messages);
                         count++;
                     }
 
                     count.ShouldBeLessThan(20);
-                    allEventsPage.Direction.ShouldBe(ReadDirection.Backward);
-                    allEventsPage.IsEnd.ShouldBeTrue();
+                    page.Direction.ShouldBe(ReadDirection.Backward);
+                    page.IsEnd.ShouldBeTrue();
 
-                    streamEvents.Count.ShouldBe(expectedEvents.Length);
+                    messages.Count.ShouldBe(expectedMessages.Length);
 
-                    for(int i = 0; i < streamEvents.Count; i++)
+                    for(int i = 0; i < messages.Count; i++)
                     {
-                        var streamEvent = streamEvents[i];
-                        var expectedEvent = expectedEvents[i];
+                        var message = messages[i];
+                        var expectedMessage = expectedMessages[i];
 
-                        streamEvent.EventId.ShouldBe(expectedEvent.EventId);
-                        streamEvent.JsonData.ShouldBe(expectedEvent.JsonData);
-                        streamEvent.JsonMetadata.ShouldBe(expectedEvent.JsonMetadata);
-                        streamEvent.StreamId.ShouldBe(expectedEvent.StreamId);
-                        streamEvent.StreamVersion.ShouldBe(expectedEvent.StreamVersion);
-                        streamEvent.Type.ShouldBe(expectedEvent.Type);
+                        message.MessageId.ShouldBe(expectedMessage.MessageId);
+                        message.JsonData.ShouldBe(expectedMessage.JsonData);
+                        message.JsonMetadata.ShouldBe(expectedMessage.JsonMetadata);
+                        message.StreamId.ShouldBe(expectedMessage.StreamId);
+                        message.StreamVersion.ShouldBe(expectedMessage.StreamVersion);
+                        message.Type.ShouldBe(expectedMessage.Type);
 
                         // We don't care about StreamMessage.Checkpoint and StreamMessage.Checkpoint
                         // as they are non-deterministic
@@ -123,7 +123,7 @@
         [InlineData(3, 2, 1, 1, 2, 3)]
         [InlineData(3, 3, 1, 0, 3, 3)]
         public async Task When_read_all_forwards(
-            int numberOfSeedEvents,
+            int numberOfSeedMessages,
             int fromCheckpoint,
             int maxCount,
             int expectedCount,
@@ -137,13 +137,13 @@
                     await store.AppendToStream(
                         "stream-1",
                         ExpectedVersion.NoStream,
-                        CreateNewStreamEventSequence(1, numberOfSeedEvents));
+                        CreateNewStreamMessageSequence(1, numberOfSeedMessages));
 
-                    var allEventsPage = await store.ReadAllForwards(fromCheckpoint, maxCount);
+                    var page = await store.ReadAllForwards(fromCheckpoint, maxCount);
 
-                    allEventsPage.StreamMessages.Length.ShouldBe(expectedCount);
-                    allEventsPage.FromCheckpoint.ShouldBe(expectedFromCheckpoint);
-                    allEventsPage.NextCheckpoint.ShouldBe(expectedNextCheckPoint);
+                    page.Messages.Length.ShouldBe(expectedCount);
+                    page.FromCheckpoint.ShouldBe(expectedFromCheckpoint);
+                    page.NextCheckpoint.ShouldBe(expectedNextCheckPoint);
                 }
             }
         }
@@ -157,7 +157,7 @@
         [InlineData(3, -1, 4, 3, 2, 0)] // Read entire store
         [InlineData(0, -1, 1, 0, 0, 0)]
         public async Task When_read_all_backwards(
-            int numberOfSeedEvents,
+            int numberOfSeedMessages,
             int fromCheckpoint,
             int maxCount,
             int expectedCount,
@@ -168,19 +168,19 @@
             {
                 using (var store = await fixture.GetStreamStore())
                 {
-                    if(numberOfSeedEvents > 0)
+                    if(numberOfSeedMessages > 0)
                     {
                         await store.AppendToStream(
                             "stream-1",
                             ExpectedVersion.NoStream,
-                            CreateNewStreamEventSequence(1, numberOfSeedEvents));
+                            CreateNewStreamMessageSequence(1, numberOfSeedMessages));
                     }
 
-                    var allEventsPage = await store.ReadAllBackwards(fromCheckpoint, maxCount);
+                    var allMessagesPage = await store.ReadAllBackwards(fromCheckpoint, maxCount);
 
-                    allEventsPage.StreamMessages.Length.ShouldBe(expectedCount);
-                    allEventsPage.FromCheckpoint.ShouldBe(expectedFromCheckpoint);
-                    allEventsPage.NextCheckpoint.ShouldBe(expectedNextCheckPoint);
+                    allMessagesPage.Messages.Length.ShouldBe(expectedCount);
+                    allMessagesPage.FromCheckpoint.ShouldBe(expectedFromCheckpoint);
+                    allMessagesPage.NextCheckpoint.ShouldBe(expectedNextCheckPoint);
                 }
             }
         }

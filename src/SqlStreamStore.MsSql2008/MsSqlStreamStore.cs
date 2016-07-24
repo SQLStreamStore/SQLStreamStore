@@ -120,7 +120,7 @@
             }
         }
 
-        public override async Task<int> GetStreamEventCount(
+        public override async Task<int> GetmessageCount(
             string streamId,
             CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -130,7 +130,7 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using(var command = new SqlCommand(_scripts.GetStreamEventCount, connection))
+                using(var command = new SqlCommand(_scripts.GetStreamMessageCount, connection))
                 {
                     var streamIdInfo = new StreamIdInfo(streamId);
                     command.Parameters.AddWithValue("streamId", streamIdInfo.SqlStreamId.Id);
@@ -144,7 +144,7 @@
             }
         }
 
-        public async Task<int> GetStreamEventCount(
+        public async Task<int> GetmessageCount(
             string streamId,
             DateTime createdBefore,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -155,7 +155,7 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using (var command = new SqlCommand(_scripts.GetStreamEventBeforeCreatedCount, connection))
+                using (var command = new SqlCommand(_scripts.GetStreamMessageBeforeCreatedCount, connection))
                 {
                     var streamIdInfo = new StreamIdInfo(streamId);
                     command.Parameters.AddWithValue("streamId", streamIdInfo.SqlStreamId.Id);

@@ -5,12 +5,12 @@
     using SqlStreamStore.Streams;
     using Xunit;
 
-    public class StreamEventTests
+    public class messageTests
     {
         [Fact]
         public void Can_deserialize()
         {
-            var streamEvent = new StreamMessage(
+            var message = new StreamMessage(
                 "stream",
                 Guid.NewGuid(),
                 1,
@@ -20,8 +20,8 @@
                 "\"data\"",
                 "\"meta\"");
 
-            streamEvent.JsonDataAs<string>().ShouldBe("data");
-            streamEvent.JsonMetadataAs<string>().ShouldBe("meta");
+            message.JsonDataAs<string>().ShouldBe("data");
+            message.JsonMetadataAs<string>().ShouldBe("meta");
         }
     }
 }

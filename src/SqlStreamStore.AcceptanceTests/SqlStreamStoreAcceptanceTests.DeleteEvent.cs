@@ -18,16 +18,16 @@
                 using(var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream";
-                    var newStreamEvents = CreateNewStreamMessages(1, 2, 3);
-                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamEvents);
-                    var eventIdToDelete = newStreamEvents[1].EventId;
+                    var newStreamMessages = CreateNewStreamMessages(1, 2, 3);
+                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamMessages);
+                    var idToDelete = newStreamMessages[1].MessageId;
 
-                    await store.DeleteMessage(streamId, eventIdToDelete);
+                    await store.DeleteMessage(streamId, idToDelete);
 
-                    var streamEventsPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 3);
+                    var streamMessagesPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 3);
 
-                    streamEventsPage.Messages.Length.ShouldBe(2);
-                    streamEventsPage.Messages.Any(e => e.EventId == eventIdToDelete).ShouldBeFalse();
+                    streamMessagesPage.Messages.Length.ShouldBe(2);
+                    streamMessagesPage.Messages.Any(e => e.MessageId == idToDelete).ShouldBeFalse();
                 }
             }
         }
@@ -40,18 +40,18 @@
                 using (var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream";
-                    var newStreamEvents = CreateNewStreamMessages(1, 2, 3);
-                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamEvents);
-                    var eventIdToDelete = newStreamEvents[1].EventId;
+                    var newStreamMessages = CreateNewStreamMessages(1, 2, 3);
+                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamMessages);
+                    var messageIdToDelete = newStreamMessages[1].MessageId;
 
-                    await store.DeleteMessage(streamId, eventIdToDelete);
+                    await store.DeleteMessage(streamId, messageIdToDelete);
 
-                    var streamEventsPage = await store.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
-                    var streamEvent = streamEventsPage.Messages.Single();
-                    var eventDeleted = streamEvent.JsonDataAs<EventDeleted>();
-                    streamEvent.Type.ShouldBe(EventDeletedEventType);
-                    eventDeleted.StreamId.ShouldBe(streamId);
-                    eventDeleted.EventId.ShouldBe(eventIdToDelete);
+                    var page = await store.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
+                    var message = page.Messages.Single();
+                    var messageDeleted = message.JsonDataAs<MessageDeleted>();
+                    message.Type.ShouldBe(MessageDeletedMessageType);
+                    messageDeleted.StreamId.ShouldBe(streamId);
+                    messageDeleted.MessageId.ShouldBe(messageIdToDelete);
                 }
             }
         }
@@ -64,14 +64,14 @@
                 using (var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream";
-                    var newStreamEvents = CreateNewStreamMessages(1, 2, 3);
-                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamEvents);
+                    var newStreamMessages = CreateNewStreamMessages(1, 2, 3);
+                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamMessages);
                     var initialHead = await store.ReadHeadCheckpoint();
 
                     await store.DeleteMessage(streamId, Guid.NewGuid());
 
-                    var streamEventsPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 3);
-                    streamEventsPage.Messages.Length.ShouldBe(3);
+                    var page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 3);
+                    page.Messages.Length.ShouldBe(3);
                     var subsequentHead = await store.ReadHeadCheckpoint();
                     subsequentHead.ShouldBe(initialHead);
                 }
@@ -86,16 +86,16 @@
                 using (var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream";
-                    var newStreamEvents = CreateNewStreamMessages(1, 2, 3);
-                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamEvents);
-                    await store.DeleteMessage(streamId, newStreamEvents.Last().EventId);
+                    var messages = CreateNewStreamMessages(1, 2, 3);
+                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, messages);
+                    await store.DeleteMessage(streamId, messages.Last().MessageId);
 
-                    newStreamEvents = CreateNewStreamMessages(4);
-                    await store.AppendToStream(streamId, 2, newStreamEvents);
+                    messages = CreateNewStreamMessages(4);
+                    await store.AppendToStream(streamId, 2, messages);
 
-                    var streamEventsPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 3);
-                    streamEventsPage.Messages.Length.ShouldBe(3);
-                    streamEventsPage.LastStreamVersion.ShouldBe(3);
+                    var page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 3);
+                    page.Messages.Length.ShouldBe(3);
+                    page.LastStreamVersion.ShouldBe(3);
                 }
             }
         }

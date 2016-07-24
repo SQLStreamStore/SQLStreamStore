@@ -58,7 +58,7 @@
                         ExpectedVersion.NoStream,
                         CreateNewStreamMessages(1, 2, 3, 4, 5));
 
-                    var streamCount = await store.GetStreamEventCount(streamId);
+                    var streamCount = await store.GetmessageCount(streamId);
 
                     streamCount.ShouldBe(5);
                 }
@@ -74,7 +74,7 @@
                 {
                     var streamId = "stream-doesnotexist";
 
-                    var streamCount = await store.GetStreamEventCount(streamId);
+                    var streamCount = await store.GetmessageCount(streamId);
 
                     streamCount.ShouldBe(0);
                 }
@@ -103,7 +103,7 @@
                         ExpectedVersion.Any,
                         CreateNewStreamMessages(4, 5, 6));
 
-                    var streamCount = await store.GetStreamEventCount(streamId, new DateTime(2016, 1, 1, 0, 1, 0));
+                    var streamCount = await store.GetmessageCount(streamId, new DateTime(2016, 1, 1, 0, 1, 0));
 
                     streamCount.ShouldBe(3); // The first 3
                 }

@@ -16,4 +16,4 @@ Key design considerations:
 
 **TODO** See wiki for feature implementation status.
 
-[CI Feed](https://www.myget.org/F/dh/api/v2) - note very unstable.
+[CI Feed](https://www.myget.org/F/dh/api/v2)

@@ -5,7 +5,7 @@
     public struct StreamMessage
     {
         public readonly long Position;
-        public readonly DateTime Created;
+        public readonly DateTime CreatedUtc;
         public readonly Guid MessageId;
         public readonly string JsonData;
         public readonly string JsonMetadata;
@@ -18,7 +18,7 @@
             Guid messageId,
             int streamVersion,
             long position,
-            DateTime created,
+            DateTime createdUtc,
             string type,
             string jsonData,
             string jsonMetadata)
@@ -27,7 +27,7 @@
             StreamId = streamId;
             StreamVersion = streamVersion;
             Position = position;
-            Created = created;
+            CreatedUtc = createdUtc;
             Type = type;
             JsonData = jsonData;
             JsonMetadata = jsonMetadata;

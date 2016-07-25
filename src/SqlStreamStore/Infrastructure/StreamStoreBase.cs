@@ -30,6 +30,17 @@ namespace SqlStreamStore.Infrastructure
             return AppendToStreamInternal(streamId, expectedVersion, messages, cancellationToken);
         }
 
+        /// <summary>
+        /// Hard deletes a stream and all of its messages. Deleting a stream will result in a '$stream-deleted'
+        /// message being appended to the '$deleted' stream. See <see cref="Deleted.StreamDeleted" /> for the
+        /// message structure.
+        /// </summary>
+        /// <param name="streamId">The stream Id to delete.</param>
+        /// <param name="expectedVersion">The stream expected version. See <see cref="ExpectedVersion" /> for const values.</param>
+        /// <param name="cancellationToken">The cancellation instruction.</param>
+        /// <returns>
+        /// A task representing the asynchronous operation.
+        /// </returns>
         public Task DeleteStream(
             string streamId,
             int expectedVersion = ExpectedVersion.Any,
@@ -50,6 +61,20 @@ namespace SqlStreamStore.Infrastructure
             return DeleteEventInternal(streamId, messageId, cancellationToken);
         }
 
+        /// <summary>
+        /// Sets the metadata for a stream.
+        /// </summary>
+        /// <param name="streamId">The stream Id to whose metadata is to be set.</param>
+        /// <param name="expectedStreamMetadataVersion">The expected version number of the metadata stream to apply the metadata. Used for concurrency
+        /// handling. Default value is <see cref="ExpectedVersion.Any" />. If specified and does not match
+        /// current version then <see cref="WrongExpectedVersionException" /> will be thrown.</param>
+        /// <param name="maxAge">The max age of the messages in the stream in seconds.</param>
+        /// <param name="maxCount">The max count of messages in the stream.</param>
+        /// <param name="metadataJson">Custom meta data to associate with the stream.</param>
+        /// <param name="cancellationToken">The cancellation instruction.</param>
+        /// <returns>
+        /// A task representing the asynchronous operation.
+        /// </returns>
         public Task SetStreamMetadata(
             string streamId,
             int expectedStreamMetadataVersion,
@@ -74,7 +99,7 @@ namespace SqlStreamStore.Infrastructure
             string streamId,
             CancellationToken cancellationToken = default(CancellationToken));
 
-        protected override void PurgeExpiredEvent(StreamMessage streamMessage)
+        protected override void PurgeExpiredMessage(StreamMessage streamMessage)
         {
             _taskQueue.Enqueue(ct => DeleteEventInternal(streamMessage.StreamId, streamMessage.MessageId, ct));
         }

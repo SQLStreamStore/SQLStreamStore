@@ -33,8 +33,9 @@
     <DocumentationFile>bin\Release\SqlStreamStore.MsSql2008.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EnsureThat">
-      <HintPath>..\packages\Ensure.That.2.0.0\lib\portable-net4+sl5+netcore45+wpa81+wp8+MonoAndroid1+MonoTouch1\EnsureThat.dll\EnsureThat.dll</HintPath>
+    <Reference Include="EnsureThat, Version=4.0.0.26, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Ensure.That.4.0.0\lib\net45\EnsureThat.dll</HintPath>
+      <Private>True</Private>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -58,10 +59,10 @@
     <Compile Include="StreamIdInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="packages.config" />
     <None Include="StreamStore.MsSql.nuspec" />
     <Compile Include="MsSqlStreamStore.ReadStream.cs" />
     <Compile Include="MsSqlStreamStore.Delete.cs" />
-    <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="MsSqlScripts\GetStreamMessageBeforeCreatedCount.sql" />

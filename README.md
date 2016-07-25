@@ -14,6 +14,4 @@ Key design considerations:
  - Leverage RDBMS specific notifications, if available, for low latency catch-up subscriptions
  - No support for `System.Transaction` enforcing the concept of the stream as the consistency and transaction boundary.
 
-**TODO** See wiki for feature implementation status.
-
 [CI Feed](https://www.myget.org/F/dh/api/v2)

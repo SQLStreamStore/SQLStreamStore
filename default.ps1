@@ -1,5 +1,5 @@
 properties {
-    $projectName            = "Cedar.EventStore"
+    $projectName            = "SqlStreamStore"
     $buildNumber            = 0
     $rootDir                = Resolve-Path .\
     $buildOutputDir         = "$rootDir\build"
@@ -43,39 +43,24 @@ task RunTests -depends Compile {
     $testReportDir = "$reportsDir\tests\"
     EnsureDirectory $testReportDir
 
-    Run-Tests "Cedar.EventStore.Tests"
-#   Run-Tests "Cedar.EventStore.GetEventStore.Tests"
-    Run-Tests "Cedar.EventStore.MsSql2008.Tests"
-#   Run-Tests "Cedar.EventStore.Sqlite.Tests"
-#   Run-Tests "Cedar.EventStore.Postgres.Tests"
+    Run-Tests "SqlStreamStore.Tests"
+    Run-Tests "SqlStreamStore.MsSql2008.Tests"
 }
 
 task ILMerge -depends Compile {
     New-Item $mergedDir -Type Directory -ErrorAction SilentlyContinue
 
-    $mainDllName = "Cedar.EventStore"
+    $mainDllName = "SqlStreamStore"
     $dllDir = "$srcDir\$mainDllName\bin\Release"
     $inputDlls = "$dllDir\$mainDllName.dll"
     @(  "EnsureThat" ) |% { $inputDlls = "$inputDlls $dllDir\$_.dll" }
     Invoke-Expression "$ilmergePath /targetplatform:v4 /internalize /allowDup /target:library /log /out:$mergedDir\$mainDllName.dll $inputDlls"
 
-#   $mainDllName = "Cedar.EventStore.GetEventStore"
-#   $dllDir = "$srcDir\$mainDllName\bin\Release"
-#   $inputDlls = "$dllDir\$mainDllName.dll"
-#   @(  "EnsureThat" ) |% { $inputDlls = "$inputDlls $dllDir\$_.dll" }
-#   Invoke-Expression "$ilmergePath /targetplatform:v4 /internalize /allowDup /target:library /log /out:$mergedDir\$mainDllName.dll $inputDlls"
-
-    $mainDllName = "Cedar.EventStore.MsSql2008"
+    $mainDllName = "SqlStreamStore.MsSql2008"
     $dllDir = "$srcDir\$mainDllName\bin\Release"
     $inputDlls = "$dllDir\$mainDllName.dll"
     @(  "EnsureThat" ) |% { $inputDlls = "$inputDlls $dllDir\$_.dll" }
     Invoke-Expression "$ilmergePath /targetplatform:v4 /internalize /allowDup /target:library /log /out:$mergedDir\$mainDllName.dll $inputDlls"
-
-#    $mainDllName = "Cedar.EventStore.Postgres"
-#    $dllDir = "$srcDir\$mainDllName\bin\Release"
-#    $inputDlls = "$dllDir\$mainDllName.dll"
-#    @(  "EnsureThat", "Npgsql" ) |% { $inputDlls = "$inputDlls $dllDir\$_.dll" }
-#    Invoke-Expression "$ilmergePath /targetplatform:v4 /internalize /allowDup /target:library /log /out:$mergedDir\$mainDllName.dll $inputDlls"
 }
 
 task CreateNuGetPackages -depends ILMerge {
@@ -116,7 +101,7 @@ function Get-Version {
 	param (
 		[string]$assemblyInfoFilePath
 	)
-	
+
 	Write-Host "path $assemblyInfoFilePath"
 	$pattern = '(?<=^\[assembly\: AssemblyVersion\(\")(?<versionString>\d+\.\d+\.\d+\.\d+)(?=\"\))'
 	$assmblyInfoContent = Get-Content $assemblyInfoFilePath
@@ -143,9 +128,9 @@ function Run-Tests {
     param (
 		[string]$projectName
 	)
-	
+
     exec { .$xunitRunner "$srcDir\$projectName\bin\Release\$projectName.dll" }
-		
+
     # Pretty-print the xml
     if(Test-Path "$testReportDir\$projectName.xml"){
         #capture the Assembly to prevent it being printed to console.

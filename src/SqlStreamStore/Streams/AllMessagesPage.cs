@@ -1,5 +1,8 @@
 ﻿namespace SqlStreamStore.Streams
 {
+    /// <summary>
+    ///     Represents the result of a read of all streams.
+    /// </summary>
     public sealed class AllMessagesPage
     {
         public readonly long FromPosition;

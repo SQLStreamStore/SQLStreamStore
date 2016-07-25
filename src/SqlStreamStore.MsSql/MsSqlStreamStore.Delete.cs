@@ -49,7 +49,7 @@ namespace SqlStreamStore
 
                     if(deleted)
                     {
-                        var eventDeletedEvent = CreateEventDeletedEvent(sqlStreamId.IdOriginal, eventId);
+                        var eventDeletedEvent = CreateMessageDeletedMessage(sqlStreamId.IdOriginal, eventId);
                         await AppendToStreamExpectedVersionAny(
                             connection,
                             transaction,
@@ -90,13 +90,13 @@ namespace SqlStreamStore
                             if(ex.Message.StartsWith("WrongExpectedVersion"))
                             {
                                 throw new WrongExpectedVersionException(
-                                    Messages.DeleteStreamFailedWrongExpectedVersion(
+                                    ErrorMessages.DeleteStreamFailedWrongExpectedVersion(
                                         streamIdInfo.SqlStreamId.IdOriginal, expectedVersion), ex);
                             }
                             throw;
                         }
 
-                        var streamDeletedEvent = CreateStreamDeletedEvent(streamIdInfo.SqlStreamId.IdOriginal);
+                        var streamDeletedEvent = CreateStreamDeletedMessage(streamIdInfo.SqlStreamId.IdOriginal);
                         await AppendToStreamExpectedVersionAny(
                             connection,
                             transaction,
@@ -152,7 +152,7 @@ namespace SqlStreamStore
 
             if(aStreamIsDeleted)
             {
-                var streamDeletedEvent = CreateStreamDeletedEvent(sqlStreamId.IdOriginal);
+                var streamDeletedEvent = CreateStreamDeletedMessage(sqlStreamId.IdOriginal);
                 await AppendToStreamExpectedVersionAny(
                     connection,
                     transaction,

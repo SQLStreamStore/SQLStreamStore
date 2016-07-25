@@ -1,5 +1,8 @@
 ﻿namespace SqlStreamStore.Streams
 {
+    /// <summary>
+    ///     Represents the result of a read from a stream.
+    /// </summary>
     public sealed class StreamMessagesPage
     {
         public readonly StreamMessage[] Messages;

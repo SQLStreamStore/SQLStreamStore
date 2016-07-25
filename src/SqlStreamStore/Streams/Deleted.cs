@@ -11,27 +11,33 @@
 
         public const string MessageDeletedMessageType = "$message-deleted";
 
-        public static NewStreamMessage CreateStreamDeletedEvent(string streamId)
+        public static NewStreamMessage CreateStreamDeletedMessage(string streamId)
         {
             var streamDeleted = new StreamDeleted { StreamId = streamId };
-            var eventJson = SimpleJson.SerializeObject(streamDeleted);
+            var json = SimpleJson.SerializeObject(streamDeleted);
 
-            return new NewStreamMessage(Guid.NewGuid(), StreamDeletedMessageType, eventJson);
+            return new NewStreamMessage(Guid.NewGuid(), StreamDeletedMessageType, json);
         }
 
-        public static NewStreamMessage CreateEventDeletedEvent(string streamId, Guid messageId)
+        public static NewStreamMessage CreateMessageDeletedMessage(string streamId, Guid messageId)
         {
-            var eventDeleted = new MessageDeleted { StreamId = streamId, MessageId = messageId };
-            var eventJson = SimpleJson.SerializeObject(eventDeleted);
+            var messageDeleted = new MessageDeleted { StreamId = streamId, MessageId = messageId };
+            var json = SimpleJson.SerializeObject(messageDeleted);
 
-            return new NewStreamMessage(Guid.NewGuid(), MessageDeletedMessageType, eventJson);
+            return new NewStreamMessage(Guid.NewGuid(), MessageDeletedMessageType, json);
         }
 
+        /// <summary>
+        ///     The message appended to $deleted when a stream is deleted.
+        /// </summary>
         public class StreamDeleted
         {
             public string StreamId;
         }
 
+        /// <summary>
+        ///     The message appended to $deleted with an individual message is deleted.
+        /// </summary>
         public class MessageDeleted
         {
             public string StreamId;

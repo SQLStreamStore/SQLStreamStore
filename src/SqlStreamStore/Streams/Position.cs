@@ -1,9 +1,18 @@
 ﻿namespace SqlStreamStore.Streams
 {
+    /// <summary>
+    ///     Constants for store position
+    /// </summary>
     public static class Position
     {
-        public static long Start = 0;
+        /// <summary>
+        ///     The start of the store.
+        /// </summary>
+        public const long Start = 0;
 
-        public static long End = -1;
+        /// <summary>
+        ///     The end of the store.
+        /// </summary>
+        public const long End = -1;
     }
 }

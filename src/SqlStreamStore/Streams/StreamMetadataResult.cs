@@ -2,7 +2,13 @@ namespace SqlStreamStore.Streams
 {
     public class StreamMetadataResult
     {
+        /// <summary>
+        ///     The stream ID.
+        /// </summary>
         public readonly string StreamId;
+        /// <summary>
+        ///     The verson of the metadata stream. Can be used for concurrency control 
+        /// </summary>
         public readonly int MetadataStreamVersion;
         public readonly int? MaxAge;
         public readonly int? MaxCount;

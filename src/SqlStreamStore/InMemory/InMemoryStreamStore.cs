@@ -13,6 +13,9 @@ namespace SqlStreamStore
     using StreamStoreStore.Json;
     using static Streams.Deleted;
 
+    /// <summary>
+    ///     Represents an in-memory implementation of a stream store. Use for testing or high/speed + volatile scenarios.
+    /// </summary>
     public sealed class InMemoryStreamStore : StreamStoreBase
     {
         private readonly InMemoryAllStream _allStream = new InMemoryAllStream();
@@ -128,7 +131,7 @@ namespace SqlStreamStore
             if (!_streams.TryGetValue(streamId, out inMemoryStream))
             {
                 throw new WrongExpectedVersionException(
-                    Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
+                    ErrorMessages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
             }
             inMemoryStream.AppendToStream(expectedVersion, messages);
         }
@@ -149,7 +152,7 @@ namespace SqlStreamStore
 
                 if (deleted)
                 {
-                    var eventDeletedEvent = CreateEventDeletedEvent(streamId, eventId);
+                    var eventDeletedEvent = CreateMessageDeletedMessage(streamId, eventId);
                     AppendToStreamInternal(DeletedStreamId, ExpectedVersion.Any, new[] { eventDeletedEvent });
                 }
 
@@ -239,7 +242,7 @@ namespace SqlStreamStore
                 if (expectedVersion >= 0)
                 {
                     throw new WrongExpectedVersionException(
-                        Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
+                        ErrorMessages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
                 }
                 return;
             }
@@ -247,13 +250,13 @@ namespace SqlStreamStore
                 _streams[streamId].Events.Last().StreamVersion != expectedVersion)
             {
                 throw new WrongExpectedVersionException(
-                        Messages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
+                        ErrorMessages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
             }
             InMemoryStream inMemoryStream = _streams[streamId];
             _streams.Remove(streamId);
             inMemoryStream.DeleteAllEvents(ExpectedVersion.Any);
 
-            var streamDeletedEvent = CreateStreamDeletedEvent(streamId);
+            var streamDeletedEvent = CreateStreamDeletedMessage(streamId);
             AppendToStreamInternal(DeletedStreamId, ExpectedVersion.Any, new[] { streamDeletedEvent });
         }
 

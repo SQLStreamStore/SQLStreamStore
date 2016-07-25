@@ -22,7 +22,7 @@
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(2, 3, 4)));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
-                        Messages.AppendFailedWrongExpectedVersion(streamId, ExpectedVersion.NoStream));
+                        ErrorMessages.AppendFailedWrongExpectedVersion(streamId, ExpectedVersion.NoStream));
                 }
             }
         }
@@ -63,7 +63,7 @@
                         store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3)));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
-                        Messages.AppendFailedWrongExpectedVersion(streamId, ExpectedVersion.NoStream));
+                        ErrorMessages.AppendFailedWrongExpectedVersion(streamId, ExpectedVersion.NoStream));
                 }
             }
         }
@@ -103,7 +103,7 @@
                         store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(2)));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
-                            Messages.AppendFailedWrongExpectedVersion(streamId, ExpectedVersion.NoStream));
+                            ErrorMessages.AppendFailedWrongExpectedVersion(streamId, ExpectedVersion.NoStream));
                 }
             }
         }
@@ -123,7 +123,7 @@
                         store.AppendToStream(streamId, 1, CreateNewStreamMessages(4, 5, 6)));
                     
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
-                        Messages.AppendFailedWrongExpectedVersion(streamId, 1));
+                        ErrorMessages.AppendFailedWrongExpectedVersion(streamId, 1));
                 }
             }
         }
@@ -200,7 +200,7 @@
                         store.AppendToStream(streamId, 2, CreateNewStreamMessages(4, 5, 6, 7)));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
-                            Messages.AppendFailedWrongExpectedVersion(streamId, 2));
+                            ErrorMessages.AppendFailedWrongExpectedVersion(streamId, 2));
                 }
             }
         }
@@ -305,7 +305,7 @@
                         store.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(2, 3, 4)));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
-                            Messages.AppendFailedWrongExpectedVersion(streamId, ExpectedVersion.Any));
+                            ErrorMessages.AppendFailedWrongExpectedVersion(streamId, ExpectedVersion.Any));
                 }
             }
         }
@@ -325,7 +325,7 @@
                         store.AppendToStream(streamId, 2, CreateNewStreamMessages(1)));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
-                            Messages.AppendFailedWrongExpectedVersion(streamId, 2));
+                            ErrorMessages.AppendFailedWrongExpectedVersion(streamId, 2));
                 }
             }
         }

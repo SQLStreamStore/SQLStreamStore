@@ -1,6 +1,6 @@
 ﻿namespace SqlStreamStore.Streams
 {
-    public static class Messages
+    public static class ErrorMessages
     {
         public static string AppendFailedWrongExpectedVersion(string streamId, int expectedVersion) 
             => $"Append failed due to WrongExpectedVersion.Stream: {streamId}, Expected version: {expectedVersion}";

@@ -181,7 +181,7 @@
                         store.DeleteStream(streamId, expectedVersion));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
-                        Messages.DeleteStreamFailedWrongExpectedVersion(streamId, expectedVersion));
+                        ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamId, expectedVersion));
                 }
             }
         }
@@ -200,7 +200,7 @@
                         store.DeleteStream(streamId, 100));
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
-                            Messages.DeleteStreamFailedWrongExpectedVersion(streamId, 100));
+                            ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamId, 100));
                 }
             }
         }

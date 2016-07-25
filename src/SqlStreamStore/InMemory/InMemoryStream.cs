@@ -55,7 +55,7 @@ namespace SqlStreamStore.InMemory
             if(expectedVersion > _currentVersion)
             {
                 throw new WrongExpectedVersionException(
-                    Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
+                    ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
             }
 
             if(_currentVersion >= 0 && expectedVersion < _currentVersion)
@@ -67,12 +67,12 @@ namespace SqlStreamStore.InMemory
                     if(index >= _events.Count)
                     {
                         throw new WrongExpectedVersionException(
-                            Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
+                            ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
                     }
                     if(_events[index].MessageId != newMessages[i].MessageId)
                     {
                         throw new WrongExpectedVersionException(
-                            Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
+                            ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
                     }
                 }
                 return;
@@ -82,7 +82,7 @@ namespace SqlStreamStore.InMemory
             if(newMessages.Any(newmessage => _eventsById.ContainsKey(newmessage.MessageId)))
             {
                 throw new WrongExpectedVersionException(
-                    Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
+                    ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
             }
 
             AppendEvents(newMessages);
@@ -104,7 +104,7 @@ namespace SqlStreamStore.InMemory
             {
                 // Some of the Messages have already been written, bad request
                 throw new WrongExpectedVersionException(
-                    Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
+                    ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
             }
 
             // None of the Messages were written previously...
@@ -119,13 +119,13 @@ namespace SqlStreamStore.InMemory
                 if(newMessages.Length > _events.Count)
                 {
                     throw new WrongExpectedVersionException(
-                        Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
+                        ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
                 }
 
                 if(newMessages.Where((message, index) => _events[index].MessageId != message.MessageId).Any())
                 {
                     throw new WrongExpectedVersionException(
-                        Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
+                        ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
                 }
                 return;
             }
@@ -164,7 +164,7 @@ namespace SqlStreamStore.InMemory
             if (expectedVersion > 0 && expectedVersion != _currentVersion)
             {
                 throw new WrongExpectedVersionException(
-                   Messages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
+                   ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
             }
 
             foreach (var inMemorymessage in _events)

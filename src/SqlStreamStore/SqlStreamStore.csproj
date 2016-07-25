@@ -79,7 +79,7 @@
     <Compile Include="SimpleJson.cs" />
     <Compile Include="Streams\AllMessagesPage.cs" />
     <Compile Include="Streams\Deleted.cs" />
-    <Compile Include="Streams\Messages.cs" />
+    <Compile Include="Streams\ErrorMessages.cs" />
     <Compile Include="Subscriptions\CreateStreamStoreNotifier.cs" />
     <Compile Include="Subscriptions\IStreamStoreNotifier.cs" />
     <Compile Include="Subscriptions\PollingStreamStoreNotifier.cs" />

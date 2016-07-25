@@ -36,7 +36,7 @@ namespace SqlStreamStore
                 Guid.NewGuid(),
                 -1,
                 -1,
-                _getUtcNow().DateTime,
+                _getUtcNow(),
                 null,
                 null,
                 null));

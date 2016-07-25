@@ -146,7 +146,7 @@ namespace SqlStreamStore.InMemory
                     newmessage.MessageId,
                     _currentVersion,
                     position,
-                    _getUtcNow().DateTime,
+                    _getUtcNow(),
                     newmessage.Type,
                     newmessage.JsonData,
                     newmessage.JsonMetadata);

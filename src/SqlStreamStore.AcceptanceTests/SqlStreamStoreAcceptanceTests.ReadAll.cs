@@ -20,12 +20,12 @@
                     await store.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
                     var expectedMessages = new[]
                     {
-                        ExpectedStreamMessage("stream-1", 1, 0, fixture.GetUtcNow().UtcDateTime),
-                        ExpectedStreamMessage("stream-1", 2, 1, fixture.GetUtcNow().UtcDateTime),
-                        ExpectedStreamMessage("stream-1", 3, 2, fixture.GetUtcNow().UtcDateTime),
-                        ExpectedStreamMessage("stream-2", 4, 0, fixture.GetUtcNow().UtcDateTime),
-                        ExpectedStreamMessage("stream-2", 5, 1, fixture.GetUtcNow().UtcDateTime),
-                        ExpectedStreamMessage("stream-2", 6, 2, fixture.GetUtcNow().UtcDateTime)
+                        ExpectedStreamMessage("stream-1", 1, 0, fixture.GetUtcNow()),
+                        ExpectedStreamMessage("stream-1", 2, 1, fixture.GetUtcNow()),
+                        ExpectedStreamMessage("stream-1", 3, 2, fixture.GetUtcNow()),
+                        ExpectedStreamMessage("stream-2", 4, 0, fixture.GetUtcNow()),
+                        ExpectedStreamMessage("stream-2", 5, 1, fixture.GetUtcNow()),
+                        ExpectedStreamMessage("stream-2", 6, 2, fixture.GetUtcNow())
                     };
 
                     var page = await store.ReadAllForwards(Position.Start, 4);
@@ -72,12 +72,12 @@
                     await store.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
                     var expectedMessages = new[]
                     {
-                        ExpectedStreamMessage("stream-1", 1, 0, fixture.GetUtcNow().UtcDateTime),
-                        ExpectedStreamMessage("stream-1", 2, 1, fixture.GetUtcNow().UtcDateTime),
-                        ExpectedStreamMessage("stream-1", 3, 2, fixture.GetUtcNow().UtcDateTime),
-                        ExpectedStreamMessage("stream-2", 4, 0, fixture.GetUtcNow().UtcDateTime),
-                        ExpectedStreamMessage("stream-2", 5, 1, fixture.GetUtcNow().UtcDateTime),
-                        ExpectedStreamMessage("stream-2", 6, 2, fixture.GetUtcNow().UtcDateTime)
+                        ExpectedStreamMessage("stream-1", 1, 0, fixture.GetUtcNow()),
+                        ExpectedStreamMessage("stream-1", 2, 1, fixture.GetUtcNow()),
+                        ExpectedStreamMessage("stream-1", 3, 2, fixture.GetUtcNow()),
+                        ExpectedStreamMessage("stream-2", 4, 0, fixture.GetUtcNow()),
+                        ExpectedStreamMessage("stream-2", 5, 1, fixture.GetUtcNow()),
+                        ExpectedStreamMessage("stream-2", 6, 2, fixture.GetUtcNow())
                     }.Reverse().ToArray();
 
                     var page = await store.ReadAllBackwards(Position.End, 4);

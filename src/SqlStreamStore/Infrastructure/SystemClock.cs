@@ -4,6 +4,6 @@
 
     public static class SystemClock
     {
-        public static readonly GetUtcNow GetUtcNow = () => DateTimeOffset.UtcNow;
+        public static readonly GetUtcNow GetUtcNow = () => DateTime.UtcNow;
     }
 }

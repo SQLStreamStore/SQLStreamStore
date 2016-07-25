@@ -224,7 +224,7 @@ namespace SqlStreamStore.Infrastructure
             {
                 return page;
             }
-            var currentUtc = GetUtcNow().DateTime;
+            var currentUtc = GetUtcNow();
             var valid = new List<StreamMessage>();
             foreach(var message in page.Messages)
             {
@@ -253,7 +253,7 @@ namespace SqlStreamStore.Infrastructure
            CancellationToken cancellationToken)
         {
             var valid = new List<StreamMessage>();
-            var currentUtc = GetUtcNow().DateTime;
+            var currentUtc = GetUtcNow();
             foreach (var streamMessage in allMessagesPage.Messages)
             {
                 if(streamMessage.StreamId.StartsWith("$"))

@@ -349,7 +349,7 @@
 
         private SqlDataRecord[] CreateSqlDataRecords(NewStreamMessage[] messages)
         {
-            var dateTime = GetUtcNow().DateTime;
+            var dateTime = GetUtcNow();
             var sqlDataRecords = messages.Select(message =>
             {
                 var record = new SqlDataRecord(_appendToStreamSqlMetadata);

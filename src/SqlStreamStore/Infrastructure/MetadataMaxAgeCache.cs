@@ -38,7 +38,7 @@ namespace SqlStreamStore.Infrastructure
             string streamId,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            var utcNow = _getUtcNow().DateTime;
+            var utcNow = _getUtcNow();
             MaxAgeCacheItem cacheItem;
             if(_byStreamId.TryGetValue(streamId, out cacheItem))
             {

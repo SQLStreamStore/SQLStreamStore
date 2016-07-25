@@ -206,7 +206,7 @@ namespace SqlStreamStore.Infrastructure
             }
         }
 
-        protected virtual void PurgeExpiredEvent(StreamMessage streamMessage)
+        protected virtual void PurgeExpiredMessage(StreamMessage streamMessage)
         {
             //This is a no-op as this class is ReadOnly.
         }
@@ -228,13 +228,13 @@ namespace SqlStreamStore.Infrastructure
             var valid = new List<StreamMessage>();
             foreach(var message in page.Messages)
             {
-                if(message.Created.AddSeconds(maxAge.Value) > currentUtc)
+                if(message.CreatedUtc.AddSeconds(maxAge.Value) > currentUtc)
                 {
                     valid.Add(message);
                 }
                 else
                 {
-                    PurgeExpiredEvent(message);
+                    PurgeExpiredMessage(message);
                 }
             }
             return new StreamMessagesPage(
@@ -267,13 +267,13 @@ namespace SqlStreamStore.Infrastructure
                     valid.Add(streamMessage);
                     continue;
                 }
-                if (streamMessage.Created.AddSeconds(maxAge.Value) > currentUtc)
+                if (streamMessage.CreatedUtc.AddSeconds(maxAge.Value) > currentUtc)
                 {
                     valid.Add(streamMessage);
                 }
                 else
                 {
-                    PurgeExpiredEvent(streamMessage);
+                    PurgeExpiredMessage(streamMessage);
                 }
             }
             return new AllMessagesPage(

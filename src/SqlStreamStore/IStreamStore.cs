@@ -71,6 +71,19 @@
             Guid messageId,
             CancellationToken cancellationToken = default(CancellationToken));
 
+        /// <summary>
+        ///     Sets the metadata for a stream.
+        /// </summary>
+        /// <param name="streamId">The stream Id to whose metadata is to be set.</param>
+        /// <param name="expectedStreamMetadataVersion">
+        ///     The expected version number of the metadata stream to apply the metadata. Used for concurrency
+        ///     handling. Default value is <see cref="ExpectedVersion.Any"/>
+        ///     </param>
+        /// <param name="maxAge"></param>
+        /// <param name="maxCount"></param>
+        /// <param name="metadataJson"></param>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
         Task SetStreamMetadata(
             string streamId,
             int expectedStreamMetadataVersion = ExpectedVersion.Any,

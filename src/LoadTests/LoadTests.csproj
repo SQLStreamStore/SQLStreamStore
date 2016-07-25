@@ -58,13 +58,13 @@
     <None Include="packages.config" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SqlStreamStore.MsSql2008.Tests\SqlStreamStore.MsSql2008.Tests.csproj">
+    <ProjectReference Include="..\SqlStreamStore.MsSql.Tests\SqlStreamStore.MsSql.Tests.csproj">
       <Project>{97aa016b-0b9f-44c2-8228-a13b4e251fb0}</Project>
-      <Name>SqlStreamStore.MsSql2008.Tests</Name>
+      <Name>SqlStreamStore.MsSql.Tests</Name>
     </ProjectReference>
-    <ProjectReference Include="..\SqlStreamStore.MsSql2008\SqlStreamStore.MsSql2008.csproj">
+    <ProjectReference Include="..\SqlStreamStore.MsSql\SqlStreamStore.MsSql.csproj">
       <Project>{40510896-d9a1-4e22-8d11-e718857611f8}</Project>
-      <Name>SqlStreamStore.MsSql2008</Name>
+      <Name>SqlStreamStore.MsSql</Name>
     </ProjectReference>
     <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj">
       <Project>{5a8df1a1-9b3b-499d-b9e9-a5e0f6f06953}</Project>

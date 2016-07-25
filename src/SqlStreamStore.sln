@@ -4,9 +4,9 @@ VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.Tests", "SqlStreamStore.Tests\SqlStreamStore.Tests.csproj", "{F3FB96CF-4A3D-448D-A25E-6BC66E370BF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.MsSql2008", "SqlStreamStore.MsSql2008\SqlStreamStore.MsSql2008.csproj", "{40510896-D9A1-4E22-8D11-E718857611F8}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.MsSql", "SqlStreamStore.MsSql\SqlStreamStore.MsSql.csproj", "{40510896-D9A1-4E22-8D11-E718857611F8}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.MsSql2008.Tests", "SqlStreamStore.MsSql2008.Tests\SqlStreamStore.MsSql2008.Tests.csproj", "{97AA016B-0B9F-44C2-8228-A13B4E251FB0}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.MsSql.Tests", "SqlStreamStore.MsSql.Tests\SqlStreamStore.MsSql.Tests.csproj", "{97AA016B-0B9F-44C2-8228-A13B4E251FB0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SqlStreamStore.AcceptanceTests", "SqlStreamStore.AcceptanceTests", "{833038D7-0582-4D07-9458-8230A83CAC1F}"
 	ProjectSection(SolutionItems) = preProject

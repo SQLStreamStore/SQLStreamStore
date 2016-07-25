@@ -44,7 +44,7 @@ task RunTests -depends Compile {
     EnsureDirectory $testReportDir
 
     Run-Tests "SqlStreamStore.Tests"
-    Run-Tests "SqlStreamStore.MsSql2008.Tests"
+    Run-Tests "SqlStreamStore.MsSql.Tests"
 }
 
 task ILMerge -depends Compile {
@@ -56,7 +56,7 @@ task ILMerge -depends Compile {
     @(  "EnsureThat" ) |% { $inputDlls = "$inputDlls $dllDir\$_.dll" }
     Invoke-Expression "$ilmergePath /targetplatform:v4 /internalize /allowDup /target:library /log /out:$mergedDir\$mainDllName.dll $inputDlls"
 
-    $mainDllName = "SqlStreamStore.MsSql2008"
+    $mainDllName = "SqlStreamStore.MsSql"
     $dllDir = "$srcDir\$mainDllName\bin\Release"
     $inputDlls = "$dllDir\$mainDllName.dll"
     @(  "EnsureThat" ) |% { $inputDlls = "$inputDlls $dllDir\$_.dll" }

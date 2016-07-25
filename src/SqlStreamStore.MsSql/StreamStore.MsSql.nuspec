@@ -8,9 +8,9 @@
         <projectUrl>https://github.com/damianh/SqlStreamStore</projectUrl>
         <licenseUrl>https://github.com/damianh/SqlStreamStore/blob/master/LICENSE</licenseUrl>
         <requireLicenseAcceptance>false</requireLicenseAcceptance>
-        <title>Stream Store - MS Sql Server (2008+)</title>
+        <title>Stream Store - MS Sql Server (2012+)</title>
         <description>
-            SqlServer provider (2008+) for SQL StreamStore
+            SqlServer provider (2012+) for SQL StreamStore
         </description>
         <tags>cqrs event-sourcing domain-driven-design event-store</tags>
         <frameworkAssemblies>
@@ -22,8 +22,8 @@
         </dependencies>
     </metadata>
     <files>
-        <file src="..\..\build\merged\SqlStreamStore.MsSql2008.dll" target="lib\net451" />
-        <file src="..\..\build\merged\SqlStreamStore.MsSql2008.pdb" target="lib\net451" />
-        <file src="bin\Release\SqlStreamStore.MsSql2008.xml" target="lib\net451" />
+        <file src="..\..\build\merged\SqlStreamStore.MsSql.dll" target="lib\net451" />
+        <file src="..\..\build\merged\SqlStreamStore.MsSql.pdb" target="lib\net451" />
+        <file src="bin\Release\SqlStreamStore.MsSql.xml" target="lib\net451" />
     </files>
 </package>

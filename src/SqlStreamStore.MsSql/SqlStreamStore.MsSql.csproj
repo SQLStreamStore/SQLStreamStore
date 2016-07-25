@@ -8,7 +8,7 @@
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SqlStreamStore</RootNamespace>
-    <AssemblyName>SqlStreamStore.MsSql2008</AssemblyName>
+    <AssemblyName>SqlStreamStore.MsSql</AssemblyName>
     <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
@@ -21,7 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\SqlStreamStore.MsSql2008.xml</DocumentationFile>
+    <DocumentationFile>bin\Debug\SqlStreamStore.MsSql.xml</DocumentationFile>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -30,7 +30,7 @@
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\SqlStreamStore.MsSql2008.xml</DocumentationFile>
+    <DocumentationFile>bin\Release\SqlStreamStore.MsSql.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="EnsureThat, Version=4.0.0.26, Culture=neutral, processorArchitecture=MSIL">

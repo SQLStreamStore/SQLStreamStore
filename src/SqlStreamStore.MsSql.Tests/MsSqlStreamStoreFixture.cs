@@ -17,7 +17,7 @@ namespace SqlStreamStore
             _schema = schema;
             var localDbProvider = new SqlLocalDbProvider
             {
-                Version = "10.5"
+                Version = "11.0"
             };
             _localDbInstance = localDbProvider.GetOrCreateInstance("StreamStoreTests");
             _localDbInstance.Start();

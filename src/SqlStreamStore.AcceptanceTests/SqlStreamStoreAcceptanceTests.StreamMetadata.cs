@@ -92,7 +92,7 @@
 
                     await store.DeleteStream(streamId);
 
-                    var allMessagesPage = await store.ReadAllForwards(Checkpoint.Start, 10);
+                    var allMessagesPage = await store.ReadAllForwards(Position.Start, 10);
                     allMessagesPage.Messages.Length.ShouldBe(2);
                     allMessagesPage.Messages[0].Type.ShouldBe(Deleted.StreamDeletedMessageType);
                     allMessagesPage.Messages[0].JsonDataAs<Deleted.StreamDeleted>()
@@ -227,7 +227,7 @@
                         .SetStreamMetadata(streamId2, maxAge: 30, metadataJson: "meta");
 
                     // Act
-                    var allMessagesPage = await store.ReadAllForwards(Checkpoint.Start, 20);
+                    var allMessagesPage = await store.ReadAllForwards(Position.Start, 20);
 
                     // Assert
                     allMessagesPage.Messages.Where(message => message.StreamId == streamId1).Count().ShouldBe(2);
@@ -265,7 +265,7 @@
                         .SetStreamMetadata(streamId2, maxAge: 30, metadataJson: "meta");
 
                     // Act
-                    var allMessagesPage = await store.ReadAllBackwards(Checkpoint.End, 20);
+                    var allMessagesPage = await store.ReadAllBackwards(Position.End, 20);
 
                     // Assert
                     allMessagesPage.Messages.Where(message => message.StreamId == streamId1).Count().ShouldBe(2);

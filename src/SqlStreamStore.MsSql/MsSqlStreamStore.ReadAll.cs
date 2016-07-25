@@ -11,11 +11,11 @@ namespace SqlStreamStore
     public partial class MsSqlStreamStore
     {
         protected override async Task<AllMessagesPage> ReadAllForwardsInternal(
-            long fromCheckpointExlusive,
+            long fromPositionExlusive,
             int maxCount,
             CancellationToken cancellationToken)
         {
-            long ordinal = fromCheckpointExlusive;
+            long ordinal = fromPositionExlusive;
 
             using (var connection = _createConnection())
             {
@@ -33,8 +33,8 @@ namespace SqlStreamStore
                     if (!reader.HasRows)
                     {
                         return new AllMessagesPage(
-                            fromCheckpointExlusive,
-                            fromCheckpointExlusive,
+                            fromPositionExlusive,
+                            fromPositionExlusive,
                             true,
                             ReadDirection.Forward,
                             messages.ToArray());
@@ -72,11 +72,11 @@ namespace SqlStreamStore
                         messages.RemoveAt(maxCount);
                     }
 
-                    var nextCheckpoint = messages[messages.Count - 1].Checkpoint + 1;
+                    var nextPosition = messages[messages.Count - 1].Position + 1;
 
                     return new AllMessagesPage(
-                        fromCheckpointExlusive,
-                        nextCheckpoint,
+                        fromPositionExlusive,
+                        nextPosition,
                         isEnd,
                         ReadDirection.Forward,
                         messages.ToArray());
@@ -85,11 +85,11 @@ namespace SqlStreamStore
         }
 
         protected override async Task<AllMessagesPage> ReadAllBackwardsInternal(
-            long fromCheckpointExclusive,
+            long fromPositionExclusive,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            long ordinal = fromCheckpointExclusive == Checkpoint.End ? long.MaxValue : fromCheckpointExclusive;
+            long ordinal = fromPositionExclusive == Position.End ? long.MaxValue : fromPositionExclusive;
 
             using (var connection = _createConnection())
             {
@@ -106,11 +106,11 @@ namespace SqlStreamStore
                     List<StreamMessage> messages = new List<StreamMessage>();
                     if (!reader.HasRows)
                     {
-                        // When reading backwards and there are no more items, then next checkpoint is LongCheckpoint.Start,
-                        // regardles of what the fromCheckpoint is.
+                        // When reading backwards and there are no more items, then next position is LongPosition.Start,
+                        // regardles of what the fromPosition is.
                         return new AllMessagesPage(
-                            Checkpoint.Start,
-                            Checkpoint.Start,
+                            Position.Start,
+                            Position.Start,
                             true,
                             ReadDirection.Backward,
                             messages.ToArray());
@@ -142,7 +142,7 @@ namespace SqlStreamStore
                     }
 
                     bool isEnd = true;
-                    var nextCheckpoint = lastOrdinal;
+                    var nextPosition = lastOrdinal;
 
                     if (messages.Count == maxCount + 1) // An extra row was read, we're not at the end
                     {
@@ -150,11 +150,11 @@ namespace SqlStreamStore
                         messages.RemoveAt(maxCount);
                     }
 
-                    fromCheckpointExclusive = messages.Any() ? messages[0].Checkpoint : 0;
+                    fromPositionExclusive = messages.Any() ? messages[0].Position : 0;
 
                     return new AllMessagesPage(
-                        fromCheckpointExclusive,
-                        nextCheckpoint,
+                        fromPositionExclusive,
+                        nextPosition,
                         isEnd,
                         ReadDirection.Backward,
                         messages.ToArray());

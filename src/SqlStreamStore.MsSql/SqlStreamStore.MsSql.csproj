@@ -70,7 +70,7 @@
     <EmbeddedResource Include="MsSqlScripts\DeleteStreamMessage.sql" />
     <EmbeddedResource Include="MsSqlScripts\SetStreamMetadata.sql" />
     <Content Include="MsSqlScripts\DropTestDBs.sql" />
-    <EmbeddedResource Include="MsSqlScripts\ReadHeadCheckpoint.sql" />
+    <EmbeddedResource Include="MsSqlScripts\ReadHeadPosition.sql" />
     <EmbeddedResource Include="MsSqlScripts\ReadStreamBackward.sql" />
     <EmbeddedResource Include="MsSqlScripts\ReadStreamForward.sql" />
     <EmbeddedResource Include="MsSqlScripts\ReadAllBackward.sql" />

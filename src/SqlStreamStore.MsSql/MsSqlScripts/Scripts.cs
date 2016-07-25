@@ -37,7 +37,7 @@
 
         internal string ReadAllForward => GetScript(nameof(ReadAllForward));
 
-        internal string ReadHeadCheckpoint => GetScript(nameof(ReadHeadCheckpoint));
+        internal string ReadHeadPosition => GetScript(nameof(ReadHeadPosition));
 
         internal string ReadAllBackward => GetScript(nameof(ReadAllBackward));
 

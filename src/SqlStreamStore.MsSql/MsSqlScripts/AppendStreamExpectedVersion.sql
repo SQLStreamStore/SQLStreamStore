@@ -36,7 +36,7 @@ INSERT INTO dbo.Messages (StreamIdInternal, StreamVersion, Id, Created, [Type], 
             @latestStreamVersion = dbo.Messages.StreamVersion
        FROM dbo.Messages
       WHERE dbo.Messages.StreamIDInternal = @streamIdInternal
-   ORDER BY dbo.Messages.Ordinal DESC
+   ORDER BY dbo.Messages.Position DESC
 
      UPDATE dbo.Streams
         SET dbo.Streams.[Version] = @latestStreamVersion
@@ -57,4 +57,4 @@ COMMIT TRANSACTION AppendStream;
             dbo.Messages.JsonData
        FROM dbo.Messages
       WHERE dbo.Messages.StreamIdInternal = @metadataStreamIdInternal
-   ORDER BY dbo.Messages.Ordinal DESC;
+   ORDER BY dbo.Messages.Position DESC;

@@ -16,7 +16,7 @@ BEGIN TRANSACTION DeleteStream
                 @latestStreamVersion = dbo.Messages.StreamVersion
            FROM dbo.Messages
           WHERE dbo.Messages.StreamIDInternal = @streamIdInternal
-       ORDER BY dbo.Messages.Ordinal DESC;
+       ORDER BY dbo.Messages.Position DESC;
 
          IF @latestStreamVersion != @expectedStreamVersion
          BEGIN

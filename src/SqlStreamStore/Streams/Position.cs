@@ -1,6 +1,6 @@
 ﻿namespace SqlStreamStore.Streams
 {
-    public static class Checkpoint
+    public static class Position
     {
         public static long Start = 0;
 

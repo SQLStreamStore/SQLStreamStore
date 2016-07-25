@@ -6,6 +6,6 @@
     {
         string Name { get; }
 
-        long? LastCheckpoint { get; }
+        long? LastPosition { get; }
     }
 }

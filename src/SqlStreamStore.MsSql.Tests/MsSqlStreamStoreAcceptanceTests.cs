@@ -35,11 +35,11 @@
                                 ExpectedVersion.NoStream,
                                 CreateNewStreamMessages(1, 2));
 
-                        var dboHeadCheckpoint = await dboStore.ReadHeadCheckpoint();
-                        var fooHeadCheckpoint = await dboStore.ReadHeadCheckpoint();
+                        var dboHeadPosition = await dboStore.ReadHeadPosition();
+                        var fooHeadPosition = await dboStore.ReadHeadPosition();
 
-                        dboHeadCheckpoint.ShouldBe(1);
-                        fooHeadCheckpoint.ShouldBe(1);
+                        dboHeadPosition.ShouldBe(1);
+                        fooHeadPosition.ShouldBe(1);
                     }
                 }
             }

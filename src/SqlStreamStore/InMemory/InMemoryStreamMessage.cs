@@ -4,7 +4,7 @@
 
     internal sealed class InMemoryStreamMessage
     {
-        internal readonly long Checkpoint;
+        internal readonly long Position;
         internal readonly DateTime Created;
         internal readonly string StreamId;
         internal readonly Guid MessageId;
@@ -17,7 +17,7 @@
             string streamId,
             Guid messageId,
             int streamVersion,
-            long checkpoint,
+            long position,
             DateTime created,
             string type,
             string jsonData,
@@ -26,7 +26,7 @@
             StreamId = streamId;
             MessageId = messageId;
             StreamVersion = streamVersion;
-            Checkpoint = checkpoint;
+            Position = position;
             Created = created;
             Type = type;
             JsonData = jsonData;

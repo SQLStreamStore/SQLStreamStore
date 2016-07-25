@@ -48,7 +48,7 @@
                         message.StreamVersion.ShouldBe(expectedMessage.StreamVersion);
                         message.Type.ShouldBe(expectedMessage.Type);
 
-                        // We don't care about StreamMessage.Checkpoint and StreamMessage.Checkpoint
+                        // We don't care about StreamMessage.Position and StreamMessage.Position
                         // as they are non-deterministic
                     }
                 }
@@ -93,7 +93,7 @@
                         streamMessage.StreamVersion.ShouldBe(expectedMessage.StreamVersion);
                         streamMessage.Type.ShouldBe(expectedMessage.Type);
 
-                        // We don't care about StreamMessage.Checkpoint and StreamMessage.Checkpoint
+                        // We don't care about StreamMessage.Position and StreamMessage.Position
                         // as they are non-deterministic
                     }
                 }

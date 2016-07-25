@@ -9,10 +9,10 @@
 
     public sealed class AllStreamSubscription : SubscriptionBase, IAllStreamSubscription
     {
-        private long _nextCheckpoint;
+        private long _nextPosition;
 
         public AllStreamSubscription(
-            long? fromCheckpoint,
+            long? fromPosition,
             IReadonlyStreamStore readonlyStreamStore,
             IObservable<Unit> streamStoreAppendedNotification,
             StreamMessageReceived streamMessageReceived,
@@ -20,28 +20,28 @@
             string name = null)
             :base(readonlyStreamStore, streamStoreAppendedNotification, streamMessageReceived, subscriptionDropped, name)
         {
-            FromCheckpoint = fromCheckpoint;
-            LastCheckpoint = fromCheckpoint;
-            _nextCheckpoint = fromCheckpoint + 1 ?? Checkpoint.Start;
+            FromPosition = fromPosition;
+            LastPosition = fromPosition;
+            _nextPosition = fromPosition + 1 ?? Position.Start;
         }
 
-        public long? FromCheckpoint { get; }
+        public long? FromPosition { get; }
 
-        public long? LastCheckpoint { get; private set; }
+        public long? LastPosition { get; private set; }
 
         public override async Task Start(CancellationToken cancellationToken)
         {
-            if(FromCheckpoint == Checkpoint.End)
+            if(FromPosition == Position.End)
             {
                 // Get the last stream version and subscribe from there.
                 var eventsPage = await ReadonlyStreamStore.ReadAllBackwards(
-                    Checkpoint.End,
+                    Position.End,
                     1,
                     cancellationToken).NotOnCapturedContext();
 
-                // If fromCheckpoint = 0, we have empty store, so start from zero, otherwise, the next checkpoint is 
-                // one after the FromCheckpoint.
-                _nextCheckpoint = eventsPage.FromCheckpoint == 0 ?  0 : eventsPage.FromCheckpoint + 1;
+                // If fromPosition = 0, we have empty store, so start from zero, otherwise, the next position is 
+                // one after the FromPosition.
+                _nextPosition = eventsPage.FromPosition == 0 ?  0 : eventsPage.FromPosition + 1;
             }
             await base.Start(cancellationToken).NotOnCapturedContext();
         }
@@ -50,7 +50,7 @@
         {
             var allMessagesPage = await ReadonlyStreamStore
                 .ReadAllForwards(
-                    _nextCheckpoint,
+                    _nextPosition,
                     PageSize,
                     IsDisposed)
                 .NotOnCapturedContext();
@@ -65,8 +65,8 @@
                 try
                 {
                     await StreamMessageReceived(streamMessage).NotOnCapturedContext();
-                    LastCheckpoint = streamMessage.Checkpoint;
-                    _nextCheckpoint = streamMessage.Checkpoint + 1;
+                    LastPosition = streamMessage.Position;
+                    _nextPosition = streamMessage.Position + 1;
                 }
                 catch(Exception ex)
                 {

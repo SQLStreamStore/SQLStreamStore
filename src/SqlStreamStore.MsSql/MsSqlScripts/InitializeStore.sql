@@ -18,17 +18,17 @@ CREATE UNIQUE NONCLUSTERED INDEX IX_Streams_Id ON dbo.Streams (Id);
 CREATE TABLE dbo.Messages(
     StreamIdInternal    INT                                     NOT NULL,
     StreamVersion       INT                                     NOT NULL,
-    Ordinal             BIGINT                 IDENTITY(0,1)    NOT NULL,
+    Position            BIGINT                 IDENTITY(0,1)    NOT NULL,
     Id                  UNIQUEIDENTIFIER                        NOT NULL,
     Created             DATETIME                                NOT NULL,
     [Type]              NVARCHAR(128)                           NOT NULL,
     JsonData            NVARCHAR(max)                           NOT NULL,
     JsonMetadata        NVARCHAR(max)                                   ,
-    CONSTRAINT PK_Events PRIMARY KEY CLUSTERED (Ordinal),
+    CONSTRAINT PK_Events PRIMARY KEY CLUSTERED (Position),
     CONSTRAINT FK_Events_Streams FOREIGN KEY (StreamIdInternal) REFERENCES dbo.Streams(IdInternal)
 );
 
-CREATE UNIQUE NONCLUSTERED INDEX IX_Messages_Ordinal ON dbo.Messages (Ordinal);
+CREATE UNIQUE NONCLUSTERED INDEX IX_Messages_Position ON dbo.Messages (Position);
 
 CREATE UNIQUE NONCLUSTERED INDEX IX_Messages_StreamIdInternal_Id ON dbo.Messages (StreamIdInternal, Id);
 

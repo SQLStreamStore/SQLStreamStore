@@ -12,7 +12,7 @@ namespace SqlStreamStore.InMemory
         private readonly InMemoryAllStream _inMemoryAllStream;
         private readonly GetUtcNow _getUtcNow;
         private readonly Action _onStreamAppended;
-        private readonly Func<int> _getNextCheckpoint;
+        private readonly Func<int> _getNextPosition;
         private readonly List<InMemoryStreamMessage> _events = new List<InMemoryStreamMessage>();
         private readonly Dictionary<Guid, InMemoryStreamMessage> _eventsById = new Dictionary<Guid, InMemoryStreamMessage>();
         private int _currentVersion = -1;
@@ -22,13 +22,13 @@ namespace SqlStreamStore.InMemory
             InMemoryAllStream inMemoryAllStream,
             GetUtcNow getUtcNow,
             Action onStreamAppended,
-            Func<int> getNextCheckpoint)
+            Func<int> getNextPosition)
         {
             _streamId = streamId;
             _inMemoryAllStream = inMemoryAllStream;
             _getUtcNow = getUtcNow;
             _onStreamAppended = onStreamAppended;
-            _getNextCheckpoint = getNextCheckpoint;
+            _getNextPosition = getNextPosition;
         }
 
         internal IReadOnlyList<InMemoryStreamMessage> Events => _events;
@@ -138,14 +138,14 @@ namespace SqlStreamStore.InMemory
         {
             foreach(var newmessage in newMessages)
             {
-                var checkpoint = _getNextCheckpoint();
+                var position = _getNextPosition();
                 _currentVersion++;
 
                 var inMemorymessage = new InMemoryStreamMessage(
                     _streamId,
                     newmessage.MessageId,
                     _currentVersion,
-                    checkpoint,
+                    position,
                     _getUtcNow().DateTime,
                     newmessage.Type,
                     newmessage.JsonData,

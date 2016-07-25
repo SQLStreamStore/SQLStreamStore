@@ -111,7 +111,7 @@
                         message =>
                         {
                             _testOutputHelper.WriteLine($"Received message {message.StreamId} " +
-                                                        $"{message.StreamVersion} {message.Checkpoint}");
+                                                        $"{message.StreamVersion} {message.Position}");
                             receivedMessages.Add(message);
                             if (message.StreamId == streamId1 && message.StreamVersion == 3)
                             {
@@ -147,7 +147,7 @@
                         null,
                         message =>
                         {
-                            _testOutputHelper.WriteLine($"Received message {message.StreamId} {message.StreamVersion} {message.Checkpoint}");
+                            _testOutputHelper.WriteLine($"Received message {message.StreamId} {message.StreamVersion} {message.Position}");
                             receivedMessages.Add(message);
                             if (message.StreamId == streamId1 && message.StreamVersion == 3)
                             {
@@ -190,7 +190,7 @@
                         StreamVersion.End,
                         message =>
                         {
-                            _testOutputHelper.WriteLine($"Received message {message.StreamId} {message.StreamVersion} {message.Checkpoint}");
+                            _testOutputHelper.WriteLine($"Received message {message.StreamId} {message.StreamVersion} {message.Position}");
                             receivedCount++;
                             if (message.StreamVersion == 11)
                             {
@@ -235,7 +235,7 @@
                     var receiveMessages = new TaskCompletionSource<StreamMessage>();
                     List<StreamMessage> receivedMessages = new List<StreamMessage>();
                     using (await store.SubscribeToAll(
-                        Checkpoint.End,
+                        Position.End,
                         message =>
                         {
                             _testOutputHelper.WriteLine($"StreamId={message.StreamId} Version={message.StreamVersion} ");
@@ -269,7 +269,7 @@
                     var receiveMessages = new TaskCompletionSource<StreamMessage>();
                     List<StreamMessage> receivedMessages = new List<StreamMessage>();
                     using (await store.SubscribeToAll(
-                        Checkpoint.End,
+                        Position.End,
                         message =>
                         {
                             _testOutputHelper.WriteLine($"{stopwatch.ElapsedMilliseconds.ToString()} {message.StreamVersion}");
@@ -418,7 +418,7 @@
         }
 
         [Fact]
-        public async Task When_delete_then_deleted_message_should_have_correct_checkpoint()
+        public async Task When_delete_then_deleted_message_should_have_correct_position()
         {
             using(var fixture = GetFixture())
             {
@@ -434,7 +434,7 @@
                         message =>
                         {
                             _testOutputHelper.WriteLine($"Received message {message.StreamId} " +
-                                                        $"{message.StreamVersion} {message.Checkpoint}");
+                                                        $"{message.StreamVersion} {message.Position}");
                             receivedMessages.Add(message);
                             if (message.StreamId == Deleted.DeletedStreamId
                                 && message.Type == Deleted.StreamDeletedMessageType)
@@ -451,7 +451,7 @@
                         await receiveMessage.Task.WithTimeout();
 
                         // Assert
-                        receivedMessages.Last().Checkpoint.ShouldBe(1);
+                        receivedMessages.Last().Position.ShouldBe(1);
                     }
                 }
             }

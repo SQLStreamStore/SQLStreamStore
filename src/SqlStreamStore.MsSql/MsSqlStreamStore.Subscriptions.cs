@@ -28,14 +28,14 @@ namespace SqlStreamStore
         }
 
         protected override async Task<IAllStreamSubscription> SubscribeToAllInternal(
-            long? fromCheckpoint,
+            long? fromPosition,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             string name,
             CancellationToken cancellationToken)
         {
             var subscription = new AllStreamSubscription(
-                fromCheckpoint,
+                fromPosition,
                 this,
                 GetStoreObservable,
                 streamMessageReceived,

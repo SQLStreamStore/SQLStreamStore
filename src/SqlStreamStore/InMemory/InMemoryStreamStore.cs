@@ -22,7 +22,7 @@ namespace SqlStreamStore
         private readonly Dictionary<string, InMemoryStream> _streams = new Dictionary<string, InMemoryStream>();
         private readonly Subject<Unit> _subscriptions = new Subject<Unit>();
         private bool _isDisposed;
-        private int _currentCheckpoint = 0;
+        private int _currentPosition = 0;
 
         public InMemoryStreamStore(GetUtcNow getUtcNow = null, string logName = null)
             : base(TimeSpan.FromMinutes(1), 10000, getUtcNow, logName ?? nameof(InMemoryStreamStore))
@@ -118,7 +118,7 @@ namespace SqlStreamStore
                         _allStream,
                         _getUtcNow,
                         _onStreamAppended,
-                        () => _currentCheckpoint++);
+                        () => _currentPosition++);
                     inMemoryStream.AppendToStream(expectedVersion, messages);
                     _streams.Add(streamId, inMemoryStream);
                 }
@@ -258,7 +258,7 @@ namespace SqlStreamStore
         }
 
         protected override Task<AllMessagesPage> ReadAllForwardsInternal(
-            long fromCheckpointExlusive,
+            long fromPositionExlusive,
             int maxCount,
             CancellationToken cancellationToken)
         {
@@ -266,22 +266,22 @@ namespace SqlStreamStore
 
             using(_lock.UseReadLock())
             {
-                // Find the node to start from (it may not be equal to the exact checkpoint)
+                // Find the node to start from (it may not be equal to the exact position)
                 var current = _allStream.First;
                 if(current.Next == null) //Empty store
                 {
                     return Task.FromResult(
-                        new AllMessagesPage(Checkpoint.Start, Checkpoint.Start, true, ReadDirection.Forward));
+                        new AllMessagesPage(Position.Start, Position.Start, true, ReadDirection.Forward));
                 }
 
                 var previous = current.Previous;
-                while(current.Value.Checkpoint < fromCheckpointExlusive)
+                while(current.Value.Position < fromPositionExlusive)
                 {
-                    if(current.Next == null) // fromCheckpoint is past end of store
+                    if(current.Next == null) // fromPosition is past end of store
                     {
                         return Task.FromResult(
-                            new AllMessagesPage(fromCheckpointExlusive,
-                                fromCheckpointExlusive,
+                            new AllMessagesPage(fromPositionExlusive,
+                                fromPositionExlusive,
                                 true,
                                 ReadDirection.Forward));
                     }
@@ -296,7 +296,7 @@ namespace SqlStreamStore
                         current.Value.StreamId,
                         current.Value.MessageId,
                         current.Value.StreamVersion,
-                        current.Value.Checkpoint,
+                        current.Value.Position,
                         current.Value.Created,
                         current.Value.Type,
                         current.Value.JsonData,
@@ -308,11 +308,11 @@ namespace SqlStreamStore
                 }
 
                 var isEnd = current == null;
-                var nextCheckPoint = current?.Value.Checkpoint ?? previous.Value.Checkpoint + 1;
-                fromCheckpointExlusive = messages.Any() ? messages[0].Checkpoint : 0;
+                var nextCheckPoint = current?.Value.Position ?? previous.Value.Position + 1;
+                fromPositionExlusive = messages.Any() ? messages[0].Position : 0;
 
                 var page = new AllMessagesPage(
-                    fromCheckpointExlusive,
+                    fromPositionExlusive,
                     nextCheckPoint,
                     isEnd,
                     ReadDirection.Forward,
@@ -323,7 +323,7 @@ namespace SqlStreamStore
         }
 
         protected override Task<AllMessagesPage> ReadAllBackwardsInternal(
-            long fromCheckpointExclusive,
+            long fromPositionExclusive,
             int maxCount,
             CancellationToken cancellationToken)
         {
@@ -331,27 +331,27 @@ namespace SqlStreamStore
 
             using (_lock.UseReadLock())
             {
-                if (fromCheckpointExclusive == Checkpoint.End)
+                if (fromPositionExclusive == Position.End)
                 {
-                    fromCheckpointExclusive = _allStream.Last.Value.Checkpoint;
+                    fromPositionExclusive = _allStream.Last.Value.Position;
                 }
 
-                // Find the node to start from (it may not be equal to the exact checkpoint)
+                // Find the node to start from (it may not be equal to the exact position)
                 var current = _allStream.First;
                 if(current.Next == null) //Empty store
                 {
                     return Task.FromResult(
-                        new AllMessagesPage(Checkpoint.Start, Checkpoint.Start, true, ReadDirection.Backward));
+                        new AllMessagesPage(Position.Start, Position.Start, true, ReadDirection.Backward));
                 }
 
                 var previous = current.Previous;
-                while(current.Value.Checkpoint < fromCheckpointExclusive)
+                while(current.Value.Position < fromPositionExclusive)
                 {
-                    if(current.Next == null) // fromCheckpoint is past end of store
+                    if(current.Next == null) // fromPosition is past end of store
                     {
                         return Task.FromResult(
-                            new AllMessagesPage(fromCheckpointExclusive,
-                                fromCheckpointExclusive,
+                            new AllMessagesPage(fromPositionExclusive,
+                                fromPositionExclusive,
                                 true,
                                 ReadDirection.Backward));
                     }
@@ -366,7 +366,7 @@ namespace SqlStreamStore
                         current.Value.StreamId,
                         current.Value.MessageId,
                         current.Value.StreamVersion,
-                        current.Value.Checkpoint,
+                        current.Value.Position,
                         current.Value.Created,
                         current.Value.Type,
                         current.Value.JsonData,
@@ -378,7 +378,7 @@ namespace SqlStreamStore
                 }
 
                 bool isEnd;
-                if(previous == null || previous.Value.Checkpoint == 0)
+                if(previous == null || previous.Value.Position == 0)
                 {
                     isEnd = true;
                 }
@@ -388,12 +388,12 @@ namespace SqlStreamStore
                 }
                 var nextCheckPoint = isEnd
                     ? 0
-                    : current.Value.Checkpoint;
+                    : current.Value.Position;
 
-                fromCheckpointExclusive = messages.Any() ? messages[0].Checkpoint : 0;
+                fromPositionExclusive = messages.Any() ? messages[0].Position : 0;
 
                 var page = new AllMessagesPage(
-                    fromCheckpointExclusive,
+                    fromPositionExclusive,
                     nextCheckPoint,
                     isEnd,
                     ReadDirection.Backward,
@@ -436,7 +436,7 @@ namespace SqlStreamStore
                         streamId,
                         inMemorymessage.MessageId,
                         inMemorymessage.StreamVersion,
-                        inMemorymessage.Checkpoint,
+                        inMemorymessage.Position,
                         inMemorymessage.Created,
                         inMemorymessage.Type,
                         inMemorymessage.JsonData,
@@ -497,7 +497,7 @@ namespace SqlStreamStore
                         streamId,
                         inMemorymessage.MessageId,
                         inMemorymessage.StreamVersion,
-                        inMemorymessage.Checkpoint,
+                        inMemorymessage.Position,
                         inMemorymessage.Created,
                         inMemorymessage.Type,
                         inMemorymessage.JsonData,
@@ -546,21 +546,21 @@ namespace SqlStreamStore
             return subscription;
         }
 
-        protected override Task<long> ReadHeadCheckpointInternal(CancellationToken cancellationToken)
+        protected override Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken)
         {
             var message = _allStream.LastOrDefault();
-            return message == null ? Task.FromResult(-1L) : Task.FromResult(message.Checkpoint);
+            return message == null ? Task.FromResult(-1L) : Task.FromResult(message.Position);
         }
 
         protected override async Task<IAllStreamSubscription> SubscribeToAllInternal(
-            long? fromCheckpoint,
+            long? fromPosition,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             string name,
             CancellationToken cancellationToken)
         {
             var subscription = new AllStreamSubscription(
-                fromCheckpoint,
+                fromPosition,
                 this,
                 _subscriptions,
                 streamMessageReceived,

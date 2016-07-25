@@ -58,7 +58,7 @@
     <Compile Include="Streams\MetadataMessage.cs" />
     <Compile Include="Infrastructure\ReadonlyStreamStoreBase.cs" />
     <Compile Include="Streams\StreamMetadataResult.cs" />
-    <Compile Include="Streams\Checkpoint.cs" />
+    <Compile Include="Streams\Position.cs" />
     <Compile Include="StreamStoreExtensions.cs" />
     <Compile Include="IAllStreamSubscription.cs" />
     <Compile Include="IStreamStore.cs" />

@@ -2,7 +2,7 @@
      SELECT TOP(@count)
             dbo.Streams.IdOriginal As StreamId,
             dbo.Messages.StreamVersion,
-            dbo.Messages.Ordinal,
+            dbo.Messages.Position,
             dbo.Messages.Id AS EventId,
             dbo.Messages.Created,
             dbo.Messages.Type,
@@ -11,5 +11,5 @@
        FROM dbo.Messages
  INNER JOIN dbo.Streams
          ON dbo.Messages.StreamIdInternal = dbo.Streams.IdInternal
-      WHERE dbo.Messages.Ordinal >= @ordinal
-   ORDER BY dbo.Messages.Ordinal;
+      WHERE dbo.Messages.Position >= @ordinal
+   ORDER BY dbo.Messages.Position;

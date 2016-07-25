@@ -170,7 +170,7 @@
             }
         }
 
-        protected override async Task<long> ReadHeadCheckpointInternal(CancellationToken cancellationToken)
+        protected override async Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken)
         {
             CheckIfDisposed();
 
@@ -178,7 +178,7 @@
             {
                 await connection.OpenAsync(cancellationToken);
 
-                using(var command = new SqlCommand(_scripts.ReadHeadCheckpoint, connection))
+                using(var command = new SqlCommand(_scripts.ReadHeadPosition, connection))
                 {
                     var result = await command
                         .ExecuteScalarAsync(cancellationToken)

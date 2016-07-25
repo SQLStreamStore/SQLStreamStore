@@ -28,12 +28,12 @@
                         ExpectedStreamMessage("stream-2", 6, 2, fixture.GetUtcNow().UtcDateTime)
                     };
 
-                    var page = await store.ReadAllForwards(Checkpoint.Start, 4);
+                    var page = await store.ReadAllForwards(Position.Start, 4);
                     List<StreamMessage> messages = new List<StreamMessage>(page.Messages);
                     int count = 0;
                     while(!page.IsEnd && count <20) //should not take more than 20 iterations.
                     {
-                        page = await store.ReadAllForwards(page.NextCheckpoint, 10);
+                        page = await store.ReadAllForwards(page.NextPosition, 10);
                         messages.AddRange(page.Messages);
                         count++;
                     }
@@ -54,7 +54,7 @@
                         message.StreamVersion.ShouldBe(expectedMessage.StreamVersion);
                         message.Type.ShouldBe(expectedMessage.Type);
 
-                        // We don't care about StreamMessage.Checkpoint and StreamMessage.Checkpoint
+                        // We don't care about StreamMessage.Position and StreamMessage.Position
                         // as they are non-deterministic
                     }
                 }
@@ -80,12 +80,12 @@
                         ExpectedStreamMessage("stream-2", 6, 2, fixture.GetUtcNow().UtcDateTime)
                     }.Reverse().ToArray();
 
-                    var page = await store.ReadAllBackwards(Checkpoint.End, 4);
+                    var page = await store.ReadAllBackwards(Position.End, 4);
                     List<StreamMessage> messages = new List<StreamMessage>(page.Messages);
                     int count = 0;
                     while (!page.IsEnd && count < 20) //should not take more than 20 iterations.
                     {
-                        page = await store.ReadAllBackwards(page.NextCheckpoint, 10);
+                        page = await store.ReadAllBackwards(page.NextPosition, 10);
                         messages.AddRange(page.Messages);
                         count++;
                     }
@@ -108,7 +108,7 @@
                         message.StreamVersion.ShouldBe(expectedMessage.StreamVersion);
                         message.Type.ShouldBe(expectedMessage.Type);
 
-                        // We don't care about StreamMessage.Checkpoint and StreamMessage.Checkpoint
+                        // We don't care about StreamMessage.Position and StreamMessage.Position
                         // as they are non-deterministic
                     }
                 }
@@ -124,10 +124,10 @@
         [InlineData(3, 3, 1, 0, 3, 3)]
         public async Task When_read_all_forwards(
             int numberOfSeedMessages,
-            int fromCheckpoint,
+            int fromPosition,
             int maxCount,
             int expectedCount,
-            int expectedFromCheckpoint,
+            int expectedFromPosition,
             int expectedNextCheckPoint)
         {
             using(var fixture = GetFixture())
@@ -139,17 +139,17 @@
                         ExpectedVersion.NoStream,
                         CreateNewStreamMessageSequence(1, numberOfSeedMessages));
 
-                    var page = await store.ReadAllForwards(fromCheckpoint, maxCount);
+                    var page = await store.ReadAllForwards(fromPosition, maxCount);
 
                     page.Messages.Length.ShouldBe(expectedCount);
-                    page.FromCheckpoint.ShouldBe(expectedFromCheckpoint);
-                    page.NextCheckpoint.ShouldBe(expectedNextCheckPoint);
+                    page.FromPosition.ShouldBe(expectedFromPosition);
+                    page.NextPosition.ShouldBe(expectedNextCheckPoint);
                 }
             }
         }
 
         [Theory]
-        [InlineData(3, -1, 1, 1, 2, 1)] // -1 is Checkpoint.End
+        [InlineData(3, -1, 1, 1, 2, 1)] // -1 is Position.End
         [InlineData(3, 2, 1, 1, 2, 1)]
         [InlineData(3, 1, 1, 1, 1, 0)]
         [InlineData(3, 0, 1, 1, 0, 0)]
@@ -158,10 +158,10 @@
         [InlineData(0, -1, 1, 0, 0, 0)]
         public async Task When_read_all_backwards(
             int numberOfSeedMessages,
-            int fromCheckpoint,
+            int fromPosition,
             int maxCount,
             int expectedCount,
-            int expectedFromCheckpoint,
+            int expectedFromPosition,
             int expectedNextCheckPoint)
         {
             using (var fixture = GetFixture())
@@ -176,11 +176,11 @@
                             CreateNewStreamMessageSequence(1, numberOfSeedMessages));
                     }
 
-                    var allMessagesPage = await store.ReadAllBackwards(fromCheckpoint, maxCount);
+                    var allMessagesPage = await store.ReadAllBackwards(fromPosition, maxCount);
 
                     allMessagesPage.Messages.Length.ShouldBe(expectedCount);
-                    allMessagesPage.FromCheckpoint.ShouldBe(expectedFromCheckpoint);
-                    allMessagesPage.NextCheckpoint.ShouldBe(expectedNextCheckPoint);
+                    allMessagesPage.FromPosition.ShouldBe(expectedFromPosition);
+                    allMessagesPage.NextPosition.ShouldBe(expectedNextCheckPoint);
                 }
             }
         }

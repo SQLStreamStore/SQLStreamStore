@@ -4,7 +4,7 @@
 
     public struct StreamMessage
     {
-        public readonly long Checkpoint;
+        public readonly long Position;
         public readonly DateTime Created;
         public readonly Guid MessageId;
         public readonly string JsonData;
@@ -17,7 +17,7 @@
             string streamId,
             Guid messageId,
             int streamVersion,
-            long checkpoint,
+            long position,
             DateTime created,
             string type,
             string jsonData,
@@ -26,7 +26,7 @@
             MessageId = messageId;
             StreamId = streamId;
             StreamVersion = streamVersion;
-            Checkpoint = checkpoint;
+            Position = position;
             Created = created;
             Type = type;
             JsonData = jsonData;
@@ -42,7 +42,7 @@
         /// <filterpriority>2</filterpriority>
         public override string ToString()
         {
-            return $"MessageId={MessageId} StreamId={StreamId} StreamVersion={StreamVersion} Checkpoint={Checkpoint} Type={Type}";
+            return $"MessageId={MessageId} StreamId={StreamId} StreamVersion={StreamVersion} Position={Position} Type={Type}";
         }
     }
 }

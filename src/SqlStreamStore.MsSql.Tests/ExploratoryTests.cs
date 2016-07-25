@@ -8,7 +8,7 @@
     public partial class StreamStoreAcceptanceTests
     {
         [Fact]
-        public async Task Time_to_take_to_read_1000_read_head_checkpoints()
+        public async Task Time_to_take_to_read_1000_read_head_positions()
         {
             using (var fixture = GetFixture())
             {
@@ -20,7 +20,7 @@
 
                     for(int i = 0; i < 1000; i++)
                     {
-                        await store.ReadHeadCheckpoint();
+                        await store.ReadHeadPosition();
                     }
 
                     _testOutputHelper.WriteLine(stopwatch.ElapsedMilliseconds.ToString());

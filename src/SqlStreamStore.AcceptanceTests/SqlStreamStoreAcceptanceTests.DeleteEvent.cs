@@ -66,13 +66,13 @@
                     const string streamId = "stream";
                     var newStreamMessages = CreateNewStreamMessages(1, 2, 3);
                     await store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamMessages);
-                    var initialHead = await store.ReadHeadCheckpoint();
+                    var initialHead = await store.ReadHeadPosition();
 
                     await store.DeleteMessage(streamId, Guid.NewGuid());
 
                     var page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 3);
                     page.Messages.Length.ShouldBe(3);
-                    var subsequentHead = await store.ReadHeadCheckpoint();
+                    var subsequentHead = await store.ReadHeadPosition();
                     subsequentHead.ShouldBe(initialHead);
                 }
             }

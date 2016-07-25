@@ -8,7 +8,7 @@
 
      SELECT TOP(@count)
             dbo.Messages.StreamVersion,
-            dbo.Messages.Ordinal,
+            dbo.Messages.Position,
             dbo.Messages.Id AS EventId,
             dbo.Messages.Created,
             dbo.Messages.Type,
@@ -18,10 +18,10 @@
  INNER JOIN dbo.Streams
          ON dbo.Messages.StreamIdInternal = dbo.Streams.IdInternal
       WHERE dbo.Messages.StreamIDInternal = @streamIDInternal AND dbo.Messages.StreamVersion <= @StreamVersion
-   ORDER BY dbo.Messages.Ordinal DESC
+   ORDER BY dbo.Messages.Position DESC
 
      SELECT TOP(1)
             dbo.Messages.StreamVersion
        FROM dbo.Messages
       WHERE dbo.Messages.StreamIDInternal = @streamIDInternal
-   ORDER BY dbo.Messages.Ordinal DESC;
+   ORDER BY dbo.Messages.Position DESC;

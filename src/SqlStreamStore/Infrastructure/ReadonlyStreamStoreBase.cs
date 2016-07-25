@@ -31,30 +31,30 @@ namespace SqlStreamStore.Infrastructure
         }
 
         public async Task<AllMessagesPage> ReadAllForwards(
-            long fromCheckpointInclusive,
+            long fromPositionInclusive,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            Ensure.That(fromCheckpointInclusive, nameof(fromCheckpointInclusive)).IsGte(0);
+            Ensure.That(fromPositionInclusive, nameof(fromPositionInclusive)).IsGte(0);
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
 
             CheckIfDisposed();
 
-            var page = await ReadAllForwardsInternal(fromCheckpointInclusive, maxCount, cancellationToken);
+            var page = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, cancellationToken);
             return await FilterExpired(page, cancellationToken);
         }
 
         public async Task<AllMessagesPage> ReadAllBackwards(
-            long fromCheckpointInclusive,
+            long fromPositionInclusive,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            Ensure.That(fromCheckpointInclusive, nameof(fromCheckpointInclusive)).IsGte(-1);
+            Ensure.That(fromPositionInclusive, nameof(fromPositionInclusive)).IsGte(-1);
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
 
             CheckIfDisposed();
 
-            var page = await ReadAllBackwardsInternal(fromCheckpointInclusive, maxCount, cancellationToken);
+            var page = await ReadAllBackwardsInternal(fromPositionInclusive, maxCount, cancellationToken);
             return await FilterExpired(page, cancellationToken);
         }
 
@@ -112,7 +112,7 @@ namespace SqlStreamStore.Infrastructure
         }
 
         public Task<IAllStreamSubscription> SubscribeToAll(
-            long? fromCheckpointExclusive,
+            long? fromPositionExclusive,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null,
@@ -122,7 +122,7 @@ namespace SqlStreamStore.Infrastructure
 
             CheckIfDisposed();
 
-            return SubscribeToAllInternal(fromCheckpointExclusive,
+            return SubscribeToAllInternal(fromPositionExclusive,
                 streamMessageReceived,
                 subscriptionDropped,
                 name,
@@ -138,11 +138,11 @@ namespace SqlStreamStore.Infrastructure
             return GetStreamMetadataInternal(streamId, cancellationToken);
         }
 
-        public Task<long> ReadHeadCheckpoint(CancellationToken cancellationToken)
+        public Task<long> ReadHeadPosition(CancellationToken cancellationToken)
         {
             CheckIfDisposed();
 
-            return ReadHeadCheckpointInternal(cancellationToken);
+            return ReadHeadPositionInternal(cancellationToken);
         }
 
         public void Dispose()
@@ -153,12 +153,12 @@ namespace SqlStreamStore.Infrastructure
         }
 
         protected abstract Task<AllMessagesPage> ReadAllForwardsInternal(
-            long fromCheckpointExlusive,
+            long fromPositionExlusive,
             int maxCount,
             CancellationToken cancellationToken);
 
         protected abstract Task<AllMessagesPage> ReadAllBackwardsInternal(
-            long fromCheckpointExclusive,
+            long fromPositionExclusive,
             int maxCount,
             CancellationToken cancellationToken);
 
@@ -174,7 +174,7 @@ namespace SqlStreamStore.Infrastructure
             int count,
             CancellationToken cancellationToken);
 
-        protected abstract Task<long> ReadHeadCheckpointInternal(CancellationToken cancellationToken);
+        protected abstract Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken);
 
         protected abstract Task<IStreamSubscription> SubscribeToStreamInternal(
             string streamId,
@@ -185,7 +185,7 @@ namespace SqlStreamStore.Infrastructure
             CancellationToken cancellationToken);
 
         protected abstract Task<IAllStreamSubscription> SubscribeToAllInternal(
-            long? fromCheckpoint,
+            long? fromPosition,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             string name,
@@ -277,8 +277,8 @@ namespace SqlStreamStore.Infrastructure
                 }
             }
             return new AllMessagesPage(
-                allMessagesPage.FromCheckpoint,
-                allMessagesPage.NextCheckpoint,
+                allMessagesPage.FromPosition,
+                allMessagesPage.NextPosition,
                 allMessagesPage.IsEnd,
                 allMessagesPage.Direction,
                 valid.ToArray());

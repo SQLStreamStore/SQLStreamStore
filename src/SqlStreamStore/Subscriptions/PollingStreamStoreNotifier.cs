@@ -23,7 +23,7 @@
         private readonly IReadonlyStreamStore _readonlyStreamStore;
         private readonly Subject<Unit> _storeAppended = new Subject<Unit>();
         private readonly Timer _timer;
-        private long _headCheckpoint = -1;
+        private long _headPosition = -1;
 
         public PollingStreamStoreNotifier(IReadonlyStreamStore readonlyStreamStore, int interval = 1000)
         {
@@ -48,7 +48,7 @@
 
         public async Task Start()
         {
-            _headCheckpoint = await _readonlyStreamStore.ReadHeadCheckpoint(CancellationToken.None);
+            _headPosition = await _readonlyStreamStore.ReadHeadPosition(CancellationToken.None);
 
             _timer.Start();
         }
@@ -56,12 +56,12 @@
         private async Task Poll()
         {
             // TODO try-catch-log
-            var headCheckpoint = await _readonlyStreamStore.ReadHeadCheckpoint(_disposedTokenSource.Token);
+            var headPosition = await _readonlyStreamStore.ReadHeadPosition(_disposedTokenSource.Token);
 
-            if(headCheckpoint > _headCheckpoint)
+            if(headPosition > _headPosition)
             {
                 _storeAppended.OnNext(Unit.Default);
-                _headCheckpoint = headCheckpoint;
+                _headPosition = headPosition;
             }
 
             _timer.Start();

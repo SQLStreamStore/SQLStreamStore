@@ -34,7 +34,7 @@
                 var store = await fixture.GetStreamStore();
                 store.Dispose();
 
-                Func<Task> act = () => store.ReadAllForwards(Checkpoint.Start, 10);
+                Func<Task> act = () => store.ReadAllForwards(Position.Start, 10);
 
                 act.ShouldThrow<ObjectDisposedException>();
             }

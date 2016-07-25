@@ -7,7 +7,7 @@ A stream store library for .NET
 Key design considerations:
 
  - Designed to only support RDMBS\SQL implementations.
- - Highly API and behaviorally compatible with [EventStore](https://geteventstore.com/)
+ - API and behaviour is influencd by [EventStore](https://geteventstore.com/)
  - Async by default
  - JSON only event and metadata payloads
  - No in-built snapshot support; can be implemented externally (it's just a projection, right?)

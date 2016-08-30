@@ -4,6 +4,7 @@
     using System.Data;
     using System.Data.SqlClient;
     using System.Linq;
+    using System.Runtime.ExceptionServices;
     using System.Threading;
     using System.Threading.Tasks;
     using EnsureThat;
@@ -78,23 +79,26 @@
                 cancellationToken);
         }
 
-        private async Task<T> RetryOnDeadLock<T>(Func<Task<T>> operation)
+        private async Task<T> RetryOnDeadLock<T>(Func<Task<T>> operation, int maxRetries = 2)
         {
             Exception exception;
-            T t = default(T);
+
+            int retryCount = 0;
             do
             {
-                exception = null;
                 try
                 {
-                    t = await operation();
+                    return await operation();
                 }
                 catch(SqlException ex) when(ex.Number == 1205 || ex.Number == 1222) // Deadlock error code;
                 {
                     exception = ex;
+                    retryCount++;
                 }
-            } while(exception != null);
-            return t;
+            } while(retryCount < maxRetries);
+
+            ExceptionDispatchInfo.Capture(exception).Throw();
+            return default(T); // never actually run
         }
 
         private async Task<int?> AppendToStreamExpectedVersionAny(

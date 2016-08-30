@@ -63,7 +63,7 @@
         private static async Task RunLoadTest(CancellationTokenSource cts, IStreamStore streamStore)
         {
             var tasks = new List<Task>();
-            int count = -1;
+            int count = 0;
 
             for(int i = 0; i < Environment.ProcessorCount; i++)
             {
@@ -72,17 +72,17 @@
                 {
                     while(!cts.IsCancellationRequested)
                     {
-                        string info;
                         try
                         {
-                            int streamNumber = random.Next(0, 100000);
+                            int streamNumber = random.Next(0, 100);
 
-                            var eventNumber = Interlocked.Increment(ref count);
+                            var eventNumber1 = Interlocked.Increment(ref count);
+                            var eventNumber2 = Interlocked.Increment(ref count);
                             var newmessages = StreamStoreAcceptanceTests
-                                .CreateNewStreamMessages(eventNumber*2 + 1, eventNumber*2 + 2);
+                                .CreateNewStreamMessages(eventNumber1, eventNumber2);
 
-                            info = $"{streamNumber} - {newmessages[0].MessageId}," +
-                                       $"{newmessages[1].MessageId}";
+                            var info = $"{streamNumber} - {newmessages[0].MessageId}," +
+                                          $"{newmessages[1].MessageId}";
 
                             Log.Logger.Information($"Begin {info}");
                             await streamStore.AppendToStream(
@@ -91,7 +91,7 @@
                                 newmessages,
                                 cts.Token);
                             Log.Logger.Information($"End   {info}");
-                            Console.Write($"\r{eventNumber*2 + 2}");
+                            Console.Write($"\r{eventNumber2}");
                         }
                         catch(Exception ex) when(!(ex is TaskCanceledException))
                         {

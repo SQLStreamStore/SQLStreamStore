@@ -1,52 +1,40 @@
-BEGIN TRANSACTION AppendStream ;
-    DECLARE @streamIdInternal AS INT;
+DECLARE @streamIdInternal AS INT;
+
+BEGIN TRANSACTION CreatStreamIfNotExists;
+    IF NOT EXISTS (SELECT * FROM dbo.Streams WITH (UPDLOCK, ROWLOCK, HOLDLOCK)
+                     WHERE dbo.Streams.Id = @streamId)
+     INSERT INTO dbo.Streams (Id, IdOriginal) VALUES (@streamId, @streamIdOriginal);
+
+COMMIT TRANSACTION CreatStreamIfNotExists;
+
+BEGIN TRANSACTION AppendStream;
     DECLARE @latestStreamVersion AS INT;
 
      SELECT @streamIdInternal = dbo.Streams.IdInternal,
             @latestStreamVersion = dbo.Streams.[Version]
-      FROM dbo.Streams WITH (UPDLOCK, ROWLOCK)
+       FROM dbo.Streams WITH (UPDLOCK, ROWLOCK)
       WHERE dbo.Streams.Id = @streamId;
 
-         IF @streamIdInternal IS NULL
-            BEGIN
-                INSERT INTO dbo.Streams (Id, IdOriginal) VALUES (@streamId, @streamIdOriginal);
-                SELECT @streamIdInternal = SCOPE_IDENTITY();
+INSERT INTO dbo.Messages (StreamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata)
+     SELECT @streamIdInternal,
+            StreamVersion + @latestStreamVersion + 1,
+            Id,
+            Created,
+            [Type],
+            JsonData,
+            JsonMetadata
+        FROM @newMessages
+    ORDER BY StreamVersion
 
-                INSERT INTO dbo.Messages (StreamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata)
-                 SELECT @streamIdInternal,
-                        StreamVersion,
-                        Id,
-                        Created,
-                        [Type],
-                        JsonData,
-                        JsonMetadata
-                   FROM @newMessages
-               ORDER BY StreamVersion;
-            END
-       ELSE
-           BEGIN
+     SELECT TOP(1)
+            @latestStreamVersion = dbo.Messages.StreamVersion
+       FROM dbo.Messages
+      WHERE dbo.Messages.StreamIDInternal = @streamIdInternal
+   ORDER BY dbo.Messages.Position DESC
 
-            INSERT INTO dbo.Messages (StreamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata)
-                 SELECT @streamIdInternal,
-                        StreamVersion + @latestStreamVersion + 1,
-                        Id,
-                        Created,
-                        [Type],
-                        JsonData,
-                        JsonMetadata
-                   FROM @newMessages
-               ORDER BY StreamVersion
-           END
-
-      SELECT TOP(1)
-             @latestStreamVersion = dbo.Messages.StreamVersion
-        FROM dbo.Messages
-       WHERE dbo.Messages.StreamIDInternal = @streamIdInternal
-    ORDER BY dbo.Messages.Position DESC
-
-      UPDATE dbo.Streams
-         SET dbo.Streams.[Version] = @latestStreamVersion
-       WHERE dbo.Streams.IdInternal = @streamIdInternal
+     UPDATE dbo.Streams
+        SET dbo.Streams.[Version] = @latestStreamVersion
+      WHERE dbo.Streams.IdInternal = @streamIdInternal
 
 COMMIT TRANSACTION AppendStream;
 

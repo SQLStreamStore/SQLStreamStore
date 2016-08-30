@@ -52,12 +52,13 @@
 
             if (expectedVersion == ExpectedVersion.Any)
             {
-                return await AppendToStreamExpectedVersionAny(
+                // Deadlock can occur when creating the stream for the first time.
+                return await RetryOnDeadLock(() => AppendToStreamExpectedVersionAny(
                     connection,
                     transaction,
                     sqlStreamId,
                     messages,
-                    cancellationToken);
+                    cancellationToken));
             }
             if(expectedVersion == ExpectedVersion.NoStream)
             {
@@ -77,21 +78,23 @@
                 cancellationToken);
         }
 
-        private async Task RetryOnDeadLock(Func<Task> operation)
+        private async Task<T> RetryOnDeadLock<T>(Func<Task<T>> operation)
         {
             Exception exception;
+            T t = default(T);
             do
             {
                 exception = null;
                 try
                 {
-                    await operation();
+                    t = await operation();
                 }
                 catch(SqlException ex) when(ex.Number == 1205 || ex.Number == 1222) // Deadlock error code;
                 {
                     exception = ex;
                 }
             } while(exception != null);
+            return t;
         }
 
         private async Task<int?> AppendToStreamExpectedVersionAny(

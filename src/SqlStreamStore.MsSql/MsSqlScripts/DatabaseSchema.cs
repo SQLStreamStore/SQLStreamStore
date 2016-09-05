@@ -1,50 +1,24 @@
 ﻿
+
 namespace SqlStreamStore.MsSqlScripts
 {
+    using System;
     using System.Collections.Generic;
-    using System.Data;
     using System.Data.SqlClient;
-    using System.Dynamic;
     using System.IO;
     using System.Linq;
     using System.Text;
     using YamlDotNet.Serialization;
 
-    public static class SqlConnectionExtensions
-    {
-        public static IEnumerable<dynamic> Query(this SqlConnection connection, string sql, Dictionary<string, string> filters)
-        {
-
-            connection.Open();
-            using (var cmd = connection.CreateCommand())
-            {
-                cmd.CommandText = sql;
-                foreach (var kvp in filters)
-                {
-                    cmd.Parameters.Add(kvp.Key, SqlDbType.Variant).Value = kvp.Value;
-                }
-                using (var reader = cmd.ExecuteReader())
-                {
-                    dynamic result = new ExpandoObject();
-                    var columnNames = Enumerable.Range(0, reader.FieldCount - 1).Select(i => reader.GetName(i)).ToArray();
-                    while (reader.Read())
-                    {
-                        for (int i = 0; i < reader.FieldCount - 1; i++)
-                        {
-                            result[columnNames[i]] = reader.GetValue(i);
-                        }
-                        yield return result;
-                    }
-
-                }
-            }
-        }
-    }
-
-
     public class DatabaseSchema
     {
-        public static DatabaseSchema ReadFromYaml(string schemaName)
+        public SortedDictionary<string, DatabaseTable> Tables { get; set; } =
+            new SortedDictionary<string, DatabaseTable>();
+
+        public SortedDictionary<string, DatabaseType> Types { get; set; } =
+            new SortedDictionary<string, DatabaseType>();
+
+        public static DatabaseSchema ReadEmbedded()
         {
             var yaml = GetYamlFile("Schema");
             var deserializer = new Deserializer();
@@ -54,10 +28,12 @@ namespace SqlStreamStore.MsSqlScripts
         private static string GetYamlFile(string name)
         {
             using (var s = typeof(DatabaseSchema)
-                .Assembly.GetManifestResourceStream($"SqlStreamStore.MsSqlScripts.${name}.yaml"))
-            using (var r = new StreamReader(s))
+                .Assembly.GetManifestResourceStream("SqlStreamStore.MsSqlScripts.Schema.yaml"))
             {
-                return r.ReadToEnd();
+                using (var r = new StreamReader(s))
+                {
+                    return r.ReadToEnd();
+                }
             }
         }
 
@@ -82,14 +58,16 @@ namespace SqlStreamStore.MsSqlScripts
 
         private static DatabaseSchema GetSchema(SqlConnection connection, string schemaName)
         {
-            var schema = new DatabaseSchema()
+            var schema = new DatabaseSchema
             {
                 Tables = GetTableDefinitions(connection, schemaName)
             };
             return schema;
         }
 
-        private static SortedDictionary<string, DatabaseTable> GetTableDefinitions(SqlConnection connection, string schemaName)
+        private static SortedDictionary<string, DatabaseTable> GetTableDefinitions(
+            SqlConnection connection,
+            string schemaName)
         {
             var result = new SortedDictionary<string, DatabaseTable>();
             var sql = @"
@@ -98,7 +76,7 @@ namespace SqlStreamStore.MsSqlScripts
     WHERE TABLE_SCHEMA = @TABLE_SCHEMA";
 
             var tables = connection.Query(sql,
-                new Dictionary<string, string>() { { "table_schema", schemaName } })
+                    new Dictionary<string, string> { { "table_schema", schemaName } })
                 .ToArray();
 
 
@@ -108,12 +86,13 @@ namespace SqlStreamStore.MsSqlScripts
                 var foreignKeys = GetForeignKeys(connection, dbTable, schemaName);
 
                 var indexes = GetIndexes(connection, dbTable, schemaName);
-                result.Add(dbTable.TABLE_NAME, new DatabaseTable()
-                {
-                    Columns = columns,
-                    Indexes = indexes,
-                    ForeignKeys = foreignKeys
-                });
+                result.Add(dbTable.TABLE_NAME,
+                    new DatabaseTable
+                    {
+                        Columns = columns,
+                        Indexes = indexes,
+                        ForeignKeys = foreignKeys
+                    });
             }
             return result;
         }
@@ -141,25 +120,24 @@ INNER JOIN sys.columns col2
     ON col2.column_id = referenced_column_id AND col2.object_id = tab2.object_id
 where sch.name = @TABLE_SCHEMA and tab1.name = @table_name
 ";
-            return connection.Query(sql, new Dictionary<string, string>()
-                {
-                    { "TABLE_SCHEMA", schema },
-                { "TABLE_NAME", dbTable.TABLE_NAME }
-                })
+            return connection.Query(sql,
+                    new Dictionary<string, string>
+                    {
+                        { "TABLE_SCHEMA", schema },
+                        { "TABLE_NAME", dbTable.TABLE_NAME }
+                    })
                 .GroupBy(fk => fk.FK_NAME)
                 .Select(fkColumns =>
                     new DatabaseForeignKey(
-                        fkColumns.First().referenced_table,
+                            fkColumns.First().referenced_table,
 
-                        // get all the columns in the foreign key mapping. Typically 1, but 
-                        // in some cases a combined foreign key
-                        new DatabaseForeignKey.ColumnMapping(
-                            fkColumns.Select(c => c.column).ToStringJoined(","),
-                            fkColumns.Select(c => c.referenced_column).ToStringJoined()))
-                    .ToString())
+                            // get all the columns in the foreign key mapping. Typically 1, but 
+                            // in some cases a combined foreign key
+                            new DatabaseForeignKey.ColumnMapping(
+                                fkColumns.Select(c => c.column).ToStringJoined(","),
+                                fkColumns.Select(c => c.referenced_column).ToStringJoined()))
+                        .ToString())
                 .ToArray();
-
-
         }
 
         private static string[] GetIndexes(SqlConnection connection, dynamic dbTable, string schema)
@@ -189,19 +167,20 @@ WHERE
 ORDER BY 
      t.name, ind.name, ind.index_id, ic.index_column_id";
 
-            return connection.Query(sql, new Dictionary<string, string>()
-                {
-                    { "TABLE_SCHEMA", schema}, { "TABLE_NAME", dbTable.TABLE_NAME }
-                })
+            return connection.Query(sql,
+                    new Dictionary<string, string>
+                    {
+                        { "TABLE_SCHEMA", schema },
+                        { "TABLE_NAME", dbTable.TABLE_NAME }
+                    })
                 .GroupBy(x => x.IndexName)
-
                 .Select(x =>
-                        new DatabaseIndexDefinition(
-                                DatabaseIndexDefinition.GetType((bool?)x.First().IsPrimarykey,
-                                (bool?)x.First().IsUnique),
-                                x.First().Type == "CLUSTERED",
-                                BuildIndexedColumns(x.Where(c => !c.IsIncluded)),
-                                BuildIndexedColumns(x.Where(c => c.IsIncluded))).ToString())
+                    new DatabaseIndexDefinition(
+                        DatabaseIndexDefinition.GetType((bool?)x.First().IsPrimarykey,
+                            (bool?)x.First().IsUnique),
+                        x.First().Type == "CLUSTERED",
+                        BuildIndexedColumns(x.Where(c => !c.IsIncluded)),
+                        BuildIndexedColumns(x.Where(c => c.IsIncluded))).ToString())
                 .ToArray();
         }
 
@@ -209,14 +188,20 @@ ORDER BY
         {
             return x
                 .OrderBy(column => column.Ordinal)
-                .Select(column => new DatabaseIndexDefinition.IndexColumn(column.ColumnName, DatabaseIndexDefinition.SortOrder.Asc))
+                .Select(
+                    column =>
+                        new DatabaseIndexDefinition.IndexColumn(column.ColumnName,
+                            DatabaseIndexDefinition.SortOrder.Asc))
                 .ToArray();
         }
 
-        private static SortedDictionary<string, string> GetColumns(SqlConnection connection, dynamic dbTable, string schema)
+        private static SortedDictionary<string, string> GetColumns(
+            SqlConnection connection,
+            dynamic dbTable,
+            string schema)
         {
             var columns = connection.Query(
-                @"
+                    @"
     SELECT 
         c.name as column_name
         , o.name
@@ -229,50 +214,55 @@ ORDER BY
         join sys.objects o on c.object_id = o.object_id
         join sys.schemas s on o.schema_id = s.schema_id
     WHERE o.name = @table_name and s.name = @table_schema",
-                new Dictionary<string, string>()
-                { { "table_schema", schema}, {"TABLE_NAME", dbTable.TABLE_NAME }})
+                    new Dictionary<string, string> { { "table_schema", schema }, { "TABLE_NAME", dbTable.TABLE_NAME } })
                 .ToDictionary(
                     x => (string)x.column_name,
                     x =>
-                        new DatabaseTable.ColumnDefinition(DatabaseTable.ColumnDefinition.GetColumnType(x.data_type, x.max_length),
-                            x.is_nullable, x.default_value, x.is_identity).ToString());
+                        new DatabaseTable.ColumnDefinition(
+                            DatabaseTable.ColumnDefinition.GetColumnType(x.data_type, x.max_length),
+                            x.is_nullable,
+                            x.default_value,
+                            x.is_identity).ToString());
             return new SortedDictionary<string, string>(columns);
         }
 
-        public SortedDictionary<string, DatabaseTable> Tables { get; set; } = new SortedDictionary<string, DatabaseTable>();
-
-        public static string[] Compare(DatabaseSchema source, DatabaseSchema target, string sourceName, string targetName)
+        public static string[] Compare(
+            DatabaseSchema source,
+            DatabaseSchema target,
+            string sourceName,
+            string targetName)
         {
-            return source.Tables.CompareTo(target.Tables, "Table", sourceName, targetName,
-                (sourceTable, targetTable, tableName) => DatabaseTable.Compare(sourceTable, targetTable, tableName, sourceName, targetName));
+            return source.Tables.CompareTo(target.Tables,
+                "Table",
+                sourceName,
+                targetName,
+                (sourceTable, targetTable, tableName) =>
+                        DatabaseTable.Compare(sourceTable, targetTable, tableName, sourceName, targetName));
         }
 
         public string ToSql(string schemaName)
         {
-            StringBuilder builder = new StringBuilder();
+            var builder = new StringBuilder();
 
-            builder.Append($@"
-    GO");
+            if (!schemaName.Equals("dbo", StringComparison.OrdinalIgnoreCase))
+                builder.Append($@"
+IF NOT EXISTS (SELECT * FROM sys.schemas WHERE name = '{schemaName}')
+BEGIN
+    EXEC('CREATE SCHEMA {schemaName}')
+END
+");
 
             // First build the tables and indexes
             foreach (var table in Tables)
-            {
                 builder.Append(table.Value.ToSql(schemaName, table.Key));
-            }
 
             // Then build all foreign keys
             foreach (var table in Tables)
-            {
                 builder.Append(table.Value.ForeignKeysToSql(schemaName, table.Key));
-            }
 
             return builder.ToString();
         }
 
         public delegate string[] CompareItem<in T>(T source, T target, string name);
-
     }
-
-
-
 }

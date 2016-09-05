@@ -33,7 +33,7 @@
 
         internal string GetStreamMessageBeforeCreatedCount => GetScript(nameof(GetStreamMessageBeforeCreatedCount));
 
-        internal string InitializeStore => GetScript(nameof(InitializeStore));
+        internal string InitializeStore => GetScript(nameof(InitializeStore)) + DatabaseSchema.ReadEmbedded().ToSql(Schema);
 
         internal string ReadAllForward => GetScript(nameof(ReadAllForward));
 

@@ -56,6 +56,7 @@
     <Compile Include="MsSqlScripts\DatabaseSchema.cs" />
     <Compile Include="MsSqlScripts\DatabaseSchemaExtensions.cs" />
     <Compile Include="MsSqlScripts\DatabaseTable.cs" />
+    <Compile Include="MsSqlScripts\SqlConnectionExtensions.cs" />
     <Compile Include="MsSqlStreamStore.cs" />
     <Compile Include="MsSqlStreamStore.AppendStream.cs" />
     <Compile Include="MsSqlStreamStore.StreamMetadata.cs" />

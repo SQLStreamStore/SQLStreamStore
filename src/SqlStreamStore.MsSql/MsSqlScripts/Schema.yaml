@@ -1,16 +1,37 @@
 ﻿Tables:
-  ValidityPeriodProjections:
+  Streams:
     Columns:
-      Id: uniqueidentifier
-      WorkItemProjectionId: uniqueidentifier Null
-      Status: nvarchar(255)
-      StartAt: datetime Null
-      EndAt: datetime Null
-      ExtendsShift: bit default((0))
-      SequenceNumber: int default((0))
-    ForeignKeys:
-    - WorkItemProjections(WorkItemProjectionId->Id)
+      Id:           CHAR(42)
+      IdOriginal:   NVARCHAR(1000)
+      IdInternal:   INT IDENTITY(1,1)
+      Version:      INT DEFAULT(-1)
     Indexes:
-    - Index(WorkItemProjectionId)
-    - PrimaryKey:Clustered(Id)
-    - Unique(WorkItemProjectionId,SequenceNumber)
+    - PrimaryKey:Clustered(IdInternal)
+    - Unique(Id)
+  Messages:
+    Columns:
+      StreamIdInternal:    INT
+      StreamVersion:       INT
+      Position:            BIGINT IDENTITY(0,1)
+      Id:                  UNIQUEIDENTIFIER
+      Created:             DATETIME
+      Type:                NVARCHAR(128)
+      JsonData:            NVARCHAR(max)
+      JsonMetadata:        NVARCHAR(max) NULL
+    ForeignKeys:
+      - Streams(StreamIdInternal->IdInternal)
+    Indexes:
+      - PrimaryKey:Clustered(Position)
+      - Unique(Position)
+      - Unique(StreamIdInternal, Id)
+      - Unique(StreamIdInternal, StreamVersion)
+      - Index(StreamIdInternal, Created)
+Types:
+  NewStreamMessages:
+    Columns:
+      StreamVersion:      INT IDENTITY(0,1)                       
+      Id:                 UNIQUEIDENTIFIER                        
+      Created:            DATETIME          DEFAULT(GETUTCDATE()) 
+      Type:               NVARCHAR(128)                           
+      JsonData:           NVARCHAR(max)                           NULL
+      JsonMetadata:       NVARCHAR(max)                           NULL

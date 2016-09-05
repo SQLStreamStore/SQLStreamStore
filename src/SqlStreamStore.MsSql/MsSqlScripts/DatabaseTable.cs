@@ -96,7 +96,7 @@ namespace SqlStreamStore.MsSqlScripts
     (
         {BuildColumnsSql()}
     )
-    GO{BuildIndexes(schemaName, tableName)}
+    {BuildIndexes(schemaName, tableName)}
     ";
         }
 
@@ -116,7 +116,7 @@ namespace SqlStreamStore.MsSqlScripts
 
         private string BuildColumnsSql()
         {
-            return Columns.Select(x => ColumnDefinition.Parse(x.Value).ToSql(x.Key)).ToStringJoined(",\r\n        ");
+            return Columns.Select(x => ColumnDefinition.Parse(x.Value).ToSql(x.Key.Trim())).ToStringJoined(",\r\n        ");
         }
 
         //public string[] CompareTo(string sourceTable, Table targetTable, string targetName)
@@ -153,7 +153,7 @@ namespace SqlStreamStore.MsSqlScripts
                 if (!string.IsNullOrEmpty(defaultValue))
                 {
                     DefaultValue = defaultValue;
-                    if (!defaultValue.StartsWith("default"))
+                    if (!defaultValue.StartsWith("default", StringComparison.InvariantCultureIgnoreCase))
                     {
                         DefaultValue = "default" + defaultValue;
                     }
@@ -196,5 +196,10 @@ namespace SqlStreamStore.MsSqlScripts
                 return $"[{name}] {Type}{identity}{nullable}{defaultValue}";
             }
         }
+    }
+
+    public class DatabaseType
+    {
+        public SortedDictionary<string, string> Columns { get; set; } = new SortedDictionary<string, string>();
     }
 }

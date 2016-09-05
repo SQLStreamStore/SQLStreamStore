@@ -64,7 +64,7 @@ namespace SqlStreamStore.MsSqlScripts
     ALTER TABLE [{schemaName}].[{tableName}]
         WITH CHECK ADD CONSTRAINT [FK_{schemaName}_{tableName}_{TargetTable}({i})] FOREIGN KEY ({Column.ColumnInSourceTable})
         REFERENCES [{schemaName}].[{TargetTable}]({Column.ColumnInTargetTable})
-    GO";
+    ";
         }
     }
 }

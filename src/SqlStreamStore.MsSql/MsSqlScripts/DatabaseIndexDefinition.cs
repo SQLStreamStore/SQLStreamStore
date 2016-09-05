@@ -72,11 +72,15 @@ namespace SqlStreamStore.MsSqlScripts
                 type = IndexType.PrimaryKey;
             }
 
-            var columns = requiredParts[1].Split(',').Select(IndexColumn.Parse).ToArray();
+            var columns = requiredParts[1].Split(',')
+                .Select(x => x.Trim())
+                .Select(IndexColumn.Parse).ToArray();
             IndexColumn[] includedColumns = null;
             if (parts.Length == 2)
             {
-                includedColumns = parts[1].TrimEnd('}').Split(',').Select(IndexColumn.Parse).ToArray();
+                includedColumns = parts[1].TrimEnd('}').Split(',')
+                    .Select(x => x.Trim())
+                    .Select(IndexColumn.Parse).ToArray();
             }
             return new DatabaseIndexDefinition(type, clustered, columns, includedColumns);
         }
@@ -100,9 +104,9 @@ namespace SqlStreamStore.MsSqlScripts
             {
                 type += ":Clustered";
             }
-            var columns = Columns.Select(x => x.ToString()).ToStringJoined();
+            var columns = Columns.Select(x => x.ToString().Trim()).ToStringJoined();
 
-            var indexedColumns = IncludedOnlyColumns?.Select(x => x.ToString()).ToStringJoined();
+            var indexedColumns = IncludedOnlyColumns?.Select(x => x.ToString().Trim()).ToStringJoined();
             if (!string.IsNullOrEmpty(indexedColumns))
             {
                 indexedColumns = $"{{{indexedColumns}}}";
@@ -135,12 +139,12 @@ namespace SqlStreamStore.MsSqlScripts
     (
         {indexColumns}
     ){includedColumns}
-    GO";
+    ";
                 case IndexType.PrimaryKey:
                     return $@"
     ALTER TABLE [{schemaName}].[{tableName}]
         ADD CONSTRAINT [PK_{schemaName}_{tableName}] PRIMARY KEY ({Columns.Select(x => x.ToSql()).ToStringJoined()})
-    GO
+    
     ";
                 case IndexType.Unique:
                     return $@"
@@ -148,7 +152,7 @@ namespace SqlStreamStore.MsSqlScripts
     (
         {indexColumns}
     ){includedColumns}
-    GO";
+    ";
                 default:
                     throw new NotImplementedException($"unknown index type {this.Type}");
             }

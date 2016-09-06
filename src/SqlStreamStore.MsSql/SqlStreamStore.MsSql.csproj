@@ -42,11 +42,21 @@
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Data" />
     <Reference Include="System.Transactions" />
+    <Reference Include="YamlDotNet, Version=3.9.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\YamlDotNet.3.9.0\lib\net35\YamlDotNet.dll</HintPath>
+      <Private>True</Private>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="MsSqlScripts\DatabaseForeignKey.cs" />
+    <Compile Include="MsSqlScripts\DatabaseIndexDefinition.cs" />
+    <Compile Include="MsSqlScripts\DatabaseSchema.cs" />
+    <Compile Include="MsSqlScripts\DatabaseSchemaExtensions.cs" />
+    <Compile Include="MsSqlScripts\DatabaseTable.cs" />
+    <Compile Include="MsSqlScripts\SqlConnectionExtensions.cs" />
     <Compile Include="MsSqlStreamStore.cs" />
     <Compile Include="MsSqlStreamStore.AppendStream.cs" />
     <Compile Include="MsSqlStreamStore.StreamMetadata.cs" />
@@ -59,6 +69,7 @@
     <Compile Include="StreamIdInfo.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="MsSqlScripts\Schema.yaml" />
     <None Include="packages.config" />
     <None Include="StreamStore.MsSql.nuspec" />
     <Compile Include="MsSqlStreamStore.ReadStream.cs" />

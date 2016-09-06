@@ -7,7 +7,7 @@
     internal class Scripts
     {
         internal readonly string Schema;
-        private readonly ConcurrentDictionary<string, string> _scripts 
+        private readonly ConcurrentDictionary<string, string> _scripts
             = new ConcurrentDictionary<string, string>();
 
         internal Scripts(string schema)
@@ -33,7 +33,7 @@
 
         internal string GetStreamMessageBeforeCreatedCount => GetScript(nameof(GetStreamMessageBeforeCreatedCount));
 
-        internal string InitializeStore => GetScript(nameof(InitializeStore));
+        internal string InitializeStore => GetScript(nameof(InitializeStore)) + DatabaseSchema.ReadEmbedded().ToSql(Schema);
 
         internal string ReadAllForward => GetScript(nameof(ReadAllForward));
 
@@ -52,15 +52,15 @@
             return _scripts.GetOrAdd(name,
                 key =>
                 {
-                    using(Stream stream = typeof(Scripts)
+                    using (Stream stream = typeof(Scripts)
                         .Assembly
                         .GetManifestResourceStream("SqlStreamStore.MsSqlScripts." + key + ".sql"))
                     {
-                        if(stream == null)
+                        if (stream == null)
                         {
                             throw new Exception($"Embedded resource, {name}, not found. BUG!");
                         }
-                        using(StreamReader reader = new StreamReader(stream))
+                        using (StreamReader reader = new StreamReader(stream))
                         {
                             return reader
                                 .ReadToEnd()

@@ -109,5 +109,18 @@
                 }
             }
         }
+
+        [Theory, InlineData("dbo"), InlineData("myschema")]
+        public async Task Can_call_initialize_repeatably(string schema)
+        {
+            using(var fixture = new MsSqlStreamStoreFixture(schema))
+            {
+                using(var store = await fixture.GetMsSqlStreamStore())
+                {
+                    await store.InitializeStore();
+                    await store.InitializeStore();
+                }
+            }
+        }
     }
 }

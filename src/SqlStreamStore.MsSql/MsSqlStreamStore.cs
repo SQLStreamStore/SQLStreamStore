@@ -69,7 +69,15 @@
 
                 if(_scripts.Schema != "dbo")
                 {
-                    using(var command = new SqlCommand($"CREATE SCHEMA {_scripts.Schema}", connection))
+                    using(var command = new SqlCommand($@"
+                        IF NOT EXISTS (
+                        SELECT  schema_name
+                        FROM    information_schema.schemata
+                        WHERE   schema_name = '{_scripts.Schema}' ) 
+
+                        BEGIN
+                        EXEC sp_executesql N'CREATE SCHEMA {_scripts.Schema}'
+                        END", connection))
                     {
                         await command
                             .ExecuteNonQueryAsync(cancellationToken)

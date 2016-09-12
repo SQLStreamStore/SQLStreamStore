@@ -55,6 +55,24 @@
             }
         }
 
+        [Fact]
+        public async Task Can_read_next_page_past_end_of_stream()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+
+                    var page = await store.ReadStreamForwards("stream-1", StreamVersion.Start, 4);
+
+                    page = await store.ReadStreamForwards("stream-1", page.NextStreamVersion, 4);
+
+                    page.Messages.Length.ShouldBe(0);
+                }
+            }
+        }
+
         [Theory]
         [MemberData("GetReadStreamBackwardsTheories")]
         public async Task Can_read_streams_backwards(ReadStreamTheory theory)

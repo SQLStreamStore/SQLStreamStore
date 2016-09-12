@@ -451,7 +451,7 @@ namespace SqlStreamStore
                 }
 
                 var lastStreamVersion = stream.Events.Last().StreamVersion;
-                var nextStreamVersion = events.Last().StreamVersion + 1;
+                var nextStreamVersion = events.Count == 0 ? lastStreamVersion + 1 : events.Last().StreamVersion + 1;
                 var endOfStream = i == stream.Events.Count;
 
                 var page = new StreamMessagesPage(

@@ -73,6 +73,23 @@
             }
         }
 
+        [Fact]
+        public async Task Can_read_all_messages()
+        {
+            // Just because you can, doesn't mean you should.
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+
+                    var page = await store.ReadStreamForwards("stream-1", StreamVersion.Start, int.MaxValue);
+
+                    page.Messages.Length.ShouldBe(3);
+                }
+            }
+        }
+
         [Theory]
         [MemberData("GetReadStreamBackwardsTheories")]
         public async Task Can_read_streams_backwards(ReadStreamTheory theory)

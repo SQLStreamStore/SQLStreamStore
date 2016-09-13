@@ -329,5 +329,22 @@
                 }
             }
         }
+
+        [Fact]
+        public async Task When_append_stream_with_empty_collection_of_messages_then_should_do_nothing()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    const string streamId = "stream-1";
+                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, new NewStreamMessage[0]);
+
+                    var page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 1);
+
+                    page.Status.ShouldBe(PageReadStatus.StreamNotFound);
+                }
+            }
+        }
     }
 }

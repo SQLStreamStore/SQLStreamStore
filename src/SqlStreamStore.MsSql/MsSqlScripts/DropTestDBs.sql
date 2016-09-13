@@ -12,7 +12,7 @@ if len(@dbnames) = 0
     end
 else
     begin
-    set @statement = 'drop database ' + substring(@dbnames, 2, len(@dbnames))
+    set @statement = 'drop database [' + substring(@dbnames, 2, len(@dbnames)) + ']'
     print @statement
     exec sp_executesql @statement
     end

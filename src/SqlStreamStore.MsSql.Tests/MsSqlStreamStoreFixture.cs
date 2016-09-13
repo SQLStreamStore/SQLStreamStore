@@ -23,7 +23,7 @@ namespace SqlStreamStore
             _localDbInstance.Start();
 
             var uniqueName = Guid.NewGuid().ToString().Replace("-", string.Empty);
-            _databaseName = $"StreamStoreTests_{uniqueName}";
+            _databaseName = $"StreamStoreTests-{uniqueName}";
 
             ConnectionString = CreateConnectionString();
         }
@@ -85,7 +85,7 @@ namespace SqlStreamStore
             using (var connection = _localDbInstance.CreateConnection())
             {
                 connection.Open();
-                using (var command = new SqlCommand($"DROP DATABASE {_databaseName}", connection))
+                using (var command = new SqlCommand($"DROP DATABASE [{_databaseName}]", connection))
                 {
                     command.ExecuteNonQuery();
                 }
@@ -97,7 +97,7 @@ namespace SqlStreamStore
             using(var connection = _localDbInstance.CreateConnection())
             {
                 await connection.OpenAsync();
-                using(var command = new SqlCommand($"CREATE DATABASE {_databaseName}", connection))
+                using(var command = new SqlCommand($"CREATE DATABASE  [{_databaseName}]", connection))
                 {
                     await command.ExecuteNonQueryAsync();
                 }

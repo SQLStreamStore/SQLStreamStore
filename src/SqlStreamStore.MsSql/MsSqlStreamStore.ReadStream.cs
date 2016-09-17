@@ -47,7 +47,10 @@
             SqlConnection connection,
             CancellationToken cancellationToken)
         {
+            // If the count is int.MaxValue, TSql will see it as a negative number. 
+            // Users shouldn't be using int.MaxValue in the first place.
             count = count == int.MaxValue ? count - 1 : count;
+
             // To read backwards from end, need to use int MaxValue
             var streamVersion = start == StreamVersion.End ? int.MaxValue : start;
             string commandText;

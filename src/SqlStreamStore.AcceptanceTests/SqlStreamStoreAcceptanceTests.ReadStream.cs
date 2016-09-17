@@ -76,7 +76,6 @@
         [Fact]
         public async Task Can_read_all_messages()
         {
-            // Just because you can, doesn't mean you should.
             using (var fixture = GetFixture())
             {
                 using (var store = await fixture.GetStreamStore())

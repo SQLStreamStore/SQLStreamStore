@@ -17,7 +17,7 @@
             int count,
             CancellationToken cancellationToken)
         {
-            using(var connection = _createConnection())
+            using (var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                 var streamIdInfo = new StreamIdInfo(streamId);
@@ -47,6 +47,7 @@
             SqlConnection connection,
             CancellationToken cancellationToken)
         {
+            count = count == int.MaxValue ? count - 1 : count;
             // To read backwards from end, need to use int MaxValue
             var streamVersion = start == StreamVersion.End ? int.MaxValue : start;
             string commandText;

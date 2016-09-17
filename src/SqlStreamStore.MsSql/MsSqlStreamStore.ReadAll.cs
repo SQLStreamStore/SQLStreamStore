@@ -15,6 +15,7 @@ namespace SqlStreamStore
             int maxCount,
             CancellationToken cancellationToken)
         {
+            maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;
             long ordinal = fromPositionExlusive;
 
             using (var connection = _createConnection())
@@ -89,6 +90,7 @@ namespace SqlStreamStore
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken))
         {
+            maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;
             long ordinal = fromPositionExclusive == Position.End ? long.MaxValue : fromPositionExclusive;
 
             using (var connection = _createConnection())

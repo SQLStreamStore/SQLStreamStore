@@ -28,12 +28,9 @@ namespace SqlStreamStore.Infrastructure
             Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
             Ensure.That(messages, nameof(messages)).IsNotNull();
 
-            if(messages.Length == 0)
-            {
-                return TaskHelpers.CompletedTask;
-            }
-
-            return AppendToStreamInternal(streamId, expectedVersion, messages, cancellationToken);
+            return messages.Length == 0 
+                ? TaskHelpers.CompletedTask 
+                : AppendToStreamInternal(streamId, expectedVersion, messages, cancellationToken);
         }
 
         /// <summary>

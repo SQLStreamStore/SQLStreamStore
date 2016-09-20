@@ -6,6 +6,7 @@
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Streams;
     using SqlStreamStore;
+    using SqlStreamStore.Logging;
 
     public sealed class StreamSubscription : SubscriptionBase, IStreamSubscription
     {
@@ -26,6 +27,8 @@
             _streamId = streamId;
             _nextVersion = startVersion;
             _lastVersion = startVersion - 1;
+
+            Logger.Info($"Stream subscription {Name}/{_streamId} will start from {startVersion}.");
         }
 
         public string StreamId => _streamId;
@@ -64,6 +67,7 @@
             {
                 if(IsDisposed.IsCancellationRequested)
                 {
+                    Logger.Warn($"Cancellation requested for stream subscription {Name}/{_streamId}. No events will be received.");
                     return true;
                 }
                 _nextVersion = message.StreamVersion + 1;
@@ -74,13 +78,14 @@
                 }
                 catch(Exception ex)
                 {
+                    Logger.ErrorException($"Stream subscription {Name}/{_streamId} could not receive event: {streamMessage}.", ex);
                     try
                     {
                         SubscriptionDropped.Invoke(ex.Message, ex);
                     }
-                    catch(Exception ex2)
+                    catch(Exception iex)
                     {
-                        // Need to log this 
+                        Logger.FatalException($"Tried to drop stream subscription {Name}/{_streamId} but could not.", iex);
                     }
                     finally
                     {

@@ -6,6 +6,7 @@
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Streams;
     using SqlStreamStore;
+    using SqlStreamStore.Logging;
 
     public sealed class AllStreamSubscription : SubscriptionBase, IAllStreamSubscription
     {
@@ -23,6 +24,8 @@
             FromPosition = fromPosition;
             LastPosition = fromPosition;
             _nextPosition = fromPosition + 1 ?? Position.Start;
+
+            Logger.Info($"All subscription {Name} will start from {fromPosition}.");
         }
 
         public long? FromPosition { get; }
@@ -60,6 +63,7 @@
             {
                 if(IsDisposed.IsCancellationRequested)
                 {
+                    Logger.Warn($"Cancellation requested for all subscription {Name}. No events will be received.");
                     return true;
                 }
                 try
@@ -70,13 +74,14 @@
                 }
                 catch(Exception ex)
                 {
+                    Logger.ErrorException($"All subscription {Name} could not receive event: {streamMessage}.", ex);
                     try
                     {
                         SubscriptionDropped.Invoke(ex.Message, ex);
                     }
-                    catch
+                    catch (Exception iex)
                     {
-                        //TODO logging
+                        Logger.FatalException($"Tried to drop all subscription {Name} but could not.", iex);
                     }
                     finally
                     {

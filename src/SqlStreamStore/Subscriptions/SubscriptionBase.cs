@@ -5,9 +5,11 @@
     using System.Threading.Tasks;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore;
+    using SqlStreamStore.Logging;
 
     public abstract class SubscriptionBase : IDisposable
     {
+        protected ILog Logger;
         private int _pageSize = 50;
         private IDisposable _streamStoreAppendedSubscription;
         private readonly InterlockedBoolean _shouldFetch = new InterlockedBoolean();
@@ -26,6 +28,7 @@
             StreamMessageReceived = streamMessageReceived;
             Name = string.IsNullOrWhiteSpace(name) ? Guid.NewGuid().ToString() : name;
             SubscriptionDropped = subscriptionDropped ?? ((_, __) => { });
+            Logger = LogProvider.GetCurrentClassLogger();
         }
 
         public string Name { get; }
@@ -48,12 +51,14 @@
 
         public virtual Task Start(CancellationToken cancellationToken)
         {
+            Logger.Info($"Starting subscription {Name}.");
             _streamStoreAppendedSubscription = StreamStoreAppendedNotification.Subscribe(_ =>
             {
                 _shouldFetch.Set(true);
                 Fetch();
             });
             Fetch();
+            Logger.Info($"Subscription {Name} started.");
             return Task.FromResult(0);
         }
 
@@ -72,6 +77,7 @@
         {
             if (disposing)
             {
+                Logger.Info($"Subscription {Name} disposing.");
                 _streamStoreAppendedSubscription?.Dispose();
                 _isDisposed.Cancel();
             }
@@ -94,7 +100,7 @@
                 }
                 catch(Exception ex)
                 {
-                    // Drop subscription
+                    Logger.ErrorException($"Subscription {Name} could not fetch events.", ex);
                 }
                 finally
                 {

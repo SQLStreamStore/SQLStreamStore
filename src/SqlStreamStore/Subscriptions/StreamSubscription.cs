@@ -78,7 +78,7 @@
                 }
                 catch(Exception ex)
                 {
-                    Logger.ErrorException($"Stream subscription {Name}/{_streamId} could not receive event: {streamMessage}.", ex);
+                    Logger.ErrorException($"Stream subscription {Name}/{_streamId} could not receive event: {message}.", ex);
                     try
                     {
                         SubscriptionDropped.Invoke(ex.Message, ex);

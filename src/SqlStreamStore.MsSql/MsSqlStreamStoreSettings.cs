@@ -19,7 +19,7 @@ namespace SqlStreamStore
         public string ConnectionString { get; private set; }
 
         public CreateStreamStoreNotifier CreateStreamStoreNotifier { get; set; } =
-            store => new PollingStreamStoreNotifier(store.ReadHeadPosition);
+            store => new PollingStreamStoreNotifier(store);
 
         public string Schema
         {

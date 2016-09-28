@@ -14,6 +14,10 @@
         private readonly int _interval;
         private readonly Subject<Unit> _storeAppended = new Subject<Unit>();
 
+        public PollingStreamStoreNotifier(IReadonlyStreamStore readonlyStreamStore, int interval = 1000)
+            : this(readonlyStreamStore.ReadHeadPosition, interval)
+        {}
+
         public PollingStreamStoreNotifier(Func<CancellationToken, Task<long>> readHeadPosition, int interval = 1000)
         {
             _readHeadPosition = readHeadPosition;

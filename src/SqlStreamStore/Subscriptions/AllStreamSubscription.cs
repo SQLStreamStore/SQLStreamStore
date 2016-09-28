@@ -140,10 +140,7 @@
             try
             {
                 allMessagesPage = await _readonlyStreamStore
-                    .ReadAllForwards(
-                        _nextPosition,
-                        PageSize,
-                        _disposed.Token)
+                    .ReadAllForwards(_nextPosition, PageSize, _disposed.Token)
                     .NotOnCapturedContext();
             }
             catch (TaskCanceledException)

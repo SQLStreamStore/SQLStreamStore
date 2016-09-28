@@ -648,15 +648,16 @@
                         async _ =>
                         {
                             handler.Set();
-                            await handler.WaitAsync(); // block "handling" while a dispose occurs
+                            await handler.WaitAsync().WithTimeout(); // block "handling" while a dispose occurs
                         },
                         (reason, exception) =>
                         {
                             droppedTcs.SetResult(reason);
                         });
                     // First message is blocked in handling, the second is co-operatively cancelled
+                    await subscription.Started;
                     await AppendMessages(store, streamId, 2);
-                    await handler.WaitAsync();
+                    await handler.WaitAsync().WithTimeout();
                     subscription.Dispose();
                     handler.Set();
 

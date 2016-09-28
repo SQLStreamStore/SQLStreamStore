@@ -2,7 +2,6 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Linq;
     using System.Threading.Tasks;
     using Nito.AsyncEx;
@@ -238,7 +237,7 @@
 
                     var receiveMessages = new TaskCompletionSource<StreamMessage>();
                     List<StreamMessage> receivedMessages = new List<StreamMessage>();
-                    using(store.SubscribeToAll(
+                    using(var subscription = store.SubscribeToAll(
                         Position.End,
                         message =>
                         {
@@ -252,6 +251,8 @@
                             return Task.CompletedTask;
                         }))
                     {
+                        await subscription.Started;
+
                         await AppendMessages(store, streamId1, 2);
 
                         await receiveMessages.Task.WithTimeout();
@@ -265,23 +266,21 @@
         [Fact]
         public async Task Given_empty_streamstore_can_subscribe_to_all_stream_from_end()
         {
-            var stopwatch = Stopwatch.StartNew();
             using (var fixture = GetFixture())
             {
                 using (var store = await fixture.GetStreamStore())
                 {
                     string streamId1 = "stream-1";
-                    var receiveMessages = new TaskCompletionSource<StreamMessage>();
+                    var receiveMessages = new TaskCompletionSource<int>();
                     List<StreamMessage> receivedMessages = new List<StreamMessage>();
                     using (var subscription = store.SubscribeToAll(
                         Position.End,
                         message =>
                         {
-                            _testOutputHelper.WriteLine($"{stopwatch.ElapsedMilliseconds.ToString()} {message.StreamVersion}");
                             receivedMessages.Add(message);
                             if (message.StreamId == streamId1 && message.StreamVersion == 9)
                             {
-                                receiveMessages.SetResult(message);
+                                receiveMessages.SetResult(0);
                             }
                             return Task.CompletedTask;
                         }))
@@ -518,7 +517,7 @@
                             tcs.SetResult(reason);
                         });
                     subscription.Dispose();
-                    var droppedReason = await tcs.Task.WithTimeout(5000);
+                    var droppedReason = await tcs.Task.WithTimeout();
 
                     droppedReason.ShouldBe(SubscriptionDroppedReason.Disposed);
                 }
@@ -526,7 +525,7 @@
         }
 
         [Fact]
-        public async Task When_stream_subscriptiondisposed_while_handling_messages_then_should_drop_subscription_with_reason_Disposed()
+        public async Task When_stream_subscription_disposed_while_handling_messages_then_should_drop_subscription_with_reason_Disposed()
         {
             using(var fixture = GetFixture())
             {
@@ -560,7 +559,7 @@
         }
 
         [Fact]
-        public async Task Can_dispose_subscription_multiple_times()
+        public async Task Can_dispose_stream_subscription_multiple_times()
         {
             using (var fixture = GetFixture())
             {
@@ -569,6 +568,115 @@
                     string streamId = "stream-1";
                     var subscription = store.SubscribeToStream(streamId,
                         StreamVersion.Start,
+                        _ => Task.CompletedTask);
+                    await AppendMessages(store, streamId, 2);
+                    subscription.Dispose();
+                    subscription.Dispose();
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_exception_throw_by_all_stream_subscriber_then_should_drop_subscription_with_reson_SubscriberError()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    var eventReceivedException = new TaskCompletionSource<SubscriptionDroppedReason>();
+                    StreamMessageReceived messageReceived = _ =>
+                    {
+                        throw new Exception();
+                    };
+                    SubscriptionDropped subscriptionDropped = (reason, exception) =>
+                    {
+                        eventReceivedException.SetResult(reason);
+                    };
+                    string streamId = "stream-1";
+                    using (store.SubscribeToAll(
+                        null,
+                        messageReceived,
+                        subscriptionDropped))
+                    {
+                        await store.AppendToStream(streamId,
+                            ExpectedVersion.NoStream,
+                            new NewStreamMessage(Guid.NewGuid(), "type", "{}"));
+
+                        var droppedReason = await eventReceivedException.Task.WithTimeout();
+
+                        droppedReason.ShouldBe(SubscriptionDroppedReason.SubscriberError);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_all_stream_subscription_disposed_then_should_drop_subscription_with_reason_Disposed()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    var tcs = new TaskCompletionSource<SubscriptionDroppedReason>();
+                    var subscription = store.SubscribeToAll(
+                        Position.End,
+                        _ => Task.CompletedTask,
+                        (reason, exception) =>
+                        {
+                            tcs.SetResult(reason);
+                        });
+                    subscription.Dispose();
+                    var droppedReason = await tcs.Task.WithTimeout();
+
+                    droppedReason.ShouldBe(SubscriptionDroppedReason.Disposed);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_all_stream_subscription_disposed_while_handling_messages_then_should_drop_subscription_with_reason_Disposed()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    string streamId = "stream-1";
+                    var droppedTcs = new TaskCompletionSource<SubscriptionDroppedReason>();
+                    var handler = new AsyncAutoResetEvent();
+                    var subscription = store.SubscribeToAll(
+                        Position.End,
+                        async _ =>
+                        {
+                            handler.Set();
+                            await handler.WaitAsync(); // block "handling" while a dispose occurs
+                        },
+                        (reason, exception) =>
+                        {
+                            droppedTcs.SetResult(reason);
+                        });
+                    // First message is blocked in handling, the second is co-operatively cancelled
+                    await AppendMessages(store, streamId, 2);
+                    await handler.WaitAsync();
+                    subscription.Dispose();
+                    handler.Set();
+
+                    var droppedReason = await droppedTcs.Task.WithTimeout();
+
+                    droppedReason.ShouldBe(SubscriptionDroppedReason.Disposed);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Can_dispose__all_stream_subscription_multiple_times()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    string streamId = "stream-1";
+                    var subscription = store.SubscribeToAll(
+                        Position.Start,
                         _ => Task.CompletedTask);
                     await AppendMessages(store, streamId, 2);
                     subscription.Dispose();

@@ -53,7 +53,7 @@ task ILMerge -depends Compile {
     $mainDllName = "SqlStreamStore"
     $dllDir = "$srcDir\$mainDllName\bin\Release"
     $inputDlls = "$dllDir\$mainDllName.dll"
-    @(  "EnsureThat" ) |% { $inputDlls = "$inputDlls $dllDir\$_.dll" }
+    @(  "EnsureThat", "Nito.AsyncEx", "Nito.AsyncEx.Concurrent", "Nito.AsyncEx.Enlightenment" ) |% { $inputDlls = "$inputDlls $dllDir\$_.dll" }
     Invoke-Expression "$ilmergePath /targetplatform:v4 /internalize /allowDup /target:library /log /out:$mergedDir\$mainDllName.dll $inputDlls"
 
     $mainDllName = "SqlStreamStore.MsSql"

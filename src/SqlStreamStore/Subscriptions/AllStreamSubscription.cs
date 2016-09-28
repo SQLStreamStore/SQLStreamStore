@@ -44,7 +44,7 @@
                 _streamStoreNotification.Set();
             });
 
-            Task.Run(PullAndPush, _disposed.Token);
+            Task.Run(PullAndPush);
 
             s_logger.Info($"AllStream subscription created {name}.");
         }
@@ -129,8 +129,9 @@
                 throw;
             }
 
-            //Only new Messages, i.e. the one after the current last one 
-            _nextPosition = eventsPage.FromPosition + 1;
+            // Only new Messages, i.e. the one after the current last one.
+            // Edge case for empty store where Next position 0 (when FromPosition = 0)
+            _nextPosition = eventsPage.FromPosition == 0 ? 0 : eventsPage.FromPosition + 1;
         }
 
         private async Task<AllMessagesPage> Pull()

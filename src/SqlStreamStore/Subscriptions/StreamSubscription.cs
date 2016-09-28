@@ -44,7 +44,7 @@
                 _streamStoreNotification.Set();
             });
 
-            Task.Run(PullAndPush, _disposed.Token);
+            Task.Run(PullAndPush);
 
             s_logger.Info($"Stream subscription created {name}/{streamId}.");
         }

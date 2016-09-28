@@ -2,5 +2,5 @@
 {
     using System;
 
-    public delegate void SubscriptionDropped(string reason, Exception ex);
+    public delegate void SubscriptionDropped(SubscriptionDroppedReason reason, Exception ex = null);
 }

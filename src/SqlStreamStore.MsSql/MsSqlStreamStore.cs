@@ -15,7 +15,7 @@
     public sealed partial class MsSqlStreamStore : StreamStoreBase
     {
         private readonly Func<SqlConnection> _createConnection;
-        private readonly AsyncLazy<IStreamStoreNotifier> _streamStoreNotifier;
+        private readonly Lazy<IStreamStoreNotifier> _streamStoreNotifier;
         private readonly Scripts _scripts;
         private readonly SqlMetaData[] _appendToStreamSqlMetadata;
 
@@ -26,15 +26,14 @@
             Ensure.That(settings, nameof(settings)).IsNotNull();
 
             _createConnection = () => new SqlConnection(settings.ConnectionString);
-            _streamStoreNotifier = new AsyncLazy<IStreamStoreNotifier>(
-                async () =>
+            _streamStoreNotifier = new Lazy<IStreamStoreNotifier>(() =>
                 {
                     if(settings.CreateStreamStoreNotifier == null)
                     {
                         throw new InvalidOperationException(
                             "Cannot create notifier because supplied createStreamStoreNotifier was null");
                     }
-                    return await settings.CreateStreamStoreNotifier(this).NotOnCapturedContext();
+                    return settings.CreateStreamStoreNotifier.Invoke(this);
                 });
             _scripts = new Scripts(settings.Schema);
 
@@ -213,7 +212,7 @@
             base.Dispose(disposing);
         }
 
-        private IObservable<Unit> GetStoreObservable => _streamStoreNotifier.Value.Result;
+        private IObservable<Unit> GetStoreObservable => _streamStoreNotifier.Value;
 
         private static async Task<T> ExecuteAndIgnoreErrors<T>(Func<Task<T>> operation)
         {

@@ -4,67 +4,56 @@
     using System.Threading;
     using System.Threading.Tasks;
     using SqlStreamStore.Infrastructure;
-    using SqlStreamStore;
-    using Timer = System.Timers.Timer;
+    using SqlStreamStore.Logging;
 
     public sealed class PollingStreamStoreNotifier : IStreamStoreNotifier
     {
-        public static CreateStreamStoreNotifier CreateStreamStoreNotifier(int interval = 1000)
-        {
-            return async readonlyStreamStore =>
-            {
-                var poller = new PollingStreamStoreNotifier(readonlyStreamStore, interval);
-                await poller.Start().NotOnCapturedContext();
-                return poller;
-            };
-        }
-
-        private readonly CancellationTokenSource _disposedTokenSource = new CancellationTokenSource();
-        private readonly IReadonlyStreamStore _readonlyStreamStore;
+        private static readonly ILog s_logger = LogProvider.GetCurrentClassLogger();
+        private readonly CancellationTokenSource _disposed = new CancellationTokenSource();
+        private readonly Func<CancellationToken, Task<long>> _readHeadPosition;
+        private readonly int _interval;
         private readonly Subject<Unit> _storeAppended = new Subject<Unit>();
-        private readonly Timer _timer;
-        private long _headPosition = -1;
 
-        public PollingStreamStoreNotifier(IReadonlyStreamStore readonlyStreamStore, int interval = 1000)
+        public PollingStreamStoreNotifier(Func<CancellationToken, Task<long>> readHeadPosition, int interval = 1000)
         {
-            _readonlyStreamStore = readonlyStreamStore;
-            _timer = new Timer(interval)
-            {
-                AutoReset = false
-            };
-            _timer.Elapsed += (_, __) => Poll().SwallowException();
+            _readHeadPosition = readHeadPosition;
+            _interval = interval;
+            Task.Run(Poll, _disposed.Token);
         }
 
         public void Dispose()
         {
-            _disposedTokenSource.Cancel();
-            _timer.Dispose();
+            _disposed.Cancel();
         }
 
-        public IDisposable Subscribe(IObserver<Unit> observer)
-        {
-            return _storeAppended.Subscribe(observer);
-        }
-
-        public async Task Start()
-        {
-            _headPosition = await _readonlyStreamStore.ReadHeadPosition(CancellationToken.None);
-
-            _timer.Start();
-        }
+        public IDisposable Subscribe(IObserver<Unit> observer) => _storeAppended.Subscribe(observer);
 
         private async Task Poll()
         {
-            // TODO try-catch-log
-            var headPosition = await _readonlyStreamStore.ReadHeadPosition(_disposedTokenSource.Token);
-
-            if(headPosition > _headPosition)
+            long headPosition = -1;
+            long previousHeadPosition = headPosition;
+            while (true)
             {
-                _storeAppended.OnNext(Unit.Default);
-                _headPosition = headPosition;
-            }
+                try
+                {
+                    headPosition = await _readHeadPosition(_disposed.Token);
+                }
+                catch(Exception ex)
+                {
+                    s_logger.ErrorException($"Exception occurred polling stream store for messages. " +
+                                            $"HeadPosition: {headPosition}", ex);
+                }
 
-            _timer.Start();
+                if(headPosition > previousHeadPosition)
+                {
+                    _storeAppended.OnNext(Unit.Default);
+                    previousHeadPosition = headPosition;
+                }
+                else
+                {
+                    await Task.Delay(_interval, _disposed.Token);
+                }
+            }
         }
     }
 }

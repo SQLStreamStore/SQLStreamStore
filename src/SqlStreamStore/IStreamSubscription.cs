@@ -1,6 +1,7 @@
 ﻿namespace SqlStreamStore
 {
     using System;
+    using System.Threading.Tasks;
 
     public interface IStreamSubscription : IDisposable
     {
@@ -8,6 +9,8 @@
 
         string StreamId { get; }
 
-        int LastVersion { get; }  
+        int LastVersion { get; }
+
+        Task Started { get; }
     }
 }

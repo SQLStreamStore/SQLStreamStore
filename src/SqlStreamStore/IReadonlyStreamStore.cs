@@ -113,18 +113,15 @@
         /// <param name="name">
         ///     The name of the subscription used for logging. Optional.
         /// </param>
-        /// <param name="cancellationToken">
-        ///     The cancellation instruction.</param>
         /// <returns>
         ///     An <see cref="IStreamSubscription"/> that represents the subscription. Dispose to stop the subscription.
         /// </returns>
-        Task<IStreamSubscription> SubscribeToStream(
+        IStreamSubscription SubscribeToStream(
             string streamId,
             int fromVersionExclusive,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
-            string name = null,
-            CancellationToken cancellationToken = default(CancellationToken));
+            string name = null);
 
         /// <summary>
         ///     Subsribes to all stream.

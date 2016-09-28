@@ -6,25 +6,20 @@ namespace SqlStreamStore
 
     public sealed partial class MsSqlStreamStore
     {
-        protected override async Task<IStreamSubscription> SubscribeToStreamInternal(
+        protected override IStreamSubscription SubscribeToStreamInternal(
             string streamId,
             int startVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
-            string name,
-            CancellationToken cancellationToken)
+            string name)
         {
-            var subscription = new StreamSubscription(
+            return new StreamSubscription(
                 streamId,
                 startVersion,
                 this,
                 GetStoreObservable,
                 streamMessageReceived,
                 subscriptionDropped);
-
-            await subscription.Start(cancellationToken);
-
-            return subscription;
         }
 
         protected override async Task<IAllStreamSubscription> SubscribeToAllInternal(

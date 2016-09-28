@@ -529,15 +529,14 @@ namespace SqlStreamStore
             }
         }
 
-        protected override async Task<IStreamSubscription> SubscribeToStreamInternal(
+        protected override IStreamSubscription SubscribeToStreamInternal(
             string streamId,
             int startVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
-            string name,
-            CancellationToken cancellationToken)
+            string name)
         {
-            var subscription = new StreamSubscription(
+            IStreamSubscription subscription = new StreamSubscription(
                 streamId,
                 startVersion,
                 this,
@@ -545,7 +544,6 @@ namespace SqlStreamStore
                 streamMessageReceived,
                 subscriptionDropped,
                 name);
-            await subscription.Start(cancellationToken);
             return subscription;
         }
 

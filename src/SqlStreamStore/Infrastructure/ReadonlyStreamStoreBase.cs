@@ -90,13 +90,12 @@ namespace SqlStreamStore.Infrastructure
             return await FilterExpired(page, cancellationToken);
         }
 
-        public Task<IStreamSubscription> SubscribeToStream(
+        public IStreamSubscription SubscribeToStream(
             string streamId,
             int fromVersionExclusive,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
-            string name = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            string name = null)
         {
             Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace();
             Ensure.That(streamMessageReceived, nameof(streamMessageReceived)).IsNotNull();
@@ -107,8 +106,7 @@ namespace SqlStreamStore.Infrastructure
                 fromVersionExclusive,
                 streamMessageReceived,
                 subscriptionDropped,
-                name,
-                cancellationToken);
+                name);
         }
 
         public Task<IAllStreamSubscription> SubscribeToAll(
@@ -176,13 +174,12 @@ namespace SqlStreamStore.Infrastructure
 
         protected abstract Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken);
 
-        protected abstract Task<IStreamSubscription> SubscribeToStreamInternal(
+        protected abstract IStreamSubscription SubscribeToStreamInternal(
             string streamId,
             int startVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
-            string name,
-            CancellationToken cancellationToken);
+            string name);
 
         protected abstract Task<IAllStreamSubscription> SubscribeToAllInternal(
             long? fromPosition,

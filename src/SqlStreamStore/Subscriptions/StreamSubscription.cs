@@ -3,16 +3,24 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Nito.AsyncEx;
     using SqlStreamStore.Infrastructure;
-    using SqlStreamStore.Streams;
-    using SqlStreamStore;
     using SqlStreamStore.Logging;
+    using SqlStreamStore.Streams;
 
-    public sealed class StreamSubscription : SubscriptionBase, IStreamSubscription
+    public sealed class StreamSubscription: IStreamSubscription
     {
-        private readonly string _streamId;
+        public const int DefaultPageSize = 50;
+        private readonly ILog _logger;
+        private int _pageSize = DefaultPageSize;
         private int _nextVersion;
-        private int _lastVersion;
+        private readonly IReadonlyStreamStore _readonlyStreamStore;
+        private readonly StreamMessageReceived _streamMessageReceived;
+        private readonly SubscriptionDropped _subscriptionDropped;
+        private readonly IDisposable _notification;
+        private readonly CancellationTokenSource _disposed = new CancellationTokenSource();
+        private readonly AsyncAutoResetEvent _streamStoreNotification = new AsyncAutoResetEvent();
+        private readonly TaskCompletionSource _started = new TaskCompletionSource();
 
         public StreamSubscription(
             string streamId,
@@ -22,78 +30,180 @@
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             string name = null)
-            :base(readonlyStreamStore, streamStoreAppendedNotification, streamMessageReceived, subscriptionDropped, name)
         {
-            _streamId = streamId;
-            _nextVersion = startVersion;
-            _lastVersion = startVersion - 1;
+            StreamId               = streamId;
+            _nextVersion           = startVersion;
+            LastVersion = startVersion - 1;
+            _readonlyStreamStore   = readonlyStreamStore;
+            _streamMessageReceived = streamMessageReceived;
+            _subscriptionDropped   = subscriptionDropped ?? ((_, __) => { });
+            Name                   = string.IsNullOrWhiteSpace(name) ? Guid.NewGuid().ToString() : name;
+            _logger                = LogProvider.GetCurrentClassLogger();
 
-            Logger.Info($"Stream subscription {Name}/{_streamId} will start from {startVersion}.");
+            _notification = streamStoreAppendedNotification.Subscribe(_ =>
+            {
+                _streamStoreNotification.Set();
+            });
+
+            Task.Run(PullAndPush, _disposed.Token);
         }
 
-        public string StreamId => _streamId;
+        public string Name { get; }
 
-        public int LastVersion => _lastVersion;
+        public string StreamId { get; }
 
-        public override async Task Start(CancellationToken cancellationToken)
+        public int LastVersion { get; private set; }
+
+        public Task Started => _started.Task;
+
+        public int PageSize
+        {
+            get { return _pageSize; }
+            set { _pageSize = (value <= 0) ? 1 : value; }
+        }
+
+        private async Task PullAndPush()
         {
             if(_nextVersion == StreamVersion.End)
             {
-                // Get the last stream version and subscribe from there.
-                var eventsPage = await ReadonlyStreamStore.ReadStreamBackwards(
-                    _streamId,
-                    StreamVersion.End,
-                    1,
-                    cancellationToken).NotOnCapturedContext();
-
-                //Only new Messages, i.e. the one after the current last one 
-                _nextVersion = eventsPage.LastStreamVersion + 1;
+                await Initialize();
             }
-            await base.Start(cancellationToken);
-        }
-
-        protected override async Task<bool> DoFetch()
-        {
-            var streamMessagesPage = await ReadonlyStreamStore
-                .ReadStreamForwards(
-                    _streamId,
-                    _nextVersion,
-                    PageSize,
-                    IsDisposed)
-                .NotOnCapturedContext();
-            bool isEnd = streamMessagesPage.IsEndOfStream;
-
-            foreach(var message in streamMessagesPage.Messages)
+            _started.SetResult();
+            while(true)
             {
-                if(IsDisposed.IsCancellationRequested)
+                bool pause = false;
+
+                while(!pause)
                 {
-                    Logger.Warn($"Cancellation requested for stream subscription {Name}/{_streamId}. No events will be received.");
-                    return true;
+                    StreamMessagesPage streamMessagesPage = await Pull();
+
+                    if(streamMessagesPage.Status != PageReadStatus.Success)
+                    {
+                        break;
+                    }
+
+                    await Push(streamMessagesPage);
+
+                    pause = streamMessagesPage.IsEndOfStream && streamMessagesPage.Messages.Length == 0;
                 }
-                _nextVersion = message.StreamVersion + 1;
-                _lastVersion = message.StreamVersion;
+
+                // Wait for notification before starting again. 
                 try
                 {
-                    await StreamMessageReceived(message).NotOnCapturedContext();
+                    await _streamStoreNotification.WaitAsync(_disposed.Token);
                 }
-                catch(Exception ex)
+                catch(TaskCanceledException)
                 {
-                    Logger.ErrorException($"Stream subscription {Name}/{_streamId} could not receive event: {message}.", ex);
-                    try
-                    {
-                        SubscriptionDropped.Invoke(ex.Message, ex);
-                    }
-                    catch(Exception iex)
-                    {
-                        Logger.FatalException($"Tried to drop stream subscription {Name}/{_streamId} but could not.", iex);
-                    }
-                    finally
-                    {
-                        Dispose();
-                    }
+                    NotifySubscriptionDropped(SubscriptionDroppedReason.Disposed);
+                    throw;
                 }
             }
-            return isEnd;
+        }
+
+        private async Task Initialize()
+        {
+            StreamMessagesPage eventsPage;
+            try
+            {
+                // Get the last stream version and subscribe from there.
+                eventsPage = await _readonlyStreamStore.ReadStreamBackwards(
+                    StreamId,
+                    StreamVersion.End,
+                    1,
+                    _disposed.Token).NotOnCapturedContext();
+            }
+            catch (TaskCanceledException)
+            {
+                NotifySubscriptionDropped(SubscriptionDroppedReason.Disposed);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorException($"Error reading stream {Name}/{StreamId}", ex);
+                NotifySubscriptionDropped(SubscriptionDroppedReason.ServerError, ex);
+                throw;
+            }
+
+            //Only new Messages, i.e. the one after the current last one 
+            _nextVersion = eventsPage.LastStreamVersion + 1;
+        }
+
+        private async Task<StreamMessagesPage> Pull()
+        {
+            StreamMessagesPage streamMessagesPage;
+            try
+            {
+                streamMessagesPage = await _readonlyStreamStore
+                    .ReadStreamForwards(
+                        StreamId,
+                        _nextVersion,
+                        PageSize,
+                        _disposed.Token)
+                    .NotOnCapturedContext();
+            }
+            catch (TaskCanceledException)
+            {
+                NotifySubscriptionDropped(SubscriptionDroppedReason.Disposed);
+                throw;
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorException($"Error reading stream {Name}/{StreamId}", ex);
+                NotifySubscriptionDropped(SubscriptionDroppedReason.ServerError, ex);
+                throw;
+            }
+            return streamMessagesPage;
+        }
+
+        private async Task Push(StreamMessagesPage streamMessagesPage)
+        {
+            foreach (var message in streamMessagesPage.Messages)
+            {
+                if (_disposed.IsCancellationRequested)
+                {
+                    NotifySubscriptionDropped(SubscriptionDroppedReason.Disposed);
+                    _disposed.Token.ThrowIfCancellationRequested();
+                }
+                _nextVersion = message.StreamVersion + 1;
+                LastVersion = message.StreamVersion;
+                try
+                {
+                    await _streamMessageReceived(message).NotOnCapturedContext();
+                }
+                catch (Exception ex)
+                {
+                    _logger.ErrorException(
+                        $"Exception with subscriber receiving message {Name}/{StreamId}" +
+                        $"Message: {message}.",
+                        ex);
+                    NotifySubscriptionDropped(SubscriptionDroppedReason.SubscriberError, ex);
+                }
+            }
+        }
+
+        private void NotifySubscriptionDropped(SubscriptionDroppedReason reason, Exception exception = null)
+        {
+            try
+            {
+                _logger.InfoException($"Subscription dropped {Name}/{StreamId}. Reason: {reason}", exception);
+                _subscriptionDropped.Invoke(reason, exception);
+            }
+            catch (Exception ex)
+            {
+                _logger.ErrorException(
+                    $"Error notifying subscriber that subscription has been dropped ({Name}/{StreamId}).",
+                    ex);
+            }
+        }
+
+        public void Dispose()
+        {
+            if(_disposed.IsCancellationRequested)
+            {
+                return;
+            }
+            _disposed.Cancel();
+            _notification.Dispose();
         }
     }
 }

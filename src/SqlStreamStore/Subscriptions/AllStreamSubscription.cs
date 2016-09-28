@@ -77,7 +77,7 @@
                     Logger.ErrorException($"All subscription {Name} could not receive event: {streamMessage}.", ex);
                     try
                     {
-                        SubscriptionDropped.Invoke(ex.Message, ex);
+                        SubscriptionDropped.Invoke(SubscriptionDroppedReason.SubscriberError, ex);
                     }
                     catch (Exception iex)
                     {

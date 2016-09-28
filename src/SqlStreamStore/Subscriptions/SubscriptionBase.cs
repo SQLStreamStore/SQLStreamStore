@@ -9,7 +9,7 @@
 
     public abstract class SubscriptionBase : IDisposable
     {
-        protected ILog Logger;
+        protected readonly ILog Logger;
         private int _pageSize = 50;
         private IDisposable _streamStoreAppendedSubscription;
         private readonly InterlockedBoolean _shouldFetch = new InterlockedBoolean();

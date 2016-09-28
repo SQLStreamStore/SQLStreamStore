@@ -46,8 +46,36 @@ namespace SqlStreamStore.Infrastructure
                                    "{maxCount}.", fromPositionInclusive, maxCount);
             }
 
-            var page = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, cancellationToken);
-            return await FilterExpired(page, cancellationToken);
+            var page = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, cancellationToken)
+                .NotOnCapturedContext();
+
+            // https://github.com/damianh/SqlStreamStore/issues/31
+            // Under heave parallel load, gaps may appear in the position sequence due to sequence
+            // number reservation of in-flight transactions.
+            // Here we check if there are any gaps, and in the unlikely event there is, we delay a little bit
+            // and re-issue the read.
+            if (page.IsEnd && page.Messages.Length > 1)
+            {
+                if (page.Messages[0].Position != fromPositionInclusive)
+                {
+                    // Gap occurd between last page and this
+                    await Task.Delay(3000, cancellationToken);
+                    page = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, cancellationToken)
+                        .NotOnCapturedContext();
+                }
+                for (int i = 0; i < page.Messages.Length - 1; i++)
+                {
+                    if (page.Messages[i].Position +1 != page.Messages[i + 1].Position)
+                    {
+                        await Task.Delay(3000, cancellationToken);
+                        page = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, cancellationToken)
+                            .NotOnCapturedContext();
+                        break;
+                    }
+                }
+            }
+
+            return await FilterExpired(page, cancellationToken).NotOnCapturedContext();
         }
 
         public async Task<AllMessagesPage> ReadAllBackwards(

@@ -40,6 +40,12 @@ namespace SqlStreamStore.Infrastructure
 
             CheckIfDisposed();
 
+            if (Logger.IsDebugEnabled())
+            {
+                Logger.DebugFormat("ReadAllForwards from position {fromPositionInclusive} with max count " +
+                                   "{maxCount}.", fromPositionInclusive, maxCount);
+            }
+
             var page = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, cancellationToken);
             return await FilterExpired(page, cancellationToken);
         }
@@ -53,6 +59,12 @@ namespace SqlStreamStore.Infrastructure
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
 
             CheckIfDisposed();
+
+            if (Logger.IsDebugEnabled())
+            {
+                Logger.DebugFormat("ReadAllBackwards from position {fromPositionInclusive} with max count " +
+                                   "{maxCount}.", fromPositionInclusive, maxCount);
+            }
 
             var page = await ReadAllBackwardsInternal(fromPositionInclusive, maxCount, cancellationToken);
             return await FilterExpired(page, cancellationToken);
@@ -70,6 +82,12 @@ namespace SqlStreamStore.Infrastructure
 
             CheckIfDisposed();
 
+            if (Logger.IsDebugEnabled())
+            {
+                Logger.DebugFormat("ReadStreamForwards {streamId} from version {fromVersionInclusive} with max count " +
+                                   "{maxCount}.", streamId, fromVersionInclusive, maxCount);
+            }
+
             var page = await ReadStreamForwardsInternal(streamId, fromVersionInclusive, maxCount, cancellationToken);
             return await FilterExpired(page, cancellationToken);
         }
@@ -85,6 +103,12 @@ namespace SqlStreamStore.Infrastructure
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
 
             CheckIfDisposed();
+
+            if (Logger.IsDebugEnabled())
+            {
+                Logger.DebugFormat("ReadStreamBackwards {streamId} from version {fromVersionInclusive} with max count " +
+                                   "{maxCount}.", streamId, fromVersionInclusive, maxCount);
+            }
 
             var page = await ReadStreamBackwardsInternal(streamId, fromVersionInclusive, maxCount, cancellationToken);
             return await FilterExpired(page, cancellationToken);
@@ -130,6 +154,11 @@ namespace SqlStreamStore.Infrastructure
            CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
+
+            if (Logger.IsDebugEnabled())
+            {
+                Logger.DebugFormat("GetStreamMetadata {streamId}.", streamId);
+            }
 
             return GetStreamMetadataInternal(streamId, cancellationToken);
         }

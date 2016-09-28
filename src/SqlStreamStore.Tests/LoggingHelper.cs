@@ -25,6 +25,7 @@
                 .WriteTo
                 .Observers(observable => observable.Subscribe(logEvent => s_logEventSubject.OnNext(logEvent)))
                 .Enrich.FromLogContext()
+                .MinimumLevel.Verbose()
                 .CreateLogger();
         }
 

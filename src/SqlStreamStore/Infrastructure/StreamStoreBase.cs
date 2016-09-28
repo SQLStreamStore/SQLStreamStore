@@ -6,6 +6,7 @@ namespace SqlStreamStore.Infrastructure
     using EnsureThat;
     using SqlStreamStore.Streams;
     using SqlStreamStore;
+    using SqlStreamStore.Logging;
 
     public abstract class StreamStoreBase : ReadonlyStreamStoreBase, IStreamStore
     {
@@ -27,6 +28,12 @@ namespace SqlStreamStore.Infrastructure
         {
             Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
             Ensure.That(messages, nameof(messages)).IsNotNull();
+
+            if(Logger.IsDebugEnabled())
+            {
+                Logger.DebugFormat("AppendToStream {streamId} with expected version {expectedVersion} and " +
+                                   "{messageCount} messages.", streamId, expectedVersion, messages.Length);
+            }
 
             return messages.Length == 0 
                 ? TaskHelpers.CompletedTask 
@@ -51,6 +58,12 @@ namespace SqlStreamStore.Infrastructure
         {
             Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
 
+            if (Logger.IsDebugEnabled())
+            {
+                Logger.DebugFormat("DeleteStream {streamId} with expected version {expectedVersion} and " +
+                                   "{messageCount} messages." , streamId, expectedVersion);
+            }
+
             return DeleteStreamInternal(streamId, expectedVersion, cancellationToken);
         }
 
@@ -60,6 +73,11 @@ namespace SqlStreamStore.Infrastructure
             CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
+
+            if (Logger.IsDebugEnabled())
+            {
+                Logger.DebugFormat("DeleteMessage {streamId} with messageId {messageId}", streamId, messageId);
+            }
 
             return DeleteEventInternal(streamId, messageId, cancellationToken);
         }
@@ -88,6 +106,13 @@ namespace SqlStreamStore.Infrastructure
         {
             Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
             Ensure.That(expectedStreamMetadataVersion, nameof(expectedStreamMetadataVersion)).IsGte(-2);
+
+            if (Logger.IsDebugEnabled())
+            {
+                Logger.DebugFormat("SetStreamMetadata {streamId} with expected metadata version " +
+                                   "{expectedStreamMetadataVersion}, max age {maxAge} and max count {maxCount}.",
+                                   streamId, expectedStreamMetadataVersion, maxAge, maxCount);
+            }
 
             return SetStreamMetadataInternal(
                 streamId,

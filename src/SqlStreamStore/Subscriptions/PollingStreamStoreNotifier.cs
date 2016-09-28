@@ -41,6 +41,11 @@
                 try
                 {
                     headPosition = await _readHeadPosition(_disposed.Token);
+                    if(s_logger.IsTraceEnabled())
+                    {
+                        s_logger.TraceFormat("Polling head position {headPosition}. Previous {previousHeadPosition}",
+                            headPosition, previousHeadPosition);
+                    }
                 }
                 catch(Exception ex)
                 {

@@ -109,12 +109,11 @@ namespace SqlStreamStore.Infrastructure
                 name);
         }
 
-        public Task<IAllStreamSubscription> SubscribeToAll(
+        public IAllStreamSubscription SubscribeToAll(
             long? fromPositionExclusive,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
-            string name = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            string name = null)
         {
             Ensure.That(streamMessageReceived, nameof(streamMessageReceived)).IsNotNull();
 
@@ -123,8 +122,7 @@ namespace SqlStreamStore.Infrastructure
             return SubscribeToAllInternal(fromPositionExclusive,
                 streamMessageReceived,
                 subscriptionDropped,
-                name,
-                cancellationToken);
+                name);
         }
 
         public Task<StreamMetadataResult> GetStreamMetadata(
@@ -181,12 +179,11 @@ namespace SqlStreamStore.Infrastructure
             SubscriptionDropped subscriptionDropped,
             string name);
 
-        protected abstract Task<IAllStreamSubscription> SubscribeToAllInternal(
+        protected abstract IAllStreamSubscription SubscribeToAllInternal(
             long? fromPosition,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
-            string name,
-            CancellationToken cancellationToken);
+            string name);
 
         protected abstract Task<StreamMetadataResult> GetStreamMetadataInternal(
             string streamId,

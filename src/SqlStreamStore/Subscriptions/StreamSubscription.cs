@@ -11,7 +11,7 @@
     public sealed class StreamSubscription: IStreamSubscription
     {
         public const int DefaultPageSize = 50;
-        private readonly ILog _logger;
+        private static readonly ILog s_logger = LogProvider.GetCurrentClassLogger();
         private int _pageSize = DefaultPageSize;
         private int _nextVersion;
         private readonly IReadonlyStreamStore _readonlyStreamStore;
@@ -33,12 +33,11 @@
         {
             StreamId               = streamId;
             _nextVersion           = startVersion;
-            LastVersion = startVersion - 1;
+            LastVersion            = startVersion - 1;
             _readonlyStreamStore   = readonlyStreamStore;
             _streamMessageReceived = streamMessageReceived;
             _subscriptionDropped   = subscriptionDropped ?? ((_, __) => { });
             Name                   = string.IsNullOrWhiteSpace(name) ? Guid.NewGuid().ToString() : name;
-            _logger                = LogProvider.GetCurrentClassLogger();
 
             _notification = streamStoreAppendedNotification.Subscribe(_ =>
             {
@@ -46,6 +45,8 @@
             });
 
             Task.Run(PullAndPush, _disposed.Token);
+
+            s_logger.Info($"Stream subscription created {name}/{streamId}.");
         }
 
         public string Name { get; }
@@ -62,6 +63,16 @@
             set { _pageSize = (value <= 0) ? 1 : value; }
         }
 
+        public void Dispose()
+        {
+            if (_disposed.IsCancellationRequested)
+            {
+                return;
+            }
+            _disposed.Cancel();
+            _notification.Dispose();
+        }
+
         private async Task PullAndPush()
         {
             if(_nextVersion == StreamVersion.End)
@@ -75,7 +86,7 @@
 
                 while(!pause)
                 {
-                    StreamMessagesPage streamMessagesPage = await Pull();
+                    var streamMessagesPage = await Pull();
 
                     if(streamMessagesPage.Status != PageReadStatus.Success)
                     {
@@ -119,7 +130,7 @@
             }
             catch (Exception ex)
             {
-                _logger.ErrorException($"Error reading stream {Name}/{StreamId}", ex);
+                s_logger.ErrorException($"Error reading stream {Name}/{StreamId}", ex);
                 NotifySubscriptionDropped(SubscriptionDroppedReason.ServerError, ex);
                 throw;
             }
@@ -148,7 +159,7 @@
             }
             catch (Exception ex)
             {
-                _logger.ErrorException($"Error reading stream {Name}/{StreamId}", ex);
+                s_logger.ErrorException($"Error reading stream {Name}/{StreamId}", ex);
                 NotifySubscriptionDropped(SubscriptionDroppedReason.ServerError, ex);
                 throw;
             }
@@ -172,7 +183,7 @@
                 }
                 catch (Exception ex)
                 {
-                    _logger.ErrorException(
+                    s_logger.ErrorException(
                         $"Exception with subscriber receiving message {Name}/{StreamId}" +
                         $"Message: {message}.",
                         ex);
@@ -185,25 +196,15 @@
         {
             try
             {
-                _logger.InfoException($"Subscription dropped {Name}/{StreamId}. Reason: {reason}", exception);
+                s_logger.InfoException($"Subscription dropped {Name}/{StreamId}. Reason: {reason}", exception);
                 _subscriptionDropped.Invoke(reason, exception);
             }
             catch (Exception ex)
             {
-                _logger.ErrorException(
+                s_logger.ErrorException(
                     $"Error notifying subscriber that subscription has been dropped ({Name}/{StreamId}).",
                     ex);
             }
-        }
-
-        public void Dispose()
-        {
-            if(_disposed.IsCancellationRequested)
-            {
-                return;
-            }
-            _disposed.Cancel();
-            _notification.Dispose();
         }
     }
 }

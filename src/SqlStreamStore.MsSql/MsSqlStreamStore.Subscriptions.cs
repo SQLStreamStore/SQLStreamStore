@@ -1,7 +1,5 @@
 namespace SqlStreamStore
 {
-    using System.Threading;
-    using System.Threading.Tasks;
     using SqlStreamStore.Subscriptions;
 
     public sealed partial class MsSqlStreamStore
@@ -22,24 +20,19 @@ namespace SqlStreamStore
                 subscriptionDropped);
         }
 
-        protected override async Task<IAllStreamSubscription> SubscribeToAllInternal(
+        protected override IAllStreamSubscription SubscribeToAllInternal(
             long? fromPosition,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
-            string name,
-            CancellationToken cancellationToken)
+            string name)
         {
-            var subscription = new AllStreamSubscription(
+            return new AllStreamSubscription(
                 fromPosition,
                 this,
                 GetStoreObservable,
                 streamMessageReceived,
                 subscriptionDropped, 
                 name);
-
-            await subscription.Start(cancellationToken);
-
-            return subscription;
         }
     }
 }

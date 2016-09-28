@@ -108,7 +108,7 @@
 
                     var receiveMessages = new TaskCompletionSource<StreamMessage>();
                     List<StreamMessage> receivedMessages = new List<StreamMessage>();
-                    using(await store.SubscribeToAll(
+                    using(store.SubscribeToAll(
                         null,
                         message =>
                         {
@@ -145,7 +145,7 @@
 
                     var receiveMessages = new TaskCompletionSource<StreamMessage>();
                     List<StreamMessage> receivedMessages = new List<StreamMessage>();
-                    using (await store.SubscribeToAll(
+                    using (store.SubscribeToAll(
                         null,
                         message =>
                         {
@@ -237,11 +237,11 @@
 
                     var receiveMessages = new TaskCompletionSource<StreamMessage>();
                     List<StreamMessage> receivedMessages = new List<StreamMessage>();
-                    using (await store.SubscribeToAll(
+                    using (var subscription = store.SubscribeToAll(
                         Position.End,
                         message =>
                         {
-                            _testOutputHelper.WriteLine($"StreamId={message.StreamId} Version={message.StreamVersion} ");
+                            _testOutputHelper.WriteLine($"StreamId={message.StreamId} Version={message.StreamVersion} Position={message.Position}");
                             receivedMessages.Add(message);
                             if (message.StreamId == streamId1 && message.StreamVersion == 11)
                             {
@@ -250,6 +250,8 @@
                             return Task.CompletedTask;
                         }))
                     {
+                        await subscription.Started;
+
                         await AppendMessages(store, streamId1, 2);
 
                         await receiveMessages.Task.WithTimeout();
@@ -271,7 +273,7 @@
                     string streamId1 = "stream-1";
                     var receiveMessages = new TaskCompletionSource<StreamMessage>();
                     List<StreamMessage> receivedMessages = new List<StreamMessage>();
-                    using (await store.SubscribeToAll(
+                    using (var subscription = store.SubscribeToAll(
                         Position.End,
                         message =>
                         {
@@ -284,6 +286,7 @@
                             return Task.CompletedTask;
                         }))
                     {
+                        await subscription.Started;
 
                         await AppendMessages(store, streamId1, 10);
 
@@ -353,8 +356,8 @@
                         Enumerable.Range(0, subscriptionCount).Select(_ => new TaskCompletionSource<int>())
                         .ToArray();
 
-                    var subscriptions = await Task.WhenAll(Enumerable.Range(0, subscriptionCount)
-                        .Select(async index => await store.SubscribeToAll(
+                    var subscriptions = Enumerable.Range(0, subscriptionCount)
+                        .Select(index => store.SubscribeToAll(
                             null,
                             streamMessageReceived: message =>
                             {
@@ -363,7 +366,8 @@
                                     completionSources[index].SetResult(0);
                                 }
                                 return Task.CompletedTask;
-                            })));
+                            }))
+                        .ToArray();
 
 
                     try
@@ -436,7 +440,7 @@
 
                     var receiveMessage = new TaskCompletionSource<StreamMessage>();
                     List<StreamMessage> receivedMessages = new List<StreamMessage>();
-                    using (await store.SubscribeToAll(
+                    using (store.SubscribeToAll(
                         null,
                         message =>
                         {

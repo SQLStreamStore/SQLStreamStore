@@ -553,23 +553,19 @@ namespace SqlStreamStore
             return message == null ? Task.FromResult(-1L) : Task.FromResult(message.Position);
         }
 
-        protected override async Task<IAllStreamSubscription> SubscribeToAllInternal(
+        protected override IAllStreamSubscription SubscribeToAllInternal(
             long? fromPosition,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
-            string name,
-            CancellationToken cancellationToken)
+            string name)
         {
-            var subscription = new AllStreamSubscription(
+            return new AllStreamSubscription(
                 fromPosition,
                 this,
                 _subscriptions,
                 streamMessageReceived,
                 subscriptionDropped,
                 name);
-
-            await subscription.Start(cancellationToken);
-            return subscription;
         }
 
         private void GuardAgainstDisposed()

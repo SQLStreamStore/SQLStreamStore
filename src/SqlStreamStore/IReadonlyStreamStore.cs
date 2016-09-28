@@ -139,18 +139,14 @@
         /// <param name="name">
         ///     The name of the subscription used for logging. Optional.
         /// </param>
-        /// <param name="cancellationToken">
-        ///     The cancellation instruction.
-        /// </param>
         /// <returns>
         ///     An <see cref="IStreamSubscription"/> that represents the subscription. Dispose to stop the subscription.
         /// </returns>
-        Task<IAllStreamSubscription> SubscribeToAll(
+        IAllStreamSubscription SubscribeToAll(
             long? fromPositionExclusive,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
-            string name = null,
-            CancellationToken cancellationToken = default(CancellationToken));
+            string name = null);
 
         /// <summary>
         ///     Reads the head position (the postion of the very latest message).

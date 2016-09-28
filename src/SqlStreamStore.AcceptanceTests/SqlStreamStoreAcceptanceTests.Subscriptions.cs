@@ -469,17 +469,7 @@
         }
 
         [Fact]
-        public async Task When_subscribe_from_end_and_stream_store_throws_then_should_drop_subscription()
-        {
-            using(var fixture = GetFixture())
-            {
-                using(var store = await fixture.GetStreamStore())
-                {}
-            }
-        }
-
-        [Fact]
-        public async Task When_exception_throw_by_subscriber_then_should_drop_subscription_with_reson_SubscriberError()
+        public async Task When_exception_throw_by_stream_subscriber_then_should_drop_subscription_with_reson_SubscriberError()
         {
             using(var fixture = GetFixture())
             {
@@ -513,7 +503,7 @@
         }
 
         [Fact]
-        public async Task When_disposed_then_should_drop_subscription_with_reason_Disposed()
+        public async Task When_stream_subscription_disposed_then_should_drop_subscription_with_reason_Disposed()
         {
             using(var fixture = GetFixture())
             {
@@ -536,7 +526,7 @@
         }
 
         [Fact]
-        public async Task When_disposed_while_handling_messages_then_should_drop_subscription_with_reason_Disposed2()
+        public async Task When_stream_subscriptiondisposed_while_handling_messages_then_should_drop_subscription_with_reason_Disposed()
         {
             using(var fixture = GetFixture())
             {

@@ -130,7 +130,7 @@
             }
 
             //Only new Messages, i.e. the one after the current last one 
-            _nextPosition = eventsPage.NextPosition;
+            _nextPosition = eventsPage.FromPosition + 1;
         }
 
         private async Task<AllMessagesPage> Pull()

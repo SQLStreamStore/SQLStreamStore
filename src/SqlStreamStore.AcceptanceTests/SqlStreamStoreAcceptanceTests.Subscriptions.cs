@@ -192,7 +192,8 @@
                         StreamVersion.End,
                         message =>
                         {
-                            _testOutputHelper.WriteLine($"Received message {message.StreamId} {message.StreamVersion} {message.Position}");
+                            _testOutputHelper.WriteLine($"Received message {message.StreamId} {message.StreamVersion} "
+                                                        + $"{message.Position}");
                             receivedCount++;
                             if (message.StreamVersion >= 11)
                             {
@@ -237,11 +238,12 @@
 
                     var receiveMessages = new TaskCompletionSource<StreamMessage>();
                     List<StreamMessage> receivedMessages = new List<StreamMessage>();
-                    using (var subscription = store.SubscribeToAll(
+                    using(store.SubscribeToAll(
                         Position.End,
                         message =>
                         {
-                            _testOutputHelper.WriteLine($"StreamId={message.StreamId} Version={message.StreamVersion} Position={message.Position}");
+                            _testOutputHelper.WriteLine($"StreamId={message.StreamId} Version={message.StreamVersion} "
+                                                        + $"Position={message.Position}");
                             receivedMessages.Add(message);
                             if (message.StreamId == streamId1 && message.StreamVersion == 11)
                             {
@@ -250,8 +252,6 @@
                             return Task.CompletedTask;
                         }))
                     {
-                        await subscription.Started;
-
                         await AppendMessages(store, streamId1, 2);
 
                         await receiveMessages.Task.WithTimeout();
@@ -556,7 +556,8 @@
                         {
                             droppedTcs.SetResult(reason);
                         });
-                    await AppendMessages(store, streamId, 2); // First message is blocked in handling, the second is co-operatively cancelled
+                    // First message is blocked in handling, the second is co-operatively cancelled
+                    await AppendMessages(store, streamId, 2); 
                     await handler.WaitAsync();
                     subscription.Dispose();
                     handler.Set();

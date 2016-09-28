@@ -106,7 +106,7 @@
         {
             if (await Task.WhenAny(task, Task.Delay(timeout)) == task)
             {
-                await task;
+                return;
             }
             throw new TimeoutException("Timed out waiting for task");
         }

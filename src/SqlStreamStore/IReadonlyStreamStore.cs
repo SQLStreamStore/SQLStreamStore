@@ -16,7 +16,7 @@
         ///     Note: messages that have expired will be filtered out.
         /// </param>
         /// <param name="maxCount">
-        ///     The maximum number of messages to read.
+        ///     The maximum number of messages to read (int.MaxValue is a bad idea).
         /// </param>
         /// <param name="cancellationToken">The cancellation instruction.</param>
         /// <returns>
@@ -36,7 +36,7 @@
         ///     Note: messages that have expired will be filtered out.
         /// </param>
         /// <param name="maxCount">
-        ///     The maximum number of messages to read.
+        ///     The maximum number of messages to read (int.MaxValue is a bad idea). 
         /// </param>
         /// <param name="cancellationToken">
         ///     The cancellation instruction.
@@ -60,7 +60,7 @@
         ///     The version of the stream to start reading from. Use <see cref="StreamVersion.Start"/> to read from 
         ///     the start.
         /// </param>
-        /// <param name="maxCount">T he maximum number of messages to read.</param>
+        /// <param name="maxCount">The maximum number of messages to read (int.MaxValue is a bad idea).</param>
         /// <param name="cancellationToken"> The cancellation instruction. </param>
         /// <returns>
         ///     An <see cref="StreamMessagesPage"/> represent the result of the operation. If all the messages read
@@ -82,7 +82,7 @@
         ///     The version of the stream to start reading from. Use <see cref="StreamVersion.End"/> to read from 
         ///     the end.
         /// </param>
-        /// <param name="maxCount">T he maximum number of messages to read.</param>
+        /// <param name="maxCount">T he maximum number of messages to read (int.MaxValue is a bad idea).</param>
         /// <param name="cancellationToken"> The cancellation instruction. </param>
         /// <returns>
         ///     An <see cref="StreamMessagesPage"/> represent the result of the operation. If all the messages read

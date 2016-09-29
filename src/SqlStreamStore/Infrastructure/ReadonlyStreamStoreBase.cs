@@ -12,6 +12,7 @@ namespace SqlStreamStore.Infrastructure
 
     public abstract class ReadonlyStreamStoreBase : IReadonlyStreamStore
     {
+        private const int DefaultReloadInterval = 3000;
         protected readonly GetUtcNow GetUtcNow;
         protected readonly ILog Logger;
         private bool _isDisposed;
@@ -50,28 +51,36 @@ namespace SqlStreamStore.Infrastructure
                 .NotOnCapturedContext();
 
             // https://github.com/damianh/SqlStreamStore/issues/31
-            // Under heave parallel load, gaps may appear in the position sequence due to sequence
+            // Under heavy parallel load, gaps may appear in the position sequence due to sequence
             // number reservation of in-flight transactions.
             // Here we check if there are any gaps, and in the unlikely event there is, we delay a little bit
-            // and re-issue the read.
-            if (page.IsEnd && page.Messages.Length > 1)
+            // and re-issue the read. This is expected 
+            if(!page.IsEnd || page.Messages.Length <= 1)
             {
-                if (page.Messages[0].Position != fromPositionInclusive)
+                return await FilterExpired(page, cancellationToken).NotOnCapturedContext();
+            }
+
+            Func<CancellationToken, Task<AllMessagesPage>> reload = async ct =>
+            {
+                Logger.InfoFormat($"ReadAllForwards: gap detected in position, reloading after {DefaultReloadInterval}ms");
+                await Task.Delay(DefaultReloadInterval, cancellationToken);
+                var reloadedPage = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, cancellationToken)
+                    .NotOnCapturedContext();
+                return await FilterExpired(reloadedPage, cancellationToken).NotOnCapturedContext();
+            };
+
+            // Check for gap between last page and this.
+            if (page.Messages[0].Position != fromPositionInclusive)
+            {
+                return await reload(cancellationToken);
+            }
+            
+            // check for gap in messages collection
+            for(int i = 0; i < page.Messages.Length - 1; i++)
+            {
+                if(page.Messages[i].Position + 1 != page.Messages[i + 1].Position)
                 {
-                    // Gap occurd between last page and this
-                    await Task.Delay(3000, cancellationToken);
-                    page = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, cancellationToken)
-                        .NotOnCapturedContext();
-                }
-                for (int i = 0; i < page.Messages.Length - 1; i++)
-                {
-                    if (page.Messages[i].Position +1 != page.Messages[i + 1].Position)
-                    {
-                        await Task.Delay(3000, cancellationToken);
-                        page = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, cancellationToken)
-                            .NotOnCapturedContext();
-                        break;
-                    }
+                    return await reload(cancellationToken);
                 }
             }
 

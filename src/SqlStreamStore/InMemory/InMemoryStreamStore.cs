@@ -55,11 +55,6 @@ namespace SqlStreamStore
             }
         }
 
-        public override Task InitializeStore(
-                bool ignoreErrors = false,
-                CancellationToken cancellationToken = default(CancellationToken))
-            => Task.FromResult(0);
-
         public override Task<int> GetmessageCount(string streamId, CancellationToken cancellationToken = new CancellationToken())
         {
             using(_lock.UseReadLock())

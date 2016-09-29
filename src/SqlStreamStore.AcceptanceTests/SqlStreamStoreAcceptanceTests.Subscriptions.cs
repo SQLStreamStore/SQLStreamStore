@@ -686,6 +686,83 @@
             }
         }
 
+        [Fact]
+        public async Task Can_read_our_own_writes_on_all()
+        {
+            var source = new TaskCompletionSource<PageReadStatus>();
+
+            using (var fixture = GetFixture())
+            {
+                using(var store = await fixture.GetStreamStore())
+                {
+                    string streamId = "stream-1";
+                    StreamMessageReceived messageReceived = async message =>
+                    {
+                        var page = await store.ReadStreamForwards(message.StreamId, 0, int.MaxValue);
+                        source.SetResult(page.Status);
+                    };
+                    SubscriptionDropped subscriptionDropped = (reason, ex) =>
+                    {
+                        if(reason == SubscriptionDroppedReason.Disposed)
+                            return;
+                        source.SetException(ex);
+                    };
+                    using(var subscription = store.SubscribeToAll(
+                        Position.Start,
+                        messageReceived,
+                        subscriptionDropped))
+                    {
+                        await subscription.Started;
+
+                        await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1));
+
+                        await source.Task;
+                    }
+                }
+            }
+
+            (await source.Task).ShouldBe(PageReadStatus.Success);
+        }
+
+        [Fact]
+        public async Task Can_read_our_own_writes_on_stream()
+        {
+            var source = new TaskCompletionSource<PageReadStatus>();
+
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    string streamId = "stream-1";
+                    StreamMessageReceived messageReceived = async message =>
+                    {
+                        var page = await store.ReadStreamForwards(message.StreamId, 0, int.MaxValue);
+                        source.SetResult(page.Status);
+                    };
+                    SubscriptionDropped subscriptionDropped = (reason, ex) =>
+                    {
+                        if (reason == SubscriptionDroppedReason.Disposed)
+                            return;
+                        source.SetException(ex);
+                    };
+                    using (var subscription = store.SubscribeToStream(
+                        streamId,
+                        StreamVersion.Start,
+                        messageReceived,
+                        subscriptionDropped))
+                    {
+                        await subscription.Started;
+
+                        await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1));
+
+                        await source.Task;
+                    }
+                }
+            }
+
+            (await source.Task).ShouldBe(PageReadStatus.Success);
+        }
+
         private static async Task AppendMessages(IStreamStore streamStore, string streamId, int numberOfEvents)
         {
             for(int i = 0; i < numberOfEvents; i++)

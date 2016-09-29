@@ -188,6 +188,7 @@
                         $"Message: {message}.",
                         ex);
                     NotifySubscriptionDropped(SubscriptionDroppedReason.SubscriberError, ex);
+                    throw;
                 }
             }
         }

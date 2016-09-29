@@ -56,7 +56,7 @@
             _appendToStreamSqlMetadata = sqlMetaData.ToArray();
         }
 
-        public async Task InitializeStore(
+        public override async Task InitializeStore(
             bool ignoreErrors = false,
             CancellationToken cancellationToken = default(CancellationToken))
         {

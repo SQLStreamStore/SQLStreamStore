@@ -229,10 +229,7 @@ namespace SqlStreamStore.Infrastructure
             }
         }
 
-        protected virtual void PurgeExpiredMessage(StreamMessage streamMessage)
-        {
-            //This is a no-op as this class is ReadOnly.
-        }
+        protected abstract void PurgeExpiredMessage(StreamMessage streamMessage);
 
         private async Task<StreamMessagesPage> FilterExpired(
             StreamMessagesPage page,

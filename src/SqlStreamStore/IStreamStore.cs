@@ -117,5 +117,15 @@
             int? maxCount = null,
             string metadataJson = null,
             CancellationToken cancellationToken = default(CancellationToken));
+
+        /// <summary>
+        /// Initializes the underlying storage mechanism.
+        /// </summary>
+        /// <param name="ignoreErrors">Ignore any errors that occur on initialization.</param>
+        /// <param name="cancellationToken">The cancellation instruction.</param>
+        /// <returns></returns>
+        Task InitializeStore(
+            bool ignoreErrors = false,
+            CancellationToken cancellationToken = default(CancellationToken));
     }
 }

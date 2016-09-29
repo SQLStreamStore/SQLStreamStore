@@ -10,5 +10,7 @@
         long? LastPosition { get; }
 
         Task Started { get; }
+
+        int PageSize { get; set; }
     }
 }

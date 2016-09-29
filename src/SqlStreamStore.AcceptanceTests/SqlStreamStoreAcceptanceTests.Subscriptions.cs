@@ -468,7 +468,7 @@
         }
 
         [Fact]
-        public async Task When_exception_throw_by_stream_subscriber_then_should_drop_subscription_with_reson_SubscriberError()
+        public async Task When_exception_throw_by_stream_subscriber_then_should_drop_subscription_with_reason_SubscriberError()
         {
             using(var fixture = GetFixture())
             {
@@ -577,7 +577,7 @@
         }
 
         [Fact]
-        public async Task When_exception_throw_by_all_stream_subscriber_then_should_drop_subscription_with_reson_SubscriberError()
+        public async Task When_exception_throw_by_all_stream_subscriber_then_should_drop_subscription_with_reason_SubscriberError()
         {
             using (var fixture = GetFixture())
             {
@@ -669,7 +669,7 @@
         }
 
         [Fact]
-        public async Task Can_dispose__all_stream_subscription_multiple_times()
+        public async Task Can_dispose_all_stream_subscription_multiple_times()
         {
             using (var fixture = GetFixture())
             {

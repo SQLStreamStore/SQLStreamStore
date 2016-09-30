@@ -36,7 +36,7 @@
         {
             long headPosition = -1;
             long previousHeadPosition = headPosition;
-            while (true)
+            while (!_disposed.IsCancellationRequested)
             {
                 try
                 {

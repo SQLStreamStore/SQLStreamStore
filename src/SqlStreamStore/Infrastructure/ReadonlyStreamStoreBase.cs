@@ -171,7 +171,7 @@ namespace SqlStreamStore.Infrastructure
         }
 
         public IAllStreamSubscription SubscribeToAll(
-            long? fromPositionExclusive,
+            long continueAfterPosition,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null)
@@ -180,7 +180,24 @@ namespace SqlStreamStore.Infrastructure
 
             CheckIfDisposed();
 
-            return SubscribeToAllInternal(fromPositionExclusive,
+            return SubscribeToAllInternal(
+                continueAfterPosition,
+                streamMessageReceived,
+                subscriptionDropped,
+                name);
+        }
+
+        public IAllStreamSubscription SubscribeToAllFromStart(
+            StreamMessageReceived streamMessageReceived,
+            SubscriptionDropped subscriptionDropped = null,
+            string name = null)
+        {
+            Ensure.That(streamMessageReceived, nameof(streamMessageReceived)).IsNotNull();
+
+            CheckIfDisposed();
+
+            return SubscribeToAllInternal(
+                null,
                 streamMessageReceived,
                 subscriptionDropped,
                 name);

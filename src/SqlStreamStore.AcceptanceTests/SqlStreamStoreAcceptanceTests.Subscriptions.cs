@@ -107,8 +107,7 @@
 
                     var receiveMessages = new TaskCompletionSource<StreamMessage>();
                     List<StreamMessage> receivedMessages = new List<StreamMessage>();
-                    using(store.SubscribeToAll(
-                        null,
+                    using(store.SubscribeToAllFromStart(
                         message =>
                         {
                             _testOutputHelper.WriteLine($"Received message {message.StreamId} " +
@@ -144,8 +143,7 @@
 
                     var receiveMessages = new TaskCompletionSource<StreamMessage>();
                     List<StreamMessage> receivedMessages = new List<StreamMessage>();
-                    using (store.SubscribeToAll(
-                        null,
+                    using (store.SubscribeToAllFromStart(
                         message =>
                         {
                             _testOutputHelper.WriteLine($"Received message {message.StreamId} {message.StreamVersion} {message.Position}");
@@ -356,8 +354,7 @@
                         .ToArray();
 
                     var subscriptions = Enumerable.Range(0, subscriptionCount)
-                        .Select(index => store.SubscribeToAll(
-                            null,
+                        .Select(index => store.SubscribeToAllFromStart(
                             streamMessageReceived: message =>
                             {
                                 if(message.StreamVersion == 1)
@@ -439,8 +436,7 @@
 
                     var receiveMessage = new TaskCompletionSource<StreamMessage>();
                     List<StreamMessage> receivedMessages = new List<StreamMessage>();
-                    using (store.SubscribeToAll(
-                        null,
+                    using (store.SubscribeToAllFromStart(
                         message =>
                         {
                             _testOutputHelper.WriteLine($"Received message {message.StreamId} " +
@@ -593,8 +589,7 @@
                         eventReceivedException.SetResult(reason);
                     };
                     string streamId = "stream-1";
-                    using (store.SubscribeToAll(
-                        null,
+                    using (store.SubscribeToAllFromStart(
                         messageReceived,
                         subscriptionDropped))
                     {

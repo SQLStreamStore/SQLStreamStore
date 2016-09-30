@@ -11,7 +11,7 @@
         /// <summary>
         ///     Reads messages from all streams forwards.
         /// </summary>
-        /// <param name="fromPositionInclusive">
+        /// <param name="fromPosition">
         ///     The position to start reading from. Use <see cref="Position.Start"/> to start from the beginning.
         ///     Note: messages that have expired will be filtered out.
         /// </param>
@@ -24,14 +24,14 @@
         ///     then the message collection MAY be empty.
         /// </returns>
         Task<AllMessagesPage> ReadAllForwards(
-            long fromPositionInclusive,
+            long fromPosition,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         ///     Reads messages from all streams backwards.
         /// </summary>
-        /// <param name="fromPositionInclusive">
+        /// <param name="fromPosition">
         ///     The position to start reading from. Use <see cref="Position.End"/> to start from the end.
         ///     Note: messages that have expired will be filtered out.
         /// </param>
@@ -46,7 +46,7 @@
         ///     then the message collection MAY be empty.
         /// </returns>
         Task<AllMessagesPage> ReadAllBackwards(
-            long fromPositionInclusive,
+            long fromPosition,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken));
 

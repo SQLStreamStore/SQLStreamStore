@@ -101,7 +101,7 @@
                 // Wait for notification before starting again. 
                 try
                 {
-                    await _streamStoreNotification.WaitAsync(_disposed.Token);
+                    await _streamStoreNotification.WaitAsync(_disposed.Token).NotOnCapturedContext();
                 }
                 catch(TaskCanceledException)
                 {

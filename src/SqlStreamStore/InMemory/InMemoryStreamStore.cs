@@ -24,8 +24,9 @@ namespace SqlStreamStore
         private readonly Action _onStreamAppended;
         private readonly Dictionary<string, InMemoryStream> _streams = new Dictionary<string, InMemoryStream>();
         private readonly Subject<Unit> _subscriptions = new Subject<Unit>();
+        private readonly InterlockedBoolean _signallingToSubscribers = new InterlockedBoolean();
         private bool _isDisposed;
-        private int _currentPosition = 0;
+        private int _currentPosition;
 
         public InMemoryStreamStore(GetUtcNow getUtcNow = null, string logName = null)
             : base(TimeSpan.FromMinutes(1), 10000, getUtcNow, logName ?? nameof(InMemoryStreamStore))
@@ -40,8 +41,17 @@ namespace SqlStreamStore
                 null,
                 null,
                 null));
-
-            _onStreamAppended = () => _subscriptions.OnNext(Unit.Default);
+            _onStreamAppended = () =>
+            {
+                if(_signallingToSubscribers.CompareExchange(true, false) == false)
+                {
+                    Task.Run(() =>
+                    {
+                        _subscriptions.OnNext(Unit.Default);
+                        _signallingToSubscribers.Set(false);
+                    });
+                }
+            };
         }
 
         protected override void Dispose(bool disposing)

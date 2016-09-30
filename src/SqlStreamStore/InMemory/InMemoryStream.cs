@@ -151,12 +151,11 @@ namespace SqlStreamStore.InMemory
                     newmessage.JsonData,
                     newmessage.JsonMetadata);
 
-                _inMemoryAllStream.AddAfter(_inMemoryAllStream.Last, inMemorymessage);
                 _events.Add(inMemorymessage);
                 _eventsById.Add(newmessage.MessageId, inMemorymessage);
-
-                _onStreamAppended();
+                _inMemoryAllStream.AddAfter(_inMemoryAllStream.Last, inMemorymessage);
             }
+            _onStreamAppended();
         }
 
         internal void DeleteAllEvents(int expectedVersion)

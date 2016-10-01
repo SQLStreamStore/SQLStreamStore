@@ -153,7 +153,7 @@ namespace SqlStreamStore.Infrastructure
 
         public IStreamSubscription SubscribeToStream(
             string streamId,
-            int fromVersionExclusive,
+            int? contiuneAfterVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null)
@@ -163,8 +163,9 @@ namespace SqlStreamStore.Infrastructure
 
             CheckIfDisposed();
 
-            return SubscribeToStreamInternal(streamId,
-                fromVersionExclusive,
+            return SubscribeToStreamInternal(
+                streamId,
+                contiuneAfterVersion,
                 streamMessageReceived,
                 subscriptionDropped,
                 name);
@@ -241,7 +242,7 @@ namespace SqlStreamStore.Infrastructure
 
         protected abstract IStreamSubscription SubscribeToStreamInternal(
             string streamId,
-            int startVersion,
+            int? continueAfterVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             string name);

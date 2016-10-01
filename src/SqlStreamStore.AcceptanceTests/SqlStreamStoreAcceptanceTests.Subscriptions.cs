@@ -67,26 +67,26 @@
                     var receivedMessages = new List<StreamMessage>();
                     using (var subscription = store.SubscribeToStream(
                         streamId,
-                        StreamVersion.Start,
+                        null,
                         message =>
                         {
                             receivedMessages.Add(message);
-                            if (message.StreamVersion == 1)
+                            if (message.StreamVersion == 0)
                             {
                                 done.SetResult(message);
                             }
                             return Task.CompletedTask;
                         }))
                     {
-                        await AppendMessages(store, streamId, 2);
+                        await AppendMessages(store, streamId, 1);
 
                         var receivedMessage = await done.Task.WithTimeout();
 
-                        receivedMessages.Count.ShouldBe(2);
+                        receivedMessages.Count.ShouldBe(1);
                         subscription.StreamId.ShouldBe(streamId);
                         receivedMessage.StreamId.ShouldBe(streamId);
-                        receivedMessage.StreamVersion.ShouldBe(1);
-                        subscription.LastVersion.ShouldBeGreaterThan(0);
+                        receivedMessage.StreamVersion.ShouldBe(0);
+                        subscription.LastVersion.ShouldBe(0);
                     }
                 }
             }
@@ -107,7 +107,8 @@
 
                     var receiveMessages = new TaskCompletionSource<StreamMessage>();
                     List<StreamMessage> receivedMessages = new List<StreamMessage>();
-                    using(store.SubscribeToAllFromStart(
+                    using(store.SubscribeToAll(
+                        null,
                         message =>
                         {
                             _testOutputHelper.WriteLine($"Received message {message.StreamId} " +
@@ -143,7 +144,8 @@
 
                     var receiveMessages = new TaskCompletionSource<StreamMessage>();
                     List<StreamMessage> receivedMessages = new List<StreamMessage>();
-                    using (store.SubscribeToAllFromStart(
+                    using (store.SubscribeToAll(
+                        null,
                         message =>
                         {
                             _testOutputHelper.WriteLine($"Received message {message.StreamId} {message.StreamVersion} {message.Position}");
@@ -354,7 +356,8 @@
                         .ToArray();
 
                     var subscriptions = Enumerable.Range(0, subscriptionCount)
-                        .Select(index => store.SubscribeToAllFromStart(
+                        .Select(index => store.SubscribeToAll(
+                            null,
                             streamMessageReceived: message =>
                             {
                                 if(message.StreamVersion == 1)
@@ -436,7 +439,8 @@
 
                     var receiveMessage = new TaskCompletionSource<StreamMessage>();
                     List<StreamMessage> receivedMessages = new List<StreamMessage>();
-                    using (store.SubscribeToAllFromStart(
+                    using (store.SubscribeToAll(
+                        null,
                         message =>
                         {
                             _testOutputHelper.WriteLine($"Received message {message.StreamId} " +
@@ -589,7 +593,8 @@
                         eventReceivedException.SetResult(reason);
                     };
                     string streamId = "stream-1";
-                    using (store.SubscribeToAllFromStart(
+                    using (store.SubscribeToAll(
+                        null,
                         messageReceived,
                         subscriptionDropped))
                     {

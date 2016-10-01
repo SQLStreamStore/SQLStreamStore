@@ -6,14 +6,14 @@ namespace SqlStreamStore
     {
         protected override IStreamSubscription SubscribeToStreamInternal(
             string streamId,
-            int startVersion,
+            int? continueAfterVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             string name)
         {
             return new StreamSubscription(
                 streamId,
-                startVersion,
+                continueAfterVersion,
                 this,
                 GetStoreObservable,
                 streamMessageReceived,

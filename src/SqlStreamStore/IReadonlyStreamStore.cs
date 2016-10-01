@@ -100,7 +100,7 @@
         /// <param name="streamId">
         ///     The stream to subscribe to.
         /// </param>
-        /// <param name="fromVersionExclusive">
+        /// <param name="contiuneAfterVersion">
         ///     The version to subscribe from.
         /// </param>
         /// <param name="streamMessageReceived">
@@ -118,7 +118,7 @@
         /// </returns>
         IStreamSubscription SubscribeToStream(
             string streamId,
-            int fromVersionExclusive,
+            int? contiuneAfterVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null);

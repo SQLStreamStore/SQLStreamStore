@@ -11,7 +11,7 @@
         /// <summary>
         ///     Reads messages from all streams forwards.
         /// </summary>
-        /// <param name="fromPositionInclusive">
+        /// <param name="fromPosition">
         ///     The position to start reading from. Use <see cref="Position.Start"/> to start from the beginning.
         ///     Note: messages that have expired will be filtered out.
         /// </param>
@@ -24,14 +24,14 @@
         ///     then the message collection MAY be empty.
         /// </returns>
         Task<AllMessagesPage> ReadAllForwards(
-            long fromPositionInclusive,
+            long fromPosition,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
         ///     Reads messages from all streams backwards.
         /// </summary>
-        /// <param name="fromPositionInclusive">
+        /// <param name="fromPosition">
         ///     The position to start reading from. Use <see cref="Position.End"/> to start from the end.
         ///     Note: messages that have expired will be filtered out.
         /// </param>
@@ -46,7 +46,7 @@
         ///     then the message collection MAY be empty.
         /// </returns>
         Task<AllMessagesPage> ReadAllBackwards(
-            long fromPositionInclusive,
+            long fromPosition,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken));
 
@@ -100,7 +100,7 @@
         /// <param name="streamId">
         ///     The stream to subscribe to.
         /// </param>
-        /// <param name="fromVersionExclusive">
+        /// <param name="contiuneAfterVersion">
         ///     The version to subscribe from.
         /// </param>
         /// <param name="streamMessageReceived">
@@ -118,16 +118,16 @@
         /// </returns>
         IStreamSubscription SubscribeToStream(
             string streamId,
-            int fromVersionExclusive,
+            int? contiuneAfterVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null);
 
         /// <summary>
-        ///     Subsribes to all stream.
+        ///     Subsribes to the all stream.
         /// </summary>
-        /// <param name="fromPositionExclusive">
-        ///     The position to start subscribing from. Use null to start from beginning.
+        /// <param name="continueAfterPosition">
+        ///     The position from which the subscription will continue after. Use null to start from very beginning.
         /// </param>
         /// <param name="streamMessageReceived">
         ///     A delegate that is invoked when a message is available. If an exception is thrown, the subscription
@@ -143,7 +143,7 @@
         ///     An <see cref="IStreamSubscription"/> that represents the subscription. Dispose to stop the subscription.
         /// </returns>
         IAllStreamSubscription SubscribeToAll(
-            long? fromPositionExclusive,
+            long? continueAfterPosition,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null);

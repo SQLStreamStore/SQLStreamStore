@@ -24,7 +24,7 @@
 
         public StreamSubscription(
             string streamId,
-            int startVersion,
+            int? continueAfterVersion,
             IReadonlyStreamStore readonlyStreamStore,
             IObservable<Unit> streamStoreAppendedNotification,
             StreamMessageReceived streamMessageReceived,
@@ -32,8 +32,8 @@
             string name = null)
         {
             StreamId               = streamId;
-            _nextVersion           = startVersion;
-            LastVersion            = startVersion - 1;
+            _nextVersion           = continueAfterVersion ?? 0;
+            LastVersion            = _nextVersion - 1;
             _readonlyStreamStore   = readonlyStreamStore;
             _streamMessageReceived = streamMessageReceived;
             _subscriptionDropped   = subscriptionDropped ?? ((_, __) => { });

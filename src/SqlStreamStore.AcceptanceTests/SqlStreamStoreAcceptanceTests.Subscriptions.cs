@@ -67,26 +67,26 @@
                     var receivedMessages = new List<StreamMessage>();
                     using (var subscription = store.SubscribeToStream(
                         streamId,
-                        StreamVersion.Start,
+                        null,
                         message =>
                         {
                             receivedMessages.Add(message);
-                            if (message.StreamVersion == 1)
+                            if (message.StreamVersion == 0)
                             {
                                 done.SetResult(message);
                             }
                             return Task.CompletedTask;
                         }))
                     {
-                        await AppendMessages(store, streamId, 2);
+                        await AppendMessages(store, streamId, 1);
 
                         var receivedMessage = await done.Task.WithTimeout();
 
-                        receivedMessages.Count.ShouldBe(2);
+                        receivedMessages.Count.ShouldBe(1);
                         subscription.StreamId.ShouldBe(streamId);
                         receivedMessage.StreamId.ShouldBe(streamId);
-                        receivedMessage.StreamVersion.ShouldBe(1);
-                        subscription.LastVersion.ShouldBeGreaterThan(0);
+                        receivedMessage.StreamVersion.ShouldBe(0);
+                        subscription.LastVersion.ShouldBe(0);
                     }
                 }
             }

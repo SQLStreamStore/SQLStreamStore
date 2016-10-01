@@ -32,11 +32,11 @@ namespace SqlStreamStore.Infrastructure
         }
 
         public async Task<AllMessagesPage> ReadAllForwards(
-            long fromPositionInclusive,
+            long fromPosition,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            Ensure.That(fromPositionInclusive, nameof(fromPositionInclusive)).IsGte(0);
+            Ensure.That(fromPosition, nameof(fromPosition)).IsGte(0);
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
 
             CheckIfDisposed();
@@ -44,10 +44,10 @@ namespace SqlStreamStore.Infrastructure
             if (Logger.IsDebugEnabled())
             {
                 Logger.DebugFormat("ReadAllForwards from position {fromPositionInclusive} with max count " +
-                                   "{maxCount}.", fromPositionInclusive, maxCount);
+                                   "{maxCount}.", fromPosition, maxCount);
             }
 
-            var page = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, cancellationToken)
+            var page = await ReadAllForwardsInternal(fromPosition, maxCount, cancellationToken)
                 .NotOnCapturedContext();
 
             // https://github.com/damianh/SqlStreamStore/issues/31
@@ -64,13 +64,13 @@ namespace SqlStreamStore.Infrastructure
             {
                 Logger.InfoFormat($"ReadAllForwards: gap detected in position, reloading after {DefaultReloadInterval}ms");
                 await Task.Delay(DefaultReloadInterval, cancellationToken);
-                var reloadedPage = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, cancellationToken)
+                var reloadedPage = await ReadAllForwardsInternal(fromPosition, maxCount, cancellationToken)
                     .NotOnCapturedContext();
                 return await FilterExpired(reloadedPage, cancellationToken).NotOnCapturedContext();
             };
 
             // Check for gap between last page and this.
-            if (page.Messages[0].Position != fromPositionInclusive)
+            if (page.Messages[0].Position != fromPosition)
             {
                 return await reload(cancellationToken);
             }
@@ -88,11 +88,11 @@ namespace SqlStreamStore.Infrastructure
         }
 
         public async Task<AllMessagesPage> ReadAllBackwards(
-            long fromPositionInclusive,
+            long fromPosition,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            Ensure.That(fromPositionInclusive, nameof(fromPositionInclusive)).IsGte(-1);
+            Ensure.That(fromPosition, nameof(fromPosition)).IsGte(-1);
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
 
             CheckIfDisposed();
@@ -100,10 +100,10 @@ namespace SqlStreamStore.Infrastructure
             if (Logger.IsDebugEnabled())
             {
                 Logger.DebugFormat("ReadAllBackwards from position {fromPositionInclusive} with max count " +
-                                   "{maxCount}.", fromPositionInclusive, maxCount);
+                                   "{maxCount}.", fromPosition, maxCount);
             }
 
-            var page = await ReadAllBackwardsInternal(fromPositionInclusive, maxCount, cancellationToken);
+            var page = await ReadAllBackwardsInternal(fromPosition, maxCount, cancellationToken);
             return await FilterExpired(page, cancellationToken);
         }
 
@@ -153,7 +153,7 @@ namespace SqlStreamStore.Infrastructure
 
         public IStreamSubscription SubscribeToStream(
             string streamId,
-            int fromVersionExclusive,
+            int? contiuneAfterVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null)
@@ -163,15 +163,16 @@ namespace SqlStreamStore.Infrastructure
 
             CheckIfDisposed();
 
-            return SubscribeToStreamInternal(streamId,
-                fromVersionExclusive,
+            return SubscribeToStreamInternal(
+                streamId,
+                contiuneAfterVersion,
                 streamMessageReceived,
                 subscriptionDropped,
                 name);
         }
 
         public IAllStreamSubscription SubscribeToAll(
-            long? fromPositionExclusive,
+            long? continueAfterPosition,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null)
@@ -180,7 +181,8 @@ namespace SqlStreamStore.Infrastructure
 
             CheckIfDisposed();
 
-            return SubscribeToAllInternal(fromPositionExclusive,
+            return SubscribeToAllInternal(
+                continueAfterPosition,
                 streamMessageReceived,
                 subscriptionDropped,
                 name);
@@ -240,7 +242,7 @@ namespace SqlStreamStore.Infrastructure
 
         protected abstract IStreamSubscription SubscribeToStreamInternal(
             string streamId,
-            int startVersion,
+            int? continueAfterVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             string name);

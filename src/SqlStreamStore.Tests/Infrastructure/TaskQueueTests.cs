@@ -41,13 +41,13 @@
                 var tasks = new ConcurrentBag<Task>();
 
                 Parallel.For(0,
-                    250,
+                    100,
                     i =>
                     {
                         int j = i;
                         var task = taskQueue.Enqueue(() =>
                         {
-                            _testOutputHelper.WriteLine(j.ToString());
+                            _testOutputHelper.WriteLine($"Task {j} completed.");
                         });
                         tasks.Add(task);
                     });

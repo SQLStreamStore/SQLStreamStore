@@ -541,14 +541,14 @@ namespace SqlStreamStore
 
         protected override IStreamSubscription SubscribeToStreamInternal(
             string streamId,
-            int startVersion,
+            int? continueAfterVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             string name)
         {
             IStreamSubscription subscription = new StreamSubscription(
                 streamId,
-                startVersion,
+                continueAfterVersion,
                 this,
                 _subscriptions,
                 streamMessageReceived,

@@ -67,6 +67,7 @@
     <Compile Include="Infrastructure\EnsureThatExtensions.cs" />
     <Compile Include="Infrastructure\StreamStoreBase.cs" />
     <Compile Include="InMemory\InMemoryAllStream.cs" />
+    <Compile Include="ReadonlyStreamExtensions.cs" />
     <Compile Include="Streams\MetadataMessage.cs" />
     <Compile Include="Infrastructure\ReadonlyStreamStoreBase.cs" />
     <Compile Include="Streams\StreamMetadataResult.cs" />

@@ -127,7 +127,7 @@
         ///     Subsribes to the all stream.
         /// </summary>
         /// <param name="continueAfterPosition">
-        ///     The position from which the subscription will continue after.
+        ///     The position from which the subscription will continue after. Use null to start from very beginning.
         /// </param>
         /// <param name="streamMessageReceived">
         ///     A delegate that is invoked when a message is available. If an exception is thrown, the subscription
@@ -143,28 +143,7 @@
         ///     An <see cref="IStreamSubscription"/> that represents the subscription. Dispose to stop the subscription.
         /// </returns>
         IAllStreamSubscription SubscribeToAll(
-            long continueAfterPosition,
-            StreamMessageReceived streamMessageReceived,
-            SubscriptionDropped subscriptionDropped = null,
-            string name = null);
-
-        /// <summary>
-        ///     Subsribes to the all stream.
-        /// </summary>
-        /// <param name="streamMessageReceived">
-        ///     A delegate that is invoked when a message is available. If an exception is thrown, the subscription
-        ///     is terminated.
-        /// </param>
-        /// <param name="subscriptionDropped">
-        ///     A delegate that is invoked when a the subscription fails.
-        /// </param>
-        /// <param name="name">
-        ///     The name of the subscription used for logging. Optional.
-        /// </param>
-        /// <returns>
-        ///     An <see cref="IStreamSubscription"/> that represents the subscription. Dispose to stop the subscription.
-        /// </returns>
-        IAllStreamSubscription SubscribeToAllFromStart(
+            long? continueAfterPosition,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null);

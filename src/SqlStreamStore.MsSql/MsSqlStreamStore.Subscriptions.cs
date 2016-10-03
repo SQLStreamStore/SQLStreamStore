@@ -9,7 +9,7 @@ namespace SqlStreamStore
             int? startVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
-            IsCaughtUp isCaughtUp,
+            HasCaughtUp hasCaughtUp,
             string name)
         {
             return new StreamSubscription(
@@ -19,7 +19,7 @@ namespace SqlStreamStore
                 GetStoreObservable,
                 streamMessageReceived,
                 subscriptionDropped,
-                isCaughtUp,
+                hasCaughtUp,
                 name);
         }
 
@@ -27,7 +27,7 @@ namespace SqlStreamStore
             long? fromPosition,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
-            IsCaughtUp isCaughtUp,
+            HasCaughtUp hasCaughtUp,
             string name)
         {
             return new AllStreamSubscription(
@@ -36,7 +36,7 @@ namespace SqlStreamStore
                 GetStoreObservable,
                 streamMessageReceived,
                 subscriptionDropped,
-                isCaughtUp,
+                hasCaughtUp,
                 name);
         }
     }

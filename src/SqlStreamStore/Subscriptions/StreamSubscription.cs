@@ -17,7 +17,7 @@
         private readonly int? _continueAfterVersion;
         private readonly IReadonlyStreamStore _readonlyStreamStore;
         private readonly StreamMessageReceived _streamMessageReceived;
-        private readonly IsCaughtUp _isCaughtUp;
+        private readonly HasCaughtUp _hasCaughtUp;
         private readonly SubscriptionDropped _subscriptionDropped;
         private readonly IDisposable _notification;
         private readonly CancellationTokenSource _disposed = new CancellationTokenSource();
@@ -31,7 +31,7 @@
             IObservable<Unit> streamStoreAppendedNotification,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
-            IsCaughtUp isCaughtUp,
+            HasCaughtUp hasCaughtUp,
             string name = null)
         {
             StreamId = streamId;
@@ -39,7 +39,7 @@
             _readonlyStreamStore = readonlyStreamStore;
             _streamMessageReceived = streamMessageReceived;
             _subscriptionDropped = subscriptionDropped ?? ((_, __) => { });
-            _isCaughtUp = isCaughtUp ?? ((_) => { });
+            _hasCaughtUp = hasCaughtUp ?? ((_) => { });
             Name = string.IsNullOrWhiteSpace(name) ? Guid.NewGuid().ToString() : name;
 
             _notification = streamStoreAppendedNotification.Subscribe(_ =>
@@ -95,8 +95,9 @@
             while(true)
             {
                 bool pause = false;
+                bool? lastHasCaughtUp = null;
 
-                while(!pause)
+                while (!pause)
                 {
                     var page = await Pull();
 
@@ -105,7 +106,13 @@
                         break;
                     }
 
-                    _isCaughtUp(page.IsEnd);
+                    if (!lastHasCaughtUp.HasValue || lastHasCaughtUp.Value != page.IsEnd)
+                    {
+                        // Only raise if the state changes
+                        lastHasCaughtUp = page.IsEnd;
+                        _hasCaughtUp(page.IsEnd);
+                    }
+                    _hasCaughtUp(page.IsEnd);
 
                     await Push(page);
                     pause = page.IsEnd && page.Messages.Length == 0;

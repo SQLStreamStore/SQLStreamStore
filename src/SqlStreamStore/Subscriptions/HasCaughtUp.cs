@@ -6,5 +6,5 @@
     /// <returns>
     ///     True if the subscription has caught up, False otherwise.
     /// </returns>
-    public delegate void IsCaughtUp(bool isCaughtUp);
+    public delegate void HasCaughtUp(bool hasCaughtUp);
 }

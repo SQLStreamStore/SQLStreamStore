@@ -699,7 +699,7 @@
                     var subscription = store.SubscribeToAll(
                         null,
                         _ => Task.CompletedTask,
-                        isCaughtUp: b =>
+                        hasCaughtUp: b =>
                         {
                             if(b)
                             {
@@ -727,7 +727,7 @@
                         streamId,
                         null,
                         _ => Task.CompletedTask,
-                        isCaughtUp: b =>
+                        hasCaughtUp: b =>
                         {
                             if (b)
                             {
@@ -756,7 +756,7 @@
                     var subscription = store.SubscribeToAll(
                         null,
                         _ => Task.CompletedTask,
-                        isCaughtUp: b =>
+                        hasCaughtUp: b =>
                         {
                             if (b)
                             {
@@ -791,7 +791,7 @@
                         streamId,
                         null,
                         _ => Task.CompletedTask,
-                        isCaughtUp: b =>
+                        hasCaughtUp: b =>
                         {
                             if (b)
                             {

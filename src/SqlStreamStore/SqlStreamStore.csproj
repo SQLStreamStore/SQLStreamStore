@@ -69,6 +69,7 @@
     <Compile Include="InMemory\InMemoryAllStream.cs" />
     <Compile Include="Streams\MetadataMessage.cs" />
     <Compile Include="Infrastructure\ReadonlyStreamStoreBase.cs" />
+    <Compile Include="Streams\ReadNextAllPage.cs" />
     <Compile Include="Streams\StreamMetadataResult.cs" />
     <Compile Include="Streams\Position.cs" />
     <Compile Include="StreamStoreExtensions.cs" />

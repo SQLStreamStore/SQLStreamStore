@@ -47,7 +47,9 @@ namespace SqlStreamStore.Infrastructure
                                    "{maxCount}.", fromPositionInclusive, maxCount);
             }
 
-            var page = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, cancellationToken)
+            ReadNextAllPage readNext = (nextPosition, ct) => ReadAllForwards(nextPosition, maxCount, ct);
+
+            var page = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, readNext, cancellationToken)
                 .NotOnCapturedContext();
 
             // https://github.com/damianh/SqlStreamStore/issues/31
@@ -57,22 +59,13 @@ namespace SqlStreamStore.Infrastructure
             // and re-issue the read. This is expected 
             if(!page.IsEnd || page.Messages.Length <= 1)
             {
-                return await FilterExpired(page, cancellationToken).NotOnCapturedContext();
+                return await FilterExpired(page, readNext, cancellationToken).NotOnCapturedContext();
             }
-
-            Func<CancellationToken, Task<ReadAllPage>> reload = async ct =>
-            {
-                Logger.InfoFormat($"ReadAllForwards: gap detected in position, reloading after {DefaultReloadInterval}ms");
-                await Task.Delay(DefaultReloadInterval, cancellationToken);
-                var reloadedPage = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, cancellationToken)
-                    .NotOnCapturedContext();
-                return await FilterExpired(reloadedPage, cancellationToken).NotOnCapturedContext();
-            };
 
             // Check for gap between last page and this.
             if (page.Messages[0].Position != fromPositionInclusive)
             {
-                return await reload(cancellationToken);
+                page = await ReloadAfterDelay(fromPositionInclusive, maxCount, readNext, cancellationToken);
             }
             
             // check for gap in messages collection
@@ -80,11 +73,12 @@ namespace SqlStreamStore.Infrastructure
             {
                 if(page.Messages[i].Position + 1 != page.Messages[i + 1].Position)
                 {
-                    return await reload(cancellationToken);
+                    page = await ReloadAfterDelay(fromPositionInclusive, maxCount, readNext, cancellationToken);
+                    break;
                 }
             }
 
-            return await FilterExpired(page, cancellationToken).NotOnCapturedContext();
+            return await FilterExpired(page, readNext, cancellationToken).NotOnCapturedContext();
         }
 
         public async Task<ReadAllPage> ReadAllBackwards(
@@ -103,8 +97,9 @@ namespace SqlStreamStore.Infrastructure
                                    "{maxCount}.", fromPositionInclusive, maxCount);
             }
 
-            var page = await ReadAllBackwardsInternal(fromPositionInclusive, maxCount, cancellationToken);
-            return await FilterExpired(page, cancellationToken);
+            ReadNextAllPage readNext = (nextPosition, ct) => ReadAllBackwards(nextPosition, maxCount, ct);
+            var page = await ReadAllBackwardsInternal(fromPositionInclusive, maxCount, readNext, cancellationToken);
+            return await FilterExpired(page, readNext, cancellationToken);
         }
 
         public async Task<ReadStreamPage> ReadStreamForwards(
@@ -218,11 +213,13 @@ namespace SqlStreamStore.Infrastructure
         protected abstract Task<ReadAllPage> ReadAllForwardsInternal(
             long fromPositionExlusive,
             int maxCount,
+            ReadNextAllPage readNext,
             CancellationToken cancellationToken);
 
         protected abstract Task<ReadAllPage> ReadAllBackwardsInternal(
             long fromPositionExclusive,
             int maxCount,
+            ReadNextAllPage readNext,
             CancellationToken cancellationToken);
 
         protected abstract Task<ReadStreamPage> ReadStreamForwardsInternal(
@@ -269,6 +266,16 @@ namespace SqlStreamStore.Infrastructure
 
         protected abstract void PurgeExpiredMessage(StreamMessage streamMessage);
 
+        private async Task<ReadAllPage> ReloadAfterDelay(long fromPositionInclusive, int maxCount,
+            ReadNextAllPage readNext, CancellationToken cancellationToken)
+        {
+            Logger.InfoFormat($"ReadAllForwards: gap detected in position, reloading after {DefaultReloadInterval}ms");
+            await Task.Delay(DefaultReloadInterval, cancellationToken);
+            var reloadedPage = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, readNext, cancellationToken)
+                .NotOnCapturedContext();
+            return await FilterExpired(reloadedPage, readNext, cancellationToken).NotOnCapturedContext();
+        }
+
         private async Task<ReadStreamPage> FilterExpired(
             ReadStreamPage page,
             CancellationToken cancellationToken)
@@ -308,6 +315,7 @@ namespace SqlStreamStore.Infrastructure
 
         private async Task<ReadAllPage> FilterExpired(
            ReadAllPage readAllPage,
+           ReadNextAllPage readNext,
            CancellationToken cancellationToken)
         {
             var valid = new List<StreamMessage>();
@@ -339,7 +347,8 @@ namespace SqlStreamStore.Infrastructure
                 readAllPage.NextPosition,
                 readAllPage.IsEnd,
                 readAllPage.Direction,
-                valid.ToArray());
+                valid.ToArray(),
+                readNext);
         }
 
         ~ReadonlyStreamStoreBase()

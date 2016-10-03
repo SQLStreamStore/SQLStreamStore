@@ -273,6 +273,7 @@ namespace SqlStreamStore
         protected override Task<ReadAllPage> ReadAllForwardsInternal(
             long fromPositionExlusive,
             int maxCount,
+            ReadNextAllPage readNext,
             CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
@@ -283,8 +284,9 @@ namespace SqlStreamStore
                 var current = _allStream.First;
                 if(current.Next == null) //Empty store
                 {
-                    return Task.FromResult(
-                        new ReadAllPage(Position.Start, Position.Start, true, ReadDirection.Forward));
+                    var result = new ReadAllPage(Position.Start, Position.Start, true, ReadDirection.Forward,
+                        StreamMessage.EmptyArray, readNext);
+                    return Task.FromResult(result);
                 }
 
                 var previous = current.Previous;
@@ -292,11 +294,9 @@ namespace SqlStreamStore
                 {
                     if(current.Next == null) // fromPosition is past end of store
                     {
-                        return Task.FromResult(
-                            new ReadAllPage(fromPositionExlusive,
-                                fromPositionExlusive,
-                                true,
-                                ReadDirection.Forward));
+                        var result = new ReadAllPage(fromPositionExlusive, fromPositionExlusive, true,
+                            ReadDirection.Forward, StreamMessage.EmptyArray, readNext);
+                        return Task.FromResult(result);
                     }
                     previous = current;
                     current = current.Next;
@@ -329,7 +329,8 @@ namespace SqlStreamStore
                     nextCheckPoint,
                     isEnd,
                     ReadDirection.Forward,
-                    messages.ToArray());
+                    messages.ToArray(),
+                    readNext);
 
                 return Task.FromResult(page);
             }
@@ -338,6 +339,7 @@ namespace SqlStreamStore
         protected override Task<ReadAllPage> ReadAllBackwardsInternal(
             long fromPositionExclusive,
             int maxCount,
+            ReadNextAllPage readNext,
             CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
@@ -353,8 +355,9 @@ namespace SqlStreamStore
                 var current = _allStream.First;
                 if(current.Next == null) //Empty store
                 {
-                    return Task.FromResult(
-                        new ReadAllPage(Position.Start, Position.Start, true, ReadDirection.Backward));
+                    var result = new ReadAllPage(Position.Start, Position.Start, true, ReadDirection.Backward,
+                        StreamMessage.EmptyArray, readNext);
+                    return Task.FromResult(result);
                 }
 
                 var previous = current.Previous;
@@ -362,11 +365,9 @@ namespace SqlStreamStore
                 {
                     if(current.Next == null) // fromPosition is past end of store
                     {
-                        return Task.FromResult(
-                            new ReadAllPage(fromPositionExclusive,
-                                fromPositionExclusive,
-                                true,
-                                ReadDirection.Backward));
+                        var result = new ReadAllPage(fromPositionExclusive, fromPositionExclusive, true,
+                                ReadDirection.Backward, StreamMessage.EmptyArray, readNext);
+                        return Task.FromResult(result);
                     }
                     previous = current;
                     current = current.Next;
@@ -410,7 +411,8 @@ namespace SqlStreamStore
                     nextCheckPoint,
                     isEnd,
                     ReadDirection.Backward,
-                    messages.ToArray());
+                    messages.ToArray(),
+                    readNext);
 
                 return Task.FromResult(page);
             }

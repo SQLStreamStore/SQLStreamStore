@@ -13,6 +13,7 @@ namespace SqlStreamStore
         protected override async Task<ReadAllPage> ReadAllForwardsInternal(
             long fromPositionExlusive,
             int maxCount,
+            ReadNextAllPage readNext,
             CancellationToken cancellationToken)
         {
             maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;
@@ -38,7 +39,8 @@ namespace SqlStreamStore
                             fromPositionExlusive,
                             true,
                             ReadDirection.Forward,
-                            messages.ToArray());
+                            messages.ToArray(),
+                            readNext);
                     }
 
                     long lastOrdinal = 0;
@@ -80,7 +82,8 @@ namespace SqlStreamStore
                         nextPosition,
                         isEnd,
                         ReadDirection.Forward,
-                        messages.ToArray());
+                        messages.ToArray(),
+                        readNext);
                 }
             }
         }
@@ -88,7 +91,8 @@ namespace SqlStreamStore
         protected override async Task<ReadAllPage> ReadAllBackwardsInternal(
             long fromPositionExclusive,
             int maxCount,
-            CancellationToken cancellationToken = default(CancellationToken))
+            ReadNextAllPage readNext,
+            CancellationToken cancellationToken)
         {
             maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;
             long ordinal = fromPositionExclusive == Position.End ? long.MaxValue : fromPositionExclusive;
@@ -115,7 +119,8 @@ namespace SqlStreamStore
                             Position.Start,
                             true,
                             ReadDirection.Backward,
-                            messages.ToArray());
+                            messages.ToArray(),
+                            readNext);
                     }
 
                     long lastOrdinal = 0;
@@ -159,7 +164,8 @@ namespace SqlStreamStore
                         nextPosition,
                         isEnd,
                         ReadDirection.Backward,
-                        messages.ToArray());
+                        messages.ToArray(),
+                        readNext);
                 }
             }
         }

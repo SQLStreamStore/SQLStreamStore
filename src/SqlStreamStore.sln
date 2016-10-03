@@ -28,6 +28,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GetEventstoreExploratoryTes
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoadTests", "LoadTests\LoadTests.csproj", "{E7397C6F-7837-4362-A7F7-20F255ACD48A}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example", "Example\Example.csproj", "{AA40E81A-6CF7-4FB9-AA57-A833B21BD352}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -58,6 +60,10 @@ Global
 		{E7397C6F-7837-4362-A7F7-20F255ACD48A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E7397C6F-7837-4362-A7F7-20F255ACD48A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{E7397C6F-7837-4362-A7F7-20F255ACD48A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{AA40E81A-6CF7-4FB9-AA57-A833B21BD352}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{AA40E81A-6CF7-4FB9-AA57-A833B21BD352}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{AA40E81A-6CF7-4FB9-AA57-A833B21BD352}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{AA40E81A-6CF7-4FB9-AA57-A833B21BD352}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

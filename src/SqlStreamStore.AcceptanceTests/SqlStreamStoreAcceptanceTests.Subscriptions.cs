@@ -29,7 +29,7 @@
                     var receivedMessages = new List<StreamMessage>();
                     using (var subscription = store.SubscribeToStream(
                         streamId1,
-                        StreamVersion.Start,
+                        null,
                         message =>
                         {
                             receivedMessages.Add(message);
@@ -67,7 +67,7 @@
                     var receivedMessages = new List<StreamMessage>();
                     using (var subscription = store.SubscribeToStream(
                         streamId,
-                        StreamVersion.Start,
+                        null,
                         message =>
                         {
                             receivedMessages.Add(message);
@@ -314,7 +314,7 @@
                     int receivedCount = 0;
                     using (var subscription = store.SubscribeToStream(
                         streamId1,
-                        8,
+                        7,
                         message =>
                         {
                             receivedCount++;
@@ -485,7 +485,7 @@
                     };
                     string streamId = "stream-1";
                     using(store.SubscribeToStream("stream-1",
-                        StreamVersion.Start,
+                        null,
                         messageReceived,
                         subscriptionDropped))
                     {

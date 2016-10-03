@@ -6,7 +6,7 @@ namespace SqlStreamStore
     {
         protected override IStreamSubscription SubscribeToStreamInternal(
             string streamId,
-            int startVersion,
+            int? startVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             string name)

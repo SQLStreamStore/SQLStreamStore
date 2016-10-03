@@ -14,6 +14,7 @@
         private static readonly ILog s_logger = LogProvider.GetCurrentClassLogger();
         private int _pageSize = DefaultPageSize;
         private int _nextVersion;
+        private readonly int? _continueAfterVersion;
         private readonly IReadonlyStreamStore _readonlyStreamStore;
         private readonly StreamMessageReceived _streamMessageReceived;
         private readonly SubscriptionDropped _subscriptionDropped;
@@ -24,20 +25,19 @@
 
         public StreamSubscription(
             string streamId,
-            int startVersion,
+            int? continueAfterVersion,
             IReadonlyStreamStore readonlyStreamStore,
             IObservable<Unit> streamStoreAppendedNotification,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             string name = null)
         {
-            StreamId               = streamId;
-            _nextVersion           = startVersion;
-            LastVersion            = startVersion - 1;
-            _readonlyStreamStore   = readonlyStreamStore;
+            StreamId = streamId;
+            _continueAfterVersion = continueAfterVersion;
+            _readonlyStreamStore = readonlyStreamStore;
             _streamMessageReceived = streamMessageReceived;
-            _subscriptionDropped   = subscriptionDropped ?? ((_, __) => { });
-            Name                   = string.IsNullOrWhiteSpace(name) ? Guid.NewGuid().ToString() : name;
+            _subscriptionDropped = subscriptionDropped ?? ((_, __) => { });
+            Name = string.IsNullOrWhiteSpace(name) ? Guid.NewGuid().ToString() : name;
 
             _notification = streamStoreAppendedNotification.Subscribe(_ =>
             {
@@ -75,10 +75,21 @@
 
         private async Task PullAndPush()
         {
-            if(_nextVersion == StreamVersion.End)
+            if (!_continueAfterVersion.HasValue)
+            {
+                _nextVersion = 0;
+                LastVersion = -1;
+            }
+            else if (_continueAfterVersion.Value == StreamVersion.End)
             {
                 await Initialize();
             }
+            else
+            {
+                _nextVersion = _continueAfterVersion.Value + 1;
+                LastVersion = _continueAfterVersion.Value;
+            }
+
             _started.SetResult();
             while(true)
             {
@@ -137,6 +148,7 @@
 
             //Only new Messages, i.e. the one after the current last one 
             _nextVersion = eventsPage.LastStreamVersion + 1;
+            LastVersion = _nextVersion;
         }
 
         private async Task<StreamMessagesPage> Pull()

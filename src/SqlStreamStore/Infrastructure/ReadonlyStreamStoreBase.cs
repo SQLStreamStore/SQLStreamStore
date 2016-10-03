@@ -153,7 +153,7 @@ namespace SqlStreamStore.Infrastructure
 
         public IStreamSubscription SubscribeToStream(
             string streamId,
-            int fromVersionExclusive,
+            int? continueAfterVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null)
@@ -162,16 +162,17 @@ namespace SqlStreamStore.Infrastructure
             Ensure.That(streamMessageReceived, nameof(streamMessageReceived)).IsNotNull();
 
             CheckIfDisposed();
-
-            return SubscribeToStreamInternal(streamId,
-                fromVersionExclusive,
+            
+            return SubscribeToStreamInternal(
+                streamId,
+                continueAfterVersion,
                 streamMessageReceived,
                 subscriptionDropped,
                 name);
         }
 
         public IAllStreamSubscription SubscribeToAll(
-            long? fromPositionExclusive,
+            long? continueAfterPosition,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null)
@@ -180,7 +181,7 @@ namespace SqlStreamStore.Infrastructure
 
             CheckIfDisposed();
 
-            return SubscribeToAllInternal(fromPositionExclusive,
+            return SubscribeToAllInternal(continueAfterPosition,
                 streamMessageReceived,
                 subscriptionDropped,
                 name);
@@ -240,7 +241,7 @@ namespace SqlStreamStore.Infrastructure
 
         protected abstract IStreamSubscription SubscribeToStreamInternal(
             string streamId,
-            int startVersion,
+            int? startVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             string name);

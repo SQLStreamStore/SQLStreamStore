@@ -100,7 +100,7 @@
         /// <param name="streamId">
         ///     The stream to subscribe to.
         /// </param>
-        /// <param name="fromVersionExclusive">
+        /// <param name="continueAfterVersion">
         ///     The version to subscribe from.
         /// </param>
         /// <param name="streamMessageReceived">
@@ -118,7 +118,7 @@
         /// </returns>
         IStreamSubscription SubscribeToStream(
             string streamId,
-            int fromVersionExclusive,
+            int? continueAfterVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null);
@@ -126,8 +126,8 @@
         /// <summary>
         ///     Subsribes to all stream.
         /// </summary>
-        /// <param name="fromPositionExclusive">
-        ///     The position to start subscribing from. Use null to start from beginning.
+        /// <param name="continueAfterPosition">
+        ///     The position to start subscribing after. Use null to include the first message.
         /// </param>
         /// <param name="streamMessageReceived">
         ///     A delegate that is invoked when a message is available. If an exception is thrown, the subscription
@@ -143,7 +143,7 @@
         ///     An <see cref="IStreamSubscription"/> that represents the subscription. Dispose to stop the subscription.
         /// </returns>
         IAllStreamSubscription SubscribeToAll(
-            long? fromPositionExclusive,
+            long? continueAfterPosition,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             string name = null);

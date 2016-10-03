@@ -1,11 +1,16 @@
 ﻿namespace SqlStreamStore.Streams
 {
+    using System;
+    using System.Threading;
+    using System.Threading.Tasks;
+
     /// <summary>
     ///     Represents the result of a read from a stream.
     /// </summary>
     public sealed class ReadStreamPage
     {
         public readonly StreamMessage[] Messages;
+        private readonly ReadNextStreamPage _readNext;
         public readonly int FromStreamVersion;
         public readonly bool IsEnd;
         public readonly int LastStreamVersion;
@@ -22,7 +27,8 @@
             int lastStreamVersion,
             ReadDirection direction,
             bool isEnd,
-            params StreamMessage[] messages)
+            StreamMessage[] messages,
+            ReadNextStreamPage readNext = null)
         {
             StreamId = streamId;
             Status = status;
@@ -32,6 +38,15 @@
             ReadDirection = direction;
             IsEnd = isEnd;
             Messages = messages;
+            _readNext = readNext ?? ((_, __) =>
+                        {
+                            throw new NotSupportedException();
+                        });
+        }
+
+        public Task<ReadStreamPage> ReadNext(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return _readNext(NextStreamVersion, cancellationToken);
         }
     }
 }

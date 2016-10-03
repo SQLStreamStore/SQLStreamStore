@@ -66,7 +66,7 @@
 
                     var page = await store.ReadStreamForwards("stream-1", StreamVersion.Start, 4);
 
-                    page = await store.ReadStreamForwards("stream-1", page.NextStreamVersion, 4);
+                    page = await page.ReadNext();
 
                     page.Messages.Length.ShouldBe(0);
                 }
@@ -207,16 +207,21 @@
             {
                 new ReadStreamTheory("stream-1", StreamVersion.Start, 2,
                     new ReadStreamPage("stream-1", PageReadStatus.Success, 0, 2, 2, ReadDirection.Forward, false,
+                    new [] {
                           ExpectedStreamMessage("stream-1", 1, 0, SystemClock.GetUtcNow()),
-                          ExpectedStreamMessage("stream-1", 2, 1, SystemClock.GetUtcNow()))),
+                          ExpectedStreamMessage("stream-1", 2, 1, SystemClock.GetUtcNow())
+                          })),
 
                 new ReadStreamTheory("not-exist", 1, 2,
-                    new ReadStreamPage("not-exist", PageReadStatus.StreamNotFound, 1, -1, -1, ReadDirection.Forward, true)),
+                    new ReadStreamPage("not-exist", PageReadStatus.StreamNotFound, 1, -1, -1, ReadDirection.Forward, true,
+                        StreamMessage.EmptyArray)),
 
                 new ReadStreamTheory("stream-2", 1, 2,
                     new ReadStreamPage("stream-2", PageReadStatus.Success, 1, 3, 2, ReadDirection.Forward, true,
+                    new [] {
                           ExpectedStreamMessage("stream-2", 5, 1, SystemClock.GetUtcNow()),
-                          ExpectedStreamMessage("stream-2", 6, 2, SystemClock.GetUtcNow())))
+                          ExpectedStreamMessage("stream-2", 6, 2, SystemClock.GetUtcNow())
+                        }))
             };
 
             return theories.Select(t => new object[] { t });
@@ -228,14 +233,18 @@
             {
                new ReadStreamTheory("stream-1", StreamVersion.End, 2,
                     new ReadStreamPage("stream-1", PageReadStatus.Success, -1, 0, 2, ReadDirection.Backward, false,
+                        new [] {
                           ExpectedStreamMessage("stream-1", 3, 2, SystemClock.GetUtcNow()),
-                          ExpectedStreamMessage("stream-1", 2, 1, SystemClock.GetUtcNow()))),
+                          ExpectedStreamMessage("stream-1", 2, 1, SystemClock.GetUtcNow())
+                          })),
 
                  new ReadStreamTheory("stream-1", StreamVersion.End, 4,
                     new ReadStreamPage("stream-1", PageReadStatus.Success, -1, -1, 2, ReadDirection.Backward, true,
-                          ExpectedStreamMessage("stream-1", 3, 2, SystemClock.GetUtcNow()),
-                          ExpectedStreamMessage("stream-1", 2, 1, SystemClock.GetUtcNow()),
-                          ExpectedStreamMessage("stream-1", 1, 0, SystemClock.GetUtcNow())))
+                        new [] {
+                            ExpectedStreamMessage("stream-1", 3, 2, SystemClock.GetUtcNow()),
+                            ExpectedStreamMessage("stream-1", 2, 1, SystemClock.GetUtcNow()),
+                            ExpectedStreamMessage("stream-1", 1, 0, SystemClock.GetUtcNow())
+                        }))
             };
 
             return theories.Select(t => new object[] { t });

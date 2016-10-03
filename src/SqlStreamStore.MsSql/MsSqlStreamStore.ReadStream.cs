@@ -15,13 +15,15 @@
             string streamId,
             int start,
             int count,
+            ReadNextStreamPage readNext,
             CancellationToken cancellationToken)
         {
             using (var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                 var streamIdInfo = new StreamIdInfo(streamId);
-                return await ReadStreamInternal(streamIdInfo.SqlStreamId, start, count, ReadDirection.Forward, connection, cancellationToken);
+                return await ReadStreamInternal(streamIdInfo.SqlStreamId, start, count, ReadDirection.Forward, 
+                    readNext, connection, cancellationToken);
             }
         }
 
@@ -29,13 +31,15 @@
             string streamId,
             int start,
             int count,
+            ReadNextStreamPage readNext,
             CancellationToken cancellationToken)
         {
             using (var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                 var streamIdInfo = new StreamIdInfo(streamId);
-                return await ReadStreamInternal(streamIdInfo.SqlStreamId, start, count, ReadDirection.Backward, connection, cancellationToken);
+                return await ReadStreamInternal(streamIdInfo.SqlStreamId, start, count, ReadDirection.Backward,
+                    readNext, connection, cancellationToken);
             }
         }
 
@@ -44,6 +48,7 @@
             int start,
             int count,
             ReadDirection direction,
+            ReadNextStreamPage readNext,
             SqlConnection connection,
             CancellationToken cancellationToken)
         {
@@ -85,7 +90,9 @@
                             -1,
                             -1,
                             direction,
-                            isEnd: true);
+                            true,
+                            StreamMessage.EmptyArray,
+                            readNext);
                     }
 
                     // Read Messages result set
@@ -132,7 +139,8 @@
                         lastStreamVersion,
                         direction,
                         isEnd,
-                        messages.ToArray());
+                        messages.ToArray(),
+                        readNext);
                 }
             }
         }

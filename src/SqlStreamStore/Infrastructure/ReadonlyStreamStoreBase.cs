@@ -119,9 +119,9 @@ namespace SqlStreamStore.Infrastructure
                 Logger.DebugFormat("ReadStreamForwards {streamId} from version {fromVersionInclusive} with max count " +
                                    "{maxCount}.", streamId, fromVersionInclusive, maxCount);
             }
-
-            var page = await ReadStreamForwardsInternal(streamId, fromVersionInclusive, maxCount, cancellationToken);
-            return await FilterExpired(page, cancellationToken);
+            ReadNextStreamPage readNext = (nextVersion, ct) => ReadStreamForwards(streamId, nextVersion, maxCount, ct);
+            var page = await ReadStreamForwardsInternal(streamId, fromVersionInclusive, maxCount, readNext, cancellationToken);
+            return await FilterExpired(page, readNext, cancellationToken);
         }
 
         public async Task<ReadStreamPage> ReadStreamBackwards(
@@ -226,6 +226,7 @@ namespace SqlStreamStore.Infrastructure
             string streamId,
             int start,
             int count,
+            ReadNextStreamPage readNext,
             CancellationToken cancellationToken);
 
         protected abstract Task<ReadStreamPage> ReadStreamBackwardsInternal(
@@ -278,6 +279,7 @@ namespace SqlStreamStore.Infrastructure
 
         private async Task<ReadStreamPage> FilterExpired(
             ReadStreamPage page,
+            ReadNextStreamPage readNext,
             CancellationToken cancellationToken)
         {
             if(page.StreamId.StartsWith("$"))
@@ -310,7 +312,8 @@ namespace SqlStreamStore.Infrastructure
                 page.LastStreamVersion,
                 page.ReadDirection,
                 page.IsEnd,
-                valid.ToArray());
+                valid.ToArray(),
+                readNext);
         }
 
         private async Task<ReadAllPage> FilterExpired(

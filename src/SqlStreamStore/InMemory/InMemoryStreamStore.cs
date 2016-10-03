@@ -27,6 +27,10 @@ namespace SqlStreamStore
         private readonly InterlockedBoolean _signallingToSubscribers = new InterlockedBoolean();
         private bool _isDisposed;
         private int _currentPosition;
+        private static readonly ReadNextStreamPage s_readNextNotFound = (_, ct) =>
+        {
+            throw new InvalidOperationException("Cannot read next page of non-exisitent stream");
+        };
 
         public InMemoryStreamStore(GetUtcNow getUtcNow = null, string logName = null)
             : base(TimeSpan.FromMinutes(1), 10000, getUtcNow, logName ?? nameof(InMemoryStreamStore))
@@ -99,7 +103,7 @@ namespace SqlStreamStore
                     int toPurge = count - maxCount.Value;
 
                     var streamMessagesPage = await ReadStreamForwardsInternal(streamId, StreamVersion.Start,
-                        toPurge, cancellationToken);
+                        toPurge, null, cancellationToken);
 
                     if (streamMessagesPage.Status == PageReadStatus.Success)
                     {
@@ -179,7 +183,7 @@ namespace SqlStreamStore
                 string metaStreamId = $"$${streamId}";
 
                 var eventsPage = await ReadStreamBackwardsInternal(metaStreamId, StreamVersion.End,
-                    1, cancellationToken);
+                    1, null, cancellationToken);
 
                 if (eventsPage.Status == PageReadStatus.StreamNotFound)
                 {
@@ -418,11 +422,8 @@ namespace SqlStreamStore
             }
         }
 
-        protected override Task<ReadStreamPage> ReadStreamForwardsInternal(
-            string streamId,
-            int start,
-            int count,
-            CancellationToken cancellationToken)
+        protected override Task<ReadStreamPage> ReadStreamForwardsInternal(string streamId, int start, int count,
+            ReadNextStreamPage readNext, CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
 
@@ -431,13 +432,16 @@ namespace SqlStreamStore
                 InMemoryStream stream;
                 if(!_streams.TryGetValue(streamId, out stream))
                 {
-                    var notFound = new ReadStreamPage(streamId,
+                    var notFound = new ReadStreamPage(
+                        streamId,
                         PageReadStatus.StreamNotFound,
                         start,
                         -1,
                         -1,
                         ReadDirection.Forward,
-                        true);
+                        true,
+                        StreamMessage.EmptyArray,
+                        s_readNextNotFound);
                     return Task.FromResult(notFound);
                 }
 
@@ -474,17 +478,14 @@ namespace SqlStreamStore
                     lastStreamVersion,
                     ReadDirection.Forward,
                     endOfStream,
-                    events.ToArray());
+                    events.ToArray(),
+                    readNext);
 
                 return Task.FromResult(page);
             }
         }
 
-        protected override Task<ReadStreamPage> ReadStreamBackwardsInternal(
-            string streamId,
-            int fromVersionInclusive,
-            int count,
-            CancellationToken cancellationToken)
+        protected override Task<ReadStreamPage> ReadStreamBackwardsInternal(string streamId, int fromVersionInclusive, int count, ReadNextStreamPage readNext, CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
 
@@ -499,7 +500,9 @@ namespace SqlStreamStore
                         -1,
                         -1,
                         ReadDirection.Backward,
-                        true);
+                        true,
+                        StreamMessage.EmptyArray,
+                        s_readNextNotFound);
                     return Task.FromResult(notFound);
                 }
 
@@ -535,7 +538,8 @@ namespace SqlStreamStore
                     lastStreamVersion,
                     ReadDirection.Backward,
                     endOfStream,
-                    events.ToArray());
+                    events.ToArray(),
+                    readNext);
 
                 return Task.FromResult(page);
             }

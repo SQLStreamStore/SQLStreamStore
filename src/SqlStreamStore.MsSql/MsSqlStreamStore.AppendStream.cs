@@ -141,6 +141,7 @@
                         StreamVersion.Start,
                         messages.Length,
                         ReadDirection.Forward,
+                        null,
                         connection,
                         cancellationToken)
                         .NotOnCapturedContext();
@@ -213,6 +214,7 @@
                             StreamVersion.Start,
                             messages.Length,
                             ReadDirection.Forward,
+                            null,
                             connection,
                             cancellationToken)
                             .NotOnCapturedContext();
@@ -296,6 +298,7 @@
                                 // when reading for already written Messages, it's from the one after the expected
                                 messages.Length,
                                 ReadDirection.Forward,
+                                null,
                                 connection,
                                 cancellationToken);
 
@@ -306,6 +309,7 @@
                                     ex);
                             }
 
+                            // Iterate all messages an check to see if all message ids match
                             for(int i = 0; i < Math.Min(messages.Length, page.Messages.Length); i++)
                             {
                                 if(messages[i].MessageId != page.Messages[i].MessageId)
@@ -341,7 +345,7 @@
                     int toPurge = count - maxCount.Value;
 
                     var streamMessagesPage = await ReadStreamForwardsInternal(streamId, StreamVersion.Start,
-                        toPurge, cancellationToken);
+                        toPurge, null, cancellationToken);
 
                     if (streamMessagesPage.Status == PageReadStatus.Success)
                     {

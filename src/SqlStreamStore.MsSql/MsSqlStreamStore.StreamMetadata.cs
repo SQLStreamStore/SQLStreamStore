@@ -19,7 +19,14 @@
             using (var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-                page = await ReadStreamInternal(streamIdInfo.MetadataSqlStreamId, StreamVersion.End, 1, ReadDirection.Backward, connection, cancellationToken);
+                page = await ReadStreamInternal(
+                    streamIdInfo.MetadataSqlStreamId,
+                    StreamVersion.End,
+                    1,
+                    ReadDirection.Backward,
+                    null,
+                    connection,
+                    cancellationToken);
             }
 
             if(page.Status == PageReadStatus.StreamNotFound)

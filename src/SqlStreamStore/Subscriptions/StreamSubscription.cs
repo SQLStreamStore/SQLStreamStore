@@ -17,6 +17,7 @@
         private readonly int? _continueAfterVersion;
         private readonly IReadonlyStreamStore _readonlyStreamStore;
         private readonly StreamMessageReceived _streamMessageReceived;
+        private readonly IsCaughtUp _isCaughtUp;
         private readonly SubscriptionDropped _subscriptionDropped;
         private readonly IDisposable _notification;
         private readonly CancellationTokenSource _disposed = new CancellationTokenSource();
@@ -30,6 +31,7 @@
             IObservable<Unit> streamStoreAppendedNotification,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
+            IsCaughtUp isCaughtUp,
             string name = null)
         {
             StreamId = streamId;
@@ -37,6 +39,7 @@
             _readonlyStreamStore = readonlyStreamStore;
             _streamMessageReceived = streamMessageReceived;
             _subscriptionDropped = subscriptionDropped ?? ((_, __) => { });
+            _isCaughtUp = isCaughtUp ?? ((_) => { });
             Name = string.IsNullOrWhiteSpace(name) ? Guid.NewGuid().ToString() : name;
 
             _notification = streamStoreAppendedNotification.Subscribe(_ =>
@@ -95,16 +98,17 @@
 
                 while(!pause)
                 {
-                    var streamMessagesPage = await Pull();
+                    var page = await Pull();
 
-                    if(streamMessagesPage.Status != PageReadStatus.Success)
+                    if (page.Status != PageReadStatus.Success)
                     {
                         break;
                     }
 
-                    await Push(streamMessagesPage);
+                    _isCaughtUp(page.IsEnd);
 
-                    pause = streamMessagesPage.IsEnd && streamMessagesPage.Messages.Length == 0;
+                    await Push(page);
+                    pause = page.IsEnd && page.Messages.Length == 0;
                 }
 
                 // Wait for notification before starting again. 
@@ -140,7 +144,7 @@
             catch (Exception ex)
             {
                 s_logger.ErrorException($"Error reading stream {Name}/{StreamId}", ex);
-                NotifySubscriptionDropped(SubscriptionDroppedReason.ServerError, ex);
+                NotifySubscriptionDropped(SubscriptionDroppedReason.StreamStoreError, ex);
                 throw;
             }
 
@@ -170,15 +174,15 @@
             catch (Exception ex)
             {
                 s_logger.ErrorException($"Error reading stream {Name}/{StreamId}", ex);
-                NotifySubscriptionDropped(SubscriptionDroppedReason.ServerError, ex);
+                NotifySubscriptionDropped(SubscriptionDroppedReason.StreamStoreError, ex);
                 throw;
             }
             return readStreamPage;
         }
 
-        private async Task Push(ReadStreamPage readStreamPage)
+        private async Task Push(ReadStreamPage page)
         {
-            foreach (var message in readStreamPage.Messages)
+            foreach (var message in page.Messages)
             {
                 if (_disposed.IsCancellationRequested)
                 {

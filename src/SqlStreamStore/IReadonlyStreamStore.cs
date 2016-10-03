@@ -110,6 +110,11 @@
         /// <param name="subscriptionDropped">
         ///     A delegate that is invoked when a the subscription fails.
         /// </param>
+        /// <param name="isCaughtUp">
+        ///     A delegate that is invoked with value=true when the subscription has catught up with the stream
+        ///     (when the underlying page read has IsEnd=true) and when it falls behind (when the underlying page read
+        ///     has IsEnd=false). 
+        /// </param>
         /// <param name="name">
         ///     The name of the subscription used for logging. Optional.
         /// </param>
@@ -121,6 +126,7 @@
             int? continueAfterVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
+            IsCaughtUp isCaughtUp = null,
             string name = null);
 
         /// <summary>
@@ -139,6 +145,11 @@
         /// <param name="name">
         ///     The name of the subscription used for logging. Optional.
         /// </param>
+        /// <param name="isCaughtUp">
+        ///     A delegate that is invoked with value=true when the subscription has catught up with the all stream
+        ///     (when the underlying page read has IsEnd=true) and when it falls behind (when the underlying page read
+        ///     has IsEnd=false). 
+        /// </param>
         /// <returns>
         ///     An <see cref="IStreamSubscription"/> that represents the subscription. Dispose to stop the subscription.
         /// </returns>
@@ -146,6 +157,7 @@
             long? continueAfterPosition,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
+            IsCaughtUp isCaughtUp = null,
             string name = null);
 
         /// <summary>

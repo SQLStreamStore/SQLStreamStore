@@ -686,6 +686,130 @@
             }
         }
 
+        [Fact]
+        public async Task When_caughtup_to_all_then_then_should_notify()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    string streamId = "stream-1";
+                    await AppendMessages(store, streamId, 30);
+                    var caughtUp = new TaskCompletionSource<bool>();
+                    var subscription = store.SubscribeToAll(
+                        null,
+                        _ => Task.CompletedTask,
+                        isCaughtUp: b =>
+                        {
+                            if(b)
+                            {
+                                caughtUp.SetResult(b);
+                            }
+                        });
+                    subscription.MaxCountPerRead = 10;
+                    await caughtUp.Task.WithTimeout(5000);
+                    subscription.Dispose();
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_caughtup_to_stream_then_then_should_notify()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    string streamId = "stream-1";
+                    await AppendMessages(store, streamId, 30);
+                    var caughtUp = new TaskCompletionSource<bool>();
+                    var subscription = store.SubscribeToStream(
+                        streamId,
+                        null,
+                        _ => Task.CompletedTask,
+                        isCaughtUp: b =>
+                        {
+                            if (b)
+                            {
+                                caughtUp.SetResult(b);
+                            }
+                        });
+                    subscription.MaxCountPerRead = 10;
+                    await caughtUp.Task.WithTimeout(5000);
+                    subscription.Dispose();
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_falls_behind_on_all_then_then_should_notify()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    string streamId = "stream-1";
+                    await AppendMessages(store, streamId, 30);
+                    var fallenBehind = new TaskCompletionSource<bool>();
+                    bool caughtUp = false;
+
+                    var subscription = store.SubscribeToAll(
+                        null,
+                        _ => Task.CompletedTask,
+                        isCaughtUp: b =>
+                        {
+                            if (b)
+                            {
+                                caughtUp = true;
+                            }
+                            if (b && caughtUp)
+                            {
+                                fallenBehind.SetResult(b);
+                            }
+                        });
+                    subscription.MaxCountPerRead = 10;
+
+                    await fallenBehind.Task.WithTimeout(5000);
+                    subscription.Dispose();
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_falls_behind_on_stream_then_then_should_notify()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    string streamId = "stream-1";
+                    await AppendMessages(store, streamId, 30);
+                    var fallenBehind = new TaskCompletionSource<bool>();
+                    bool caughtUp = false;
+
+                    var subscription = store.SubscribeToStream(
+                        streamId,
+                        null,
+                        _ => Task.CompletedTask,
+                        isCaughtUp: b =>
+                        {
+                            if (b)
+                            {
+                                caughtUp = true;
+                            }
+                            if(b && caughtUp)
+                            {
+                                fallenBehind.SetResult(b);
+                            }
+                        });
+                    subscription.MaxCountPerRead = 10;
+
+                    await fallenBehind.Task.WithTimeout(5000);
+                    subscription.Dispose();
+                }
+            }
+        }
+
         private static async Task AppendMessages(IStreamStore streamStore, string streamId, int numberOfEvents)
         {
             for(int i = 0; i < numberOfEvents; i++)

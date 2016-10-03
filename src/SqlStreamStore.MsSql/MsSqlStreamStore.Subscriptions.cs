@@ -9,6 +9,7 @@ namespace SqlStreamStore
             int? startVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
+            IsCaughtUp isCaughtUp,
             string name)
         {
             return new StreamSubscription(
@@ -17,13 +18,16 @@ namespace SqlStreamStore
                 this,
                 GetStoreObservable,
                 streamMessageReceived,
-                subscriptionDropped);
+                subscriptionDropped,
+                isCaughtUp,
+                name);
         }
 
         protected override IAllStreamSubscription SubscribeToAllInternal(
             long? fromPosition,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
+            IsCaughtUp isCaughtUp,
             string name)
         {
             return new AllStreamSubscription(
@@ -31,7 +35,8 @@ namespace SqlStreamStore
                 this,
                 GetStoreObservable,
                 streamMessageReceived,
-                subscriptionDropped, 
+                subscriptionDropped,
+                isCaughtUp,
                 name);
         }
     }

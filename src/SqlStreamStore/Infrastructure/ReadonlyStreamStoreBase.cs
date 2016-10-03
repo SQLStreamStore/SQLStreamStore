@@ -151,6 +151,7 @@ namespace SqlStreamStore.Infrastructure
             int? continueAfterVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
+            IsCaughtUp isCaughtUp = null,
             string name = null)
         {
             Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace();
@@ -163,6 +164,7 @@ namespace SqlStreamStore.Infrastructure
                 continueAfterVersion,
                 streamMessageReceived,
                 subscriptionDropped,
+                isCaughtUp,
                 name);
         }
 
@@ -170,6 +172,7 @@ namespace SqlStreamStore.Infrastructure
             long? continueAfterPosition,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
+            IsCaughtUp isCaughtUp = null,
             string name = null)
         {
             Ensure.That(streamMessageReceived, nameof(streamMessageReceived)).IsNotNull();
@@ -179,6 +182,7 @@ namespace SqlStreamStore.Infrastructure
             return SubscribeToAllInternal(continueAfterPosition,
                 streamMessageReceived,
                 subscriptionDropped,
+                isCaughtUp,
                 name);
         }
 
@@ -243,12 +247,14 @@ namespace SqlStreamStore.Infrastructure
             int? startVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
+            IsCaughtUp isCaughtUp,
             string name);
 
         protected abstract IAllStreamSubscription SubscribeToAllInternal(
             long? fromPosition,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
+            IsCaughtUp isCaughtUp,
             string name);
 
         protected abstract Task<StreamMetadataResult> GetStreamMetadataInternal(

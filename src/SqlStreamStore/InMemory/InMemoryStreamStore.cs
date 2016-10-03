@@ -550,6 +550,7 @@ namespace SqlStreamStore
             int? startVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
+            IsCaughtUp isCaughtUp,
             string name)
         {
             IStreamSubscription subscription = new StreamSubscription(
@@ -559,6 +560,7 @@ namespace SqlStreamStore
                 _subscriptions,
                 streamMessageReceived,
                 subscriptionDropped,
+                isCaughtUp,
                 name);
             return subscription;
         }
@@ -573,6 +575,7 @@ namespace SqlStreamStore
             long? fromPosition,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
+            IsCaughtUp isCaughtUp,
             string name)
         {
             return new AllStreamSubscription(
@@ -581,6 +584,7 @@ namespace SqlStreamStore
                 _subscriptions,
                 streamMessageReceived,
                 subscriptionDropped,
+                isCaughtUp,
                 name);
         }
 

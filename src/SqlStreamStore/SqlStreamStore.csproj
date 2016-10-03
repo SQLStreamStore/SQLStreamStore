@@ -95,6 +95,7 @@
     <Compile Include="Streams\Deleted.cs" />
     <Compile Include="Streams\ErrorMessages.cs" />
     <Compile Include="Subscriptions\CreateStreamStoreNotifier.cs" />
+    <Compile Include="Subscriptions\IsCaughtUp.cs" />
     <Compile Include="Subscriptions\IStreamStoreNotifier.cs" />
     <Compile Include="Subscriptions\PollingStreamStoreNotifier.cs" />
     <Compile Include="Subscriptions\StreamMessageReceived.cs" />

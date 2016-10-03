@@ -7,7 +7,7 @@
     {
         public readonly StreamMessage[] Messages;
         public readonly int FromStreamVersion;
-        public readonly bool IsEndOfStream;
+        public readonly bool IsEnd;
         public readonly int LastStreamVersion;
         public readonly int NextStreamVersion;
         public readonly ReadDirection ReadDirection;
@@ -21,7 +21,7 @@
             int nextStreamVersion,
             int lastStreamVersion,
             ReadDirection direction,
-            bool isEndOfStream,
+            bool isEnd,
             params StreamMessage[] messages)
         {
             StreamId = streamId;
@@ -30,7 +30,7 @@
             LastStreamVersion = lastStreamVersion;
             NextStreamVersion = nextStreamVersion;
             ReadDirection = direction;
-            IsEndOfStream = isEndOfStream;
+            IsEnd = isEnd;
             Messages = messages;
         }
     }

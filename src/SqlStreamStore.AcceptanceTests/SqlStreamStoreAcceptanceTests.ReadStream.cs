@@ -31,7 +31,7 @@
                     streamMessagesPage.LastStreamVersion.ShouldBe(expectedStreamMessagesPage.LastStreamVersion);
                     streamMessagesPage.NextStreamVersion.ShouldBe(expectedStreamMessagesPage.NextStreamVersion);
                     streamMessagesPage.ReadDirection.ShouldBe(expectedStreamMessagesPage.ReadDirection);
-                    streamMessagesPage.IsEndOfStream.ShouldBe(expectedStreamMessagesPage.IsEndOfStream);
+                    streamMessagesPage.IsEnd.ShouldBe(expectedStreamMessagesPage.IsEnd);
                     streamMessagesPage.Status.ShouldBe(expectedStreamMessagesPage.Status);
                     streamMessagesPage.StreamId.ShouldBe(expectedStreamMessagesPage.StreamId);
                     streamMessagesPage.Messages.Length.ShouldBe(expectedStreamMessagesPage.Messages.Length);
@@ -110,7 +110,7 @@
                     streamMessagesPage.LastStreamVersion.ShouldBe(expectedStreamMessagesPage.LastStreamVersion);
                     streamMessagesPage.NextStreamVersion.ShouldBe(expectedStreamMessagesPage.NextStreamVersion);
                     streamMessagesPage.ReadDirection.ShouldBe(expectedStreamMessagesPage.ReadDirection);
-                    streamMessagesPage.IsEndOfStream.ShouldBe(expectedStreamMessagesPage.IsEndOfStream);
+                    streamMessagesPage.IsEnd.ShouldBe(expectedStreamMessagesPage.IsEnd);
                     streamMessagesPage.Status.ShouldBe(expectedStreamMessagesPage.Status);
                     streamMessagesPage.StreamId.ShouldBe(expectedStreamMessagesPage.StreamId);
                     streamMessagesPage.Messages.Length.ShouldBe(expectedStreamMessagesPage.Messages.Length);

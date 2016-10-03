@@ -302,7 +302,7 @@ namespace SqlStreamStore.Infrastructure
                 page.NextStreamVersion,
                 page.LastStreamVersion,
                 page.ReadDirection,
-                page.IsEndOfStream,
+                page.IsEnd,
                 valid.ToArray());
         }
 

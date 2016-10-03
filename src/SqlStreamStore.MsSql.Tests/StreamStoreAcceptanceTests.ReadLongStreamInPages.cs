@@ -74,7 +74,7 @@ namespace SqlStreamStore
 
                 start = messagesPage.NextStreamVersion;
             }
-            while (!messagesPage.IsEndOfStream);
+            while (!messagesPage.IsEnd);
 
             return events;
         }

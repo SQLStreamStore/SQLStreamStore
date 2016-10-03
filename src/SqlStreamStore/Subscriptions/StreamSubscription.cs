@@ -104,7 +104,7 @@
 
                     await Push(streamMessagesPage);
 
-                    pause = streamMessagesPage.IsEndOfStream && streamMessagesPage.Messages.Length == 0;
+                    pause = streamMessagesPage.IsEnd && streamMessagesPage.Messages.Length == 0;
                 }
 
                 // Wait for notification before starting again. 

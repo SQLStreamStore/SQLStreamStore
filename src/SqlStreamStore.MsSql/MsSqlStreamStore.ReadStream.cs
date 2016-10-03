@@ -85,7 +85,7 @@
                             -1,
                             -1,
                             direction,
-                            isEndOfStream: true);
+                            isEnd: true);
                     }
 
                     // Read Messages result set

@@ -48,7 +48,7 @@
                         subscription.StreamId.ShouldBe(streamId1);
                         receivedMessage.StreamId.ShouldBe(streamId1);
                         receivedMessage.StreamVersion.ShouldBe(11);
-                        subscription.LastVersion.ShouldBeGreaterThan(0);
+                        subscription.LastVersion.Value.ShouldBeGreaterThan(0);
                     }
                 }
             }
@@ -86,7 +86,7 @@
                         subscription.StreamId.ShouldBe(streamId);
                         receivedMessage.StreamId.ShouldBe(streamId);
                         receivedMessage.StreamVersion.ShouldBe(1);
-                        subscription.LastVersion.ShouldBeGreaterThan(0);
+                        subscription.LastVersion.Value.ShouldBeGreaterThan(0);
                     }
                 }
             }
@@ -216,7 +216,7 @@
                         subscription.StreamId.ShouldBe(streamId1);
                         receivedMessage.StreamId.ShouldBe(streamId1);
                         receivedMessage.StreamVersion.ShouldBe(11);
-                        subscription.LastVersion.ShouldBeGreaterThan(0);
+                        subscription.LastVersion.Value.ShouldBeGreaterThan(0);
                     }
                 }
             }
@@ -333,7 +333,7 @@
                         subscription.StreamId.ShouldBe(streamId1);
                         receivedMessage.StreamId.ShouldBe(streamId1);
                         receivedMessage.StreamVersion.ShouldBe(11);
-                        subscription.LastVersion.ShouldBeGreaterThan(0);
+                        subscription.LastVersion.Value.ShouldBeGreaterThan(0);
                     }
                 }
             }

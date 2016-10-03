@@ -53,11 +53,11 @@
 
         public string StreamId { get; }
 
-        public int LastVersion { get; private set; }
+        public int? LastVersion { get; private set; }
 
         public Task Started => _started.Task;
 
-        public int PageSize
+        public int MaxCountPerRead
         {
             get { return _pageSize; }
             set { _pageSize = (value <= 0) ? 1 : value; }
@@ -78,7 +78,6 @@
             if (!_continueAfterVersion.HasValue)
             {
                 _nextVersion = 0;
-                LastVersion = -1;
             }
             else if (_continueAfterVersion.Value == StreamVersion.End)
             {
@@ -87,7 +86,6 @@
             else
             {
                 _nextVersion = _continueAfterVersion.Value + 1;
-                LastVersion = _continueAfterVersion.Value;
             }
 
             _started.SetResult();
@@ -160,7 +158,7 @@
                     .ReadStreamForwards(
                         StreamId,
                         _nextVersion,
-                        PageSize,
+                        MaxCountPerRead,
                         _disposed.Token)
                     .NotOnCapturedContext();
             }

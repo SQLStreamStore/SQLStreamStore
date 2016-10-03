@@ -57,7 +57,7 @@
 
         public Task Started => _started.Task;
 
-        public int PageSize
+        public int MaxCountPerRead
         {
             get { return _pageSize; }
             set { _pageSize = (value <= 0) ? 1 : value; }
@@ -140,7 +140,7 @@
             try
             {
                 allMessagesPage = await _readonlyStreamStore
-                    .ReadAllForwards(_nextPosition, PageSize, _disposed.Token)
+                    .ReadAllForwards(_nextPosition, MaxCountPerRead, _disposed.Token)
                     .NotOnCapturedContext();
             }
             catch (TaskCanceledException)

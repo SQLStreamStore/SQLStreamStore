@@ -24,8 +24,8 @@
                     var streamMessagesPage =
                         await store.ReadStreamForwards(theory.StreamId, theory.Start, theory.PageSize);
 
-                    var expectedStreamMessagesPage = theory.ExpectedStreamMessagesPage;
-                    var expectedMessages = theory.ExpectedStreamMessagesPage.Messages.ToArray();
+                    var expectedStreamMessagesPage = theory.ExpectedReadStreamPage;
+                    var expectedMessages = theory.ExpectedReadStreamPage.Messages.ToArray();
 
                     streamMessagesPage.FromStreamVersion.ShouldBe(expectedStreamMessagesPage.FromStreamVersion);
                     streamMessagesPage.LastStreamVersion.ShouldBe(expectedStreamMessagesPage.LastStreamVersion);
@@ -103,8 +103,8 @@
                     var streamMessagesPage =
                         await store.ReadStreamBackwards(theory.StreamId, theory.Start, theory.PageSize);
 
-                    var expectedStreamMessagesPage = theory.ExpectedStreamMessagesPage;
-                    var expectedMessages = theory.ExpectedStreamMessagesPage.Messages.ToArray();
+                    var expectedStreamMessagesPage = theory.ExpectedReadStreamPage;
+                    var expectedMessages = theory.ExpectedReadStreamPage.Messages.ToArray();
 
                     streamMessagesPage.FromStreamVersion.ShouldBe(expectedStreamMessagesPage.FromStreamVersion);
                     streamMessagesPage.LastStreamVersion.ShouldBe(expectedStreamMessagesPage.LastStreamVersion);
@@ -206,15 +206,15 @@
             var theories = new[]
             {
                 new ReadStreamTheory("stream-1", StreamVersion.Start, 2,
-                    new StreamMessagesPage("stream-1", PageReadStatus.Success, 0, 2, 2, ReadDirection.Forward, false,
+                    new ReadStreamPage("stream-1", PageReadStatus.Success, 0, 2, 2, ReadDirection.Forward, false,
                           ExpectedStreamMessage("stream-1", 1, 0, SystemClock.GetUtcNow()),
                           ExpectedStreamMessage("stream-1", 2, 1, SystemClock.GetUtcNow()))),
 
                 new ReadStreamTheory("not-exist", 1, 2,
-                    new StreamMessagesPage("not-exist", PageReadStatus.StreamNotFound, 1, -1, -1, ReadDirection.Forward, true)),
+                    new ReadStreamPage("not-exist", PageReadStatus.StreamNotFound, 1, -1, -1, ReadDirection.Forward, true)),
 
                 new ReadStreamTheory("stream-2", 1, 2,
-                    new StreamMessagesPage("stream-2", PageReadStatus.Success, 1, 3, 2, ReadDirection.Forward, true,
+                    new ReadStreamPage("stream-2", PageReadStatus.Success, 1, 3, 2, ReadDirection.Forward, true,
                           ExpectedStreamMessage("stream-2", 5, 1, SystemClock.GetUtcNow()),
                           ExpectedStreamMessage("stream-2", 6, 2, SystemClock.GetUtcNow())))
             };
@@ -227,12 +227,12 @@
             var theories = new[]
             {
                new ReadStreamTheory("stream-1", StreamVersion.End, 2,
-                    new StreamMessagesPage("stream-1", PageReadStatus.Success, -1, 0, 2, ReadDirection.Backward, false,
+                    new ReadStreamPage("stream-1", PageReadStatus.Success, -1, 0, 2, ReadDirection.Backward, false,
                           ExpectedStreamMessage("stream-1", 3, 2, SystemClock.GetUtcNow()),
                           ExpectedStreamMessage("stream-1", 2, 1, SystemClock.GetUtcNow()))),
 
                  new ReadStreamTheory("stream-1", StreamVersion.End, 4,
-                    new StreamMessagesPage("stream-1", PageReadStatus.Success, -1, -1, 2, ReadDirection.Backward, true,
+                    new ReadStreamPage("stream-1", PageReadStatus.Success, -1, -1, 2, ReadDirection.Backward, true,
                           ExpectedStreamMessage("stream-1", 3, 2, SystemClock.GetUtcNow()),
                           ExpectedStreamMessage("stream-1", 2, 1, SystemClock.GetUtcNow()),
                           ExpectedStreamMessage("stream-1", 1, 0, SystemClock.GetUtcNow())))
@@ -246,18 +246,18 @@
             public readonly string StreamId;
             public readonly int Start;
             public readonly int PageSize;
-            public readonly StreamMessagesPage ExpectedStreamMessagesPage;
+            public readonly ReadStreamPage ExpectedReadStreamPage;
 
             public ReadStreamTheory(
                 string streamId,
                 int start,
                 int pageSize,
-                StreamMessagesPage expectedStreamMessagesPage)
+                ReadStreamPage expectedReadStreamPage)
             {
                 StreamId = streamId;
                 Start = start;
                 PageSize = pageSize;
-                ExpectedStreamMessagesPage = expectedStreamMessagesPage;
+                ExpectedReadStreamPage = expectedReadStreamPage;
             }
         }
     }

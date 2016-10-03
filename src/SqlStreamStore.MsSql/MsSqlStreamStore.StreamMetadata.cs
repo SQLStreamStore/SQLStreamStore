@@ -15,23 +15,23 @@
         {
             var streamIdInfo = new StreamIdInfo(streamId);
 
-            StreamMessagesPage messagesPage;
+            ReadStreamPage page;
             using (var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-                messagesPage = await ReadStreamInternal(streamIdInfo.MetadataSqlStreamId, StreamVersion.End, 1, ReadDirection.Backward, connection, cancellationToken);
+                page = await ReadStreamInternal(streamIdInfo.MetadataSqlStreamId, StreamVersion.End, 1, ReadDirection.Backward, connection, cancellationToken);
             }
 
-            if(messagesPage.Status == PageReadStatus.StreamNotFound)
+            if(page.Status == PageReadStatus.StreamNotFound)
             {
                 return new StreamMetadataResult(streamId, -1);
             }
 
-            var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(messagesPage.Messages[0].JsonData);
+            var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(page.Messages[0].JsonData);
 
             return new StreamMetadataResult(
                    streamId,
-                   messagesPage.LastStreamVersion,
+                   page.LastStreamVersion,
                    metadataMessage.MaxAge,
                    metadataMessage.MaxCount,
                    metadataMessage.MetaJson);

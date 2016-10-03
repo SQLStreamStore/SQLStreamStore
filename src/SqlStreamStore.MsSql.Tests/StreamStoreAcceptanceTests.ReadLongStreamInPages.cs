@@ -57,24 +57,24 @@ namespace SqlStreamStore
             var start = 0;
             const int BatchSize = 500;
 
-            StreamMessagesPage messagesPage;
+            ReadStreamPage page;
             var events = new List<StreamMessage>();
 
             do
             {
-                messagesPage = await _streamStore.ReadStreamForwards(streamName, start, BatchSize);
+                page = await _streamStore.ReadStreamForwards(streamName, start, BatchSize);
 
-                if (messagesPage.Status == PageReadStatus.StreamNotFound)
+                if (page.Status == PageReadStatus.StreamNotFound)
                 {
                     throw new Exception("Stream not found");
                 }
 
                 events.AddRange(
-                    messagesPage.Messages);
+                    page.Messages);
 
-                start = messagesPage.NextStreamVersion;
+                start = page.NextStreamVersion;
             }
-            while (!messagesPage.IsEnd);
+            while (!page.IsEnd);
 
             return events;
         }

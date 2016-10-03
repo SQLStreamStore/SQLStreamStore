@@ -3,7 +3,7 @@
     /// <summary>
     ///     Represents the result of a read from a stream.
     /// </summary>
-    public sealed class StreamMessagesPage
+    public sealed class ReadStreamPage
     {
         public readonly StreamMessage[] Messages;
         public readonly int FromStreamVersion;
@@ -14,7 +14,7 @@
         public readonly PageReadStatus Status;
         public readonly string StreamId;
 
-        public StreamMessagesPage(
+        public ReadStreamPage(
             string streamId,
             PageReadStatus status,
             int fromStreamVersion,

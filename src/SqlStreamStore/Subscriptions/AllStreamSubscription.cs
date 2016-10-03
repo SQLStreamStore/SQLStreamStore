@@ -108,7 +108,7 @@
 
         private async Task Initialize()
         {
-            AllMessagesPage eventsPage;
+            ReadAllPage eventsPage;
             try
             {
                 // Get the last stream version and subscribe from there.
@@ -134,12 +134,12 @@
             _nextPosition = eventsPage.FromPosition == 0 ? 0 : eventsPage.FromPosition + 1;
         }
 
-        private async Task<AllMessagesPage> Pull()
+        private async Task<ReadAllPage> Pull()
         {
-            AllMessagesPage allMessagesPage;
+            ReadAllPage readAllPage;
             try
             {
-                allMessagesPage = await _readonlyStreamStore
+                readAllPage = await _readonlyStreamStore
                     .ReadAllForwards(_nextPosition, MaxCountPerRead, _disposed.Token)
                     .NotOnCapturedContext();
             }
@@ -154,12 +154,12 @@
                 NotifySubscriptionDropped(SubscriptionDroppedReason.ServerError, ex);
                 throw;
             }
-            return allMessagesPage;
+            return readAllPage;
         }
 
-        private async Task Push(AllMessagesPage allMessagesPage)
+        private async Task Push(ReadAllPage readAllPage)
         {
-            foreach (var message in allMessagesPage.Messages)
+            foreach (var message in readAllPage.Messages)
             {
                 if (_disposed.IsCancellationRequested)
                 {

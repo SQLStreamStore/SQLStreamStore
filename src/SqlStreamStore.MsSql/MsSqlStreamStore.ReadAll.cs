@@ -10,7 +10,7 @@ namespace SqlStreamStore
 
     public partial class MsSqlStreamStore
     {
-        protected override async Task<AllMessagesPage> ReadAllForwardsInternal(
+        protected override async Task<ReadAllPage> ReadAllForwardsInternal(
             long fromPositionExlusive,
             int maxCount,
             CancellationToken cancellationToken)
@@ -33,7 +33,7 @@ namespace SqlStreamStore
                     List<StreamMessage> messages = new List<StreamMessage>();
                     if (!reader.HasRows)
                     {
-                        return new AllMessagesPage(
+                        return new ReadAllPage(
                             fromPositionExlusive,
                             fromPositionExlusive,
                             true,
@@ -75,7 +75,7 @@ namespace SqlStreamStore
 
                     var nextPosition = messages[messages.Count - 1].Position + 1;
 
-                    return new AllMessagesPage(
+                    return new ReadAllPage(
                         fromPositionExlusive,
                         nextPosition,
                         isEnd,
@@ -85,7 +85,7 @@ namespace SqlStreamStore
             }
         }
 
-        protected override async Task<AllMessagesPage> ReadAllBackwardsInternal(
+        protected override async Task<ReadAllPage> ReadAllBackwardsInternal(
             long fromPositionExclusive,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken))
@@ -110,7 +110,7 @@ namespace SqlStreamStore
                     {
                         // When reading backwards and there are no more items, then next position is LongPosition.Start,
                         // regardles of what the fromPosition is.
-                        return new AllMessagesPage(
+                        return new ReadAllPage(
                             Position.Start,
                             Position.Start,
                             true,
@@ -154,7 +154,7 @@ namespace SqlStreamStore
 
                     fromPositionExclusive = messages.Any() ? messages[0].Position : 0;
 
-                    return new AllMessagesPage(
+                    return new ReadAllPage(
                         fromPositionExclusive,
                         nextPosition,
                         isEnd,

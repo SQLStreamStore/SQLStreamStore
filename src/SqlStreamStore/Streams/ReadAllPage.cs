@@ -3,7 +3,7 @@
     /// <summary>
     ///     Represents the result of a read of all streams.
     /// </summary>
-    public sealed class AllMessagesPage
+    public sealed class ReadAllPage
     {
         public readonly long FromPosition;
         public readonly long NextPosition;
@@ -11,7 +11,7 @@
         public readonly ReadDirection Direction;
         public readonly StreamMessage[] Messages;
 
-        public AllMessagesPage(
+        public ReadAllPage(
             long fromPosition,
             long nextPosition,
             bool isEnd,

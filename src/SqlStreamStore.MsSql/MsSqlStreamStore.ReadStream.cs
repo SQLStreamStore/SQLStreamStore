@@ -11,7 +11,7 @@
 
     public partial class MsSqlStreamStore
     {
-        protected override async Task<StreamMessagesPage> ReadStreamForwardsInternal(
+        protected override async Task<ReadStreamPage> ReadStreamForwardsInternal(
             string streamId,
             int start,
             int count,
@@ -25,7 +25,7 @@
             }
         }
 
-        protected override async Task<StreamMessagesPage> ReadStreamBackwardsInternal(
+        protected override async Task<ReadStreamPage> ReadStreamBackwardsInternal(
             string streamId,
             int start,
             int count,
@@ -39,7 +39,7 @@
             }
         }
 
-        private async Task<StreamMessagesPage> ReadStreamInternal(
+        private async Task<ReadStreamPage> ReadStreamInternal(
             SqlStreamId sqlStreamId,
             int start,
             int count,
@@ -78,7 +78,7 @@
                 {
                     if(!await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                     {
-                        return new StreamMessagesPage(
+                        return new ReadStreamPage(
                             sqlStreamId.IdOriginal,
                             PageReadStatus.StreamNotFound,
                             start,
@@ -124,7 +124,7 @@
                         messages.RemoveAt(count);
                     }
 
-                    return new StreamMessagesPage(
+                    return new ReadStreamPage(
                         sqlStreamId.IdOriginal,
                         PageReadStatus.Success,
                         start,

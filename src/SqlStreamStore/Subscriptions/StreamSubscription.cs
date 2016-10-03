@@ -122,7 +122,7 @@
 
         private async Task Initialize()
         {
-            StreamMessagesPage eventsPage;
+            ReadStreamPage eventsPage;
             try
             {
                 // Get the last stream version and subscribe from there.
@@ -149,12 +149,12 @@
             LastVersion = _nextVersion;
         }
 
-        private async Task<StreamMessagesPage> Pull()
+        private async Task<ReadStreamPage> Pull()
         {
-            StreamMessagesPage streamMessagesPage;
+            ReadStreamPage readStreamPage;
             try
             {
-                streamMessagesPage = await _readonlyStreamStore
+                readStreamPage = await _readonlyStreamStore
                     .ReadStreamForwards(
                         StreamId,
                         _nextVersion,
@@ -173,12 +173,12 @@
                 NotifySubscriptionDropped(SubscriptionDroppedReason.ServerError, ex);
                 throw;
             }
-            return streamMessagesPage;
+            return readStreamPage;
         }
 
-        private async Task Push(StreamMessagesPage streamMessagesPage)
+        private async Task Push(ReadStreamPage readStreamPage)
         {
-            foreach (var message in streamMessagesPage.Messages)
+            foreach (var message in readStreamPage.Messages)
             {
                 if (_disposed.IsCancellationRequested)
                 {

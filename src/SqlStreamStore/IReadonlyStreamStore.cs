@@ -20,10 +20,10 @@
         /// </param>
         /// <param name="cancellationToken">The cancellation instruction.</param>
         /// <returns>
-        ///     An <see cref="AllMessagesPage"/> presenting the result of the read. If all messages read have expired
+        ///     An <see cref="ReadAllPage"/> presenting the result of the read. If all messages read have expired
         ///     then the message collection MAY be empty.
         /// </returns>
-        Task<AllMessagesPage> ReadAllForwards(
+        Task<ReadAllPage> ReadAllForwards(
             long fromPositionInclusive,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken));
@@ -42,10 +42,10 @@
         ///     The cancellation instruction.
         /// </param>
         /// <returns>
-        ///     An <see cref="AllMessagesPage"/> presenting the result of the read. If all messages read have expired
+        ///     An <see cref="ReadAllPage"/> presenting the result of the read. If all messages read have expired
         ///     then the message collection MAY be empty.
         /// </returns>
-        Task<AllMessagesPage> ReadAllBackwards(
+        Task<ReadAllPage> ReadAllBackwards(
             long fromPositionInclusive,
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken));
@@ -63,10 +63,10 @@
         /// <param name="maxCount">The maximum number of messages to read (int.MaxValue is a bad idea).</param>
         /// <param name="cancellationToken"> The cancellation instruction. </param>
         /// <returns>
-        ///     An <see cref="StreamMessagesPage"/> represent the result of the operation. If all the messages read
+        ///     An <see cref="ReadStreamPage"/> represent the result of the operation. If all the messages read
         ///     have expired then the message collection MAY be empty.
         /// </returns>
-        Task<StreamMessagesPage> ReadStreamForwards(
+        Task<ReadStreamPage> ReadStreamForwards(
             string streamId,
             int fromVersionInclusive,
             int maxCount,
@@ -85,10 +85,10 @@
         /// <param name="maxCount">T he maximum number of messages to read (int.MaxValue is a bad idea).</param>
         /// <param name="cancellationToken"> The cancellation instruction. </param>
         /// <returns>
-        ///     An <see cref="StreamMessagesPage"/> represent the result of the operation. If all the messages read
+        ///     An <see cref="ReadStreamPage"/> represent the result of the operation. If all the messages read
         ///     have expired then the message collection MAY be empty.
         /// </returns>
-        Task<StreamMessagesPage> ReadStreamBackwards(
+        Task<ReadStreamPage> ReadStreamBackwards(
             string streamId,
             int fromVersionInclusive,
             int maxCount,

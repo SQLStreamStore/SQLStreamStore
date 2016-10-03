@@ -89,7 +89,7 @@
     <Compile Include="IReadonlyStreamStore.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="SimpleJson.cs" />
-    <Compile Include="Streams\AllMessagesPage.cs" />
+    <Compile Include="Streams\ReadAllPage.cs" />
     <Compile Include="Streams\Deleted.cs" />
     <Compile Include="Streams\ErrorMessages.cs" />
     <Compile Include="Subscriptions\CreateStreamStoreNotifier.cs" />
@@ -102,7 +102,7 @@
     <Compile Include="Streams\ReadDirection.cs" />
     <Compile Include="Streams\StreamMessage.cs" />
     <Compile Include="Streams\StreamMessageExtensions.cs" />
-    <Compile Include="Streams\StreamMessagesPage.cs" />
+    <Compile Include="Streams\ReadStreamPage.cs" />
     <Compile Include="Streams\StreamVersion.cs" />
     <Compile Include="Subscriptions\StreamSubscription.cs" />
     <Compile Include="Subscriptions\SubscriptionDropped.cs" />

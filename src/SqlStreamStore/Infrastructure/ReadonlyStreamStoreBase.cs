@@ -141,9 +141,9 @@ namespace SqlStreamStore.Infrastructure
                 Logger.DebugFormat("ReadStreamBackwards {streamId} from version {fromVersionInclusive} with max count " +
                                    "{maxCount}.", streamId, fromVersionInclusive, maxCount);
             }
-
-            var page = await ReadStreamBackwardsInternal(streamId, fromVersionInclusive, maxCount, cancellationToken);
-            return await FilterExpired(page, cancellationToken);
+            ReadNextStreamPage readNext = (nextVersion, ct) => ReadStreamBackwards(streamId, nextVersion, maxCount, ct);
+            var page = await ReadStreamBackwardsInternal(streamId, fromVersionInclusive, maxCount, readNext, cancellationToken);
+            return await FilterExpired(page, readNext, cancellationToken);
         }
 
         public IStreamSubscription SubscribeToStream(
@@ -233,6 +233,7 @@ namespace SqlStreamStore.Infrastructure
             string streamId,
             int fromVersionInclusive,
             int count,
+            ReadNextStreamPage readNext,
             CancellationToken cancellationToken);
 
         protected abstract Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken);

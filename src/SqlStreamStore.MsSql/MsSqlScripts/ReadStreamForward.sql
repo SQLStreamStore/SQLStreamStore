@@ -1,8 +1,9 @@
 /* SQL Server 2008+ */
 
     DECLARE @streamIdInternal AS INT
+    DECLARE @lastStreamVersion AS INT
 
-     SELECT @streamIdInternal = dbo.Streams.IdInternal
+     SELECT @streamIdInternal = dbo.Streams.IdInternal, @lastStreamVersion = dbo.Streams.[Version]
        FROM dbo.Streams
       WHERE dbo.Streams.Id = @streamId
 
@@ -20,8 +21,4 @@
       WHERE dbo.Messages.StreamIDInternal = @streamIDInternal AND dbo.Messages.StreamVersion >= @StreamVersion
    ORDER BY dbo.Messages.Position;
 
-     SELECT TOP(1)
-            dbo.Messages.StreamVersion
-       FROM dbo.Messages
-      WHERE dbo.Messages.StreamIDInternal = @streamIDInternal
-   ORDER BY dbo.Messages.Position DESC;
+     SELECT @lastStreamVersion

@@ -810,6 +810,70 @@
             }
         }
 
+        [Fact]
+        public async Task When_delete_a_messages_from_stream_with_then_can_read_all_forwards()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    string streamId = "stream-1";
+                    await AppendMessages(store, streamId, 2);
+                    var page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+                    await store.DeleteMessage(streamId, page.Messages.First().MessageId);
+
+                    page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+
+                    page.Messages.Length.ShouldBe(1);
+                    page.LastStreamVersion.ShouldBe(1);
+                    page.NextStreamVersion.ShouldBe(2);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_delete_all_messages_from_stream_with_1_messages_then_can_read_all_forwards()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    string streamId = "stream-1";
+                    await AppendMessages(store, streamId, 1);
+                    var page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+                    await store.DeleteMessage(streamId, page.Messages[0].MessageId);
+
+                    page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+
+                    page.Messages.Length.ShouldBe(0);
+                    page.LastStreamVersion.ShouldBe(0);
+                    page.NextStreamVersion.ShouldBe(1);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_delete_all_messages_from_stream_with_multiple_messages_then_can_read_all_forwards()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    string streamId = "stream-1";
+                    await AppendMessages(store, streamId, 2);
+                    var page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+                    await store.DeleteMessage(streamId, page.Messages[0].MessageId);
+                    await store.DeleteMessage(streamId, page.Messages[1].MessageId);
+
+                    page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+
+                    page.Messages.Length.ShouldBe(0);
+                    page.LastStreamVersion.ShouldBe(1);
+                    page.NextStreamVersion.ShouldBe(2);
+                }
+            }
+        }
+
         private static async Task AppendMessages(IStreamStore streamStore, string streamId, int numberOfEvents)
         {
             for(int i = 0; i < numberOfEvents; i++)

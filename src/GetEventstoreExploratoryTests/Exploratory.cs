@@ -136,10 +136,21 @@ namespace GetEventstoreExploratoryTests
             using (var connection = EmbeddedEventStoreConnection.Create(_node, _connectionSettingsBuilder))
             {
                 string streamId = "stream-1";
-                var eventData = new EventData(Guid.NewGuid(), "type", false, null, null);
+                var eventData = new[]
+                {
+                    new EventData(Guid.NewGuid(), "type", false, null, null),
+                    new EventData(Guid.NewGuid(), "type", false, null, null),
+                    new EventData(Guid.NewGuid(), "type", false, null, null),
+                    new EventData(Guid.NewGuid(), "type", false, null, null),
+                    new EventData(Guid.NewGuid(), "type", false, null, null),
+                    new EventData(Guid.NewGuid(), "type", false, null, null),
+                    new EventData(Guid.NewGuid(), "type", false, null, null),
+                };
                 await connection.AppendToStreamAsync(streamId, ExpectedVersion.NoStream, eventData);
 
-                var allEventsSlice = await connection.ReadAllEventsForwardAsync(Position.Start, 200, true);
+                var allEventsSlice = await connection.ReadStreamEventsForwardAsync(streamId, StreamPosition.Start, 2, true);
+
+                allEventsSlice = await connection.ReadStreamEventsForwardAsync(streamId, allEventsSlice.NextEventNumber, 2, true);
 
                 foreach(var resolvedEvent in allEventsSlice.Events)
                 {

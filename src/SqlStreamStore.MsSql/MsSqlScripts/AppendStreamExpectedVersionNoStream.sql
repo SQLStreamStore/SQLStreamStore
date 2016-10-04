@@ -6,22 +6,25 @@ BEGIN TRANSACTION CreateStream;
         INSERT INTO dbo.Streams (Id, IdOriginal) VALUES (@streamId, @streamIdOriginal);
         SELECT @streamIdInternal = SCOPE_IDENTITY();
 
-        INSERT INTO dbo.Messages (StreamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata)
-             SELECT @streamIdInternal,
-                    StreamVersion,
-                    Id,
-                    Created,
-                    [Type],
-                    JsonData,
-                    JsonMetadata
-               FROM @newMessages
-           ORDER BY StreamVersion;
+            INSERT INTO dbo.Messages (StreamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata)
+                 SELECT @streamIdInternal,
+                        StreamVersion,
+                        Id,
+                        Created,
+                        [Type],
+                        JsonData,
+                        JsonMetadata
+                   FROM @newMessages
+               ORDER BY StreamVersion;
 
              SELECT TOP(1)
                     @latestStreamVersion = dbo.Messages.StreamVersion
               FROM dbo.Messages
              WHERE dbo.Messages.StreamIDInternal = @streamIdInternal
           ORDER BY dbo.Messages.Position DESC
+
+          IF @latestStreamVersion IS NULL
+            SET @latestStreamVersion = -1
 
             UPDATE dbo.Streams
                SET dbo.Streams.[Version] = @latestStreamVersion

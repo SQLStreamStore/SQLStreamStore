@@ -35,6 +35,12 @@ namespace SqlStreamStore.Infrastructure
                                    "{messageCount} messages.", streamId, expectedVersion, messages.Length);
             }
 
+            if(messages.Length == 0 && expectedVersion >= 0) 
+            {
+                // If there is an expected version then nothing to do...
+                return TaskHelpers.CompletedTask;
+            }
+            // ... expectedVersion.NoStream and ExpectedVesion.Any may create an empty stream though
             return AppendToStreamInternal(streamId, expectedVersion, messages, cancellationToken);
         }
 

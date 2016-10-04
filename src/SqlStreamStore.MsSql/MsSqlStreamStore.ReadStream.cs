@@ -53,22 +53,36 @@
             CancellationToken cancellationToken)
         {
             // If the count is int.MaxValue, TSql will see it as a negative number. 
-            // Users shouldn't be using int.MaxValue in the first place.
+            // Users shouldn't be using int.MaxValue in the first place anyway.
             count = count == int.MaxValue ? count - 1 : count;
 
             // To read backwards from end, need to use int MaxValue
             var streamVersion = start == StreamVersion.End ? int.MaxValue : start;
             string commandText;
-            Func<List<StreamMessage>, int> getNextSequenceNumber;
+            Func<List<StreamMessage>, int, int> getNextVersion;
             if(direction == ReadDirection.Forward)
             {
                 commandText = _scripts.ReadStreamForward;
-                getNextSequenceNumber = events => events.Last().StreamVersion + 1;
+                getNextVersion = (events, lastVersion) =>
+                {
+                    if(events.Any())
+                    {
+                        return events.Last().StreamVersion + 1;
+                    }
+                    return lastVersion + 1;
+                };
             }
             else
             {
                 commandText = _scripts.ReadStreamBackward;
-                getNextSequenceNumber = events => events.Last().StreamVersion - 1;
+                getNextVersion = (events, lastVersion) =>
+                {
+                    if (events.Any())
+                    {
+                        return events.Last().StreamVersion + 1;
+                    }
+                    return -1;
+                };
             }
 
             using(var command = new SqlCommand(commandText, connection))
@@ -77,11 +91,11 @@
                 command.Parameters.AddWithValue("count", count + 1); //Read extra row to see if at end or not
                 command.Parameters.AddWithValue("StreamVersion", streamVersion);
 
-                var messages = new List<StreamMessage>();
-
                 using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
                 {
-                    if(!await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                    var messages = new List<StreamMessage>();
+
+                    /*if (!await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                     {
                         return new ReadStreamPage(
                             sqlStreamId.IdOriginal,
@@ -93,10 +107,10 @@
                             true,
                             StreamMessage.EmptyArray,
                             readNext);
-                    }
+                    }*/
 
                     // Read Messages result set
-                    do
+                    while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                     {
                         var streamVersion1 = reader.GetInt32(0);
                         var ordinal = reader.GetInt64(1);
@@ -117,7 +131,7 @@
                             jsonMetadata);
 
                         messages.Add(message);
-                    } while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext());
+                    }
 
                     // Read last message revision result set
                     await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
@@ -135,7 +149,7 @@
                         sqlStreamId.IdOriginal,
                         PageReadStatus.Success,
                         start,
-                        getNextSequenceNumber(messages),
+                        getNextVersion(messages, lastStreamVersion),
                         lastStreamVersion,
                         direction,
                         isEnd,

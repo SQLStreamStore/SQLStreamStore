@@ -162,6 +162,42 @@ namespace GetEventstoreExploratoryTests
         }
 
         [Fact]
+        public async Task Read_stream_backwards()
+        {
+            await _node.StartAndWaitUntilInitialized();
+
+            using (var connection = EmbeddedEventStoreConnection.Create(_node, _connectionSettingsBuilder))
+            {
+                string streamId = "stream-1";
+                var eventData = new[]
+                {
+                    new EventData(Guid.NewGuid(), "type", false, null, null),
+                    new EventData(Guid.NewGuid(), "type", false, null, null),
+                    new EventData(Guid.NewGuid(), "type", false, null, null),
+                    new EventData(Guid.NewGuid(), "type", false, null, null),
+                    new EventData(Guid.NewGuid(), "type", false, null, null),
+                    new EventData(Guid.NewGuid(), "type", false, null, null),
+                };
+                await connection.AppendToStreamAsync(streamId, ExpectedVersion.NoStream, eventData);
+
+                var allEventsSlice = await connection.ReadStreamEventsBackwardAsync(streamId, StreamPosition.End, 2, true);
+
+                allEventsSlice = await connection.ReadStreamEventsBackwardAsync(streamId, allEventsSlice.NextEventNumber, 2, true);
+
+                _testOutputHelper.WriteLine($"LastEventNumber {allEventsSlice.LastEventNumber}");
+                _testOutputHelper.WriteLine($"NextEventNumber {allEventsSlice.NextEventNumber}");
+                _testOutputHelper.WriteLine($"FromEventNumber {allEventsSlice.FromEventNumber}");
+                foreach (var resolvedEvent in allEventsSlice.Events)
+                {
+                    _testOutputHelper.WriteLine(
+                        $"{resolvedEvent.OriginalStreamId} {resolvedEvent.OriginalEventNumber} " +
+                        $"{resolvedEvent.Event.EventType} {resolvedEvent.OriginalEvent.EventType}");
+
+                }
+            }
+        }
+
+        [Fact]
         public async Task Read_all_messages_backwards()
         {
             await _node.StartAndWaitUntilInitialized();

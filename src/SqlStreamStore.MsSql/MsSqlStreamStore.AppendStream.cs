@@ -184,9 +184,19 @@
             {
                 command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
                 command.Parameters.AddWithValue("streamIdOriginal", sqlStreamId.IdOriginal);
-                var sqlDataRecords = CreateSqlDataRecords(messages);
-                var eventsParam = CreateNewMessagesSqlParameter(sqlDataRecords);
-                command.Parameters.Add(eventsParam);
+
+                if(messages.Any())
+                {
+                    var sqlDataRecords = CreateSqlDataRecords(messages);
+                    var eventsParam = CreateNewMessagesSqlParameter(sqlDataRecords);
+                    command.Parameters.Add(eventsParam);
+                }
+                else
+                {
+                    // Must use a null value for the table-valued param if there are no records
+                    var eventsParam = CreateNewMessagesSqlParameter(null);
+                    command.Parameters.Add(eventsParam);
+                }
 
                 try
                 {

@@ -331,7 +331,7 @@
         }
 
         [Fact]
-        public async Task When_append_stream_with_empty_collection_of_messages_then_should_do_nothing()
+        public async Task When_append_stream_with_empty_collection_of_messages_then_should_create_empty_stream()
         {
             using (var fixture = GetFixture())
             {
@@ -342,7 +342,11 @@
 
                     var page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 1);
 
-                    page.Status.ShouldBe(PageReadStatus.StreamNotFound);
+                    page.Status.ShouldBe(PageReadStatus.Success);
+                    page.FromStreamVersion.ShouldBe(0);
+                    page.LastStreamVersion.ShouldBe(-1);
+                    page.NextStreamVersion.ShouldBe(-1);
+                    page.IsEnd.ShouldBe(true);
                 }
             }
         }

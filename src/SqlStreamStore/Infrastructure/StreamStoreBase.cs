@@ -35,9 +35,7 @@ namespace SqlStreamStore.Infrastructure
                                    "{messageCount} messages.", streamId, expectedVersion, messages.Length);
             }
 
-            return messages.Length == 0 
-                ? TaskHelpers.CompletedTask 
-                : AppendToStreamInternal(streamId, expectedVersion, messages, cancellationToken);
+            return AppendToStreamInternal(streamId, expectedVersion, messages, cancellationToken);
         }
 
         /// <summary>

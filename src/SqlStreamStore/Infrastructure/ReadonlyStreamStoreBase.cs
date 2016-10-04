@@ -119,6 +119,7 @@ namespace SqlStreamStore.Infrastructure
                 Logger.DebugFormat("ReadStreamForwards {streamId} from version {fromVersionInclusive} with max count " +
                                    "{maxCount}.", streamId, fromVersionInclusive, maxCount);
             }
+
             ReadNextStreamPage readNext = (nextVersion, ct) => ReadStreamForwards(streamId, nextVersion, maxCount, ct);
             var page = await ReadStreamForwardsInternal(streamId, fromVersionInclusive, maxCount, readNext, cancellationToken);
             return await FilterExpired(page, readNext, cancellationToken);

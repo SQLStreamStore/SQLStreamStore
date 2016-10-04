@@ -15,7 +15,6 @@ namespace SqlStreamStore.InMemory
         private readonly Func<int> _getNextPosition;
         private readonly List<InMemoryStreamMessage> _events = new List<InMemoryStreamMessage>();
         private readonly Dictionary<Guid, InMemoryStreamMessage> _eventsById = new Dictionary<Guid, InMemoryStreamMessage>();
-        private int _currentVersion = -1;
 
         internal InMemoryStream(
             string streamId,
@@ -32,6 +31,8 @@ namespace SqlStreamStore.InMemory
         }
 
         internal IReadOnlyList<InMemoryStreamMessage> Events => _events;
+
+        internal int CurrentVersion { get; private set; } = -1;
 
         internal void AppendToStream(int expectedVersion, NewStreamMessage[] newMessages)
         {
@@ -52,13 +53,13 @@ namespace SqlStreamStore.InMemory
         private void AppendToStreamExpectedVersion(int expectedVersion, NewStreamMessage[] newMessages)
         {
             // Need to do optimistic concurrency check...
-            if(expectedVersion > _currentVersion)
+            if(expectedVersion > CurrentVersion)
             {
                 throw new WrongExpectedVersionException(
                     ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
             }
 
-            if(_currentVersion >= 0 && expectedVersion < _currentVersion)
+            if(CurrentVersion >= 0 && expectedVersion < CurrentVersion)
             {
                 // expectedVersion < currentVersion, Idempotency test
                 for(int i = 0; i < newMessages.Length; i++)
@@ -139,12 +140,12 @@ namespace SqlStreamStore.InMemory
             foreach(var newmessage in newMessages)
             {
                 var position = _getNextPosition();
-                _currentVersion++;
+                CurrentVersion++;
 
                 var inMemorymessage = new InMemoryStreamMessage(
                     _streamId,
                     newmessage.MessageId,
-                    _currentVersion,
+                    CurrentVersion,
                     position,
                     _getUtcNow(),
                     newmessage.Type,
@@ -160,7 +161,7 @@ namespace SqlStreamStore.InMemory
 
         internal void DeleteAllEvents(int expectedVersion)
         {
-            if (expectedVersion > 0 && expectedVersion != _currentVersion)
+            if (expectedVersion > 0 && expectedVersion != CurrentVersion)
             {
                 throw new WrongExpectedVersionException(
                    ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));

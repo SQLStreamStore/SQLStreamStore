@@ -466,8 +466,20 @@ namespace SqlStreamStore
                     count--;
                 }
 
-                var lastStreamVersion = stream.Events.Last().StreamVersion;
-                var nextStreamVersion = events.Count == 0 ? lastStreamVersion + 1 : events.Last().StreamVersion + 1;
+                var lastStreamVersion = stream.CurrentVersion;
+                int nextStreamVersion;
+                if(lastStreamVersion == -1)
+                {
+                    nextStreamVersion = -1;
+                }
+                else if(events.Count == 0)
+                {
+                    nextStreamVersion = lastStreamVersion + 1;
+                }
+                else
+                {
+                    nextStreamVersion = events.Last().StreamVersion + 1;
+                }
                 var endOfStream = i == stream.Events.Count;
 
                 var page = new ReadStreamPage(

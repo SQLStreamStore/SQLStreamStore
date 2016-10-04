@@ -129,7 +129,7 @@ namespace GetEventstoreExploratoryTests
         }
 
         [Fact]
-        public async Task Read_all_messages_forwards()
+        public async Task Read_stream_forwards()
         {
             await _node.StartAndWaitUntilInitialized();
 
@@ -141,10 +141,6 @@ namespace GetEventstoreExploratoryTests
                     new EventData(Guid.NewGuid(), "type", false, null, null),
                     new EventData(Guid.NewGuid(), "type", false, null, null),
                     new EventData(Guid.NewGuid(), "type", false, null, null),
-                    new EventData(Guid.NewGuid(), "type", false, null, null),
-                    new EventData(Guid.NewGuid(), "type", false, null, null),
-                    new EventData(Guid.NewGuid(), "type", false, null, null),
-                    new EventData(Guid.NewGuid(), "type", false, null, null),
                 };
                 await connection.AppendToStreamAsync(streamId, ExpectedVersion.NoStream, eventData);
 
@@ -152,7 +148,10 @@ namespace GetEventstoreExploratoryTests
 
                 allEventsSlice = await connection.ReadStreamEventsForwardAsync(streamId, allEventsSlice.NextEventNumber, 2, true);
 
-                foreach(var resolvedEvent in allEventsSlice.Events)
+                _testOutputHelper.WriteLine($"LastEventNumber {allEventsSlice.LastEventNumber}");
+                _testOutputHelper.WriteLine($"NextEventNumber {allEventsSlice.NextEventNumber}");
+                _testOutputHelper.WriteLine($"FromEventNumber {allEventsSlice.FromEventNumber}");
+                foreach (var resolvedEvent in allEventsSlice.Events)
                 {
                     _testOutputHelper.WriteLine(
                         $"{resolvedEvent.OriginalStreamId} {resolvedEvent.OriginalEventNumber} " +
@@ -202,6 +201,25 @@ namespace GetEventstoreExploratoryTests
                 _testOutputHelper.WriteLine($"FromPosition  {allEventsSlice.FromPosition}");
                 _testOutputHelper.WriteLine($"Next Position {allEventsSlice.NextPosition}");
                 _testOutputHelper.WriteLine($"Events Length {allEventsSlice.Events.Length}");
+                //_testOutputHelper.WriteLine($"Events Length {allEventsSlice.Events[0].Event.EventType}");
+            }
+        }
+
+        [Fact]
+        public async Task Read_empty_stream()
+        {
+            await _node.StartAndWaitUntilInitialized();
+
+            using (var connection = EmbeddedEventStoreConnection.Create(_node, _connectionSettingsBuilder))
+            {
+                await connection.AppendToStreamAsync("stream-1", ExpectedVersion.NoStream);
+
+                var streamEventsSlice = await connection.ReadStreamEventsForwardAsync("stream-1", 0, 2, true);
+
+                _testOutputHelper.WriteLine($"From Event Number {streamEventsSlice.FromEventNumber}");
+                _testOutputHelper.WriteLine($"Next Event Number {streamEventsSlice.NextEventNumber}");
+                _testOutputHelper.WriteLine($"Last Event Number {streamEventsSlice.LastEventNumber}");
+                _testOutputHelper.WriteLine($"Events Length {streamEventsSlice.Events.Length}");
                 //_testOutputHelper.WriteLine($"Events Length {allEventsSlice.Events[0].Event.EventType}");
             }
         }

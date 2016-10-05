@@ -7,6 +7,8 @@
        FROM dbo.Streams
       WHERE dbo.Streams.Id = @streamId
 
+     SELECT @lastStreamVersion
+
      SELECT TOP(@count)
             dbo.Messages.StreamVersion,
             dbo.Messages.Position,
@@ -18,7 +20,5 @@
        FROM dbo.Messages
  INNER JOIN dbo.Streams
          ON dbo.Messages.StreamIdInternal = dbo.Streams.IdInternal
-      WHERE dbo.Messages.StreamIDInternal = @streamIDInternal AND dbo.Messages.StreamVersion >= @StreamVersion
+      WHERE dbo.Messages.StreamIdInternal = @streamIdInternal AND dbo.Messages.StreamVersion >= @streamVersion
    ORDER BY dbo.Messages.Position;
-
-     SELECT @lastStreamVersion

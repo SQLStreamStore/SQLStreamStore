@@ -470,7 +470,7 @@ namespace SqlStreamStore
                 int nextStreamVersion;
                 if(lastStreamVersion == -1)
                 {
-                    nextStreamVersion = -1;
+                    nextStreamVersion = 0;
                 }
                 else if(events.Count == 0)
                 {

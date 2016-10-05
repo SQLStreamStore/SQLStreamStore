@@ -54,7 +54,7 @@ namespace GetEventstoreExploratoryTests
                         ExpectedVersion.Any,
                         new EventData(Guid.NewGuid(), "event", true, Encoding.UTF8.GetBytes("{}"), null));
 
-                    await connection.DeleteStreamAsync("stream-1", global::EventStore.ClientAPI.ExpectedVersion.Any);
+                    await connection.DeleteStreamAsync("stream-1", EventStore.ClientAPI.ExpectedVersion.Any);
 
                     await Task.Delay(1000);
                 }
@@ -65,7 +65,7 @@ namespace GetEventstoreExploratoryTests
                         ExpectedVersion.Any,
                         new EventData(Guid.NewGuid(), "myevent", true, Encoding.UTF8.GetBytes("{}"), null));
 
-                    await connection.DeleteStreamAsync("stream-2", global::EventStore.ClientAPI.ExpectedVersion.Any);
+                    await connection.DeleteStreamAsync("stream-2", ExpectedVersion.Any);
 
                     await Task.Delay(1000);
                 }

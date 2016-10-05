@@ -79,7 +79,7 @@
                 {
                     if (events.Any())
                     {
-                        return events.Last().StreamVersion + 1;
+                        return events.Last().StreamVersion - 1;
                     }
                     return -1;
                 };
@@ -89,28 +89,29 @@
             {
                 command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
                 command.Parameters.AddWithValue("count", count + 1); //Read extra row to see if at end or not
-                command.Parameters.AddWithValue("StreamVersion", streamVersion);
+                command.Parameters.AddWithValue("streamVersion", streamVersion);
 
                 using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
                 {
-                    var messages = new List<StreamMessage>();
-
-                    /*if (!await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                    await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
+                    if(reader.IsDBNull(0))
                     {
                         return new ReadStreamPage(
-                            sqlStreamId.IdOriginal,
-                            PageReadStatus.StreamNotFound,
-                            start,
-                            -1,
-                            -1,
-                            direction,
-                            true,
-                            StreamMessage.EmptyArray,
-                            readNext);
-                    }*/
+                              sqlStreamId.IdOriginal,
+                              PageReadStatus.StreamNotFound,
+                              start,
+                              -1,
+                              -1,
+                              direction,
+                              true,
+                              StreamMessage.EmptyArray,
+                              readNext);
+                    }
+                    var lastStreamVersion = reader.GetInt32(0);
 
-                    // Read Messages result set
-                    while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                    await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
+                    var messages = new List<StreamMessage>();
+                    while (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                     {
                         var streamVersion1 = reader.GetInt32(0);
                         var ordinal = reader.GetInt64(1);
@@ -132,11 +133,6 @@
 
                         messages.Add(message);
                     }
-
-                    // Read last message revision result set
-                    await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
-                    await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
-                    var lastStreamVersion = reader.GetInt32(0);
 
                     var isEnd = true;
                     if(messages.Count == count + 1)

@@ -18,7 +18,7 @@
         </frameworkAssemblies>
         <releaseNotes/>
         <dependencies>
-            <dependency id="SqlStreamStore" version="[0.4.1, 0.5)" />
+            <dependency id="SqlStreamStore" version="[0.4.2, 0.5)" />
         </dependencies>
     </metadata>
     <files>

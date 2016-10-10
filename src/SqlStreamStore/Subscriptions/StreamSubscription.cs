@@ -49,7 +49,8 @@
 
             Task.Run(PullAndPush);
 
-            s_logger.Info($"Stream subscription created {name}/{streamId}.");
+            s_logger.Info($"Stream subscription created {Name} continuing after version " +
+                          $"{continueAfterVersion?.ToString() ?? "<null>"}.");
         }
 
         public string Name { get; }

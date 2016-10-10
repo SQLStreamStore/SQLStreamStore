@@ -13,8 +13,6 @@
         static void Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
-                //.WriteTo
-                //.ColoredConsole()
                 .WriteTo
                 .File("LoadTests.txt")
                 .CreateLogger();

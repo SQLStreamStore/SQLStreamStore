@@ -11,7 +11,7 @@
 
     public sealed class AllStreamSubscription : IAllStreamSubscription
     {
-        public const int DefaultPageSize = 50;
+        public const int DefaultPageSize = 10;
         private static readonly ILog s_logger = LogProvider.GetCurrentClassLogger();
         private int _pageSize = DefaultPageSize;
         private long _nextPosition;

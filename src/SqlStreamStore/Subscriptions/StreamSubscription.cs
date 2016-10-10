@@ -10,7 +10,7 @@
 
     public sealed class StreamSubscription: IStreamSubscription
     {
-        public const int DefaultPageSize = 50;
+        public const int DefaultPageSize = 10;
         private static readonly ILog s_logger = LogProvider.GetCurrentClassLogger();
         private int _pageSize = DefaultPageSize;
         private int _nextVersion;

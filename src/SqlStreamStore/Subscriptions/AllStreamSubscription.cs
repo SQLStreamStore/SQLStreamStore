@@ -25,7 +25,7 @@
         private readonly TaskCompletionSource _started = new TaskCompletionSource();
 
         public AllStreamSubscription(
-            long? fromPosition,
+            long? continueAfterPosition,
             IReadonlyStreamStore readonlyStreamStore,
             IObservable<Unit> streamStoreAppendedNotification,
             StreamMessageReceived streamMessageReceived,
@@ -33,9 +33,9 @@
             HasCaughtUp hasCaughtUp,
             string name)
         {
-            FromPosition = fromPosition;
-            LastPosition = fromPosition;
-            _nextPosition = fromPosition + 1 ?? Position.Start;
+            FromPosition = continueAfterPosition;
+            LastPosition = continueAfterPosition;
+            _nextPosition = continueAfterPosition + 1 ?? Position.Start;
             _readonlyStreamStore = readonlyStreamStore;
             _streamMessageReceived = streamMessageReceived;
             _subscriptionDropped = subscriptionDropped ?? ((_, __) => { });
@@ -49,7 +49,8 @@
 
             Task.Run(PullAndPush);
 
-            s_logger.Info($"AllStream subscription created {name}.");
+            s_logger.Info($"AllStream subscription created {name} continuing after position " +
+                          $"{continueAfterPosition?.ToString() ?? "<null>"}.");
         }
 
         public string Name { get; }

@@ -39,7 +39,8 @@ namespace SqlStreamStore.Infrastructure
             Ensure.That(fromPositionInclusive, nameof(fromPositionInclusive)).IsGte(0);
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
 
-            CheckIfDisposed();
+            GuardAgainstDisposed();
+            cancellationToken.ThrowIfCancellationRequested();
 
             if (Logger.IsDebugEnabled())
             {
@@ -89,7 +90,8 @@ namespace SqlStreamStore.Infrastructure
             Ensure.That(fromPositionInclusive, nameof(fromPositionInclusive)).IsGte(-1);
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
 
-            CheckIfDisposed();
+            GuardAgainstDisposed();
+            cancellationToken.ThrowIfCancellationRequested();
 
             if (Logger.IsDebugEnabled())
             {
@@ -112,7 +114,8 @@ namespace SqlStreamStore.Infrastructure
             Ensure.That(fromVersionInclusive, nameof(fromVersionInclusive)).IsGte(0);
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
 
-            CheckIfDisposed();
+            GuardAgainstDisposed();
+            cancellationToken.ThrowIfCancellationRequested();
 
             if (Logger.IsDebugEnabled())
             {
@@ -135,7 +138,8 @@ namespace SqlStreamStore.Infrastructure
             Ensure.That(fromVersionInclusive, nameof(fromVersionInclusive)).IsGte(-1);
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
 
-            CheckIfDisposed();
+            GuardAgainstDisposed();
+            cancellationToken.ThrowIfCancellationRequested();
 
             if (Logger.IsDebugEnabled())
             {
@@ -158,7 +162,7 @@ namespace SqlStreamStore.Infrastructure
             Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace();
             Ensure.That(streamMessageReceived, nameof(streamMessageReceived)).IsNotNull();
 
-            CheckIfDisposed();
+            GuardAgainstDisposed();
             
             return SubscribeToStreamInternal(
                 streamId,
@@ -178,7 +182,7 @@ namespace SqlStreamStore.Infrastructure
         {
             Ensure.That(streamMessageReceived, nameof(streamMessageReceived)).IsNotNull();
 
-            CheckIfDisposed();
+            GuardAgainstDisposed();
 
             return SubscribeToAllInternal(continueAfterPosition,
                 streamMessageReceived,
@@ -203,7 +207,7 @@ namespace SqlStreamStore.Infrastructure
 
         public Task<long> ReadHeadPosition(CancellationToken cancellationToken)
         {
-            CheckIfDisposed();
+            GuardAgainstDisposed();
 
             return ReadHeadPositionInternal(cancellationToken);
         }
@@ -265,7 +269,7 @@ namespace SqlStreamStore.Infrastructure
         protected virtual void Dispose(bool disposing)
         {}
 
-        protected void CheckIfDisposed()
+        protected void GuardAgainstDisposed()
         {
             if(_isDisposed)
             {

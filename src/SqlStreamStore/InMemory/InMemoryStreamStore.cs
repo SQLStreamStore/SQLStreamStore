@@ -69,7 +69,7 @@ namespace SqlStreamStore
             }
         }
 
-        public override Task<int> GetmessageCount(string streamId, CancellationToken cancellationToken = new CancellationToken())
+        public override Task<int> GetmessageCount(string streamId, CancellationToken cancellationToken)
         {
             using(_lock.UseReadLock())
             {
@@ -84,8 +84,9 @@ namespace SqlStreamStore
             CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
+            cancellationToken.ThrowIfCancellationRequested();
 
-            using(_lock.UseWriteLock())
+            using (_lock.UseWriteLock())
             {
                 AppendToStreamInternal(streamId, expectedVersion, messages);
             }
@@ -153,6 +154,7 @@ namespace SqlStreamStore
         protected override Task DeleteEventInternal(string streamId, Guid eventId, CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
+            cancellationToken.ThrowIfCancellationRequested();
 
             using (_lock.UseWriteLock())
             {
@@ -178,6 +180,9 @@ namespace SqlStreamStore
             string streamId,
             CancellationToken cancellationToken)
         {
+            GuardAgainstDisposed();
+            cancellationToken.ThrowIfCancellationRequested();
+
             using (_lock.UseReadLock())
             {
                 string metaStreamId = $"$${streamId}";
@@ -281,8 +286,9 @@ namespace SqlStreamStore
             CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
+            cancellationToken.ThrowIfCancellationRequested();
 
-            using(_lock.UseReadLock())
+            using (_lock.UseReadLock())
             {
                 // Find the node to start from (it may not be equal to the exact position)
                 var current = _allStream.First;
@@ -426,8 +432,9 @@ namespace SqlStreamStore
             ReadNextStreamPage readNext, CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
+            cancellationToken.ThrowIfCancellationRequested();
 
-            using(_lock.UseReadLock())
+            using (_lock.UseReadLock())
             {
                 InMemoryStream stream;
                 if(!_streams.TryGetValue(streamId, out stream))
@@ -497,9 +504,11 @@ namespace SqlStreamStore
             }
         }
 
-        protected override Task<ReadStreamPage> ReadStreamBackwardsInternal(string streamId, int fromVersionInclusive, int count, ReadNextStreamPage readNext, CancellationToken cancellationToken)
+        protected override Task<ReadStreamPage> ReadStreamBackwardsInternal(string streamId, int fromVersionInclusive,
+            int count, ReadNextStreamPage readNext, CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
+            cancellationToken.ThrowIfCancellationRequested();
 
             using (_lock.UseReadLock())
             {
@@ -598,14 +607,6 @@ namespace SqlStreamStore
                 subscriptionDropped,
                 hasCaughtUp,
                 name);
-        }
-
-        private void GuardAgainstDisposed()
-        {
-            if (_isDisposed)
-            {
-                throw new ObjectDisposedException(nameof(InMemoryStreamStore));
-            }
         }
     }
 }

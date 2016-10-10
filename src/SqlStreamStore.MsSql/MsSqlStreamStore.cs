@@ -60,7 +60,7 @@
             bool ignoreErrors = false,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            CheckIfDisposed();
+            GuardAgainstDisposed();
 
             using(var connection = _createConnection())
             {
@@ -104,7 +104,7 @@
             bool ignoreErrors = false,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            CheckIfDisposed();
+            GuardAgainstDisposed();
 
             using(var connection = _createConnection())
             {
@@ -131,7 +131,7 @@
             string streamId,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            CheckIfDisposed();
+            GuardAgainstDisposed();
 
             using(var connection = _createConnection())
             {
@@ -156,7 +156,7 @@
             DateTime createdBefore,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            CheckIfDisposed();
+            GuardAgainstDisposed();
 
             using (var connection = _createConnection())
             {
@@ -179,7 +179,7 @@
 
         protected override async Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken)
         {
-            CheckIfDisposed();
+            GuardAgainstDisposed();
 
             using(var connection = _createConnection())
             {

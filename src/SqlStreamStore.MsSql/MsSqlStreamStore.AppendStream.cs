@@ -24,7 +24,7 @@
             Ensure.That(streamId, "streamId").IsNotNullOrWhiteSpace();
             Ensure.That(expectedVersion, "expectedVersion").IsGte(-2);
             Ensure.That(messages, "Messages").IsNotNull();
-            CheckIfDisposed();
+            GuardAgainstDisposed();
 
             int? maxCount;
             using(var connection = _createConnection())
@@ -49,7 +49,7 @@
            NewStreamMessage[] messages,
            CancellationToken cancellationToken)
         {
-            CheckIfDisposed();
+            GuardAgainstDisposed();
 
             if (expectedVersion == ExpectedVersion.Any)
             {

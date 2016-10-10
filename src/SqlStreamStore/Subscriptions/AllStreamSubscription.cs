@@ -23,6 +23,7 @@
         private readonly CancellationTokenSource _disposed = new CancellationTokenSource();
         private readonly AsyncAutoResetEvent _streamStoreNotification = new AsyncAutoResetEvent();
         private readonly TaskCompletionSource _started = new TaskCompletionSource();
+        private readonly InterlockedBoolean _notificationRaised = new InterlockedBoolean();
 
         public AllStreamSubscription(
             long? continueAfterPosition,
@@ -155,7 +156,7 @@
                     .ReadAllForwards(_nextPosition, MaxCountPerRead, _disposed.Token)
                     .NotOnCapturedContext();
             }
-            catch (TaskCanceledException)
+            catch (OperationCanceledException)
             {
                 NotifySubscriptionDropped(SubscriptionDroppedReason.Disposed);
                 throw;
@@ -198,6 +199,10 @@
 
         private void NotifySubscriptionDropped(SubscriptionDroppedReason reason, Exception exception = null)
         {
+            if (_notificationRaised.CompareExchange(true, false))
+            {
+                return;
+            }
             try
             {
                 s_logger.InfoException($"All stream subscription dropped {Name}. Reason: {reason}", exception);

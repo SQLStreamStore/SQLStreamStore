@@ -130,7 +130,7 @@
                     1,
                     _disposed.Token).NotOnCapturedContext();
             }
-            catch (TaskCanceledException)
+            catch (OperationCanceledException)
             {
                 NotifySubscriptionDropped(SubscriptionDroppedReason.Disposed);
                 throw;

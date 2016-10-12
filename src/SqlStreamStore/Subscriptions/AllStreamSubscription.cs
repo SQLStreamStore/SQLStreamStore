@@ -50,7 +50,7 @@
 
             Task.Run(PullAndPush);
 
-            s_logger.Info($"AllStream subscription created {name} continuing after position " +
+            s_logger.Info($"AllStream subscription created {Name} continuing after position " +
                           $"{continueAfterPosition?.ToString() ?? "<null>"}.");
         }
 

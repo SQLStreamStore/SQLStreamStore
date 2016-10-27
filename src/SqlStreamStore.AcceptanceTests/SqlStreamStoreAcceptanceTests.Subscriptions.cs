@@ -534,7 +534,7 @@
                     {
                         throw new Exception();
                     };
-                    SubscriptionDropped subscriptionDropped = (reason, exception) =>
+                    SubscriptionDropped subscriptionDropped = (_, reason, __) =>
                     {
                         eventReceivedException.SetResult(reason);
                     };
@@ -567,7 +567,7 @@
                     var subscription = store.SubscribeToStream("stream-1",
                         StreamVersion.End,
                         (_, __) => Task.CompletedTask,
-                        (reason, exception) =>
+                        (_, reason, __) =>
                         {
                             tcs.SetResult(reason);
                         });
@@ -575,6 +575,31 @@
                     var droppedReason = await tcs.Task.WithTimeout();
 
                     droppedReason.ShouldBe(SubscriptionDroppedReason.Disposed);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_stream_subscription_dropped_then_should_supply_subscription_instance()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    var tcs = new TaskCompletionSource<IStreamSubscription>();
+                    var subscription = store.SubscribeToStream(
+                        "stream-1",
+                        null,
+                        (_, __) => Task.CompletedTask,
+                        (sub, _, __) =>
+                        {
+                            tcs.SetResult(sub);
+                        });
+
+                    subscription.Dispose();
+                    var receivedSubscriptiuon = await tcs.Task.WithTimeout();
+
+                    receivedSubscriptiuon.ShouldBe(subscription);
                 }
             }
         }
@@ -596,7 +621,7 @@
                             handler.Set();
                             await handler.WaitAsync(); // block "handling" while a dispose occurs
                         },
-                        (reason, exception) =>
+                        (_, reason, __) =>
                         {
                             droppedTcs.SetResult(reason);
                         });
@@ -643,7 +668,7 @@
                     {
                         throw new Exception();
                     };
-                    SubscriptionDropped subscriptionDropped = (reason, exception) =>
+                    AllSubscriptionDropped subscriptionDropped = (_, reason, __) =>
                     {
                         eventReceivedException.SetResult(reason);
                     };
@@ -676,7 +701,7 @@
                     var subscription = store.SubscribeToAll(
                         Position.End,
                         (_, __) => Task.CompletedTask,
-                        (reason, exception) =>
+                        (_, reason, __) =>
                         {
                             tcs.SetResult(reason);
                         });
@@ -684,6 +709,29 @@
                     var droppedReason = await tcs.Task.WithTimeout();
 
                     droppedReason.ShouldBe(SubscriptionDroppedReason.Disposed);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_all_stream_subscription_dropped_then_should_supply_subscription_instance()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    var tcs = new TaskCompletionSource<IAllStreamSubscription>();
+                    var subscription = store.SubscribeToAll(
+                        Position.End,
+                        (_, __) => Task.CompletedTask,
+                        (sub, _, __) =>
+                        {
+                            tcs.SetResult(sub);
+                        });
+                    subscription.Dispose();
+                    var receivedSubscriptiuon = await tcs.Task.WithTimeout();
+
+                    receivedSubscriptiuon.ShouldBe(subscription);
                 }
             }
         }
@@ -705,7 +753,7 @@
                             handler.Set();
                             await handler.WaitAsync().WithTimeout(); // block "handling" while a dispose occurs
                         },
-                        (reason, exception) =>
+                        (_, reason, __) =>
                         {
                             droppedTcs.SetResult(reason);
                         });

@@ -18,7 +18,7 @@
         private readonly IReadonlyStreamStore _readonlyStreamStore;
         private readonly AllStreamMessageReceived _streamMessageReceived;
         private readonly HasCaughtUp _hasCaughtUp;
-        private readonly SubscriptionDropped _subscriptionDropped;
+        private readonly AllSubscriptionDropped _subscriptionDropped;
         private readonly IDisposable _notification;
         private readonly CancellationTokenSource _disposed = new CancellationTokenSource();
         private readonly AsyncAutoResetEvent _streamStoreNotification = new AsyncAutoResetEvent();
@@ -30,7 +30,7 @@
             IReadonlyStreamStore readonlyStreamStore,
             IObservable<Unit> streamStoreAppendedNotification,
             AllStreamMessageReceived streamMessageReceived,
-            SubscriptionDropped subscriptionDropped,
+            AllSubscriptionDropped subscriptionDropped,
             HasCaughtUp hasCaughtUp,
             string name)
         {
@@ -39,7 +39,7 @@
             _nextPosition = continueAfterPosition + 1 ?? Position.Start;
             _readonlyStreamStore = readonlyStreamStore;
             _streamMessageReceived = streamMessageReceived;
-            _subscriptionDropped = subscriptionDropped ?? ((_, __) => { });
+            _subscriptionDropped = subscriptionDropped ?? ((_, __, ___) => { });
             _hasCaughtUp = hasCaughtUp ?? (_ => { }); 
             Name = string.IsNullOrWhiteSpace(name) ? Guid.NewGuid().ToString() : name;
 
@@ -206,7 +206,7 @@
             try
             {
                 s_logger.InfoException($"All stream subscription dropped {Name}. Reason: {reason}", exception);
-                _subscriptionDropped.Invoke(reason, exception);
+                _subscriptionDropped.Invoke(this, reason, exception);
             }
             catch (Exception ex)
             {

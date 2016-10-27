@@ -594,7 +594,7 @@ namespace SqlStreamStore
 
         protected override IAllStreamSubscription SubscribeToAllInternal(
             long? fromPosition,
-            StreamMessageReceived streamMessageReceived,
+            AllStreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             HasCaughtUp hasCaughtUp,
             string name)

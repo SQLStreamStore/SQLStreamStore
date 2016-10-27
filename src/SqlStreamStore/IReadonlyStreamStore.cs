@@ -155,7 +155,7 @@
         /// </returns>
         IAllStreamSubscription SubscribeToAll(
             long? continueAfterPosition,
-            StreamMessageReceived streamMessageReceived,
+            AllStreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             HasCaughtUp hasCaughtUp = null,
             string name = null);

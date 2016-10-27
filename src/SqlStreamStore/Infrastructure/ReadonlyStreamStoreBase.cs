@@ -175,7 +175,7 @@ namespace SqlStreamStore.Infrastructure
 
         public IAllStreamSubscription SubscribeToAll(
             long? continueAfterPosition,
-            StreamMessageReceived streamMessageReceived,
+            AllStreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             HasCaughtUp hasCaughtUp = null,
             string name = null)
@@ -257,7 +257,7 @@ namespace SqlStreamStore.Infrastructure
 
         protected abstract IAllStreamSubscription SubscribeToAllInternal(
             long? fromPosition,
-            StreamMessageReceived streamMessageReceived,
+            AllStreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             HasCaughtUp hasCaughtUp,
             string name);

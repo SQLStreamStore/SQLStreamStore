@@ -16,7 +16,7 @@
         private int _pageSize = DefaultPageSize;
         private long _nextPosition;
         private readonly IReadonlyStreamStore _readonlyStreamStore;
-        private readonly StreamMessageReceived _streamMessageReceived;
+        private readonly AllStreamMessageReceived _streamMessageReceived;
         private readonly HasCaughtUp _hasCaughtUp;
         private readonly SubscriptionDropped _subscriptionDropped;
         private readonly IDisposable _notification;
@@ -29,7 +29,7 @@
             long? continueAfterPosition,
             IReadonlyStreamStore readonlyStreamStore,
             IObservable<Unit> streamStoreAppendedNotification,
-            StreamMessageReceived streamMessageReceived,
+            AllStreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             HasCaughtUp hasCaughtUp,
             string name)
@@ -183,7 +183,7 @@
                 LastPosition = message.Position;
                 try
                 {
-                    await _streamMessageReceived(message).NotOnCapturedContext();
+                    await _streamMessageReceived(this, message).NotOnCapturedContext();
                 }
                 catch (Exception ex)
                 {

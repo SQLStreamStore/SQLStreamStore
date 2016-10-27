@@ -3,7 +3,6 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
@@ -74,7 +73,7 @@
 
         protected override IAllStreamSubscription SubscribeToAllInternal(
             long? fromPosition,
-            StreamMessageReceived streamMessageReceived,
+            AllStreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             HasCaughtUp hasCaughtUp,
             string name)

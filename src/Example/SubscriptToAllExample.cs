@@ -39,7 +39,7 @@ namespace Example
             }
         }
 
-        private Task StreamMessageReceived(StreamMessage streamMessage)
+        private Task StreamMessageReceived(IAllStreamSubscription _, StreamMessage streamMessage)
         {
             Console.WriteLine(streamMessage.StreamId);
             _currentPosition = streamMessage.Position;

@@ -108,10 +108,10 @@
         ///     is terminated.
         /// </param>
         /// <param name="subscriptionDropped">
-        ///     A delegate that is invoked when a the subscription fails.
+        ///     A delegate that is invoked when a the subscription is dropped. This will be invoked once and only once.
         /// </param>
         /// <param name="hasCaughtUp">
-        ///     A delegate that is invoked with value=true when the subscription has catught up with the stream
+        ///     A delegate that is invoked with value=true when the subscription has caught up with the stream
         ///     (when the underlying page read has IsEnd=true) and when it falls behind (when the underlying page read
         ///     has IsEnd=false). 
         /// </param>
@@ -140,7 +140,7 @@
         ///     is terminated.
         /// </param>
         /// <param name="subscriptionDropped">
-        ///     A delegate that is invoked when a the subscription is dropped.
+        ///     A delegate that is invoked when a the subscription is dropped. This will be invoked once and only once.
         /// </param>
         /// <param name="name">
         ///     The name of the subscription used for logging. Optional.

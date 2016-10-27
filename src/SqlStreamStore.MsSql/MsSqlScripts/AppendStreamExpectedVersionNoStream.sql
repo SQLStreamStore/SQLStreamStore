@@ -23,7 +23,7 @@ BEGIN TRANSACTION CreateStream;
              WHERE dbo.Messages.StreamIDInternal = @streamIdInternal
           ORDER BY dbo.Messages.Position DESC
 
-          IF @latestStreamVersion IS NULL
+             IF @latestStreamVersion IS NULL
             SET @latestStreamVersion = -1
 
             UPDATE dbo.Streams
@@ -31,6 +31,10 @@ BEGIN TRANSACTION CreateStream;
              WHERE dbo.Streams.IdInternal = @streamIdInternal
     END;
 COMMIT TRANSACTION CreateStream;
+
+/* Select CurrentVersion */
+
+     SELECT currentVersion = @latestStreamVersion
 
 /* Select Metadata */
     DECLARE @metadataStreamId as NVARCHAR(42)

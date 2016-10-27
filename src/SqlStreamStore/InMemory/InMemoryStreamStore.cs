@@ -77,7 +77,7 @@ namespace SqlStreamStore
             }
         }
 
-        protected override async Task AppendToStreamInternal(
+        protected override async Task<AppendResult> AppendToStreamInternal(
             string streamId,
             int expectedVersion,
             NewStreamMessage[] messages,
@@ -86,12 +86,14 @@ namespace SqlStreamStore
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
 
+            AppendResult appendResult;
             using (_lock.UseWriteLock())
             {
-                AppendToStreamInternal(streamId, expectedVersion, messages);
+                appendResult = AppendToStreamInternal(streamId, expectedVersion, messages);
             }
-            var result = await GetStreamMetadataInternal(streamId, cancellationToken);
-            await CheckStreamMaxCount(streamId, result.MaxCount, cancellationToken);
+            var meta = await GetStreamMetadataInternal(streamId, cancellationToken);
+            await CheckStreamMaxCount(streamId, meta.MaxCount, cancellationToken);
+            return appendResult;
         }
 
         private async Task CheckStreamMaxCount(string streamId, int? maxCount, CancellationToken cancellationToken)
@@ -117,7 +119,7 @@ namespace SqlStreamStore
             }
         }
 
-        private void AppendToStreamInternal(
+        private AppendResult AppendToStreamInternal(
             string streamId,
             int expectedVersion,
             NewStreamMessage[] messages)
@@ -140,7 +142,7 @@ namespace SqlStreamStore
                     inMemoryStream.AppendToStream(expectedVersion, messages);
                     _streams.Add(streamId, inMemoryStream);
                 }
-                return;
+                return new AppendResult(inMemoryStream.CurrentVersion);
             }
 
             if (!_streams.TryGetValue(streamId, out inMemoryStream))
@@ -149,6 +151,7 @@ namespace SqlStreamStore
                     ErrorMessages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
             }
             inMemoryStream.AppendToStream(expectedVersion, messages);
+            return new AppendResult(inMemoryStream.CurrentVersion);
         }
 
         protected override Task DeleteEventInternal(string streamId, Guid eventId, CancellationToken cancellationToken)

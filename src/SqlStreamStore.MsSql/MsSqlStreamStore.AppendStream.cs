@@ -15,7 +15,9 @@
 
     public partial class MsSqlStreamStore
     {
-        protected override async Task AppendToStreamInternal(
+        private static readonly Tuple<int?, int> NullAppendResult = new Tuple<int?, int>(null, -1);
+
+        protected override async Task<AppendResult> AppendToStreamInternal(
            string streamId,
            int expectedVersion,
            NewStreamMessage[] messages,
@@ -26,22 +28,24 @@
             Ensure.That(messages, "Messages").IsNotNull();
             GuardAgainstDisposed();
 
-            int? maxCount;
+            Tuple<int?,int> result;
             using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                 var streamIdInfo = new StreamIdInfo(streamId);
-                maxCount = await AppendToStreamInternal(connection, null, streamIdInfo.SqlStreamId, expectedVersion,
+                result = await AppendToStreamInternal(connection, null, streamIdInfo.SqlStreamId, expectedVersion,
                     messages, cancellationToken);
             }
 
-            if(maxCount != null)
+            if(result.Item1 != null)
             {
-                await CheckStreamMaxCount(streamId, maxCount, cancellationToken);
+                await CheckStreamMaxCount(streamId, result.Item1, cancellationToken);
             }
+
+            return new AppendResult(result.Item2);
         }
 
-        private async Task<int?> AppendToStreamInternal(
+        private async Task<Tuple<int?, int>> AppendToStreamInternal(
            SqlConnection connection,
            SqlTransaction transaction,
            SqlStreamId sqlStreamId,
@@ -53,7 +57,8 @@
 
             if (expectedVersion == ExpectedVersion.Any)
             {
-                // Deadlock can occur when creating the stream for the first time.
+                // Deadlock can occur when creating the stream for the first time and multiple threads attempting to 
+                // append with expected version any.
                 return await RetryOnDeadLock(() => AppendToStreamExpectedVersionAny(
                     connection,
                     transaction,
@@ -101,7 +106,7 @@
             return default(T); // never actually run
         }
 
-        private async Task<int?> AppendToStreamExpectedVersionAny(
+        private async Task<Tuple<int?, int>> AppendToStreamExpectedVersionAny(
             SqlConnection connection,
             SqlTransaction transaction,
             SqlStreamId sqlStreamId,
@@ -121,12 +126,19 @@
                         .ExecuteReaderAsync(cancellationToken)
                         .NotOnCapturedContext())
                     {
+                        await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
+                        var currentVersion = reader.GetInt32(0);
+                        int? maxCount = null;
+
+                        await reader.NextResultAsync(cancellationToken);
                         if(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                         {
                             var jsonData = reader.GetString(0);
                             var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(jsonData);
-                            return metadataMessage.MaxCount;
+                            maxCount = metadataMessage.MaxCount;
                         }
+
+                        return new Tuple<int?, int>(maxCount, currentVersion);
                     }
                 }
                 
@@ -169,11 +181,11 @@
                         ErrorMessages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, ExpectedVersion.Any),
                         ex);
                 }
-                return null;
+                return NullAppendResult;
             }
         }
 
-        private async Task<int?> AppendToStreamExpectedVersionNoStream(
+        private async Task<Tuple<int?, int>> AppendToStreamExpectedVersionNoStream(
             SqlConnection connection,
             SqlTransaction transaction,
             SqlStreamId sqlStreamId,
@@ -204,12 +216,19 @@
                         .ExecuteReaderAsync(cancellationToken)
                         .NotOnCapturedContext())
                     {
-                        if(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                        await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
+                        var currentVersion = reader.GetInt32(0);
+                        int? maxCount = null;
+
+                        if (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                         {
                             var jsonData = reader.GetString(0);
                             var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(jsonData);
-                            return metadataMessage.MaxCount;
+                            maxCount = metadataMessage.MaxCount;
                         }
+
+                        return new Tuple<int?, int>(maxCount, currentVersion);
+
                     }
                 }
                 catch(SqlException ex)
@@ -220,19 +239,20 @@
                     {
                         // Idempotency handling. Check if the Messages have already been written.
                         var page = await ReadStreamInternal(
-                            sqlStreamId,
-                            StreamVersion.Start,
-                            messages.Length,
-                            ReadDirection.Forward,
-                            null,
-                            connection,
-                            cancellationToken)
+                                sqlStreamId,
+                                StreamVersion.Start,
+                                messages.Length,
+                                ReadDirection.Forward,
+                                null,
+                                connection,
+                                cancellationToken)
                             .NotOnCapturedContext();
 
                         if(messages.Length > page.Messages.Length)
                         {
                             throw new WrongExpectedVersionException(
-                                ErrorMessages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, ExpectedVersion.NoStream),
+                                ErrorMessages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal,
+                                    ExpectedVersion.NoStream),
                                 ex);
                         }
 
@@ -241,28 +261,30 @@
                             if(messages[i].MessageId != page.Messages[i].MessageId)
                             {
                                 throw new WrongExpectedVersionException(
-                                    ErrorMessages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, ExpectedVersion.NoStream),
+                                    ErrorMessages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal,
+                                        ExpectedVersion.NoStream),
                                     ex);
                             }
                         }
 
-                        return null;
+                        return NullAppendResult;
                     }
 
                     if(ex.IsUniqueConstraintViolation())
                     {
                         throw new WrongExpectedVersionException(
-                            ErrorMessages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, ExpectedVersion.NoStream),
+                            ErrorMessages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal,
+                                ExpectedVersion.NoStream),
                             ex);
                     }
 
                     throw;
                 }
-                return null;
+                return NullAppendResult;
             }
         }
 
-        private async Task<int?> AppendToStreamExpectedVersion(
+        private async Task<Tuple<int?, int>> AppendToStreamExpectedVersion(
             SqlConnection connection,
             SqlTransaction transaction,
             SqlStreamId sqlStreamId,
@@ -285,12 +307,20 @@
                         .ExecuteReaderAsync(cancellationToken)
                         .NotOnCapturedContext())
                     {
+                        await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
+                        var currentVersion = reader.GetInt32(0);
+                        int? maxCount = null;
+
+                        await reader.NextResultAsync(cancellationToken);
                         if (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                         {
                             var jsonData = reader.GetString(0);
                             var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(jsonData);
-                            return metadataMessage.MaxCount;
+                            maxCount = metadataMessage.MaxCount;
+
                         }
+
+                        return new Tuple<int?, int>(maxCount, currentVersion);
                     }
                 }
                 catch(SqlException ex)
@@ -330,7 +360,7 @@
                                 }
                             }
 
-                            return null;
+                            return NullAppendResult;
                         }
                     }
                     if(ex.IsUniqueConstraintViolation())
@@ -341,7 +371,7 @@
                     }
                     throw;
                 }
-                return null;
+                return NullAppendResult;
             }
         }
 

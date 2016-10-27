@@ -55,6 +55,34 @@
         }
 
         [Fact]
+        public async Task When_subscribe_to_a_stream_and_receive_message_then_should_get_subscription_instance()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    const string streamId = "stream-1";
+                    await AppendMessages(store, streamId, 10);
+
+                    var done = new TaskCompletionSource<IStreamSubscription>();
+                    using (var subscription = store.SubscribeToStream(
+                        streamId,
+                        null,
+                        (sub, _) =>
+                        {
+                            done.SetResult(sub);
+                            return Task.CompletedTask;
+                        }))
+                    {
+                        var receivedSubscription = await done.Task.WithTimeout();
+
+                        receivedSubscription.ShouldBe(subscription);
+                    }
+                }
+            }
+        }
+
+        [Fact]
         public async Task Can_subscribe_to_a_stream_from_start_before_messages_are_written()
         {
             using (var fixture = GetFixture())
@@ -126,6 +154,33 @@
                         await receiveMessages.Task.WithTimeout();
 
                         receivedMessages.Count.ShouldBe(7);
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_subscribe_to_all_and_receive_message_then_should_get_subscription_instance()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    const string streamId = "stream-1";
+                    await AppendMessages(store, streamId, 10);
+
+                    var done = new TaskCompletionSource<IAllStreamSubscription>();
+                    using (var subscription = store.SubscribeToAll(
+                        null,
+                        (sub, _) =>
+                        {
+                            done.SetResult(sub);
+                            return Task.CompletedTask;
+                        }))
+                    {
+                        var receivedSubscription = await done.Task.WithTimeout();
+
+                        receivedSubscription.ShouldBe(subscription);
                     }
                 }
             }

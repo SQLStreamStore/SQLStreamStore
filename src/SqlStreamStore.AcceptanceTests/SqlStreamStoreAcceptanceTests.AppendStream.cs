@@ -136,10 +136,12 @@
                 using (var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
-                    await store
+                    var result = await store
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
 
-                    await store.AppendToStream(streamId, 2, CreateNewStreamMessages(4, 5, 6));
+                    result = await store.AppendToStream(streamId, result.CurrentVersion, CreateNewStreamMessages(4, 5, 6));
+
+                    result.CurrentVersion.ShouldBe(5);
                 }
             }
         }
@@ -213,9 +215,9 @@
                 using (var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
-                    var exception = await Record.ExceptionAsync(() => 
-                        store.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1, 2, 3)));
-                    exception.ShouldBeNull();
+                    var result = await store.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1, 2, 3));
+
+                    result.CurrentVersion.ShouldBe(2);
 
                     var page = await store
                         .ReadStreamForwards(streamId, StreamVersion.Start, 4);

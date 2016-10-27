@@ -44,6 +44,10 @@ INSERT INTO dbo.Messages (StreamIdInternal, StreamVersion, Id, Created, [Type], 
 
 COMMIT TRANSACTION AppendStream;
 
+/* Select CurrentVersion */
+
+     SELECT currentVersion = @latestStreamVersion
+
 /* Select Metadata */
     DECLARE @metadataStreamId as NVARCHAR(42)
     DECLARE @metadataStreamIdInternal as INT

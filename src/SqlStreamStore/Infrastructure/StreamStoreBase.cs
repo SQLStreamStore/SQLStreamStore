@@ -20,7 +20,7 @@ namespace SqlStreamStore.Infrastructure
             : base(metadataMaxAgeCacheExpiry, metadataMaxAgeCacheMaxSize, getUtcNow, logName)
         {}
 
-        public Task AppendToStream(
+        public Task<AppendResult> AppendToStream(
             string streamId,
             int expectedVersion,
             NewStreamMessage[] messages,
@@ -38,7 +38,7 @@ namespace SqlStreamStore.Infrastructure
             if(messages.Length == 0 && expectedVersion >= 0) 
             {
                 // If there is an expected version then nothing to do...
-                return TaskHelpers.CompletedTask;
+                return Task.FromResult(new AppendResult(expectedVersion));
             }
             // ... expectedVersion.NoStream and ExpectedVesion.Any may create an empty stream though
             return AppendToStreamInternal(streamId, expectedVersion, messages, cancellationToken);
@@ -136,7 +136,7 @@ namespace SqlStreamStore.Infrastructure
             _taskQueue.Enqueue(ct => DeleteEventInternal(streamMessage.StreamId, streamMessage.MessageId, ct));
         }
 
-        protected abstract Task AppendToStreamInternal(
+        protected abstract Task<AppendResult> AppendToStreamInternal(
             string streamId,
             int expectedVersion,
             NewStreamMessage[] messages,

@@ -96,7 +96,7 @@
             throw new NotImplementedException();
         }
 
-        protected override Task AppendToStreamInternal(
+        protected override Task<AppendResult> AppendToStreamInternal(
             string streamId,
             int expectedVersion,
             NewStreamMessage[] messages,

@@ -42,7 +42,7 @@
         ///     The cancellation instruction.
         /// </param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        Task AppendToStream(
+        Task<AppendResult> AppendToStream(
             string streamId,
             int expectedVersion,
             NewStreamMessage[] messages,

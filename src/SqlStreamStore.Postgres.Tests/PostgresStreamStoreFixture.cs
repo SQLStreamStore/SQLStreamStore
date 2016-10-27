@@ -1,9 +1,7 @@
 namespace SqlStreamStore
 {
     using System;
-    using System.Data.SqlClient;
     using System.Threading.Tasks;
-
     using SqlStreamStore.Postgres;
 
     public class PostgresStreamStoreFixture : StreamStoreAcceptanceTestFixture

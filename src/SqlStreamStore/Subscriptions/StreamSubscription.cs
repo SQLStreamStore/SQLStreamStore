@@ -203,7 +203,7 @@
                 LastVersion = message.StreamVersion;
                 try
                 {
-                    await _streamMessageReceived(message).NotOnCapturedContext();
+                    await _streamMessageReceived(this, message).NotOnCapturedContext();
                 }
                 catch (Exception ex)
                 {

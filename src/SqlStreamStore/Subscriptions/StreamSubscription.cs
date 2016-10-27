@@ -39,7 +39,7 @@
             _continueAfterVersion = continueAfterVersion;
             _readonlyStreamStore = readonlyStreamStore;
             _streamMessageReceived = streamMessageReceived;
-            _subscriptionDropped = subscriptionDropped ?? ((_, __) => { });
+            _subscriptionDropped = subscriptionDropped ?? ((_, __, ___) => { });
             _hasCaughtUp = hasCaughtUp ?? ((_) => { });
             Name = string.IsNullOrWhiteSpace(name) ? Guid.NewGuid().ToString() : name;
 
@@ -226,7 +226,7 @@
             try
             {
                 s_logger.InfoException($"Subscription dropped {Name}/{StreamId}. Reason: {reason}", exception);
-                _subscriptionDropped.Invoke(reason, exception);
+                _subscriptionDropped.Invoke(this, reason, exception);
             }
             catch(Exception ex)
             {

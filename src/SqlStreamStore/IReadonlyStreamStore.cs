@@ -83,7 +83,7 @@
         ///     the end.
         /// </param>
         /// <param name="maxCount">T he maximum number of messages to read (int.MaxValue is a bad idea).</param>
-        /// <param name="cancellationToken"> The cancellation instruction. </param>
+        /// <param name="cancellationToken"> The cancellation instruction.</param>
         /// <returns>
         ///     An <see cref="ReadStreamPage"/> represent the result of the operation. If all the messages read
         ///     have expired then the message collection MAY be empty.
@@ -140,7 +140,7 @@
         ///     is terminated.
         /// </param>
         /// <param name="subscriptionDropped">
-        ///     A delegate that is invoked when a the subscription fails.
+        ///     A delegate that is invoked when a the subscription is dropped.
         /// </param>
         /// <param name="name">
         ///     The name of the subscription used for logging. Optional.
@@ -156,7 +156,7 @@
         IAllStreamSubscription SubscribeToAll(
             long? continueAfterPosition,
             AllStreamMessageReceived streamMessageReceived,
-            SubscriptionDropped subscriptionDropped = null,
+            AllSubscriptionDropped subscriptionDropped = null,
             HasCaughtUp hasCaughtUp = null,
             string name = null);
 

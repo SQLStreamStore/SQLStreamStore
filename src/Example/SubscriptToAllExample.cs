@@ -27,7 +27,7 @@ namespace Example
             CaughtUp = isCaughtUp;
         }
 
-        private void SubscriptionDropped(SubscriptionDroppedReason reason, Exception exception)
+        private void SubscriptionDropped(IAllStreamSubscription _, SubscriptionDroppedReason reason, Exception exception)
         {
             if(reason == SubscriptionDroppedReason.StreamStoreError)
             {

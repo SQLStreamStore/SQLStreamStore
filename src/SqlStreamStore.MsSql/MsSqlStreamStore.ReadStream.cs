@@ -11,14 +11,20 @@
 
     public partial class MsSqlStreamStore
     {
-        protected override async Task<ReadStreamPage> ReadStreamForwardsInternal(string streamId, int start, int count, bool prefetch, ReadNextStreamPage readNext, CancellationToken cancellationToken)
+        protected override async Task<ReadStreamPage> ReadStreamForwardsInternal(
+            string streamId,
+            int start,
+            int count,
+            bool prefetch,
+            ReadNextStreamPage readNext,
+            CancellationToken cancellationToken)
         {
             using (var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                 var streamIdInfo = new StreamIdInfo(streamId);
-                return await ReadStreamInternal(streamIdInfo.SqlStreamId, start, count, ReadDirection.Forward, 
-                    readNext, connection, cancellationToken);
+                return await ReadStreamInternal(streamIdInfo.SqlStreamId, start, count, ReadDirection.Forward,
+                    prefetch, readNext, connection, cancellationToken);
             }
         }
 
@@ -35,7 +41,7 @@
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                 var streamIdInfo = new StreamIdInfo(streamId);
                 return await ReadStreamInternal(streamIdInfo.SqlStreamId, start, count, ReadDirection.Backward,
-                    readNext, connection, cancellationToken);
+                    prefetch, readNext, connection, cancellationToken);
             }
         }
 
@@ -44,9 +50,9 @@
             int start,
             int count,
             ReadDirection direction,
+            bool prefetch,
             ReadNextStreamPage readNext,
-            SqlConnection connection,
-            CancellationToken cancellationToken)
+            SqlConnection connection, CancellationToken cancellationToken)
         {
             // If the count is int.MaxValue, TSql will see it as a negative number. 
             // Users shouldn't be using int.MaxValue in the first place anyway.

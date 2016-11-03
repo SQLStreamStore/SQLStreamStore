@@ -153,6 +153,7 @@
                         StreamVersion.Start,
                         messages.Length,
                         ReadDirection.Forward,
+                        false,
                         null,
                         connection,
                         cancellationToken)
@@ -243,6 +244,7 @@
                                 StreamVersion.Start,
                                 messages.Length,
                                 ReadDirection.Forward,
+                                false,
                                 null,
                                 connection,
                                 cancellationToken)
@@ -338,6 +340,7 @@
                                 // when reading for already written Messages, it's from the one after the expected
                                 messages.Length,
                                 ReadDirection.Forward,
+                                false,
                                 null,
                                 connection,
                                 cancellationToken);

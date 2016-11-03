@@ -106,7 +106,7 @@ namespace SqlStreamStore
                     int toPurge = count - maxCount.Value;
 
                     var streamMessagesPage = await ReadStreamForwardsInternal(streamId, StreamVersion.Start,
-                        toPurge, null, cancellationToken);
+                        toPurge, false, null, cancellationToken);
 
                     if (streamMessagesPage.Status == PageReadStatus.Success)
                     {
@@ -191,7 +191,7 @@ namespace SqlStreamStore
                 string metaStreamId = $"$${streamId}";
 
                 var eventsPage = await ReadStreamBackwardsInternal(metaStreamId, StreamVersion.End,
-                    1, null, cancellationToken);
+                    1, true, null, cancellationToken);
 
                 if (eventsPage.Status == PageReadStatus.StreamNotFound)
                 {
@@ -281,11 +281,8 @@ namespace SqlStreamStore
             AppendToStreamInternal(DeletedStreamId, ExpectedVersion.Any, new[] { streamDeletedEvent });
         }
 
-        protected override Task<ReadAllPage> ReadAllForwardsInternal(
-            long fromPositionExlusive,
-            int maxCount,
-            ReadNextAllPage readNext,
-            CancellationToken cancellationToken)
+        protected override Task<ReadAllPage> ReadAllForwardsInternal(long fromPositionExlusive, int maxCount,
+            bool prefetch, ReadNextAllPage readNext, CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
@@ -348,11 +345,7 @@ namespace SqlStreamStore
             }
         }
 
-        protected override Task<ReadAllPage> ReadAllBackwardsInternal(
-            long fromPositionExclusive,
-            int maxCount,
-            ReadNextAllPage readNext,
-            CancellationToken cancellationToken)
+        protected override Task<ReadAllPage> ReadAllBackwardsInternal(long fromPositionExclusive, int maxCount, bool prefetch, ReadNextAllPage readNext, CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
 
@@ -430,8 +423,7 @@ namespace SqlStreamStore
             }
         }
 
-        protected override Task<ReadStreamPage> ReadStreamForwardsInternal(string streamId, int start, int count,
-            ReadNextStreamPage readNext, CancellationToken cancellationToken)
+        protected override Task<ReadStreamPage> ReadStreamForwardsInternal(string streamId, int start, int count, bool prefetch, ReadNextStreamPage readNext, CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
@@ -506,8 +498,7 @@ namespace SqlStreamStore
             }
         }
 
-        protected override Task<ReadStreamPage> ReadStreamBackwardsInternal(string streamId, int fromVersionInclusive,
-            int count, ReadNextStreamPage readNext, CancellationToken cancellationToken)
+        protected override Task<ReadStreamPage> ReadStreamBackwardsInternal(string streamId, int fromVersionInclusive, int count, bool prefetch, ReadNextStreamPage readNext, CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();

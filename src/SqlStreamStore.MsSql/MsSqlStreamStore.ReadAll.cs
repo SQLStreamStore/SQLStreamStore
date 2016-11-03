@@ -13,6 +13,7 @@ namespace SqlStreamStore
         protected override async Task<ReadAllPage> ReadAllForwardsInternal(
             long fromPositionExlusive,
             int maxCount,
+            bool prefetch,
             ReadNextAllPage readNext,
             CancellationToken cancellationToken)
         {
@@ -91,6 +92,7 @@ namespace SqlStreamStore
         protected override async Task<ReadAllPage> ReadAllBackwardsInternal(
             long fromPositionExclusive,
             int maxCount,
+            bool prefetch,
             ReadNextAllPage readNext,
             CancellationToken cancellationToken)
         {

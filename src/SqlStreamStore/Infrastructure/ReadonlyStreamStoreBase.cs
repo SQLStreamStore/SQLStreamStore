@@ -34,6 +34,7 @@ namespace SqlStreamStore.Infrastructure
         public async Task<ReadAllPage> ReadAllForwards(
             long fromPositionInclusive,
             int maxCount,
+            bool prefetch,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.That(fromPositionInclusive, nameof(fromPositionInclusive)).IsGte(0);
@@ -48,7 +49,7 @@ namespace SqlStreamStore.Infrastructure
                                    "{maxCount}.", fromPositionInclusive, maxCount);
             }
 
-            ReadNextAllPage readNext = (nextPosition, ct) => ReadAllForwards(nextPosition, maxCount, ct);
+            ReadNextAllPage readNext = (nextPosition, ct) => ReadAllForwards(nextPosition, maxCount, prefetch, ct);
 
             var page = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, readNext, cancellationToken)
                 .NotOnCapturedContext();

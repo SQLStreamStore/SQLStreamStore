@@ -42,7 +42,7 @@
                         var expectedMessage = expectedMessages[i];
 
                         message.MessageId.ShouldBe(expectedMessage.MessageId);
-                        message.JsonData.ShouldBe(expectedMessage.JsonData);
+                        (await message.GetJsonData()).ShouldBe(await expectedMessage.GetJsonData());
                         message.JsonMetadata.ShouldBe(expectedMessage.JsonMetadata);
                         message.StreamId.ShouldBe(expectedMessage.StreamId);
                         message.StreamVersion.ShouldBe(expectedMessage.StreamVersion);
@@ -121,7 +121,7 @@
                         var expectedMessage = expectedMessages[i];
 
                         streamMessage.MessageId.ShouldBe(expectedMessage.MessageId);
-                        streamMessage.JsonData.ShouldBe(expectedMessage.JsonData);
+                        (await streamMessage.GetJsonData()).ShouldBe(await expectedMessage.GetJsonData());
                         streamMessage.JsonMetadata.ShouldBe(expectedMessage.JsonMetadata);
                         streamMessage.StreamId.ShouldBe(expectedMessage.StreamId);
                         streamMessage.StreamVersion.ShouldBe(expectedMessage.StreamVersion);

@@ -198,8 +198,7 @@ namespace SqlStreamStore
                     return new StreamMetadataResult(streamId, -1);
                 }
 
-                var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(
-                    eventsPage.Messages[0].JsonData);
+                var metadataMessage = await eventsPage.Messages[0].GetJsonDataAs<MetadataMessage>(cancellationToken);
 
                 return new StreamMetadataResult(
                     streamId,

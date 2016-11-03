@@ -9,6 +9,34 @@
     public static class StreamStoreExtensions
     {
         /// <summary>
+        ///     Reads messages from all streams forwards.
+        /// </summary>
+        /// <param name="fromPositionInclusive">
+        ///     The position to start reading from. Use <see cref="Position.Start"/> to start from the beginning.
+        ///     Note: messages that have expired will be filtered out.
+        /// </param>
+        /// <param name="maxCount">
+        ///     The maximum number of messages to read (int.MaxValue is a bad idea).
+        /// </param>
+        /// <param name="cancellationToken">
+        ///     The cancellation instruction.
+        /// </param>
+        /// <returns>
+        ///     An <see cref="ReadAllPage"/> presenting the result of the read. If all messages read have expired
+        ///     then the message collection MAY be empty.
+        /// </returns>
+        public static Task<ReadAllPage> ReadAllForwards(
+            this IReadonlyStreamStore readonlyStreamStore,
+            long fromPositionInclusive,
+            int maxCount,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return readonlyStreamStore.ReadAllForwards(fromPositionInclusive,
+                maxCount,
+                cancellationToken: cancellationToken);
+        }
+
+        /// <summary>
         ///     Appends a collection of messages to a stream. 
         /// </summary>
         /// <remarks>

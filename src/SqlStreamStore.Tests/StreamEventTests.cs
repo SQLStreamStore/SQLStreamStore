@@ -1,6 +1,7 @@
 ﻿namespace SqlStreamStore
 {
     using System;
+    using System.Threading.Tasks;
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
@@ -8,7 +9,7 @@
     public class messageTests
     {
         [Fact]
-        public void Can_deserialize()
+        public async Task Can_deserialize()
         {
             var message = new StreamMessage(
                 "stream",
@@ -20,7 +21,7 @@
                 "\"data\"",
                 "\"meta\"");
 
-            message.JsonDataAs<string>().ShouldBe("data");
+            (await message.GetJsonDataAs<string>()).ShouldBe("data");
             message.JsonMetadataAs<string>().ShouldBe("meta");
         }
     }

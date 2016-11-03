@@ -48,7 +48,7 @@
                     page.Status.ShouldBe(PageReadStatus.Success);
                     var message = page.Messages.Single();
                     message.Type.ShouldBe(StreamDeletedMessageType);
-                    var streamDeleted = message.JsonDataAs<StreamDeleted>();
+                    var streamDeleted = await message.GetJsonDataAs<StreamDeleted>();
                     streamDeleted.StreamId.ShouldBe("stream");
                 }
             }
@@ -126,7 +126,7 @@
                     page.Status.ShouldBe(PageReadStatus.Success);
                     var message = page.Messages.Single();
                     message.Type.ShouldBe(StreamDeletedMessageType);
-                    var streamDeleted = message.JsonDataAs<StreamDeleted>();
+                    var streamDeleted = await message.GetJsonDataAs<StreamDeleted>();
                     streamDeleted.StreamId.ShouldBe("stream");
                 }
             }

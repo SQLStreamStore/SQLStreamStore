@@ -64,7 +64,7 @@
             Func<List<StreamMessage>, int, int> getNextVersion;
             if(direction == ReadDirection.Forward)
             {
-                commandText = _scripts.ReadStreamForward;
+                commandText = prefetch ? _scripts.ReadStreamForwardWithData : _scripts.ReadStreamForward;
                 getNextVersion = (events, lastVersion) =>
                 {
                     if(events.Any())
@@ -120,8 +120,11 @@
                         var eventId = reader.GetGuid(2);
                         var created = reader.GetDateTime(3);
                         var type = reader.GetString(4);
-                        var jsonData = reader.GetString(5);
-                        var jsonMetadata = reader.GetString(6);
+                        var jsonMetadata = reader.GetString(5);
+
+                        var getJsonData = prefetch
+                            ? (Func<CancellationToken, Task<string>>) (_ => Task.FromResult(reader.GetString(5)))
+                            : (ct => GetJsonData(sqlStreamId.Id, streamVersion1, ct));
 
                         var message = new StreamMessage(
                             sqlStreamId.IdOriginal,
@@ -130,7 +133,7 @@
                             ordinal,
                             created,
                             type,
-                            jsonData,
+                            getJsonData,
                             jsonMetadata);
 
                         messages.Add(message);
@@ -153,6 +156,22 @@
                         isEnd,
                         messages.ToArray(),
                         readNext);
+                }
+            }
+        }
+
+        private async Task<string> GetJsonData(string streamId, int streamVersion, CancellationToken cancellationToken)
+        {
+            using(var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                using(var command = new SqlCommand(_scripts.ReadStreamMessage, connection))
+                {
+                    command.Parameters.AddWithValue("streamId", streamId);
+                    command.Parameters.AddWithValue("streamVersion", streamVersion);
+
+                    var jsonData = (string)await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                    return jsonData;
                 }
             }
         }

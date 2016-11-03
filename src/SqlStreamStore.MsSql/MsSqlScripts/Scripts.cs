@@ -43,7 +43,11 @@
 
         internal string ReadStreamForward => GetScript(nameof(ReadStreamForward));
 
+        internal string ReadStreamForwardWithData => GetScript(nameof(ReadStreamForwardWithData));
+
         internal string ReadStreamBackward => GetScript(nameof(ReadStreamBackward));
+
+        internal string ReadStreamMessage => GetScript(nameof(ReadStreamMessage));
 
         internal string SetStreamMetadata => GetScript(nameof(SetStreamMetadata));
 

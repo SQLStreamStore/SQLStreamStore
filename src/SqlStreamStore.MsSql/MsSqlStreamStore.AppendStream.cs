@@ -385,7 +385,7 @@
                     int toPurge = count - maxCount.Value;
 
                     var streamMessagesPage = await ReadStreamForwardsInternal(streamId, StreamVersion.Start,
-                        toPurge, null, cancellationToken);
+                        toPurge, false, null, cancellationToken);
 
                     if (streamMessagesPage.Status == PageReadStatus.Success)
                     {

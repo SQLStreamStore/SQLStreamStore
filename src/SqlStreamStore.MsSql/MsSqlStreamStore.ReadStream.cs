@@ -11,12 +11,7 @@
 
     public partial class MsSqlStreamStore
     {
-        protected override async Task<ReadStreamPage> ReadStreamForwardsInternal(
-            string streamId,
-            int start,
-            int count,
-            ReadNextStreamPage readNext,
-            CancellationToken cancellationToken)
+        protected override async Task<ReadStreamPage> ReadStreamForwardsInternal(string streamId, int start, int count, bool prefetch, ReadNextStreamPage readNext, CancellationToken cancellationToken)
         {
             using (var connection = _createConnection())
             {
@@ -31,6 +26,7 @@
             string streamId,
             int start,
             int count,
+            bool prefetch, 
             ReadNextStreamPage readNext,
             CancellationToken cancellationToken)
         {

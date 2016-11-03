@@ -17,40 +17,22 @@
             this._settings = settings;
         }
 
-        protected override Task<ReadAllPage> ReadAllForwardsInternal(
-            long fromPositionExlusive,
-            int maxCount,
-            ReadNextAllPage readNext,
-            CancellationToken cancellationToken)
+        protected override Task<ReadAllPage> ReadAllForwardsInternal(long fromPositionExlusive, int maxCount, bool prefetch, ReadNextAllPage readNext, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        protected override Task<ReadAllPage> ReadAllBackwardsInternal(
-            long fromPositionExclusive,
-            int maxCount,
-            ReadNextAllPage readNext,
-            CancellationToken cancellationToken)
+        protected override Task<ReadAllPage> ReadAllBackwardsInternal(long fromPositionExclusive, int maxCount, bool prefetch, ReadNextAllPage readNext, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        protected override Task<ReadStreamPage> ReadStreamForwardsInternal(
-            string streamId,
-            int start,
-            int count,
-            ReadNextStreamPage readNext,
-            CancellationToken cancellationToken)
+        protected override Task<ReadStreamPage> ReadStreamForwardsInternal(string streamId, int start, int count, bool prefetch, ReadNextStreamPage readNext, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
 
-        protected override Task<ReadStreamPage> ReadStreamBackwardsInternal(
-            string streamId,
-            int fromVersionInclusive,
-            int count,
-            ReadNextStreamPage readNext,
-            CancellationToken cancellationToken)
+        protected override Task<ReadStreamPage> ReadStreamBackwardsInternal(string streamId, int fromVersionInclusive, int count, bool prefetch, ReadNextStreamPage readNext, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

@@ -86,6 +86,7 @@ namespace SqlStreamStore.Infrastructure
         public async Task<ReadAllPage> ReadAllBackwards(
             long fromPositionInclusive,
             int maxCount,
+            bool prefetch,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.That(fromPositionInclusive, nameof(fromPositionInclusive)).IsGte(-1);
@@ -100,7 +101,7 @@ namespace SqlStreamStore.Infrastructure
                                    "{maxCount}.", fromPositionInclusive, maxCount);
             }
 
-            ReadNextAllPage readNext = (nextPosition, ct) => ReadAllBackwards(nextPosition, maxCount, ct);
+            ReadNextAllPage readNext = (nextPosition, ct) => ReadAllBackwards(nextPosition, maxCount, prefetch, ct);
             var page = await ReadAllBackwardsInternal(fromPositionInclusive, maxCount, readNext, cancellationToken);
             return await FilterExpired(page, readNext, cancellationToken);
         }
@@ -109,6 +110,7 @@ namespace SqlStreamStore.Infrastructure
             string streamId,
             int fromVersionInclusive,
             int maxCount,
+            bool prefetch,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace();
@@ -124,7 +126,7 @@ namespace SqlStreamStore.Infrastructure
                                    "{maxCount}.", streamId, fromVersionInclusive, maxCount);
             }
 
-            ReadNextStreamPage readNext = (nextVersion, ct) => ReadStreamForwards(streamId, nextVersion, maxCount, ct);
+            ReadNextStreamPage readNext = (nextVersion, ct) => ReadStreamForwards(streamId, nextVersion, maxCount, prefetch, ct);
             var page = await ReadStreamForwardsInternal(streamId, fromVersionInclusive, maxCount, readNext, cancellationToken);
             return await FilterExpired(page, readNext, cancellationToken);
         }
@@ -133,6 +135,7 @@ namespace SqlStreamStore.Infrastructure
             string streamId,
             int fromVersionInclusive,
             int maxCount,
+            bool prefetch,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace();
@@ -147,7 +150,7 @@ namespace SqlStreamStore.Infrastructure
                 Logger.DebugFormat("ReadStreamBackwards {streamId} from version {fromVersionInclusive} with max count " +
                                    "{maxCount}.", streamId, fromVersionInclusive, maxCount);
             }
-            ReadNextStreamPage readNext = (nextVersion, ct) => ReadStreamBackwards(streamId, nextVersion, maxCount, ct);
+            ReadNextStreamPage readNext = (nextVersion, ct) => ReadStreamBackwards(streamId, nextVersion, maxCount, prefetch, ct);
             var page = await ReadStreamBackwardsInternal(streamId, fromVersionInclusive, maxCount, readNext, cancellationToken);
             return await FilterExpired(page, readNext, cancellationToken);
         }

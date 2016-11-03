@@ -18,6 +18,10 @@
         /// <param name="maxCount">
         ///     The maximum number of messages to read (int.MaxValue is a bad idea).
         /// </param>
+        /// <param name="prefetchData">
+        ///     Prefetches the message data as part of the page read. This means a single request to the server
+        ///     but a higher payload size.
+        /// </param>
         /// <param name="cancellationToken">
         ///     The cancellation instruction.
         /// </param>
@@ -41,6 +45,10 @@
         /// <param name="maxCount">
         ///     The maximum number of messages to read (int.MaxValue is a bad idea). 
         /// </param>
+        /// <param name="prefetchData">
+        ///     Prefetches the message data as part of the page read. This means a single request to the server
+        ///     but a higher payload size.
+        /// </param>
         /// <param name="cancellationToken">
         ///     The cancellation instruction.
         /// </param>
@@ -51,6 +59,7 @@
         Task<ReadAllPage> ReadAllBackwards(
             long fromPositionInclusive,
             int maxCount,
+            bool prefetchData = true,
             CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
@@ -63,8 +72,16 @@
         ///     The version of the stream to start reading from. Use <see cref="StreamVersion.Start"/> to read from 
         ///     the start.
         /// </param>
-        /// <param name="maxCount">The maximum number of messages to read (int.MaxValue is a bad idea).</param>
-        /// <param name="cancellationToken"> The cancellation instruction. </param>
+        /// <param name="maxCount">
+        ///     The maximum number of messages to read (int.MaxValue is a bad idea).
+        /// </param>
+        /// <param name="prefetchData">
+        ///     Prefetches the message data as part of the page read. This means a single request to the server
+        ///     but a higher payload size.
+        /// </param>
+        /// <param name="cancellationToken">
+        ///     The cancellation instruction.
+        /// </param>
         /// <returns>
         ///     An <see cref="ReadStreamPage"/> represent the result of the operation. If all the messages read
         ///     have expired then the message collection MAY be empty.
@@ -73,6 +90,7 @@
             string streamId,
             int fromVersionInclusive,
             int maxCount,
+            bool prefetchData = true,
             CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
@@ -85,8 +103,16 @@
         ///     The version of the stream to start reading from. Use <see cref="StreamVersion.End"/> to read from 
         ///     the end.
         /// </param>
-        /// <param name="maxCount">T he maximum number of messages to read (int.MaxValue is a bad idea).</param>
-        /// <param name="cancellationToken"> The cancellation instruction.</param>
+        /// <param name="maxCount">
+        ///     The maximum number of messages to read (int.MaxValue is a bad idea).
+        /// </param>
+        /// <param name="prefetchData">
+        ///     Prefetches the message data as part of the page read. This means a single request to the server
+        ///     but a higher payload size.
+        /// </param>
+        /// <param name="cancellationToken">
+        ///     The cancellation instruction.
+        /// </param>
         /// <returns>
         ///     An <see cref="ReadStreamPage"/> represent the result of the operation. If all the messages read
         ///     have expired then the message collection MAY be empty.
@@ -95,6 +121,7 @@
             string streamId,
             int fromVersionInclusive,
             int maxCount,
+            bool prefetchData = true,
             CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>

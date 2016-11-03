@@ -11,6 +11,9 @@
         /// <summary>
         ///     Reads messages from all streams forwards.
         /// </summary>
+        /// <param name="readonlyStreamStore">
+        ///     The stream store instance.
+        /// </param>
         /// <param name="fromPositionInclusive">
         ///     The position to start reading from. Use <see cref="Position.Start"/> to start from the beginning.
         ///     Note: messages that have expired will be filtered out.
@@ -31,7 +34,114 @@
             int maxCount,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            return readonlyStreamStore.ReadAllForwards(fromPositionInclusive,
+            return readonlyStreamStore.ReadAllForwards(
+                fromPositionInclusive,
+                maxCount,
+                cancellationToken: cancellationToken);
+        }
+
+        /// <summary>
+        ///     Reads messages from all streams backwards.
+        /// </summary>
+        /// <param name="readonlyStreamStore">
+        ///     The stream store instance.
+        /// </param>
+        /// <param name="fromPositionInclusive">
+        ///     The position to start reading from. Use <see cref="Position.Start"/> to start from the beginning.
+        ///     Note: messages that have expired will be filtered out.
+        /// </param>
+        /// <param name="maxCount">
+        ///     The maximum number of messages to read (int.MaxValue is a bad idea).
+        /// </param>
+        /// <param name="cancellationToken">
+        ///     The cancellation instruction.
+        /// </param>
+        /// <returns>
+        ///     An <see cref="ReadAllPage"/> presenting the result of the read. If all messages read have expired
+        ///     then the message collection MAY be empty.
+        /// </returns>
+        public static Task<ReadAllPage> ReadAllBackwards(
+            this IReadonlyStreamStore readonlyStreamStore,
+            long fromPositionInclusive,
+            int maxCount,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return readonlyStreamStore.ReadAllBackwards(
+                fromPositionInclusive,
+                maxCount,
+                cancellationToken: cancellationToken);
+        }
+
+        /// <summary>
+        ///     Reads messages from a stream forwards.
+        /// </summary>
+        /// <param name="readonlyStreamStore">
+        ///     The stream store instance.
+        /// </param>
+        /// <param name="streamId">
+        ///     The stream ID to read.
+        /// </param>
+        /// <param name="fromVersionInclusive">
+        ///     The version of the stream to start reading from. Use <see cref="StreamVersion.Start"/> to read from 
+        ///     the start.
+        /// </param>
+        /// <param name="maxCount">
+        ///     The maximum number of messages to read (int.MaxValue is a bad idea).
+        /// </param>
+        /// <param name="cancellationToken">
+        ///     The cancellation instruction.
+        /// </param>
+        /// <returns>
+        ///     An <see cref="ReadStreamPage"/> represent the result of the operation. If all the messages read
+        ///     have expired then the message collection MAY be empty.
+        /// </returns>
+        public static Task<ReadStreamPage> ReadStreamForwards(
+            this IReadonlyStreamStore readonlyStreamStore,
+            string streamId,
+            int fromVersionInclusive,
+            int maxCount,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return readonlyStreamStore.ReadStreamForwards(
+                streamId,
+                fromVersionInclusive,
+                maxCount,
+                cancellationToken: cancellationToken);
+        }
+
+        /// <summary>
+        ///     Reads messages from a stream backwards.
+        /// </summary>
+        /// <param name="readonlyStreamStore">
+        ///     The stream store instance.
+        /// </param>
+        /// <param name="streamId">
+        ///     The stream ID to read.
+        /// </param>
+        /// <param name="fromVersionInclusive">
+        ///     The version of the stream to start reading from. Use <see cref="StreamVersion.End"/> to read from 
+        ///     the end.
+        /// </param>
+        /// <param name="maxCount">
+        ///     The maximum number of messages to read (int.MaxValue is a bad idea).
+        /// </param>
+        /// <param name="cancellationToken">
+        ///     The cancellation instruction.
+        /// </param>
+        /// <returns>
+        ///     An <see cref="ReadStreamPage"/> represent the result of the operation. If all the messages read
+        ///     have expired then the message collection MAY be empty.
+        /// </returns>
+        public static Task<ReadStreamPage> ReadStreamBackwards(
+            this IReadonlyStreamStore readonlyStreamStore,
+            string streamId,
+            int fromVersionInclusive,
+            int maxCount,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return readonlyStreamStore.ReadStreamBackwards(
+                streamId,
+                fromVersionInclusive,
                 maxCount,
                 cancellationToken: cancellationToken);
         }

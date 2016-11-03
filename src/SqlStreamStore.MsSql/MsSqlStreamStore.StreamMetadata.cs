@@ -34,7 +34,7 @@
                 return new StreamMetadataResult(streamId, -1);
             }
 
-            var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(page.Messages[0].JsonData);
+            var metadataMessage = await page.Messages[0].GetJsonDataAs<MetadataMessage>(cancellationToken);
 
             return new StreamMetadataResult(
                    streamId,

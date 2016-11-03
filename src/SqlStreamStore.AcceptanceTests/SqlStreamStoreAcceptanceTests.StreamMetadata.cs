@@ -95,11 +95,11 @@
                     var allMessagesPage = await store.ReadAllForwards(Position.Start, 10);
                     allMessagesPage.Messages.Length.ShouldBe(2);
                     allMessagesPage.Messages[0].Type.ShouldBe(Deleted.StreamDeletedMessageType);
-                    allMessagesPage.Messages[0].JsonDataAs<Deleted.StreamDeleted>()
+                    (await allMessagesPage.Messages[0].GetJsonDataAs<Deleted.StreamDeleted>())
                         .StreamId.ShouldBe(streamId);
 
                     allMessagesPage.Messages[1].Type.ShouldBe(Deleted.StreamDeletedMessageType);
-                    allMessagesPage.Messages[1].JsonDataAs<Deleted.StreamDeleted>()
+                    (await allMessagesPage.Messages[1].GetJsonDataAs<Deleted.StreamDeleted>())
                         .StreamId.ShouldBe($"$${streamId}");
                 }
             }

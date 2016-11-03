@@ -18,7 +18,9 @@
         /// <param name="maxCount">
         ///     The maximum number of messages to read (int.MaxValue is a bad idea).
         /// </param>
-        /// <param name="cancellationToken">The cancellation instruction.</param>
+        /// <param name="cancellationToken">
+        ///     The cancellation instruction.
+        /// </param>
         /// <returns>
         ///     An <see cref="ReadAllPage"/> presenting the result of the read. If all messages read have expired
         ///     then the message collection MAY be empty.
@@ -26,6 +28,7 @@
         Task<ReadAllPage> ReadAllForwards(
             long fromPositionInclusive,
             int maxCount,
+            bool prefetchData = true,
             CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>

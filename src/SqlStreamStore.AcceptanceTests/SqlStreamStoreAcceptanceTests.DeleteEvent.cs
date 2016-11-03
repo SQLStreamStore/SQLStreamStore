@@ -48,7 +48,7 @@
 
                     var page = await store.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
                     var message = page.Messages.Single();
-                    var messageDeleted = message.JsonDataAs<MessageDeleted>();
+                    var messageDeleted = await message.GetJsonDataAs<MessageDeleted>();
                     message.Type.ShouldBe(MessageDeletedMessageType);
                     messageDeleted.StreamId.ShouldBe(streamId);
                     messageDeleted.MessageId.ShouldBe(messageIdToDelete);

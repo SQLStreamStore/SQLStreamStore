@@ -1,6 +1,8 @@
 ﻿namespace SqlStreamStore.Streams
 {
     using System;
+    using System.Threading;
+    using System.Threading.Tasks;
 
     public struct StreamMessage
     {
@@ -9,11 +11,11 @@
         public readonly long Position;
         public readonly DateTime CreatedUtc;
         public readonly Guid MessageId;
-        public readonly string JsonData;
         public readonly string JsonMetadata;
         public readonly int StreamVersion;
         public readonly string StreamId;
         public readonly string Type;
+        private readonly Func<CancellationToken, Task<string>> _getJsonData;
 
         public StreamMessage(
             string streamId,
@@ -24,6 +26,25 @@
             string type,
             string jsonData,
             string jsonMetadata)
+            : this(streamId,
+                messageId,
+                streamVersion,
+                position,
+                createdUtc,
+                type,
+                _ => Task.FromResult(jsonData),
+                jsonMetadata)
+        {}
+
+        public StreamMessage(
+            string streamId,
+            Guid messageId,
+            int streamVersion,
+            long position,
+            DateTime createdUtc,
+            string type,
+            Func<CancellationToken, Task<string>> getJsonData,
+            string jsonMetadata)
         {
             MessageId = messageId;
             StreamId = streamId;
@@ -31,8 +52,13 @@
             Position = position;
             CreatedUtc = createdUtc;
             Type = type;
-            JsonData = jsonData;
+            _getJsonData = getJsonData;
             JsonMetadata = jsonMetadata;
+        }
+
+        public Task<string> GetJsonData(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return _getJsonData(cancellationToken);
         }
 
         /// <summary>

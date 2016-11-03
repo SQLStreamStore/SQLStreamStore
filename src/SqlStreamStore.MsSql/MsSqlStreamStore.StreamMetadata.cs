@@ -24,6 +24,7 @@
                     StreamVersion.End,
                     1,
                     ReadDirection.Backward,
+                    true,
                     null,
                     connection,
                     cancellationToken);

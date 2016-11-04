@@ -1,4 +1,4 @@
-/* SQL Server 2008+ */
+/* Prefetches the Json Data */
 
     DECLARE @streamIdInternal AS INT
     DECLARE @lastStreamVersion AS INT

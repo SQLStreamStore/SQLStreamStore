@@ -76,7 +76,7 @@
             }
             else
             {
-                commandText = _scripts.ReadStreamBackward;
+                commandText = prefetch ? _scripts.ReadStreamBackwardWithData : _scripts.ReadStreamBackward;
                 getNextVersion = (events, lastVersion) =>
                 {
                     if (events.Any())
@@ -122,9 +122,16 @@
                         var type = reader.GetString(4);
                         var jsonMetadata = reader.GetString(5);
 
-                        var getJsonData = prefetch
-                            ? (Func<CancellationToken, Task<string>>) (_ => Task.FromResult(reader.GetString(5)))
-                            : (ct => GetJsonData(sqlStreamId.Id, streamVersion1, ct));
+                        Func<CancellationToken, Task<string>> getJsonData;
+                        if(prefetch)
+                        {
+                            var jsonData = reader.GetString(6);
+                            getJsonData = _ => Task.FromResult(jsonData);
+                        }
+                        else
+                        {
+                            getJsonData = ct => GetJsonData(sqlStreamId.Id, streamVersion1, ct);
+                        }
 
                         var message = new StreamMessage(
                             sqlStreamId.IdOriginal,

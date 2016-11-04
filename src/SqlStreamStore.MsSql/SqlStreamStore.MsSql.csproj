@@ -65,6 +65,8 @@
     <Compile Include="MsSqlStreamStore.Delete.cs" />
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="MsSqlScripts\ReadStreamBackwardWithData.sql" />
+    <EmbeddedResource Include="MsSqlScripts\ReadStreamForwardWithData.sql" />
     <EmbeddedResource Include="MsSqlScripts\ReadStreamMessage.sql" />
     <EmbeddedResource Include="MsSqlScripts\GetStreamMessageBeforeCreatedCount.sql" />
     <EmbeddedResource Include="MsSqlScripts\GetStreamMessageCount.sql" />

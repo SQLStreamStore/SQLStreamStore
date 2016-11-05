@@ -35,11 +35,15 @@
 
         internal string InitializeStore => GetScript(nameof(InitializeStore));
 
-        internal string ReadAllForward => GetScript(nameof(ReadAllForward));
-
         internal string ReadHeadPosition => GetScript(nameof(ReadHeadPosition));
 
+        internal string ReadAllForward => GetScript(nameof(ReadAllForward));
+
+        internal string ReadAllForwardWithData => GetScript(nameof(ReadAllForwardWithData));
+
         internal string ReadAllBackward => GetScript(nameof(ReadAllBackward));
+
+        internal string ReadAllBackwardWithData => GetScript(nameof(ReadAllBackwardWithData));
 
         internal string ReadStreamForward => GetScript(nameof(ReadStreamForward));
 

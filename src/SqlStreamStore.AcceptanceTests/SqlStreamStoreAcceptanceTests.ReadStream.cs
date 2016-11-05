@@ -56,6 +56,27 @@
         }
 
         [Fact]
+        public async Task Can_read_stream_forwards_without_prefetch()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+
+                    var page = await store.ReadStreamForwards("stream-1", StreamVersion.Start, 5, prefetchData: false);
+
+                    foreach (var streamMessage in page.Messages)
+                    {
+                        streamMessage.GetJsonData().IsCompleted.ShouldBeFalse();
+
+                        (await streamMessage.GetJsonData()).ShouldNotBeNullOrWhiteSpace();
+                    }
+                }
+            }
+        }
+
+        [Fact]
         public async Task Can_read_next_page_past_end_of_stream()
         {
             using (var fixture = GetFixture())
@@ -129,6 +150,27 @@
 
                         // We don't care about StreamMessage.Position and StreamMessage.Position
                         // as they are non-deterministic
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Can_read_stream_backwards_without_prefetch()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+
+                    var page = await store.ReadStreamBackwards("stream-1", StreamVersion.End, 5, prefetchData: false);
+
+                    foreach (var streamMessage in page.Messages)
+                    {
+                        streamMessage.GetJsonData().IsCompleted.ShouldBeFalse();
+
+                        (await streamMessage.GetJsonData()).ShouldNotBeNullOrWhiteSpace();
                     }
                 }
             }

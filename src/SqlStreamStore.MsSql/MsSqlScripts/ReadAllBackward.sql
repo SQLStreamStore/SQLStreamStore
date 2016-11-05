@@ -5,7 +5,6 @@
             dbo.Messages.Id AS EventId,
             dbo.Messages.Created,
             dbo.Messages.Type,
-            dbo.Messages.JsonData,
             dbo.Messages.JsonMetadata
        FROM dbo.Messages
  INNER JOIN dbo.Streams

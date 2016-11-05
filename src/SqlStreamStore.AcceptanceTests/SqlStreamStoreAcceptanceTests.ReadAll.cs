@@ -62,6 +62,27 @@
         }
 
         [Fact]
+        public async Task Can_read_all_forwards_without_prefetch()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+
+                    var page = await store.ReadAllForwards(Position.Start, 4, prefetchData: false);
+
+                    foreach(var streamMessage in page.Messages)
+                    {
+                        streamMessage.GetJsonData().IsCompleted.ShouldBeFalse();
+
+                        (await streamMessage.GetJsonData()).ShouldNotBeNullOrWhiteSpace();
+                    }
+                }
+            }
+        }
+
+        [Fact]
         public async Task Can_read_all_backwards()
         {
             using (var fixture = GetFixture())
@@ -110,6 +131,27 @@
 
                         // We don't care about StreamMessage.Position and StreamMessage.Position
                         // as they are non-deterministic
+                    }
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Can_read_all_backwards_without_prefetch()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+
+                    var page = await store.ReadAllBackwards(Position.Start, 4, prefetchData: false);
+
+                    foreach (var streamMessage in page.Messages)
+                    {
+                        streamMessage.GetJsonData().IsCompleted.ShouldBeFalse();
+
+                        (await streamMessage.GetJsonData()).ShouldNotBeNullOrWhiteSpace();
                     }
                 }
             }

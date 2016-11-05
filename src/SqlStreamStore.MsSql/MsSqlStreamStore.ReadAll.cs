@@ -1,5 +1,6 @@
 namespace SqlStreamStore
 {
+    using System;
     using System.Collections.Generic;
     using System.Data.SqlClient;
     using System.Linq;
@@ -24,7 +25,8 @@ namespace SqlStreamStore
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using (var command = new SqlCommand(_scripts.ReadAllForward, connection))
+                var commandText = prefetch ? _scripts.ReadAllForwardWithData : _scripts.ReadAllForward;
+                using (var command = new SqlCommand(commandText, connection))
                 {
                     command.Parameters.AddWithValue("ordinal", ordinal);
                     command.Parameters.AddWithValue("count", maxCount + 1); //Read extra row to see if at end or not
@@ -53,8 +55,18 @@ namespace SqlStreamStore
                         var eventId = reader.GetGuid(3);
                         var created = reader.GetDateTime(4);
                         var type = reader.GetString(5);
-                        var jsonData = reader.GetString(6);
-                        var jsonMetadata = reader.GetString(7);
+                        var jsonMetadata = reader.GetString(6);
+
+                        Func<CancellationToken, Task<string>> getJsonData;
+                        if (prefetch)
+                        {
+                            var jsonData = reader.GetString(7);
+                            getJsonData = _ => Task.FromResult(jsonData);
+                        }
+                        else
+                        {
+                            getJsonData = ct => GetJsonData(streamId, streamVersion, ct);
+                        }
 
                         var message = new StreamMessage(streamId,
                             eventId,
@@ -62,7 +74,7 @@ namespace SqlStreamStore
                             ordinal,
                             created,
                             type,
-                            jsonData,
+                            getJsonData,
                             jsonMetadata);
 
                         messages.Add(message);
@@ -103,7 +115,8 @@ namespace SqlStreamStore
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using (var command = new SqlCommand(_scripts.ReadAllBackward, connection))
+                var commandText = prefetch ? _scripts.ReadAllBackwardWithData : _scripts.ReadAllBackward;
+                using (var command = new SqlCommand(commandText, connection))
                 {
                     command.Parameters.AddWithValue("ordinal", ordinal);
                     command.Parameters.AddWithValue("count", maxCount + 1); //Read extra row to see if at end or not
@@ -134,16 +147,27 @@ namespace SqlStreamStore
                         var eventId = reader.GetGuid(3);
                         var created = reader.GetDateTime(4);
                         var type = reader.GetString(5);
-                        var jsonData = reader.GetString(6);
-                        var jsonMetadata = reader.GetString(7);
+                        var jsonMetadata = reader.GetString(6);
 
-                        var message = new StreamMessage(streamId,
+                        Func<CancellationToken, Task<string>> getJsonData;
+                        if (prefetch)
+                        {
+                            var jsonData = reader.GetString(7);
+                            getJsonData = _ => Task.FromResult(jsonData);
+                        }
+                        else
+                        {
+                            getJsonData = ct => GetJsonData(streamId, streamVersion, ct);
+                        }
+
+                        var message = new StreamMessage(
+                            streamId,
                             eventId,
                             streamVersion,
                             ordinal,
                             created,
                             type,
-                            jsonData,
+                            getJsonData,
                             jsonMetadata);
 
                         messages.Add(message);

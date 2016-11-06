@@ -106,31 +106,5 @@
                 exception.ShouldBeOfType<TaskCanceledException>();
             }
         }
-
-        [Fact]
-        public async Task High_priority_tasks_should_take_precedenc()
-        {
-            var block = new ManualResetEventSlim();
-            var taskQueue = new TaskQueue();
-            var blockingTask = taskQueue.Enqueue(() =>
-            {
-                block.Wait();
-            });
-            var queuedTask = taskQueue.Enqueue(() => {});
-            taskQueue.Dispose();
-            block.Set();
-
-            Exception exception = null;
-            try
-            {
-                await queuedTask;
-            }
-            catch (Exception ex)
-            {
-                exception = ex;
-            }
-
-            exception.ShouldBeOfType<TaskCanceledException>();
-        }
     }
 }

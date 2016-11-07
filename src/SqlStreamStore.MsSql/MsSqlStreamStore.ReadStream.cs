@@ -140,8 +140,7 @@
                             ordinal,
                             created,
                             type,
-                            getJsonData,
-                            jsonMetadata);
+                            jsonMetadata, getJsonData);
 
                         messages.Add(message);
                     }

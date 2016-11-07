@@ -75,8 +75,7 @@ namespace SqlStreamStore
                             ordinal,
                             created,
                             type,
-                            getJsonData,
-                            jsonMetadata);
+                            jsonMetadata, getJsonData);
 
                         messages.Add(message);
                     }
@@ -169,8 +168,7 @@ namespace SqlStreamStore
                             ordinal,
                             created,
                             type,
-                            getJsonData,
-                            jsonMetadata);
+                            jsonMetadata, getJsonData);
 
                         messages.Add(message);
                         lastOrdinal = ordinal;

@@ -24,16 +24,15 @@
             long position,
             DateTime createdUtc,
             string type,
-            string jsonData,
-            string jsonMetadata)
+            string jsonMetadata,
+            string jsonData)
             : this(streamId,
                 messageId,
                 streamVersion,
                 position,
                 createdUtc,
                 type,
-                _ => Task.FromResult(jsonData),
-                jsonMetadata)
+                jsonMetadata, _ => Task.FromResult(jsonData))
         {}
 
         public StreamMessage(
@@ -43,8 +42,8 @@
             long position,
             DateTime createdUtc,
             string type,
-            Func<CancellationToken, Task<string>> getJsonData,
-            string jsonMetadata)
+            string jsonMetadata,
+            Func<CancellationToken, Task<string>> getJsonData)
         {
             MessageId = messageId;
             StreamId = streamId;
@@ -56,6 +55,16 @@
             JsonMetadata = jsonMetadata;
         }
 
+        /// <summary>
+        ///     Gets the Json Data of the message. If prefetch is enabled, this will be a fast operation. 
+        /// </summary>
+        /// <param name="cancellationToken">
+        ///     The cancellation instruction.
+        /// </param>
+        /// <returns>
+        ///     The Json Data of the message. If the message has been subsequently deleted since this 
+        ///     StreamMessage was created, then it will return null.
+        /// </returns>
         public Task<string> GetJsonData(CancellationToken cancellationToken = default(CancellationToken))
         {
             return _getJsonData(cancellationToken);

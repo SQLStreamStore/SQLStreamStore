@@ -73,7 +73,7 @@ namespace SqlStreamStore
         {
             using(_lock.UseReadLock())
             {
-                return Task.FromResult(!_streams.ContainsKey(streamId) ? 0 : _streams[streamId].Events.Count);
+                return Task.FromResult(!_streams.ContainsKey(streamId) ? 0 : _streams[streamId].Messages.Count);
             }
         }
 
@@ -268,7 +268,7 @@ namespace SqlStreamStore
                 return;
             }
             if (expectedVersion != ExpectedVersion.Any &&
-                _streams[streamId].Events.Last().StreamVersion != expectedVersion)
+                _streams[streamId].Messages.Last().StreamVersion != expectedVersion)
             {
                 throw new WrongExpectedVersionException(
                         ErrorMessages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
@@ -314,15 +314,36 @@ namespace SqlStreamStore
                 var messages = new List<StreamMessage>();
                 while(maxCount > 0 && current != null)
                 {
-                    var message = new StreamMessage(
-                        current.Value.StreamId,
-                        current.Value.MessageId,
-                        current.Value.StreamVersion,
-                        current.Value.Position,
-                        current.Value.Created,
-                        current.Value.Type,
-                        current.Value.JsonData,
-                        current.Value.JsonMetadata);
+                    StreamMessage message;
+                    if (prefetch)
+                    {
+                        message = new StreamMessage(
+                            current.Value.StreamId,
+                            current.Value.MessageId,
+                            current.Value.StreamVersion,
+                            current.Value.Position,
+                            current.Value.Created,
+                            current.Value.Type,
+                            current.Value.JsonMetadata,
+                            current.Value.JsonData);
+                    }
+                    else
+                    {
+                        var currentCopy = current;
+                        message = new StreamMessage(
+                            current.Value.StreamId,
+                            current.Value.MessageId,
+                            current.Value.StreamVersion,
+                            current.Value.Position,
+                            current.Value.Created,
+                            current.Value.Type,
+                            current.Value.JsonMetadata,
+                            ct =>
+                            {
+                                return Task.Run(
+                                    () => ReadMessageData(currentCopy.Value.StreamId, currentCopy.Value.MessageId), ct);
+                            });
+                    }
                     messages.Add(message);
                     maxCount--;
                     previous = current;
@@ -345,7 +366,12 @@ namespace SqlStreamStore
             }
         }
 
-        protected override Task<ReadAllPage> ReadAllBackwardsInternal(long fromPositionExclusive, int maxCount, bool prefetch, ReadNextAllPage readNext, CancellationToken cancellationToken)
+        protected override Task<ReadAllPage> ReadAllBackwardsInternal(
+            long fromPositionExclusive,
+            int maxCount,
+            bool prefetch,
+            ReadNextAllPage readNext,
+            CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
 
@@ -381,16 +407,38 @@ namespace SqlStreamStore
                 var messages = new List<StreamMessage>();
                 while(maxCount > 0 && current != _allStream.First)
                 {
-                    var message = new StreamMessage(
-                        current.Value.StreamId,
-                        current.Value.MessageId,
-                        current.Value.StreamVersion,
-                        current.Value.Position,
-                        current.Value.Created,
-                        current.Value.Type,
-                        current.Value.JsonData,
-                        current.Value.JsonMetadata);
+                    StreamMessage message;
+                    if (prefetch)
+                    {
+                        message = new StreamMessage(
+                            current.Value.StreamId,
+                            current.Value.MessageId,
+                            current.Value.StreamVersion,
+                            current.Value.Position,
+                            current.Value.Created,
+                            current.Value.Type,
+                            current.Value.JsonMetadata,
+                            current.Value.JsonData);
+                    }
+                    else
+                    {
+                        var currentCopy = current;
+                        message = new StreamMessage(
+                            current.Value.StreamId,
+                            current.Value.MessageId,
+                            current.Value.StreamVersion,
+                            current.Value.Position,
+                            current.Value.Created,
+                            current.Value.Type,
+                            current.Value.JsonMetadata,
+                            ct =>
+                            {
+                                return Task.Run(
+                                    () => ReadMessageData(currentCopy.Value.StreamId, currentCopy.Value.MessageId), ct);
+                            });
+                    }
                     messages.Add(message);
+
                     maxCount--;
                     previous = current;
                     current = current.Previous;
@@ -446,22 +494,38 @@ namespace SqlStreamStore
                     return Task.FromResult(notFound);
                 }
 
-                var events = new List<StreamMessage>();
+                var messages = new List<StreamMessage>();
                 var i = start;
 
-                while(i < stream.Events.Count && count > 0)
+                while(i < stream.Messages.Count && count > 0)
                 {
-                    var inMemorymessage = stream.Events[i];
-                    var message = new StreamMessage(
-                        streamId,
-                        inMemorymessage.MessageId,
-                        inMemorymessage.StreamVersion,
-                        inMemorymessage.Position,
-                        inMemorymessage.Created,
-                        inMemorymessage.Type,
-                        inMemorymessage.JsonData,
-                        inMemorymessage.JsonMetadata);
-                    events.Add(message);
+                    var inMemorymessage = stream.Messages[i];
+                    StreamMessage message;
+                    if (prefetch)
+                    {
+                        message = new StreamMessage(
+                            streamId,
+                            inMemorymessage.MessageId,
+                            inMemorymessage.StreamVersion,
+                            inMemorymessage.Position,
+                            inMemorymessage.Created,
+                            inMemorymessage.Type,
+                            inMemorymessage.JsonMetadata,
+                            inMemorymessage.JsonData);
+                    }
+                    else
+                    {
+                        message = new StreamMessage(
+                            streamId,
+                            inMemorymessage.MessageId,
+                            inMemorymessage.StreamVersion,
+                            inMemorymessage.Position,
+                            inMemorymessage.Created,
+                            inMemorymessage.Type,
+                            inMemorymessage.JsonMetadata,
+                            ct => Task.Run(() => ReadMessageData(streamId, inMemorymessage.MessageId), ct));
+                    }
+                    messages.Add(message);
 
                     i++;
                     count--;
@@ -473,15 +537,15 @@ namespace SqlStreamStore
                 {
                     nextStreamVersion = 0;
                 }
-                else if(events.Count == 0)
+                else if(messages.Count == 0)
                 {
                     nextStreamVersion = lastStreamVersion + 1;
                 }
                 else
                 {
-                    nextStreamVersion = events.Last().StreamVersion + 1;
+                    nextStreamVersion = messages.Last().StreamVersion + 1;
                 }
-                var endOfStream = i == stream.Events.Count;
+                var endOfStream = i == stream.Messages.Count;
 
                 var page = new ReadStreamPage(
                     streamId,
@@ -491,14 +555,20 @@ namespace SqlStreamStore
                     lastStreamVersion,
                     ReadDirection.Forward,
                     endOfStream,
-                    events.ToArray(),
+                    messages.ToArray(),
                     readNext);
 
                 return Task.FromResult(page);
             }
         }
 
-        protected override Task<ReadStreamPage> ReadStreamBackwardsInternal(string streamId, int fromVersionInclusive, int count, bool prefetch, ReadNextStreamPage readNext, CancellationToken cancellationToken)
+        protected override Task<ReadStreamPage> ReadStreamBackwardsInternal(
+            string streamId,
+            int fromVersionInclusive,
+            int count,
+            bool prefetch,
+            ReadNextStreamPage readNext,
+            CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
@@ -520,28 +590,45 @@ namespace SqlStreamStore
                     return Task.FromResult(notFound);
                 }
 
-                var events = new List<StreamMessage>();
-                var i = fromVersionInclusive == StreamVersion.End ? stream.Events.Count - 1 : fromVersionInclusive;
+                var messages = new List<StreamMessage>();
+                var i = fromVersionInclusive == StreamVersion.End ? stream.Messages.Count - 1 : fromVersionInclusive;
                 while (i >= 0 && count > 0)
                 {
-                    var inMemorymessage = stream.Events[i];
-                    var message = new StreamMessage(
-                        streamId,
-                        inMemorymessage.MessageId,
-                        inMemorymessage.StreamVersion,
-                        inMemorymessage.Position,
-                        inMemorymessage.Created,
-                        inMemorymessage.Type,
-                        inMemorymessage.JsonData,
-                        inMemorymessage.JsonMetadata);
-                    events.Add(message);
+                    var inMemorymessage = stream.Messages[i];
+                    StreamMessage message;
+                    if (prefetch)
+                    {
+                        message = new StreamMessage(
+                            streamId,
+                            inMemorymessage.MessageId,
+                            inMemorymessage.StreamVersion,
+                            inMemorymessage.Position,
+                            inMemorymessage.Created,
+                            inMemorymessage.Type,
+                            inMemorymessage.JsonMetadata,
+                            inMemorymessage.JsonData);
+                    }
+                    else
+                    {
+                        message = new StreamMessage(
+                            streamId,
+                            inMemorymessage.MessageId,
+                            inMemorymessage.StreamVersion,
+                            inMemorymessage.Position,
+                            inMemorymessage.Created,
+                            inMemorymessage.Type,
+                            inMemorymessage.JsonMetadata,
+                            ct =>  Task.Run(() => ReadMessageData(streamId, inMemorymessage.MessageId), ct));
+                        messages.Add(message);
+                    }
+                    messages.Add(message);
 
                     i--;
                     count--;
                 }
 
-                var lastStreamVersion = stream.Events.Last().StreamVersion;
-                var nextStreamVersion = events.Last().StreamVersion - 1;
+                var lastStreamVersion = stream.Messages.Last().StreamVersion;
+                var nextStreamVersion = messages.Last().StreamVersion - 1;
                 var endOfStream = nextStreamVersion < 0;
 
                 var page = new ReadStreamPage(
@@ -552,10 +639,19 @@ namespace SqlStreamStore
                     lastStreamVersion,
                     ReadDirection.Backward,
                     endOfStream,
-                    events.ToArray(),
+                    messages.ToArray(),
                     readNext);
 
                 return Task.FromResult(page);
+            }
+        }
+
+        private string ReadMessageData(string streamId, Guid messageId)
+        {
+            using(_lock.UseReadLock())
+            {
+                InMemoryStream stream;
+                return !_streams.TryGetValue(streamId, out stream) ? null : stream.GetMessageData(messageId);
             }
         }
 

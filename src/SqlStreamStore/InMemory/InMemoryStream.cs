@@ -13,8 +13,8 @@ namespace SqlStreamStore.InMemory
         private readonly GetUtcNow _getUtcNow;
         private readonly Action _onStreamAppended;
         private readonly Func<int> _getNextPosition;
-        private readonly List<InMemoryStreamMessage> _events = new List<InMemoryStreamMessage>();
-        private readonly Dictionary<Guid, InMemoryStreamMessage> _eventsById = new Dictionary<Guid, InMemoryStreamMessage>();
+        private readonly List<InMemoryStreamMessage> _messages = new List<InMemoryStreamMessage>();
+        private readonly Dictionary<Guid, InMemoryStreamMessage> _messagesById = new Dictionary<Guid, InMemoryStreamMessage>();
 
         internal InMemoryStream(
             string streamId,
@@ -30,7 +30,7 @@ namespace SqlStreamStore.InMemory
             _getNextPosition = getNextPosition;
         }
 
-        internal IReadOnlyList<InMemoryStreamMessage> Events => _events;
+        internal IReadOnlyList<InMemoryStreamMessage> Messages => _messages;
 
         internal int CurrentVersion { get; private set; } = -1;
 
@@ -65,12 +65,12 @@ namespace SqlStreamStore.InMemory
                 for(int i = 0; i < newMessages.Length; i++)
                 {
                     int index = expectedVersion + i + 1;
-                    if(index >= _events.Count)
+                    if(index >= _messages.Count)
                     {
                         throw new WrongExpectedVersionException(
                             ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
                     }
-                    if(_events[index].MessageId != newMessages[i].MessageId)
+                    if(_messages[index].MessageId != newMessages[i].MessageId)
                     {
                         throw new WrongExpectedVersionException(
                             ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
@@ -80,7 +80,7 @@ namespace SqlStreamStore.InMemory
             }
 
             // expectedVersion == currentVersion)
-            if(newMessages.Any(newmessage => _eventsById.ContainsKey(newmessage.MessageId)))
+            if(newMessages.Any(newmessage => _messagesById.ContainsKey(newmessage.MessageId)))
             {
                 throw new WrongExpectedVersionException(
                     ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
@@ -93,7 +93,7 @@ namespace SqlStreamStore.InMemory
         {
             // idemponcy check - how many newMessages have already been written?
             var newEventIds = new HashSet<Guid>(newMessages.Select(e => e.MessageId));
-            newEventIds.ExceptWith(_eventsById.Keys);
+            newEventIds.ExceptWith(_messagesById.Keys);
 
             if(newEventIds.Count == 0)
             {
@@ -114,16 +114,16 @@ namespace SqlStreamStore.InMemory
 
         private void AppendToStreamExpectedVersionNoStream(int expectedVersion, NewStreamMessage[] newMessages)
         {
-            if(_events.Count > 0)
+            if(_messages.Count > 0)
             {
                 //Already committed Messages, do idempotency check
-                if(newMessages.Length > _events.Count)
+                if(newMessages.Length > _messages.Count)
                 {
                     throw new WrongExpectedVersionException(
                         ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
                 }
 
-                if(newMessages.Where((message, index) => _events[index].MessageId != message.MessageId).Any())
+                if(newMessages.Where((message, index) => _messages[index].MessageId != message.MessageId).Any())
                 {
                     throw new WrongExpectedVersionException(
                         ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
@@ -152,8 +152,8 @@ namespace SqlStreamStore.InMemory
                     newmessage.JsonData,
                     newmessage.JsonMetadata);
 
-                _events.Add(inMemorymessage);
-                _eventsById.Add(newmessage.MessageId, inMemorymessage);
+                _messages.Add(inMemorymessage);
+                _messagesById.Add(newmessage.MessageId, inMemorymessage);
                 _inMemoryAllStream.AddAfter(_inMemoryAllStream.Last, inMemorymessage);
             }
             _onStreamAppended();
@@ -167,26 +167,32 @@ namespace SqlStreamStore.InMemory
                    ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
             }
 
-            foreach (var inMemorymessage in _events)
+            foreach (var inMemorymessage in _messages)
             {
                 _inMemoryAllStream.Remove(inMemorymessage);
             }
-            _events.Clear();
-            _eventsById.Clear();
+            _messages.Clear();
+            _messagesById.Clear();
         }
 
-        public bool DeleteEvent(Guid eventId)
+        internal bool DeleteEvent(Guid eventId)
         {
             InMemoryStreamMessage inMemoryStreamMessage;
-            if(!_eventsById.TryGetValue(eventId, out inMemoryStreamMessage))
+            if(!_messagesById.TryGetValue(eventId, out inMemoryStreamMessage))
             {
                 return false;
             }
 
-            _events.Remove(inMemoryStreamMessage);
+            _messages.Remove(inMemoryStreamMessage);
             _inMemoryAllStream.Remove(inMemoryStreamMessage);
-            _eventsById.Remove(eventId);
+            _messagesById.Remove(eventId);
             return true;
+        }
+
+        internal string GetMessageData(Guid messageId)
+        {
+            InMemoryStreamMessage message;
+            return _messagesById.TryGetValue(messageId, out message) ? message.JsonData : string.Empty;
         }
     }
 }

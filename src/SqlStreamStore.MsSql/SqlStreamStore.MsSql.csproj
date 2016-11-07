@@ -69,7 +69,7 @@
     <EmbeddedResource Include="MsSqlScripts\ReadAllBackwardWithData.sql" />
     <EmbeddedResource Include="MsSqlScripts\ReadStreamBackwardWithData.sql" />
     <EmbeddedResource Include="MsSqlScripts\ReadStreamForwardWithData.sql" />
-    <EmbeddedResource Include="MsSqlScripts\ReadStreamMessage.sql" />
+    <EmbeddedResource Include="MsSqlScripts\ReadMessageData.sql" />
     <EmbeddedResource Include="MsSqlScripts\GetStreamMessageBeforeCreatedCount.sql" />
     <EmbeddedResource Include="MsSqlScripts\GetStreamMessageCount.sql" />
     <EmbeddedResource Include="MsSqlScripts\DeleteStreamMessage.sql" />

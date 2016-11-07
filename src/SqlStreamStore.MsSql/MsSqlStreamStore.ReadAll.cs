@@ -65,7 +65,8 @@ namespace SqlStreamStore
                         }
                         else
                         {
-                            getJsonData = ct => GetJsonData(streamId, streamVersion, ct);
+                            var streamIdInfo = new StreamIdInfo(streamId);
+                            getJsonData = ct => GetJsonData(streamIdInfo.SqlStreamId.Id, streamVersion, ct);
                         }
 
                         var message = new StreamMessage(streamId,
@@ -157,7 +158,8 @@ namespace SqlStreamStore
                         }
                         else
                         {
-                            getJsonData = ct => GetJsonData(streamId, streamVersion, ct);
+                            var streamIdInfo = new StreamIdInfo(streamId);
+                            getJsonData = ct => GetJsonData(streamIdInfo.SqlStreamId.Id, streamVersion, ct);
                         }
 
                         var message = new StreamMessage(

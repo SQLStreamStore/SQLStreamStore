@@ -18,7 +18,7 @@
         /// <param name="maxCount">
         ///     The maximum number of messages to read (int.MaxValue is a bad idea).
         /// </param>
-        /// <param name="prefetchData">
+        /// <param name="prefetchJsonData">
         ///     Prefetches the message data as part of the page read. This means a single request to the server
         ///     but a higher payload size.
         /// </param>
@@ -32,7 +32,7 @@
         Task<ReadAllPage> ReadAllForwards(
             long fromPositionInclusive,
             int maxCount,
-            bool prefetchData = true,
+            bool prefetchJsonData = true,
             CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
@@ -45,7 +45,7 @@
         /// <param name="maxCount">
         ///     The maximum number of messages to read (int.MaxValue is a bad idea). 
         /// </param>
-        /// <param name="prefetchData">
+        /// <param name="prefetchJsonData">
         ///     Prefetches the message data as part of the page read. This means a single request to the server
         ///     but a higher payload size.
         /// </param>
@@ -59,7 +59,7 @@
         Task<ReadAllPage> ReadAllBackwards(
             long fromPositionInclusive,
             int maxCount,
-            bool prefetchData = true,
+            bool prefetchJsonData = true,
             CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
@@ -75,7 +75,7 @@
         /// <param name="maxCount">
         ///     The maximum number of messages to read (int.MaxValue is a bad idea).
         /// </param>
-        /// <param name="prefetchData">
+        /// <param name="prefetchJsonData">
         ///     Prefetches the message data as part of the page read. This means a single request to the server
         ///     but a higher payload size.
         /// </param>
@@ -90,7 +90,7 @@
             string streamId,
             int fromVersionInclusive,
             int maxCount,
-            bool prefetchData = true,
+            bool prefetchJsonData = true,
             CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>
@@ -106,7 +106,7 @@
         /// <param name="maxCount">
         ///     The maximum number of messages to read (int.MaxValue is a bad idea).
         /// </param>
-        /// <param name="prefetchData">
+        /// <param name="prefetchJsonData">
         ///     Prefetches the message data as part of the page read. This means a single request to the server
         ///     but a higher payload size.
         /// </param>
@@ -121,7 +121,7 @@
             string streamId,
             int fromVersionInclusive,
             int maxCount,
-            bool prefetchData = true,
+            bool prefetchJsonData = true,
             CancellationToken cancellationToken = default(CancellationToken));
 
         /// <summary>

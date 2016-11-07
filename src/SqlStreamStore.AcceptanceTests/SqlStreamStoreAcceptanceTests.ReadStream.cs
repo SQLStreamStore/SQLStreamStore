@@ -64,7 +64,7 @@
                 {
                     await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
 
-                    var page = await store.ReadStreamForwards("stream-1", StreamVersion.Start, 5, prefetchData: false);
+                    var page = await store.ReadStreamForwards("stream-1", StreamVersion.Start, 5, prefetchJsonData: false);
 
                     foreach (var streamMessage in page.Messages)
                     {
@@ -164,7 +164,7 @@
                 {
                     await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
 
-                    var page = await store.ReadStreamBackwards("stream-1", StreamVersion.End, 5, prefetchData: false);
+                    var page = await store.ReadStreamBackwards("stream-1", StreamVersion.End, 5, prefetchJsonData: false);
 
                     foreach (var streamMessage in page.Messages)
                     {

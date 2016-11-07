@@ -34,7 +34,7 @@ namespace SqlStreamStore.Infrastructure
         public async Task<ReadAllPage> ReadAllForwards(
             long fromPositionInclusive,
             int maxCount,
-            bool prefetch,
+            bool prefetchJsonData,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.That(fromPositionInclusive, nameof(fromPositionInclusive)).IsGte(0);
@@ -49,9 +49,9 @@ namespace SqlStreamStore.Infrastructure
                                    "{maxCount}.", fromPositionInclusive, maxCount);
             }
 
-            ReadNextAllPage readNext = (nextPosition, ct) => ReadAllForwards(nextPosition, maxCount, prefetch, ct);
+            ReadNextAllPage readNext = (nextPosition, ct) => ReadAllForwards(nextPosition, maxCount, prefetchJsonData, ct);
 
-            var page = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, prefetch, readNext, cancellationToken)
+            var page = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, prefetchJsonData, readNext, cancellationToken)
                 .NotOnCapturedContext();
 
             // https://github.com/damianh/SqlStreamStore/issues/31
@@ -67,7 +67,7 @@ namespace SqlStreamStore.Infrastructure
             // Check for gap between last page and this.
             if (page.Messages[0].Position != fromPositionInclusive)
             {
-                page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetch, readNext, cancellationToken);
+                page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, readNext, cancellationToken);
             }
             
             // check for gap in messages collection
@@ -75,7 +75,7 @@ namespace SqlStreamStore.Infrastructure
             {
                 if(page.Messages[i].Position + 1 != page.Messages[i + 1].Position)
                 {
-                    page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetch, readNext, cancellationToken);
+                    page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, readNext, cancellationToken);
                     break;
                 }
             }
@@ -86,7 +86,7 @@ namespace SqlStreamStore.Infrastructure
         public async Task<ReadAllPage> ReadAllBackwards(
             long fromPositionInclusive,
             int maxCount,
-            bool prefetch,
+            bool prefetchJsonData,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.That(fromPositionInclusive, nameof(fromPositionInclusive)).IsGte(-1);
@@ -101,8 +101,8 @@ namespace SqlStreamStore.Infrastructure
                                    "{maxCount}.", fromPositionInclusive, maxCount);
             }
 
-            ReadNextAllPage readNext = (nextPosition, ct) => ReadAllBackwards(nextPosition, maxCount, prefetch, ct);
-            var page = await ReadAllBackwardsInternal(fromPositionInclusive, maxCount, prefetch, readNext, cancellationToken);
+            ReadNextAllPage readNext = (nextPosition, ct) => ReadAllBackwards(nextPosition, maxCount, prefetchJsonData, ct);
+            var page = await ReadAllBackwardsInternal(fromPositionInclusive, maxCount, prefetchJsonData, readNext, cancellationToken);
             return await FilterExpired(page, readNext, cancellationToken);
         }
 
@@ -110,7 +110,7 @@ namespace SqlStreamStore.Infrastructure
             string streamId,
             int fromVersionInclusive,
             int maxCount,
-            bool prefetch,
+            bool prefetchJsonData,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace();
@@ -126,8 +126,8 @@ namespace SqlStreamStore.Infrastructure
                                    "{maxCount}.", streamId, fromVersionInclusive, maxCount);
             }
 
-            ReadNextStreamPage readNext = (nextVersion, ct) => ReadStreamForwards(streamId, nextVersion, maxCount, prefetch, ct);
-            var page = await ReadStreamForwardsInternal(streamId, fromVersionInclusive, maxCount, prefetch,
+            ReadNextStreamPage readNext = (nextVersion, ct) => ReadStreamForwards(streamId, nextVersion, maxCount, prefetchJsonData, ct);
+            var page = await ReadStreamForwardsInternal(streamId, fromVersionInclusive, maxCount, prefetchJsonData,
                 readNext, cancellationToken);
             return await FilterExpired(page, readNext, cancellationToken);
         }
@@ -136,7 +136,7 @@ namespace SqlStreamStore.Infrastructure
             string streamId,
             int fromVersionInclusive,
             int maxCount,
-            bool prefetch,
+            bool prefetchJsonData,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace();
@@ -152,8 +152,8 @@ namespace SqlStreamStore.Infrastructure
                                    "{maxCount}.", streamId, fromVersionInclusive, maxCount);
             }
             ReadNextStreamPage readNext =
-                (nextVersion, ct) => ReadStreamBackwards(streamId, nextVersion, maxCount, prefetch, ct);
-            var page = await ReadStreamBackwardsInternal(streamId, fromVersionInclusive, maxCount, prefetch, readNext,
+                (nextVersion, ct) => ReadStreamBackwards(streamId, nextVersion, maxCount, prefetchJsonData, ct);
+            var page = await ReadStreamBackwardsInternal(streamId, fromVersionInclusive, maxCount, prefetchJsonData, readNext,
                 cancellationToken);
             return await FilterExpired(page, readNext, cancellationToken);
         }

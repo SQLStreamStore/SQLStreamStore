@@ -43,6 +43,8 @@
             _hasCaughtUp = hasCaughtUp ?? (_ => { }); 
             Name = string.IsNullOrWhiteSpace(name) ? Guid.NewGuid().ToString() : name;
 
+            readonlyStreamStore.OnDispose += ReadonlyStreamStoreOnOnDispose;
+
             _notification = streamStoreAppendedNotification.Subscribe(_ =>
             {
                 _streamStoreNotification.Set();
@@ -76,6 +78,12 @@
             }
             _disposed.Cancel();
             _notification.Dispose();
+        }
+
+        private void ReadonlyStreamStoreOnOnDispose()
+        {
+            _readonlyStreamStore.OnDispose -= ReadonlyStreamStoreOnOnDispose;
+            Dispose();
         }
 
         private async Task PullAndPush()

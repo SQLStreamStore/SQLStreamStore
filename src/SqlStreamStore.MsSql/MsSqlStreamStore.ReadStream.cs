@@ -172,7 +172,7 @@
             using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-                using(var command = new SqlCommand(_scripts.ReadStreamMessage, connection))
+                using(var command = new SqlCommand(_scripts.ReadMessageData, connection))
                 {
                     command.Parameters.AddWithValue("streamId", streamId);
                     command.Parameters.AddWithValue("streamVersion", streamVersion);

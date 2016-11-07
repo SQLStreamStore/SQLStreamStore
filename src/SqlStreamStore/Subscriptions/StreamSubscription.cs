@@ -155,6 +155,11 @@
                     1,
                     _disposed.Token).NotOnCapturedContext();
             }
+            catch (ObjectDisposedException)
+            {
+                NotifySubscriptionDropped(SubscriptionDroppedReason.Disposed);
+                throw;
+            }
             catch (OperationCanceledException)
             {
                 NotifySubscriptionDropped(SubscriptionDroppedReason.Disposed);
@@ -184,6 +189,11 @@
                         MaxCountPerRead,
                         _disposed.Token)
                     .NotOnCapturedContext();
+            }
+            catch (ObjectDisposedException)
+            {
+                NotifySubscriptionDropped(SubscriptionDroppedReason.Disposed);
+                throw;
             }
             catch (OperationCanceledException)
             {

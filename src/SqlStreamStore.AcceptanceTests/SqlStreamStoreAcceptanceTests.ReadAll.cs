@@ -83,6 +83,29 @@
         }
 
         [Fact]
+        public async Task When_read_without_prefetch_and_stream_is_deleted_then_GetJsonData_should_return_null()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+
+                    var page = await store.ReadAllForwards(Position.Start, 4, prefetchJsonData: false);
+
+                    await store.DeleteStream("stream-1");
+
+                    foreach (var streamMessage in page.Messages)
+                    {
+                        streamMessage.GetJsonData().IsCompleted.ShouldBeFalse();
+
+                        (await streamMessage.GetJsonData()).ShouldBeNull();
+                    }
+                }
+            }
+        }
+
+        [Fact]
         public async Task Can_read_all_backwards()
         {
             using (var fixture = GetFixture())

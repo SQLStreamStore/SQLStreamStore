@@ -186,5 +186,7 @@
         Task<StreamMetadataResult> GetStreamMetadata(
             string streamId,
             CancellationToken cancellationToken = default(CancellationToken));
+
+        event Action OnDispose;
     }
 }

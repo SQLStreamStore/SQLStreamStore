@@ -214,10 +214,13 @@ namespace SqlStreamStore.Infrastructure
 
         public void Dispose()
         {
+            OnDispose?.Invoke();
             Dispose(true);
             GC.SuppressFinalize(this);
             _isDisposed = true;
         }
+
+        public event Action OnDispose;
 
         protected abstract Task<ReadAllPage> ReadAllForwardsInternal(
             long fromPositionExlusive,

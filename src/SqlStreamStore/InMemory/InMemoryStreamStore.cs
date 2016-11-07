@@ -577,7 +577,7 @@ namespace SqlStreamStore
             HasCaughtUp hasCaughtUp,
             string name)
         {
-            IStreamSubscription subscription = new StreamSubscription(
+            return new StreamSubscription(
                 streamId,
                 startVersion,
                 this,
@@ -586,7 +586,6 @@ namespace SqlStreamStore
                 subscriptionDropped,
                 hasCaughtUp,
                 name);
-            return subscription;
         }
 
         protected override Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken)

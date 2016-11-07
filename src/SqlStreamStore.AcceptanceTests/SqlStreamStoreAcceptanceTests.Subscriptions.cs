@@ -913,6 +913,53 @@
             }
         }
 
+        [Fact]
+        public async Task When_dispose_store_then_should_dispose_stream_subscriptions()
+        {
+            using (var fixture = GetFixture())
+            {
+                var store = await fixture.GetStreamStore();
+                var subscriptionDropped = new TaskCompletionSource<SubscriptionDroppedReason>();
+                var subscription = store.SubscribeToStream(
+                    "stream-1",
+                    null,
+                    (_, __) => Task.CompletedTask,
+                    subscriptionDropped: (streamSubscription, reason, exception) =>
+                    {
+                        subscriptionDropped.SetResult(reason);
+                    });
+
+                store.Dispose();
+
+                var droppedReason = await subscriptionDropped.Task.WithTimeout(5000);
+
+                droppedReason.ShouldBe(SubscriptionDroppedReason.Disposed);
+            }
+        }
+
+        [Fact]
+        public async Task When_dispose_store_then_should_dispose_all_stream_subscriptions()
+        {
+            using (var fixture = GetFixture())
+            {
+                var store = await fixture.GetStreamStore();
+                var subscriptionDropped = new TaskCompletionSource<SubscriptionDroppedReason>();
+                var subscription = store.SubscribeToAll(
+                    null,
+                    (_, __) => Task.CompletedTask,
+                    subscriptionDropped: (streamSubscription, reason, exception) =>
+                    {
+                        subscriptionDropped.SetResult(reason);
+                    });
+
+                store.Dispose();
+
+                var droppedReason = await subscriptionDropped.Task.WithTimeout(5000);
+
+                droppedReason.ShouldBe(SubscriptionDroppedReason.Disposed);
+            }
+        }
+
         private static async Task AppendMessages(IStreamStore streamStore, string streamId, int numberOfEvents)
         {
             for(int i = 0; i < numberOfEvents; i++)

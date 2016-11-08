@@ -16,7 +16,12 @@
         </description>
         <tags>cqrs event-sourcing domain-driven-design event-store stream-store</tags>
         <frameworkAssemblies />
-        <releaseNotes/>
+        <releaseNotes>
+            - AppendStream returns an AppendResult  
+            - JsonData loading is async with ability to disable prefecthing  
+            - Subscription callbacks include the subscription instance  
+            - Subscriptions dispose themselves when the underlying store is disposed  
+        </releaseNotes>
         <dependencies>
         </dependencies>
     </metadata>

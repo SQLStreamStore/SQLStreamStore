@@ -25,7 +25,6 @@ namespace SqlStreamStore
         private readonly Dictionary<string, InMemoryStream> _streams = new Dictionary<string, InMemoryStream>();
         private readonly Subject<Unit> _subscriptions = new Subject<Unit>();
         private readonly InterlockedBoolean _signallingToSubscribers = new InterlockedBoolean();
-        private bool _isDisposed;
         private int _currentPosition;
         private static readonly ReadNextStreamPage s_readNextNotFound = (_, ct) =>
         {
@@ -65,7 +64,6 @@ namespace SqlStreamStore
                 _subscriptions.OnCompleted();
                 _allStream.Clear();
                 _streams.Clear();
-                _isDisposed = true;
             }
         }
 

@@ -21,3 +21,5 @@ used in Event Sourced based applications.
  - No in-built snapshot support; can be implemented externally (it's just a projection, right?)
  - Leverage RDBMS specific notifications, if available, for low latency catch-up subscriptions
  - No support for `System.Transaction` enforcing the concept of the stream as the consistency and transaction boundary.
+
+ 

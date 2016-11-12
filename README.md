@@ -5,18 +5,18 @@ used in Event Sourced based applications.
 
 | Package | Install |
 | --- | --- |
-| SqlStreamStore | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg)](https://www.nuget.org/packages/SqlStreamStore) |
+| SqlStreamStore (Memory) | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg)](https://www.nuget.org/packages/SqlStreamStore) |
 | MSSql | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg)](https://www.nuget.org/packages/SqlStreamStore.MsSql) |
 | Postgres | _under development_ |
 | MySql | [_up for grabs_](https://github.com/damianh/SqlStreamStore/issues/29) |
 | Sqlite | [_up for grabs_](https://github.com/damianh/SqlStreamStore/issues/28) |
 | HTTP Wrapper API | _under development_ |
 
-# Key design considerations:
+# Design considerations:
 
- - Designed to only support RDMBS\SQL implementations.
+ - Designed to olnly ever support RDMBS\SQL implementations.
  - Subscriptions are eventually consistent.
- - API is influenced by, but not compatible with, [EventStore](https://geteventstore.com/)
+ - API is influenced by (but not compatible with) [EventStore](https://geteventstore.com/)
  - Async only.
  - JSON only event and metadata payloads (usually just a `string` / `varchar` / etc).
  - No support for `System.Transaction` enforcing the concept of the stream as the consistency and transaction boundary.
@@ -24,3 +24,7 @@ used in Event Sourced based applications.
 # Using
 
 See [Wiki](../../wiki) to get started.
+
+# Licences
+
+Licenced under [MIT](licence.txt).

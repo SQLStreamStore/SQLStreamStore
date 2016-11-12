@@ -3,6 +3,8 @@
 A stream store library for .NET that specifically target SQL based implementations. Typically
 used in Event Sourced based applications.
 
+| Package | Install |
+| --- | --- |
 | SqlStreamStore | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg)](https://www.nuget.org/packages/SqlStreamStore) |
 | MSSql | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg)](https://www.nuget.org/packages/SqlStreamStore.MsSql) |
 | Postgres | _under development_ |

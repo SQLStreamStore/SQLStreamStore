@@ -5,12 +5,12 @@ used in Event Sourced based applications.
 
 | Package | |
 | --- | --- |
-| SqlStreamStore | [![NuGet SqlStreamStore](https://img.shields.io/nuget/v/SqlStreamStore.svg)](SqlStreamStore) |
-| MSSql | [![NuGet SqlStreamStore.MsSql](https://img.shields.io/nuget/v/SqlStreamStore.MsSql.svg)](SqlStreamStore.MsSql) |
+| SqlStreamStore | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg)](https://www.nuget.org/packages/SqlStreamStore) |
+| MSSql | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg)](https://www.nuget.org/packages/SqlStreamStore.MsSql) |
 | Postgres | _under development_ |
 | MySql | [_up for grabs_](https://github.com/damianh/SqlStreamStore/issues/29) |
 | Sqlite | [_up for grabs_](https://github.com/damianh/SqlStreamStore/issues/28) |
-| HTTP Wrapper API | _under development_ 
+| HTTP Wrapper API | _under development_ |
 
 # Key design considerations:
 
@@ -22,4 +22,3 @@ used in Event Sourced based applications.
  - Leverage RDBMS specific notifications, if available, for low latency catch-up subscriptions
  - No support for `System.Transaction` enforcing the concept of the stream as the consistency and transaction boundary.
 
- 

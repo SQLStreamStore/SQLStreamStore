@@ -14,7 +14,7 @@ used in Event Sourced based applications.
 
 # Design considerations:
 
- - Designed to olnly ever support RDMBS\SQL implementations.
+ - Designed to only ever support RDMBS\SQL implementations.
  - Subscriptions are eventually consistent.
  - API is influenced by (but not compatible with) [EventStore](https://geteventstore.com/)
  - Async only.

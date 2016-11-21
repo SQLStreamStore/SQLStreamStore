@@ -117,8 +117,8 @@
             {
                 using(var store = await fixture.GetMsSqlStreamStore())
                 {
-                    await store.InitializeStore();
-                    await store.InitializeStore();
+                    await store.CreateSchema();
+                    await store.CreateSchema();
                 }
             }
         }

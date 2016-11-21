@@ -87,7 +87,7 @@
     <EmbeddedResource Include="MsSqlScripts\AppendStreamExpectedVersion.sql" />
     <EmbeddedResource Include="MsSqlScripts\AppendStreamExpectedVersionAny.sql" />
     <EmbeddedResource Include="MsSqlScripts\DropAll.sql" />
-    <EmbeddedResource Include="MsSqlScripts\InitializeStore.sql" />
+    <EmbeddedResource Include="MsSqlScripts\CreateSchema.sql" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj">

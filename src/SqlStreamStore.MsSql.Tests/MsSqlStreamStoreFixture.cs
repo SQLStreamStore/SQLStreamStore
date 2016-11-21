@@ -39,7 +39,7 @@ namespace SqlStreamStore
             };
             var store = new MsSqlStreamStore(settings);
             await store.DropAll(ignoreErrors: true);
-            await store.InitializeStore();
+            await store.CreateSchema();
 
             return store;
         }
@@ -52,7 +52,7 @@ namespace SqlStreamStore
                 GetUtcNow = () => GetUtcNow()
             };
             var store = new MsSqlStreamStore(settings);
-            await store.InitializeStore();
+            await store.CreateSchema();
 
             return store;
         }
@@ -69,7 +69,7 @@ namespace SqlStreamStore
 
             var store = new MsSqlStreamStore(settings);
             await store.DropAll(ignoreErrors: true);
-            await store.InitializeStore();
+            await store.CreateSchema();
 
             return store;
         }

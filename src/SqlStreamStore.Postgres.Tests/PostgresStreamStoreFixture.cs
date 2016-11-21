@@ -31,7 +31,6 @@ namespace SqlStreamStore
             };
             var store = new PostgresStreamStore(settings);
             await store.DropAll(ignoreErrors: true);
-            await store.InitializeStore();
 
             return store;
         }
@@ -44,7 +43,6 @@ namespace SqlStreamStore
                 GetUtcNow = () => GetUtcNow()
             };
             var store = new PostgresStreamStore(settings);
-            await store.InitializeStore();
 
             return store;
         }
@@ -61,7 +59,6 @@ namespace SqlStreamStore
 
             var store = new PostgresStreamStore(settings);
             await store.DropAll(ignoreErrors: true);
-            await store.InitializeStore();
 
             return store;
         }

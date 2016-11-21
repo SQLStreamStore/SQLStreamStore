@@ -33,7 +33,7 @@
 
         internal string GetStreamMessageBeforeCreatedCount => GetScript(nameof(GetStreamMessageBeforeCreatedCount));
 
-        internal string InitializeStore => GetScript(nameof(InitializeStore));
+        internal string CreateSchema => GetScript(nameof(CreateSchema));
 
         internal string ReadHeadPosition => GetScript(nameof(ReadHeadPosition));
 

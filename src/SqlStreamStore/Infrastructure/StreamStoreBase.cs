@@ -168,9 +168,5 @@ namespace SqlStreamStore.Infrastructure
             }
             base.Dispose(disposing);
         }
-
-        public virtual Task InitializeStore(
-            bool ignoreErrors = false,
-            CancellationToken cancellationToken = default(CancellationToken)) => Task.FromResult(0);
     }
 }

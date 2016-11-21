@@ -56,7 +56,7 @@
             _appendToStreamSqlMetadata = sqlMetaData.ToArray();
         }
 
-        public override async Task InitializeStore(
+        public async Task CreateSchema(
             bool ignoreErrors = false,
             CancellationToken cancellationToken = default(CancellationToken))
         {
@@ -84,7 +84,7 @@
                     }
                 }
 
-                using (var command = new SqlCommand(_scripts.InitializeStore, connection))
+                using (var command = new SqlCommand(_scripts.CreateSchema, connection))
                 {
                     if(ignoreErrors)
                     {

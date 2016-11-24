@@ -68,20 +68,20 @@
             }
             if(expectedVersion == ExpectedVersion.NoStream)
             {
-                return await AppendToStreamExpectedVersionNoStream(
+                return await RetryOnDeadLock(() => AppendToStreamExpectedVersionNoStream(
                     connection,
                     transaction,
                     sqlStreamId,
                     messages,
-                    cancellationToken);
+                    cancellationToken));
             }
-            return await AppendToStreamExpectedVersion(
+            return await RetryOnDeadLock(() => AppendToStreamExpectedVersion(
                 connection,
                 transaction,
                 sqlStreamId,
                 expectedVersion,
                 messages,
-                cancellationToken);
+                cancellationToken));
         }
 
         private async Task<T> RetryOnDeadLock<T>(Func<Task<T>> operation, int maxRetries = 2)

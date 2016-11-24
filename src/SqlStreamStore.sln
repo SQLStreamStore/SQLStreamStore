@@ -29,6 +29,7 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoadTests", "LoadTests\LoadTests.csproj", "{E7397C6F-7837-4362-A7F7-20F255ACD48A}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Example", "Example\Example.csproj", "{AA40E81A-6CF7-4FB9-AA57-A833B21BD352}"
+EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.Postgres", "SqlStreamStore.Postgres\SqlStreamStore.Postgres.csproj", "{A1F83F76-B635-498B-A5F6-F832745BE1A5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.Postgres.Tests", "SqlStreamStore.Postgres.Tests\SqlStreamStore.Postgres.Tests.csproj", "{55054819-94FE-4E33-9E2A-AA8CCE12D333}"

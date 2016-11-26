@@ -45,7 +45,7 @@
             return new AppendResult(result.Item2);
         }
 
-        private async Task<Tuple<int?, int>> AppendToStreamInternal(
+        private Task<Tuple<int?, int>> AppendToStreamInternal(
            SqlConnection connection,
            SqlTransaction transaction,
            SqlStreamId sqlStreamId,
@@ -55,31 +55,34 @@
         {
             GuardAgainstDisposed();
 
-            if (expectedVersion == ExpectedVersion.Any)
+            return RetryOnDeadLock(() =>
             {
-                return await RetryOnDeadLock(() => AppendToStreamExpectedVersionAny(
+                if(expectedVersion == ExpectedVersion.Any)
+                {
+                    return AppendToStreamExpectedVersionAny(
+                        connection,
+                        transaction,
+                        sqlStreamId,
+                        messages,
+                        cancellationToken);
+                }
+                if(expectedVersion == ExpectedVersion.NoStream)
+                {
+                    return AppendToStreamExpectedVersionNoStream(
+                        connection,
+                        transaction,
+                        sqlStreamId,
+                        messages,
+                        cancellationToken);
+                }
+                return  AppendToStreamExpectedVersion(
                     connection,
                     transaction,
                     sqlStreamId,
+                    expectedVersion,
                     messages,
-                    cancellationToken));
-            }
-            if(expectedVersion == ExpectedVersion.NoStream)
-            {
-                return await RetryOnDeadLock(() => AppendToStreamExpectedVersionNoStream(
-                    connection,
-                    transaction,
-                    sqlStreamId,
-                    messages,
-                    cancellationToken));
-            }
-            return await RetryOnDeadLock(() => AppendToStreamExpectedVersion(
-                connection,
-                transaction,
-                sqlStreamId,
-                expectedVersion,
-                messages,
-                cancellationToken));
+                    cancellationToken);
+            });
         }
 
         // Deadlocks appear to be a fact of life when there is high contention on a table regardless of 

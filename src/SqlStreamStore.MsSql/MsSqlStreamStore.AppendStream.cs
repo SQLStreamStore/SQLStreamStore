@@ -57,8 +57,6 @@
 
             if (expectedVersion == ExpectedVersion.Any)
             {
-                // Deadlock can occur when creating the stream for the first time and multiple threads attempting to 
-                // append with expected version any.
                 return await RetryOnDeadLock(() => AppendToStreamExpectedVersionAny(
                     connection,
                     transaction,
@@ -84,8 +82,11 @@
                 cancellationToken));
         }
 
-        private async Task<T> RetryOnDeadLock<T>(Func<Task<T>> operation, int maxRetries = 2)
+        // Deadlocks appear to be a fact of life when there is high contention on a table regardless of 
+        // transaction isolation settings. 
+        private static async Task<T> RetryOnDeadLock<T>(Func<Task<T>> operation)
         {
+            int maxRetries = 2; //TODO too much? too little? configurable?
             Exception exception;
 
             int retryCount = 0;
@@ -95,7 +96,7 @@
                 {
                     return await operation();
                 }
-                catch(SqlException ex) when(ex.Number == 1205 || ex.Number == 1222) // Deadlock error code;
+                catch(SqlException ex) when(ex.Number == 1205 || ex.Number == 1222) // Deadlock error codes;
                 {
                     exception = ex;
                     retryCount++;

@@ -17,6 +17,7 @@
         private readonly int? _continueAfterVersion;
         private readonly IReadonlyStreamStore _readonlyStreamStore;
         private readonly StreamMessageReceived _streamMessageReceived;
+        private readonly bool _prefectchJsonData;
         private readonly HasCaughtUp _hasCaughtUp;
         private readonly SubscriptionDropped _subscriptionDropped;
         private readonly IDisposable _notification;
@@ -33,12 +34,14 @@
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             HasCaughtUp hasCaughtUp,
-            string name = null)
+            bool prefectchJsonData,
+            string name)
         {
             StreamId = streamId;
             _continueAfterVersion = continueAfterVersion;
             _readonlyStreamStore = readonlyStreamStore;
             _streamMessageReceived = streamMessageReceived;
+            _prefectchJsonData = prefectchJsonData;
             _subscriptionDropped = subscriptionDropped ?? ((_, __, ___) => { });
             _hasCaughtUp = hasCaughtUp ?? ((_) => { });
             Name = string.IsNullOrWhiteSpace(name) ? Guid.NewGuid().ToString() : name;
@@ -183,11 +186,7 @@
             try
             {
                 readStreamPage = await _readonlyStreamStore
-                    .ReadStreamForwards(
-                        StreamId,
-                        _nextVersion,
-                        MaxCountPerRead,
-                        _disposed.Token)
+                    .ReadStreamForwards(StreamId, _nextVersion, MaxCountPerRead, _prefectchJsonData, _disposed.Token)
                     .NotOnCapturedContext();
             }
             catch (ObjectDisposedException)

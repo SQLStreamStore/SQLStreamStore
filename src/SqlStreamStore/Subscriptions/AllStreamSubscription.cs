@@ -17,6 +17,7 @@
         private long _nextPosition;
         private readonly IReadonlyStreamStore _readonlyStreamStore;
         private readonly AllStreamMessageReceived _streamMessageReceived;
+        private readonly bool _prefetchJsonData;
         private readonly HasCaughtUp _hasCaughtUp;
         private readonly AllSubscriptionDropped _subscriptionDropped;
         private readonly IDisposable _notification;
@@ -32,6 +33,7 @@
             AllStreamMessageReceived streamMessageReceived,
             AllSubscriptionDropped subscriptionDropped,
             HasCaughtUp hasCaughtUp,
+            bool prefetchJsonData,
             string name)
         {
             FromPosition = continueAfterPosition;
@@ -39,6 +41,7 @@
             _nextPosition = continueAfterPosition + 1 ?? Position.Start;
             _readonlyStreamStore = readonlyStreamStore;
             _streamMessageReceived = streamMessageReceived;
+            _prefetchJsonData = prefetchJsonData;
             _subscriptionDropped = subscriptionDropped ?? ((_, __, ___) => { });
             _hasCaughtUp = hasCaughtUp ?? (_ => { }); 
             Name = string.IsNullOrWhiteSpace(name) ? Guid.NewGuid().ToString() : name;
@@ -166,7 +169,7 @@
             try
             {
                 readAllPage = await _readonlyStreamStore
-                    .ReadAllForwards(_nextPosition, MaxCountPerRead, _disposed.Token)
+                    .ReadAllForwards(_nextPosition, MaxCountPerRead, _prefetchJsonData, _disposed.Token)
                     .NotOnCapturedContext();
             }
             catch(ObjectDisposedException)

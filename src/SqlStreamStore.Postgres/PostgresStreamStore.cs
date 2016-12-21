@@ -48,6 +48,7 @@
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             HasCaughtUp hasCaughtUp,
+            bool prefetchJsonData,
             string name)
         {
             throw new NotImplementedException();
@@ -58,6 +59,7 @@
             AllStreamMessageReceived streamMessageReceived,
             AllSubscriptionDropped subscriptionDropped,
             HasCaughtUp hasCaughtUp,
+            bool prefetchJsonData,
             string name)
         {
             throw new NotImplementedException();

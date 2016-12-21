@@ -145,6 +145,10 @@
         ///     (when the underlying page read has IsEnd=true) and when it falls behind (when the underlying page read
         ///     has IsEnd=false). 
         /// </param>
+        /// <param name="prefetchJsonData">
+        ///     Prefetches the message data as part of the page read. This means a single request to the server
+        ///     but a higher payload size.
+        /// </param>
         /// <param name="name">
         ///     The name of the subscription used for logging. Optional.
         /// </param>
@@ -157,6 +161,7 @@
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             HasCaughtUp hasCaughtUp = null,
+            bool prefetchJsonData = true,
             string name = null);
 
         /// <summary>
@@ -172,13 +177,17 @@
         /// <param name="subscriptionDropped">
         ///     A delegate that is invoked when a the subscription is dropped. This will be invoked once and only once.
         /// </param>
-        /// <param name="name">
-        ///     The name of the subscription used for logging. Optional.
-        /// </param>
         /// <param name="hasCaughtUp">
         ///     A delegate that is invoked with value=true when the subscription has catught up with the all stream
         ///     (when the underlying page read has IsEnd=true) and when it falls behind (when the underlying page read
         ///     has IsEnd=false). 
+        /// </param>
+        /// <param name="prefetchJsonData">
+        ///     Prefetches the message data as part of the page read. This means a single request to the server
+        ///     but a higher payload size.
+        /// </param>
+        /// <param name="name">
+        ///     The name of the subscription used for logging. Optional.
         /// </param>
         /// <returns>
         ///     An <see cref="IStreamSubscription"/> that represents the subscription. Dispose to stop the subscription.
@@ -188,6 +197,7 @@
             AllStreamMessageReceived streamMessageReceived,
             AllSubscriptionDropped subscriptionDropped = null,
             HasCaughtUp hasCaughtUp = null,
+            bool prefetchJsonData = true,
             string name = null);
 
         /// <summary>

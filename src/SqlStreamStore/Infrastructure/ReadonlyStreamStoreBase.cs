@@ -164,6 +164,7 @@ namespace SqlStreamStore.Infrastructure
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
             HasCaughtUp hasCaughtUp = null,
+            bool prefetchJsonData = true,
             string name = null)
         {
             Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace();
@@ -177,6 +178,7 @@ namespace SqlStreamStore.Infrastructure
                 streamMessageReceived,
                 subscriptionDropped,
                 hasCaughtUp,
+                prefetchJsonData,
                 name);
         }
 
@@ -185,16 +187,19 @@ namespace SqlStreamStore.Infrastructure
             AllStreamMessageReceived streamMessageReceived,
             AllSubscriptionDropped subscriptionDropped = null,
             HasCaughtUp hasCaughtUp = null,
+            bool prefetchJsonData = true,
             string name = null)
         {
             Ensure.That(streamMessageReceived, nameof(streamMessageReceived)).IsNotNull();
 
             GuardAgainstDisposed();
 
-            return SubscribeToAllInternal(continueAfterPosition,
+            return SubscribeToAllInternal(
+                continueAfterPosition,
                 streamMessageReceived,
                 subscriptionDropped,
                 hasCaughtUp,
+                prefetchJsonData,
                 name);
         }
 
@@ -266,6 +271,7 @@ namespace SqlStreamStore.Infrastructure
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             HasCaughtUp hasCaughtUp,
+            bool prefetchJsonData,
             string name);
 
         protected abstract IAllStreamSubscription SubscribeToAllInternal(
@@ -273,6 +279,7 @@ namespace SqlStreamStore.Infrastructure
             AllStreamMessageReceived streamMessageReceived,
             AllSubscriptionDropped subscriptionDropped,
             HasCaughtUp hasCaughtUp,
+            bool prefetchJsonData,
             string name);
 
         protected abstract Task<StreamMetadataResult> GetStreamMetadataInternal(

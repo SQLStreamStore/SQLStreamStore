@@ -10,6 +10,7 @@ namespace SqlStreamStore
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped,
             HasCaughtUp hasCaughtUp,
+            bool prefetchJsonData,
             string name)
         {
             return new StreamSubscription(
@@ -20,6 +21,7 @@ namespace SqlStreamStore
                 streamMessageReceived,
                 subscriptionDropped,
                 hasCaughtUp,
+                prefetchJsonData,
                 name);
         }
 
@@ -28,6 +30,7 @@ namespace SqlStreamStore
             AllStreamMessageReceived streamMessageReceived,
             AllSubscriptionDropped subscriptionDropped,
             HasCaughtUp hasCaughtUp,
+            bool prefetchJsonData,
             string name)
         {
             return new AllStreamSubscription(
@@ -37,6 +40,7 @@ namespace SqlStreamStore
                 streamMessageReceived,
                 subscriptionDropped,
                 hasCaughtUp,
+                prefetchJsonData,
                 name);
         }
     }

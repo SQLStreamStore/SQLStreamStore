@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SqlStreamStore</RootNamespace>
     <AssemblyName>SqlStreamStore</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -35,8 +35,8 @@
     <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EnsureThat, Version=4.0.0.26, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Ensure.That.4.0.0\lib\net45\EnsureThat.dll</HintPath>
+    <Reference Include="EnsureThat.vNext, Version=4.0.0.26, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Ensure.That.4.0.0\lib\net46\EnsureThat.vNext.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Nito.AsyncEx, Version=3.0.1.0, Culture=neutral, processorArchitecture=MSIL">
@@ -121,8 +121,8 @@
     <Compile Include="Subscriptions\SubscriptionDroppedReason.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="SqlStreamStore.nuspec" />
     <None Include="packages.config" />
+    <None Include="SqlStreamStore.nuspec" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

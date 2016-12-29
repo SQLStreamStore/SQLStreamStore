@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>SqlStreamStore</RootNamespace>
     <AssemblyName>SqlStreamStore.MsSql</AssemblyName>
-    <TargetFrameworkVersion>v4.5.1</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -33,8 +33,8 @@
     <DocumentationFile>bin\Release\SqlStreamStore.MsSql.xml</DocumentationFile>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EnsureThat, Version=4.0.0.26, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Ensure.That.4.0.0\lib\net45\EnsureThat.dll</HintPath>
+    <Reference Include="EnsureThat.vNext, Version=4.0.0.26, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Ensure.That.4.0.0\lib\net46\EnsureThat.vNext.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="System" />

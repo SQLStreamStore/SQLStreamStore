@@ -1,6 +1,6 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 14
-VisualStudioVersion = 14.0.25123.0
+VisualStudioVersion = 14.0.25420.1
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.Tests", "SqlStreamStore.Tests\SqlStreamStore.Tests.csproj", "{F3FB96CF-4A3D-448D-A25E-6BC66E370BF6}"
 EndProject
@@ -23,8 +23,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SqlStreamStore.AcceptanceTe
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore", "SqlStreamStore\SqlStreamStore.csproj", "{5A8DF1A1-9B3B-499D-B9E9-A5E0F6F06953}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GetEventstoreExploratoryTests", "GetEventstoreExploratoryTests\GetEventstoreExploratoryTests.csproj", "{2E25DAFA-D0C8-4EB8-BA00-33E8CC8B6DAF}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoadTests", "LoadTests\LoadTests.csproj", "{E7397C6F-7837-4362-A7F7-20F255ACD48A}"
 EndProject
@@ -56,10 +54,6 @@ Global
 		{5A8DF1A1-9B3B-499D-B9E9-A5E0F6F06953}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5A8DF1A1-9B3B-499D-B9E9-A5E0F6F06953}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5A8DF1A1-9B3B-499D-B9E9-A5E0F6F06953}.Release|Any CPU.Build.0 = Release|Any CPU
-		{2E25DAFA-D0C8-4EB8-BA00-33E8CC8B6DAF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{2E25DAFA-D0C8-4EB8-BA00-33E8CC8B6DAF}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{2E25DAFA-D0C8-4EB8-BA00-33E8CC8B6DAF}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{2E25DAFA-D0C8-4EB8-BA00-33E8CC8B6DAF}.Release|Any CPU.Build.0 = Release|Any CPU
 		{E7397C6F-7837-4362-A7F7-20F255ACD48A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{E7397C6F-7837-4362-A7F7-20F255ACD48A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{E7397C6F-7837-4362-A7F7-20F255ACD48A}.Release|Any CPU.ActiveCfg = Release|Any CPU

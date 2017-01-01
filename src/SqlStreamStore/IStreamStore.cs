@@ -43,7 +43,7 @@
         /// </param>
         /// <returns>A task representing the asynchronous operation.</returns>
         Task<AppendResult> AppendToStream(
-            string streamId,
+            StreamId streamId,
             int expectedVersion,
             NewStreamMessage[] messages,
             CancellationToken cancellationToken = default(CancellationToken));
@@ -66,7 +66,7 @@
         ///     A task representing the asynchronous operation.
         /// </returns>
         Task DeleteStream(
-            string streamId,
+            StreamId streamId,
             int expectedVersion = ExpectedVersion.Any,
             CancellationToken cancellationToken = default(CancellationToken));
 
@@ -88,7 +88,7 @@
         ///     A task representing the asynchronous operation.
         /// </returns>
         Task DeleteMessage(
-            string streamId,
+            StreamId streamId,
             Guid messageId,
             CancellationToken cancellationToken = default(CancellationToken));
 
@@ -100,7 +100,7 @@
         ///     The expected version number of the metadata stream to apply the metadata. Used for concurrency
         ///     handling. Default value is <see cref="ExpectedVersion.Any"/>. If specified and does not match 
         ///     current version then <see cref="WrongExpectedVersionException"/> will be thrown.
-        ///     </param>
+        /// </param>
         /// <param name="maxAge">The max age of the messages in the stream in seconds.</param>
         /// <param name="maxCount">The max count of messages in the stream.</param>
         /// <param name="metadataJson">Custom meta data to associate with the stream.</param>
@@ -111,7 +111,7 @@
         ///     A task representing the asynchronous operation.
         /// </returns>
         Task SetStreamMetadata(
-            string streamId,
+            StreamId streamId,
             int expectedStreamMetadataVersion = ExpectedVersion.Any,
             int? maxAge = null,
             int? maxCount = null,

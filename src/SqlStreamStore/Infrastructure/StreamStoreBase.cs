@@ -20,13 +20,9 @@ namespace SqlStreamStore.Infrastructure
             : base(metadataMaxAgeCacheExpiry, metadataMaxAgeCacheMaxSize, getUtcNow, logName)
         {}
 
-        public Task<AppendResult> AppendToStream(
-            string streamId,
-            int expectedVersion,
-            NewStreamMessage[] messages,
-            CancellationToken cancellationToken = default(CancellationToken))
+        public Task<AppendResult> AppendToStream(StreamId streamId, int expectedVersion, NewStreamMessage[] messages, CancellationToken cancellationToken = default(CancellationToken))
         {
-            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
+            Ensure.That(streamId.Value, nameof(streamId)).DoesNotStartWith("$");
             Ensure.That(messages, nameof(messages)).IsNotNull();
 
             if(Logger.IsDebugEnabled())
@@ -56,11 +52,11 @@ namespace SqlStreamStore.Infrastructure
         /// A task representing the asynchronous operation.
         /// </returns>
         public Task DeleteStream(
-            string streamId,
+            StreamId streamId,
             int expectedVersion = ExpectedVersion.Any,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
+            Ensure.That(streamId.Value, nameof(streamId)).DoesNotStartWith("$");
 
             if (Logger.IsDebugEnabled())
             {
@@ -72,11 +68,11 @@ namespace SqlStreamStore.Infrastructure
         }
 
         public Task DeleteMessage(
-            string streamId,
+            StreamId streamId,
             Guid messageId,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
+            Ensure.That(streamId.Value, nameof(streamId)).DoesNotStartWith("$");
 
             if (Logger.IsDebugEnabled())
             {
@@ -91,8 +87,8 @@ namespace SqlStreamStore.Infrastructure
         /// </summary>
         /// <param name="streamId">The stream Id to whose metadata is to be set.</param>
         /// <param name="expectedStreamMetadataVersion">The expected version number of the metadata stream to apply the metadata. Used for concurrency
-        /// handling. Default value is <see cref="ExpectedVersion.Any" />. If specified and does not match
-        /// current version then <see cref="WrongExpectedVersionException" /> will be thrown.</param>
+        ///     handling. Default value is <see cref="ExpectedVersion.Any" />. If specified and does not match
+        ///     current version then <see cref="WrongExpectedVersionException" /> will be thrown.</param>
         /// <param name="maxAge">The max age of the messages in the stream in seconds.</param>
         /// <param name="maxCount">The max count of messages in the stream.</param>
         /// <param name="metadataJson">Custom meta data to associate with the stream.</param>
@@ -101,14 +97,14 @@ namespace SqlStreamStore.Infrastructure
         /// A task representing the asynchronous operation.
         /// </returns>
         public Task SetStreamMetadata(
-            string streamId,
-            int expectedStreamMetadataVersion,
+            StreamId streamId,
+            int expectedStreamMetadataVersion = ExpectedVersion.Any,
             int? maxAge = null,
             int? maxCount = null,
             string metadataJson = null,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
+            Ensure.That(streamId.Value, nameof(streamId)).DoesNotStartWith("$");
             Ensure.That(expectedStreamMetadataVersion, nameof(expectedStreamMetadataVersion)).IsGte(-2);
 
             if (Logger.IsDebugEnabled())

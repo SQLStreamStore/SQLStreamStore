@@ -59,6 +59,7 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="Infrastructure\EnsureStringExtensions.cs" />
     <Compile Include="Streams\AppendResult.cs" />
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
     <Compile Include="Infrastructure\AsyncLazy.cs" />
@@ -72,6 +73,7 @@
     <Compile Include="Infrastructure\ReadonlyStreamStoreBase.cs" />
     <Compile Include="Streams\ReadNextAllPage.cs" />
     <Compile Include="Streams\ReadNextStreamPage.cs" />
+    <Compile Include="Streams\StreamId.cs" />
     <Compile Include="Streams\StreamMetadataResult.cs" />
     <Compile Include="Streams\Position.cs" />
     <Compile Include="StreamStoreExtensions.cs" />

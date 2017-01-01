@@ -87,7 +87,7 @@
         ///     have expired then the message collection MAY be empty.
         /// </returns>
         Task<ReadStreamPage> ReadStreamForwards(
-            string streamId,
+            StreamId streamId,
             int fromVersionInclusive,
             int maxCount,
             bool prefetchJsonData = true,
@@ -118,7 +118,7 @@
         ///     have expired then the message collection MAY be empty.
         /// </returns>
         Task<ReadStreamPage> ReadStreamBackwards(
-            string streamId,
+            StreamId streamId,
             int fromVersionInclusive,
             int maxCount,
             bool prefetchJsonData = true,
@@ -156,7 +156,7 @@
         ///     An <see cref="IStreamSubscription"/> that represents the subscription. Dispose to stop the subscription.
         /// </returns>
         IStreamSubscription SubscribeToStream(
-            string streamId,
+            StreamId streamId,
             int? continueAfterVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,

@@ -69,7 +69,7 @@ namespace SqlStreamStore.Infrastructure
             {
                 page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, readNext, cancellationToken);
             }
-            
+
             // check for gap in messages collection
             for(int i = 0; i < page.Messages.Length - 1; i++)
             {
@@ -107,13 +107,12 @@ namespace SqlStreamStore.Infrastructure
         }
 
         public async Task<ReadStreamPage> ReadStreamForwards(
-            string streamId,
+            StreamId streamId,
             int fromVersionInclusive,
             int maxCount,
-            bool prefetchJsonData,
+            bool prefetchJsonData = true,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace();
             Ensure.That(fromVersionInclusive, nameof(fromVersionInclusive)).IsGte(0);
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
 
@@ -133,13 +132,12 @@ namespace SqlStreamStore.Infrastructure
         }
 
         public async Task<ReadStreamPage> ReadStreamBackwards(
-            string streamId,
+            StreamId streamId,
             int fromVersionInclusive,
             int maxCount,
-            bool prefetchJsonData,
+            bool prefetchJsonData = true,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace();
             Ensure.That(fromVersionInclusive, nameof(fromVersionInclusive)).IsGte(-1);
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
 
@@ -159,7 +157,7 @@ namespace SqlStreamStore.Infrastructure
         }
 
         public IStreamSubscription SubscribeToStream(
-            string streamId,
+            StreamId streamId,
             int? continueAfterVersion,
             StreamMessageReceived streamMessageReceived,
             SubscriptionDropped subscriptionDropped = null,
@@ -167,7 +165,7 @@ namespace SqlStreamStore.Infrastructure
             bool prefetchJsonData = true,
             string name = null)
         {
-            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace();
+            Ensure.That(streamId, nameof(streamId)).IsNotNull();
             Ensure.That(streamMessageReceived, nameof(streamMessageReceived)).IsNotNull();
 
             GuardAgainstDisposed();
@@ -299,8 +297,12 @@ namespace SqlStreamStore.Infrastructure
 
         protected abstract void PurgeExpiredMessage(StreamMessage streamMessage);
 
-        private async Task<ReadAllPage> ReloadAfterDelay(long fromPositionInclusive, int maxCount, bool prefetch,
-            ReadNextAllPage readNext, CancellationToken cancellationToken)
+        private async Task<ReadAllPage> ReloadAfterDelay(
+            long fromPositionInclusive,
+            int maxCount,
+            bool prefetch,
+            ReadNextAllPage readNext,
+            CancellationToken cancellationToken)
         {
             Logger.InfoFormat($"ReadAllForwards: gap detected in position, reloading after {DefaultReloadInterval}ms");
             await Task.Delay(DefaultReloadInterval, cancellationToken);

@@ -127,6 +127,7 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Infrastructure\MetadataMaxAgeCacheTests.cs" />
+    <Compile Include="Infrastructure\StreamIdTests.cs" />
     <Compile Include="Infrastructure\TaskQueueTests.cs" />
     <Compile Include="InMemory\InMemoryStreamStoreAcceptanceTests.cs" />
     <Compile Include="InMemory\InMemoryStreamStoreFixture.cs" />

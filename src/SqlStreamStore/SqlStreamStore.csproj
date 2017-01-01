@@ -35,8 +35,8 @@
     <NoWarn>1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="EnsureThat.vNext, Version=4.0.0.26, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Ensure.That.4.0.0\lib\net46\EnsureThat.vNext.dll</HintPath>
+    <Reference Include="Ensure.That, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\Ensure.That.5.0.0\lib\net45\Ensure.That.dll</HintPath>
       <Private>True</Private>
     </Reference>
     <Reference Include="Nito.AsyncEx, Version=3.0.1.0, Culture=neutral, processorArchitecture=MSIL">

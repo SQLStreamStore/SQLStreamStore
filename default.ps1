@@ -24,7 +24,7 @@ task Clean {
 task RestoreNuget {
     Get-PackageConfigs |% {
         "Restoring " + $_
-        &$nugetPath install $_ -o "$srcDir\packages" -configfile $_
+        & $nugetPath install $_ -o "$srcDir\packages"
     }
 }
 
@@ -68,7 +68,7 @@ task CreateNuGetPackages -depends ILMerge {
     $version = New-Object Version $versionString
     $packageVersion = $version.Major.ToString() + "." + $version.Minor.ToString() + "." + $version.Build.ToString() + "-build" + $buildNumber.ToString().PadLeft(5,'0')
     $packageVersion
-    gci $srcDir -Recurse -Include *.nuspec | % {
+    Get-ChildItem $srcDir -Recurse -Include *.nuspec | % {
         exec { .$srcDir\.nuget\nuget.exe pack $_ -o $buildOutputDir -version $packageVersion }
     }
 }
@@ -84,7 +84,7 @@ function FindTool {
 }
 
 function Get-PackageConfigs {
-    return gci $srcDir -Recurse "packages.config" -ea SilentlyContinue | foreach-object { $_.FullName }
+    return Get-ChildItem $srcDir -Recurse "packages.config" -ea SilentlyContinue | foreach-object { $_.FullName }
 }
 
 function EnsureDirectory {

@@ -115,34 +115,42 @@
                     var messages = new List<StreamMessage>();
                     while (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                     {
-                        var streamVersion1 = reader.GetInt32(0);
-                        var ordinal = reader.GetInt64(1);
-                        var eventId = reader.GetGuid(2);
-                        var created = reader.GetDateTime(3);
-                        var type = reader.GetString(4);
-                        var jsonMetadata = reader.GetString(5);
-
-                        Func<CancellationToken, Task<string>> getJsonData;
-                        if(prefetch)
+                        if(messages.Count == count)
                         {
-                            var jsonData = reader.GetString(6);
-                            getJsonData = _ => Task.FromResult(jsonData);
+                            messages.Add(default(StreamMessage));
                         }
                         else
                         {
-                            getJsonData = ct => GetJsonData(sqlStreamId.Id, streamVersion1, ct);
+                            var streamVersion1 = reader.GetInt32(0);
+                            var ordinal = reader.GetInt64(1);
+                            var eventId = reader.GetGuid(2);
+                            var created = reader.GetDateTime(3);
+                            var type = reader.GetString(4);
+                            var jsonMetadata = reader.GetString(5);
+
+                            Func<CancellationToken, Task<string>> getJsonData;
+                            if(prefetch)
+                            {
+                                var jsonData = reader.GetString(6);
+                                getJsonData = _ => Task.FromResult(jsonData);
+                            }
+                            else
+                            {
+                                getJsonData = ct => GetJsonData(sqlStreamId.Id, streamVersion1, ct);
+                            }
+
+                            var message = new StreamMessage(
+                                sqlStreamId.IdOriginal,
+                                eventId,
+                                streamVersion1,
+                                ordinal,
+                                created,
+                                type,
+                                jsonMetadata,
+                                getJsonData);
+
+                            messages.Add(message);
                         }
-
-                        var message = new StreamMessage(
-                            sqlStreamId.IdOriginal,
-                            eventId,
-                            streamVersion1,
-                            ordinal,
-                            created,
-                            type,
-                            jsonMetadata, getJsonData);
-
-                        messages.Add(message);
                     }
 
                     var isEnd = true;

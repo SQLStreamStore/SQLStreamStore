@@ -3,7 +3,6 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using EasyConsole;
@@ -16,7 +15,7 @@
         protected override async Task RunAsync(CancellationToken ct)
         {
             Output.WriteLine("");
-            Output.WriteLine(ConsoleColor.Green, "Appends events to streams and reads them all back");
+            Output.WriteLine(ConsoleColor.Green, "Appends events to streams and reads them all back in a single task.");
             Output.WriteLine("");
 
             var streamStore = GetStore();
@@ -32,14 +31,15 @@
                 .Add("Custom", () => { })
                 .Display();
 
-            int parallelTasks = Input.ReadInt(
-                $"Number of parallel tasks (Processor count = {Environment.ProcessorCount}): ", 1, 100);
+            int parallelTasks = Input.ReadInt($"Number of parallel write tasks (Processor count = {Environment.ProcessorCount}): ", 1, 100);
 
-            int numberOfMessagesToWrite = Input.ReadInt(
-                $"Number message to append: ", 1, 10000000);
+            int numberOfMessagesToWrite = Input.ReadInt("Number message to append: ", 1, 10000000);
+
+            int messageJsonDataSize = Input.ReadInt("Size of Json (kb): ", 1, 1024);
 
             var tasks = new List<Task>();
             int count = 0;
+            string jsonData = new string('a', messageJsonDataSize * 1024);
             for (int i = 0; i < parallelTasks; i++)
             {
                 var random = new Random();
@@ -54,9 +54,7 @@
                             var messageNumber = Interlocked.Increment(ref count);
                             var messageNumber2 = Interlocked.Increment(ref count);
                             var newmessages = StreamStoreAcceptanceTests
-                                .CreateNewStreamMessages(messageNumber, messageNumber2);
-
-                            var length = Encoding.UTF8.GetBytes(newmessages[0].JsonData).Length;
+                                .CreateNewStreamMessages(jsonData, messageNumber, messageNumber2);
 
                             var info = $"{streamNumber} - {newmessages[0].MessageId}," +
                                        $"{newmessages[1].MessageId}";
@@ -68,7 +66,7 @@
                                 newmessages,
                                 ct);
                             Log.Logger.Information($"End   {info}");
-                            Console.Write($"\r{messageNumber2}");
+                            Console.Write($"\r> {messageNumber2}");
                         }
                         catch (Exception ex) when (!(ex is TaskCanceledException))
                         {
@@ -89,14 +87,14 @@
             {
                 page = await streamStore.ReadAllForwards(position, 100, cancellationToken: ct);
                 count += page.Messages.Length;
-                Console.Write($"\rRead {count}");
+                Console.Write($"\r> Read {count}");
                 position = page.NextPosition;
             } while (!page.IsEnd);
 
             stopwatch.Stop();
             var rate = Math.Round((decimal)count / stopwatch.ElapsedMilliseconds * 1000, 0);
             Output.WriteLine("");
-            Output.WriteLine($"{count} messages read in {stopwatch.Elapsed} ({rate} m/s)");
+            Output.WriteLine($"> {count} messages read in {stopwatch.Elapsed} ({rate} m/s)");
         }
     }
 }

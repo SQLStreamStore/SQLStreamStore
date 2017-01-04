@@ -36,13 +36,16 @@
                 .Display();
 
             int parallelTasks = Input.ReadInt(
-                $"Number of parallel tasks (Processor count = {Environment.ProcessorCount}): ", 1, 100);
+                $"Number of parallel write tasks (Processor count = {Environment.ProcessorCount}): ", 1, 100);
 
             int numberOfMessagesToWrite = Input.ReadInt(
                 $"Number message to append: ", 1, 10000000);
 
+            int messageJsonDataSize = Input.ReadInt("Size of Json (kb): ", 1, 1024);
+
             var tasks = new List<Task>();
             int count = 0;
+            string jsonData = new string('a', messageJsonDataSize * 1024);
             var stopwatch = Stopwatch.StartNew();
             for (int i = 0; i < parallelTasks; i++)
             {
@@ -58,7 +61,7 @@
                             var messageNumber = Interlocked.Increment(ref count);
                             var messageNumber2 = Interlocked.Increment(ref count);
                             var newmessages = StreamStoreAcceptanceTests
-                                .CreateNewStreamMessages(messageNumber, messageNumber2);
+                                .CreateNewStreamMessages(jsonData, messageNumber, messageNumber2);
 
                             var info = $"{streamNumber} - {newmessages[0].MessageId}," +
                                        $"{newmessages[1].MessageId}";
@@ -70,7 +73,7 @@
                                 newmessages,
                                 ct);
                             Log.Logger.Information($"End   {info}");
-                            Console.Write($"\r{messageNumber2}");
+                            Console.Write($"\r> {messageNumber2}");
                         }
                         catch (Exception ex) when (!(ex is TaskCanceledException))
                         {
@@ -85,7 +88,7 @@
             stopwatch.Stop();
             var rate = Math.Round((decimal)count / stopwatch.ElapsedMilliseconds * 1000, 0);
             Output.WriteLine("");
-            Output.WriteLine($"{count} messages written in {stopwatch.Elapsed} ({rate} m/s)");
+            Output.WriteLine($"> {count} messages written in {stopwatch.Elapsed} ({rate} m/s)");
         }
     }
 }

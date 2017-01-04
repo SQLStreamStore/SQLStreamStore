@@ -83,7 +83,7 @@
             await Task.WhenAll(tasks);
 
             stopwatch.Stop();
-            decimal rate = (decimal)count / stopwatch.ElapsedMilliseconds * 1000;
+            var rate = Math.Round((decimal)count / stopwatch.ElapsedMilliseconds * 1000, 0);
             Output.WriteLine("");
             Output.WriteLine($"{count} messages written in {stopwatch.Elapsed} ({rate} m/s)");
         }

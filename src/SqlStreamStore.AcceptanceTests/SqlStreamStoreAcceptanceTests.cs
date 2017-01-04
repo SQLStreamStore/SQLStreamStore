@@ -56,11 +56,16 @@
 
         public static NewStreamMessage[] CreateNewStreamMessages(params int[] messageNumbers)
         {
+            return CreateNewStreamMessages("\"data\"", messageNumbers);
+        }
+
+        public static NewStreamMessage[] CreateNewStreamMessages(string jsonData, params int[] messageNumbers)
+        {
             return messageNumbers
                 .Select(number =>
                 {
                     var id = Guid.Parse("00000000-0000-0000-0000-" + number.ToString().PadLeft(12, '0'));
-                    return new NewStreamMessage(id, "type", "\"data\"", "\"metadata\"");
+                    return new NewStreamMessage(id, "type", jsonData, "\"metadata\"");
                 })
                 .ToArray();
         }

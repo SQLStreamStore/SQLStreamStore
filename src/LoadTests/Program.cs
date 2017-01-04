@@ -23,6 +23,9 @@
                 .Add(
                     "Append with ExpectedVersion.Any",
                     () => new AppendExpectedVersionAnyParallel().Run(cts.Token))
+                .Add(
+                    "Read All",
+                    () => new ReadAll().Run(cts.Token))
                 .Display();
 
             if(Debugger.IsAttached)

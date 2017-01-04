@@ -10,7 +10,7 @@
     using SqlStreamStore;
     using SqlStreamStore.Streams;
 
-    public class AppendExpectedVersionAnyParallel : PerformanceTest
+    public class AppendExpectedVersionAnyParallel : LoadTest
     {
         protected override async Task RunAsync(CancellationToken ct)
         {

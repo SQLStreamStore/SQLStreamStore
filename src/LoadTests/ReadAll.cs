@@ -10,7 +10,7 @@
     using SqlStreamStore;
     using SqlStreamStore.Streams;
 
-    public class ReadAll : PerformanceTest
+    public class ReadAll : LoadTest
     {
         protected override async Task RunAsync(CancellationToken ct)
         {
@@ -36,6 +36,8 @@
             int numberOfMessagesToWrite = Input.ReadInt("Number message to append: ", 1, 10000000);
 
             int messageJsonDataSize = Input.ReadInt("Size of Json (kb): ", 1, 1024);
+
+            int readPageSize = Input.ReadInt("Read page size: ", 1, 10000);
 
             var tasks = new List<Task>();
             int count = 0;
@@ -85,7 +87,7 @@
             ReadAllPage page;
             do
             {
-                page = await streamStore.ReadAllForwards(position, 100, cancellationToken: ct);
+                page = await streamStore.ReadAllForwards(position, readPageSize, cancellationToken: ct);
                 count += page.Messages.Length;
                 Console.Write($"\r> Read {count}");
                 position = page.NextPosition;

@@ -6,7 +6,7 @@
     using EasyConsole;
     using SqlStreamStore;
 
-    public abstract class PerformanceTest
+    public abstract class LoadTest
     {
         public void Run(CancellationToken cancellationToken)
         {
@@ -22,7 +22,7 @@
             Output.WriteLine(ConsoleColor.Yellow, "Store type:");
             new Menu()
                 .Add("InMem", () => streamStore = new InMemoryStreamStore())
-                .Add("MSSql", () => streamStore = new MsSqlStreamStoreFixture("dbo").GetStreamStore().Result)
+                .Add("MS SQL (SqlLocalDB, NamedPipes)", () => streamStore = new MsSqlStreamStoreFixture("dbo").GetStreamStore().Result)
                 .Display();
 
             return streamStore;

@@ -56,7 +56,7 @@
     </Compile>
     <Compile Include="ReadAll.cs" />
     <Compile Include="AppendExpectedVersionAnyParallel.cs" />
-    <Compile Include="PerformanceTest.cs" />
+    <Compile Include="LoadTest.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>

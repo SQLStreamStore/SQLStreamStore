@@ -1,10 +1,10 @@
 ﻿namespace LoadTests
 {
     using System;
+    using System.Diagnostics;
     using System.Threading;
-    using System.Threading.Tasks;
+    using EasyConsole;
     using Serilog;
-    using SqlStreamStore;
 
     internal class Program
     {
@@ -16,26 +16,19 @@
                 .CreateLogger();
 
             var cts = new CancellationTokenSource();
+            Console.CancelKeyPress += (_, __) => cts.Cancel();
 
-            Func<Task<IStreamStore>> _createInmemoryStore = async () =>
+            Output.WriteLine(ConsoleColor.Yellow, "Choose a test:");
+            new Menu()
+                .Add(
+                    "Append with ExpectedVersion.Any",
+                    () => new AppendExpectedVersionAnyParallel().Run(cts.Token))
+                .Display();
+
+            if(Debugger.IsAttached)
             {
-                var store = new InMemoryStreamStore();
-                await store.InitializeStore();
-                return store;
-            };
-
-            Func<Task<IStreamStore>> _createMsSqlStore = async () =>
-            {
-                var fixture = new MsSqlStreamStoreFixture("dbo");
-                var store = await fixture.GetStreamStore();
-                return store;
-            };
-
-            var test = new AppendExpectedVersionAnySingleThread(_createInmemoryStore);
-            var task = Task.Run(() => test.Run(cts.Token));
-            Console.ReadLine();
-            cts.Cancel();
-            task.GetAwaiter().GetResult();
+                Console.ReadLine();
+            }
         }
     }
 }

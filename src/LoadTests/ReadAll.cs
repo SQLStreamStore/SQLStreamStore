@@ -37,6 +37,8 @@
 
             int messageJsonDataSize = Input.ReadInt("Size of Json (kb): ", 1, 1024);
 
+            int numberOfMessagesPerAmend = Input.ReadInt("Number of messages per amend: ", 1, 1000);
+
             int readPageSize = Input.ReadInt("Read page size: ", 1, 10000);
 
             var tasks = new List<Task>();
@@ -47,16 +49,20 @@
                 var random = new Random();
                 var task = Task.Run(async () =>
                 {
+                    var messageNumbers = new int[numberOfMessagesPerAmend];
                     while (!ct.IsCancellationRequested && count < numberOfMessagesToWrite)
                     {
                         try
                         {
                             int streamNumber = random.Next(0, numberOfStreams);
 
-                            var messageNumber = Interlocked.Increment(ref count);
-                            var messageNumber2 = Interlocked.Increment(ref count);
+                            for (int j = 0; j < numberOfMessagesPerAmend; j++)
+                            {
+                                messageNumbers[j] = Interlocked.Increment(ref count);
+                            }
+
                             var newmessages = StreamStoreAcceptanceTests
-                                .CreateNewStreamMessages(jsonData, messageNumber, messageNumber2);
+                                .CreateNewStreamMessages(jsonData, messageNumbers);
 
                             var info = $"{streamNumber} - {newmessages[0].MessageId}," +
                                        $"{newmessages[1].MessageId}";
@@ -68,7 +74,7 @@
                                 newmessages,
                                 ct);
                             Log.Logger.Information($"End   {info}");
-                            Console.Write($"\r> {messageNumber2}");
+                            Console.Write($"\r> {messageNumbers[numberOfMessagesPerAmend-1]}");
                         }
                         catch (Exception ex) when (!(ex is TaskCanceledException))
                         {

@@ -26,6 +26,9 @@
                 .Add(
                     "Read All",
                     () => new ReadAll().Run(cts.Token))
+                .Add(
+                    "Append Max Count",
+                    () => new AppendMaxCount().Run(cts.Token))
                 .Display();
 
             if(Debugger.IsAttached)

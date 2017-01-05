@@ -54,6 +54,7 @@
     <Compile Include="..\SharedAssemblyInfo.cs">
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
+    <Compile Include="AppendStreamWithMaxCount.cs" />
     <Compile Include="ReadAll.cs" />
     <Compile Include="AppendExpectedVersionAnyParallel.cs" />
     <Compile Include="LoadTest.cs" />

@@ -24,6 +24,11 @@
 
             var streamStore = GetStore();
 
+            await Append(streamStore, ct);
+        }
+
+        public async Task<int> Append(IStreamStore streamStore, CancellationToken ct)
+        {
             int numberOfStreams = -1;
             Output.WriteLine(ConsoleColor.Yellow, "Number of streams:");
             new Menu()
@@ -61,11 +66,11 @@
                         {
                             int streamNumber = random.Next(0, numberOfStreams);
 
-                            for(int j = 0; j < numberOfMessagesPerAmend; j++)
+                            for (int j = 0; j < numberOfMessagesPerAmend; j++)
                             {
                                 messageNumbers[j] = Interlocked.Increment(ref count);
                             }
-                            
+
                             var newmessages = StreamStoreAcceptanceTests
                                 .CreateNewStreamMessages(jsonData, messageNumbers);
 
@@ -79,7 +84,7 @@
                                 newmessages,
                                 ct);
                             Log.Logger.Information($"End   {info}");
-                            Console.Write($"\r> {messageNumbers[numberOfMessagesPerAmend-1]}");
+                            Console.Write($"\r> {messageNumbers[numberOfMessagesPerAmend - 1]}");
                         }
                         catch (Exception ex) when (!(ex is TaskCanceledException))
                         {
@@ -90,11 +95,12 @@
                 tasks.Add(task);
             }
             await Task.WhenAll(tasks);
-
             stopwatch.Stop();
             var rate = Math.Round((decimal)count / stopwatch.ElapsedMilliseconds * 1000, 0);
+
             Output.WriteLine("");
             Output.WriteLine($"> {count} messages written in {stopwatch.Elapsed} ({rate} m/s)");
+            return count;
         }
     }
 }

@@ -96,6 +96,9 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
     <Compile Include="..\SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTestFixture.cs">
       <Link>SqlStreamStoreAcceptanceTestFixture.cs</Link>
     </Compile>

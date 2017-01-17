@@ -1,6 +1,6 @@
-﻿using System.Reflection;
+using System.Reflection;
 
 [assembly: AssemblyProduct("SqlStreamStore")]
-[assembly: AssemblyCopyright("Copyright Damian Hickey & Contributors 2015 - 2016")]
-[assembly: AssemblyVersion("0.5.1.0")]
-[assembly: AssemblyFileVersion("0.5.1.0")]
+[assembly: AssemblyCopyright("Copyright Damian Hickey & Contributors 2015 - 2017")]
+[assembly: System.Reflection.AssemblyVersion("0.6.0")]
+[assembly: System.Reflection.AssemblyFileVersion("0.6.0")]

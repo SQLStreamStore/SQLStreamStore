@@ -3,6 +3,7 @@ namespace SqlStreamStore
     using System;
     using System.Data.SqlClient;
     using System.Data.SqlLocalDb;
+    using System.Linq;
     using System.Threading.Tasks;
 
     public class MsSqlStreamStoreFixture : StreamStoreAcceptanceTestFixture
@@ -12,12 +13,18 @@ namespace SqlStreamStore
         private readonly ISqlLocalDbInstance _localDbInstance;
         private readonly string _databaseName;
 
+        private static readonly string s_sqlLocalDbProviderVersionToUse = new SqlLocalDbProvider()
+                .GetVersions()
+                .Where(provider => provider.Exists)
+                .Max(provider => provider.Version)
+                .ToString(2);
+
         public MsSqlStreamStoreFixture(string schema)
         {
             _schema = schema;
             var localDbProvider = new SqlLocalDbProvider
             {
-                Version = "11.0"
+                Version = s_sqlLocalDbProviderVersionToUse
             };
             _localDbInstance = localDbProvider.GetOrCreateInstance("StreamStoreTests");
             _localDbInstance.Start();

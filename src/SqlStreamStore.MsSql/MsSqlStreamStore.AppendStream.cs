@@ -190,6 +190,7 @@
                                 ex);
                         }
                     }
+                    return new Tuple<int?, int>(null, page.LastStreamVersion);
                 }
                 catch(SqlException ex) when(ex.IsUniqueConstraintViolation())
                 {
@@ -197,7 +198,6 @@
                         ErrorMessages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, ExpectedVersion.Any),
                         ex);
                 }
-                return NullAppendResult;
             }
         }
 
@@ -242,9 +242,7 @@
                             var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(jsonData);
                             maxCount = metadataMessage.MaxCount;
                         }
-
                         return new Tuple<int?, int>(maxCount, currentVersion);
-
                     }
                 }
                 catch(SqlException ex)
@@ -284,7 +282,7 @@
                             }
                         }
 
-                        return NullAppendResult;
+                        return new Tuple<int?, int>(null, page.LastStreamVersion);
                     }
 
                     if(ex.IsUniqueConstraintViolation())
@@ -297,7 +295,6 @@
 
                     throw;
                 }
-                return NullAppendResult;
             }
         }
 
@@ -378,7 +375,7 @@
                                 }
                             }
 
-                            return NullAppendResult;
+                            return new Tuple<int?, int>(null, page.LastStreamVersion);
                         }
                     }
                     if(ex.IsUniqueConstraintViolation())
@@ -389,7 +386,6 @@
                     }
                     throw;
                 }
-                return NullAppendResult;
             }
         }
 

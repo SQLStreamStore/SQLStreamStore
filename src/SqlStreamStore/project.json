@@ -1,0 +1,25 @@
+﻿{
+  "version": "1.0.0-*",
+  "buildOptions": {
+    "debugType": "portable",
+    "define": [ "LIBLOG_PUBLIC" ]
+  },
+  "dependencies": {
+    "Ensure.That": "5.0.0",
+    "LibLog": "4.2.6",
+    "SimpleJson": "0.38.0"
+  },
+  "frameworks": {
+    "net46": {
+      "dependencies": {
+        "Nito.AsyncEx": "3.0.1"
+      }
+    },
+    "netstandard1.6": {
+      "dependencies": {
+        "NETStandard.Library": "1.6.1",
+        "Nito.AsyncEx.Coordination": "1.0.2"
+      }
+    }
+  }
+}

@@ -2130,3 +2130,16 @@ namespace StreamStoreStore.Json
 // ReSharper restore LoopCanBeConvertedToQuery
 // ReSharper restore RedundantExplicitArrayCreation
 // ReSharper restore SuggestUseVarKeywordEvident
+
+#if NETSTANDARD1_6
+namespace System.Runtime.Serialization
+{
+    public class SerializationException : Exception
+    {
+        public SerializationException(string message) : base(message)
+        {
+
+        }
+    }
+}
+#endif

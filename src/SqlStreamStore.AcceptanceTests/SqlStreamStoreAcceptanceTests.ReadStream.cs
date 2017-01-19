@@ -177,6 +177,36 @@
         }
 
         [Fact]
+        public async Task Can_read_empty_stream_backwards()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages());
+
+                    var page = await store.ReadStreamBackwards("stream-1", StreamVersion.End, 1);
+                    page.Status.ShouldBe(PageReadStatus.Success);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Can_read_empty_stream_forwards()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages());
+
+                    var page = await store.ReadStreamForwards("stream-1", StreamVersion.Start, 1);
+                    page.Status.ShouldBe(PageReadStatus.Success);
+                }
+            }
+        }
+
+        [Fact]
         public async Task When_read_non_exist_stream_forwards_then_should_get_StreamNotFound()
         {
             using(var fixture = GetFixture())
@@ -273,7 +303,7 @@
         {
             var theories = new[]
             {
-               new ReadStreamTheory("stream-1", StreamVersion.End, 2,
+                new ReadStreamTheory("stream-1", StreamVersion.End, 2,
                     new ReadStreamPage("stream-1", PageReadStatus.Success, -1, 0, 2, ReadDirection.Backward, false,
                         new [] {
                           ExpectedStreamMessage("stream-1", 3, 2, SystemClock.GetUtcNow()),

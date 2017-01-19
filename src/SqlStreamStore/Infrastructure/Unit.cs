@@ -9,7 +9,6 @@ namespace SqlStreamStore.Infrastructure
     /// Represents a type with a single value. This type is often used to denote the successful completion of a void-returning method (C#) or a Sub procedure (Visual Basic).
     /// 
     /// </summary>
-    [Serializable]
     [StructLayout(LayoutKind.Sequential, Size = 1)]
     public struct Unit : IEquatable<Unit>
     {

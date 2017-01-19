@@ -12,13 +12,18 @@
   "frameworks": {
     "net46": {
       "dependencies": {
-        "Nito.AsyncEx": "3.0.1"
+        "Nito.AsyncEx": "3.0.1",
+        "System.Runtime": "4.0.20",
+        "System.Threading.Tasks": "4.0.10"
       }
     },
     "netstandard1.6": {
       "dependencies": {
         "NETStandard.Library": "1.6.1",
-        "Nito.AsyncEx.Coordination": "1.0.2"
+        "System.Runtime": "4.3.0",
+        "System.Threading.Tasks": "4.3.0", 
+        "Nito.AsyncEx.Coordination": "1.0.2",
+        "Microsoft.CSharp": "4.3.0"
       }
     }
   }

@@ -8,7 +8,11 @@
 
     public sealed class PollingStreamStoreNotifier : IStreamStoreNotifier
     {
+#if NET46
         private static readonly ILog s_logger = LogProvider.GetCurrentClassLogger();
+#elif NETSTANDARD1_6
+        private static readonly ILog s_logger = LogProvider.GetLogger("SqlStreamStore.Subscriptions.PollingStreamStoreNotifier");
+#endif
         private readonly CancellationTokenSource _disposed = new CancellationTokenSource();
         private readonly Func<CancellationToken, Task<long>> _readHeadPosition;
         private readonly int _interval;

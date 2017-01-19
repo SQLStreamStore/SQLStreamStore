@@ -75,7 +75,7 @@ Task("Merge")
 });
 
 Task("Nuget-Pack")
-    .IsDependentOn("Build")
+    .IsDependentOn("Merge")
     .Does(() =>
 {
     var version = FileReadText("version.txt");

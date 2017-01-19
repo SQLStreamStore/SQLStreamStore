@@ -23,7 +23,11 @@
         private readonly IDisposable _notification;
         private readonly CancellationTokenSource _disposed = new CancellationTokenSource();
         private readonly AsyncAutoResetEvent _streamStoreNotification = new AsyncAutoResetEvent();
+#if NET46
         private readonly TaskCompletionSource _started = new TaskCompletionSource();
+#elif NETSTANDARD1_6
+        private readonly TaskCompletionSource<object> _started = new TaskCompletionSource<object>();
+#endif
         private readonly InterlockedBoolean _notificationRaised = new InterlockedBoolean();
 
         public AllStreamSubscription(
@@ -95,7 +99,11 @@
             {
                 await Initialize();
             }
+#if NET46
             _started.SetResult();
+#elif NETSTANDARD1_6
+            _started.SetResult(null);
+#endif
             while (true)
             {
                 bool pause = false;

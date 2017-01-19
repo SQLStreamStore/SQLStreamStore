@@ -625,8 +625,12 @@ namespace SqlStreamStore
                     count--;
                 }
 
-                var lastStreamVersion = stream.Messages.Last().StreamVersion;
-                var nextStreamVersion = messages.Last().StreamVersion - 1;
+                var lastStreamVersion = stream.Messages.Count > 0 
+                    ? stream.Messages[stream.Messages.Count - 1].StreamVersion
+                    : StreamVersion.End;
+                var nextStreamVersion = messages.Count > 0 
+                    ? messages[messages.Count - 1].StreamVersion - 1 
+                    : StreamVersion.End;
                 var endOfStream = nextStreamVersion < 0;
 
                 var page = new ReadStreamPage(

@@ -46,42 +46,6 @@
         }
 
         [Fact]
-        public async Task Can_get_stream_message_count()
-        {
-            using (var fixture = new MsSqlStreamStoreFixture("dbo"))
-            {
-                using (var store = await fixture.GetMsSqlStreamStore())
-                {
-                    var streamId = "stream-1";
-                    await store.AppendToStream(
-                        streamId,
-                        ExpectedVersion.NoStream,
-                        CreateNewStreamMessages(1, 2, 3, 4, 5));
-
-                    var streamCount = await store.GetmessageCount(streamId);
-
-                    streamCount.ShouldBe(5);
-                }
-            }
-        }
-
-        [Fact]
-        public async Task When_stream_does_not_exist_then_stream_message_count_should_be_zero()
-        {
-            using (var fixture = new MsSqlStreamStoreFixture("dbo"))
-            {
-                using (var store = await fixture.GetMsSqlStreamStore())
-                {
-                    var streamId = "stream-doesnotexist";
-
-                    var streamCount = await store.GetmessageCount(streamId);
-
-                    streamCount.ShouldBe(0);
-                }
-            }
-        }
-
-        [Fact]
         public async Task Can_get_stream_message_count_with_created_before_date()
         {
             using (var fixture = new MsSqlStreamStoreFixture("dbo"))

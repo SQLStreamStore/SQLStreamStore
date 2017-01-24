@@ -70,7 +70,7 @@
             throw new NotImplementedException();
         }
 
-        public override Task<int> GetmessageCount(string streamId, CancellationToken cancellationToken = new CancellationToken())
+        protected override Task<int> GetStreamMessageCount(string streamId, CancellationToken cancellationToken = new CancellationToken())
         {
             throw new NotImplementedException();
         }

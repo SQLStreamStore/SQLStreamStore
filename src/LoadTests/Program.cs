@@ -3,8 +3,11 @@
     using System;
     using System.Diagnostics;
     using System.Threading;
+    using System.Threading.Tasks;
     using EasyConsole;
     using Serilog;
+    using SqlStreamStore;
+    using SqlStreamStore.Streams;
 
     internal class Program
     {
@@ -35,6 +38,16 @@
             {
                 Console.ReadLine();
             }
+        }
+
+        private static async Task QuickStart()
+        {
+            var store = new InMemoryStreamStore();
+
+            // Append a new message
+            var newStreamMessage = new NewStreamMessage(Guid.NewGuid(), "my-message-type", "{ \"name\": \"foo\" }");
+
+            //store.GetMessageCount()
         }
     }
 }

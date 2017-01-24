@@ -67,7 +67,7 @@ namespace SqlStreamStore
             }
         }
 
-        public override Task<int> GetmessageCount(string streamId, CancellationToken cancellationToken)
+        protected override Task<int> GetStreamMessageCount(string streamId, CancellationToken cancellationToken)
         {
             using(_lock.UseReadLock())
             {
@@ -98,7 +98,7 @@ namespace SqlStreamStore
         {
             if (maxCount.HasValue)
             {
-                var count = await GetmessageCount(streamId, cancellationToken);
+                var count = await GetStreamMessageCount(streamId, cancellationToken);
                 if (count > maxCount.Value)
                 {
                     int toPurge = count - maxCount.Value;

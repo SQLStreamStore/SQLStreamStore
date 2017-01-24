@@ -3,7 +3,7 @@
     using System;
     using EnsureThat;
 
-    public struct NewStreamMessage
+    public class NewStreamMessage
     {
         public readonly string JsonData;
         public readonly Guid MessageId;

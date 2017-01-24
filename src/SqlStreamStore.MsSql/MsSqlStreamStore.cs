@@ -127,7 +127,8 @@
             }
         }
 
-        public override async Task<int> GetmessageCount(
+        /// <inheritdoc />
+        protected override async Task<int> GetStreamMessageCount(
             string streamId,
             CancellationToken cancellationToken = default(CancellationToken))
         {

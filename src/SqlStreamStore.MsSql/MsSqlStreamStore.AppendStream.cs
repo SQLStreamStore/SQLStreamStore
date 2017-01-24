@@ -393,7 +393,7 @@
         {
             if (maxCount.HasValue)
             {
-                var count = await GetmessageCount(streamId, cancellationToken);
+                var count = await GetStreamMessageCount(streamId, cancellationToken);
                 if (count > maxCount.Value)
                 {
                     int toPurge = count - maxCount.Value;

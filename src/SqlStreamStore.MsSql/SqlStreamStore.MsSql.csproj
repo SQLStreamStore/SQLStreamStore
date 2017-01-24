@@ -60,7 +60,7 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
-    <None Include="StreamStore.MsSql.nuspec" />
+    <None Include="SqlStreamStore.MsSql.nuspec" />
     <Compile Include="MsSqlStreamStore.ReadStream.cs" />
     <Compile Include="MsSqlStreamStore.Delete.cs" />
   </ItemGroup>
@@ -73,7 +73,6 @@
     <EmbeddedResource Include="MsSqlScripts\GetStreamMessageBeforeCreatedCount.sql" />
     <EmbeddedResource Include="MsSqlScripts\GetStreamMessageCount.sql" />
     <EmbeddedResource Include="MsSqlScripts\DeleteStreamMessage.sql" />
-    <EmbeddedResource Include="MsSqlScripts\SetStreamMetadata.sql" />
     <Content Include="MsSqlScripts\DropTestDBs.sql" />
     <EmbeddedResource Include="MsSqlScripts\ReadHeadPosition.sql" />
     <EmbeddedResource Include="MsSqlScripts\ReadStreamBackward.sql" />

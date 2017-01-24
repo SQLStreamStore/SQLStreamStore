@@ -55,8 +55,6 @@
 
         internal string ReadMessageData => GetScript(nameof(ReadMessageData));
 
-        internal string SetStreamMetadata => GetScript(nameof(SetStreamMetadata));
-
         private string GetScript(string name)
         {
             return _scripts.GetOrAdd(name,

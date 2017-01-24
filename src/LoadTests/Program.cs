@@ -39,15 +39,5 @@
                 Console.ReadLine();
             }
         }
-
-        private static async Task QuickStart()
-        {
-            var store = new InMemoryStreamStore();
-
-            // Append a new message
-            var newStreamMessage = new NewStreamMessage(Guid.NewGuid(), "my-message-type", "{ \"name\": \"foo\" }");
-
-            //store.GetMessageCount()
-        }
     }
 }

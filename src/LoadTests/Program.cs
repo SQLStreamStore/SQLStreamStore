@@ -3,11 +3,8 @@
     using System;
     using System.Diagnostics;
     using System.Threading;
-    using System.Threading.Tasks;
     using EasyConsole;
     using Serilog;
-    using SqlStreamStore;
-    using SqlStreamStore.Streams;
 
     internal class Program
     {

@@ -35,16 +35,16 @@ namespace SqlStreamStore
             return store;
         }
 
-        public async Task<IStreamStore> GetStreamStore(string schema)
+        public Task<IStreamStore> GetStreamStore(string schema)
         {
             var settings = new PostgresStreamStoreSettings(ConnectionString)
             {
                 Schema = schema,
                 GetUtcNow = () => GetUtcNow()
             };
-            var store = new PostgresStreamStore(settings);
+            IStreamStore store = new PostgresStreamStore(settings);
 
-            return store;
+            return Task.FromResult(store);
         }
 
         public async Task<PostgresStreamStore> GetPostgresStreamStore()
@@ -68,7 +68,7 @@ namespace SqlStreamStore
             //noop
         }
 
-        private async Task CreateDatabase()
+        private Task CreateDatabase()
         {
             throw new NotImplementedException();
         }

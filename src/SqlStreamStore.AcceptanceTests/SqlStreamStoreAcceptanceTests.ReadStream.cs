@@ -12,7 +12,7 @@
     {
         [Theory]
         [MemberData("GetReadStreamForwardsTheories")]
-        public async Task Can_read_streams_forwards(ReadStreamTheory theory)
+        public async Task Can_read_streams_forwards_with_prefetch(ReadStreamTheory theory)
         {
             using(var fixture = GetFixture())
             {
@@ -55,8 +55,53 @@
             }
         }
 
+        [Theory]
+        [MemberData("GetReadStreamForwardsTheories")]
+        public async Task Can_read_streams_forwards_without_prefetch(ReadStreamTheory theory)
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await store.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
+
+                    var streamMessagesPage =
+                        await store.ReadStreamForwards(theory.StreamId, theory.Start, theory.PageSize, false);
+
+                    var expectedStreamMessagesPage = theory.ExpectedReadStreamPage;
+                    var expectedMessages = theory.ExpectedReadStreamPage.Messages.ToArray();
+
+                    streamMessagesPage.FromStreamVersion.ShouldBe(expectedStreamMessagesPage.FromStreamVersion);
+                    streamMessagesPage.LastStreamVersion.ShouldBe(expectedStreamMessagesPage.LastStreamVersion);
+                    streamMessagesPage.NextStreamVersion.ShouldBe(expectedStreamMessagesPage.NextStreamVersion);
+                    streamMessagesPage.ReadDirection.ShouldBe(expectedStreamMessagesPage.ReadDirection);
+                    streamMessagesPage.IsEnd.ShouldBe(expectedStreamMessagesPage.IsEnd);
+                    streamMessagesPage.Status.ShouldBe(expectedStreamMessagesPage.Status);
+                    streamMessagesPage.StreamId.ShouldBe(expectedStreamMessagesPage.StreamId);
+                    streamMessagesPage.Messages.Length.ShouldBe(expectedStreamMessagesPage.Messages.Length);
+
+                    for (int i = 0; i < streamMessagesPage.Messages.Length; i++)
+                    {
+                        var message = streamMessagesPage.Messages.ToArray()[i];
+                        var expectedMessage = expectedMessages[i];
+
+                        message.MessageId.ShouldBe(expectedMessage.MessageId);
+                        (await message.GetJsonData()).ShouldBe(await expectedMessage.GetJsonData());
+                        message.JsonMetadata.ShouldBe(expectedMessage.JsonMetadata);
+                        message.StreamId.ShouldBe(expectedMessage.StreamId);
+                        message.StreamVersion.ShouldBe(expectedMessage.StreamVersion);
+                        message.Type.ShouldBe(expectedMessage.Type);
+
+                        // We don't care about StreamMessage.Position and StreamMessage.Position
+                        // as they are non-deterministic
+                    }
+                }
+            }
+        }
+
         [Fact]
-        public async Task Can_read_stream_forwards_without_prefetch()
+        public async Task Can_read_whole_stream_forwards_without_prefetch()
         {
             using (var fixture = GetFixture())
             {
@@ -112,7 +157,7 @@
 
         [Theory]
         [MemberData("GetReadStreamBackwardsTheories")]
-        public async Task Can_read_streams_backwards(ReadStreamTheory theory)
+        public async Task Can_read_streams_backwards_with_prefetch(ReadStreamTheory theory)
         {
             using (var fixture = GetFixture())
             {
@@ -123,6 +168,51 @@
 
                     var streamMessagesPage =
                         await store.ReadStreamBackwards(theory.StreamId, theory.Start, theory.PageSize);
+
+                    var expectedStreamMessagesPage = theory.ExpectedReadStreamPage;
+                    var expectedMessages = theory.ExpectedReadStreamPage.Messages.ToArray();
+
+                    streamMessagesPage.FromStreamVersion.ShouldBe(expectedStreamMessagesPage.FromStreamVersion);
+                    streamMessagesPage.LastStreamVersion.ShouldBe(expectedStreamMessagesPage.LastStreamVersion);
+                    streamMessagesPage.NextStreamVersion.ShouldBe(expectedStreamMessagesPage.NextStreamVersion);
+                    streamMessagesPage.ReadDirection.ShouldBe(expectedStreamMessagesPage.ReadDirection);
+                    streamMessagesPage.IsEnd.ShouldBe(expectedStreamMessagesPage.IsEnd);
+                    streamMessagesPage.Status.ShouldBe(expectedStreamMessagesPage.Status);
+                    streamMessagesPage.StreamId.ShouldBe(expectedStreamMessagesPage.StreamId);
+                    streamMessagesPage.Messages.Length.ShouldBe(expectedStreamMessagesPage.Messages.Length);
+
+                    for (int i = 0; i < streamMessagesPage.Messages.Length; i++)
+                    {
+                        var streamMessage = streamMessagesPage.Messages.ToArray()[i];
+                        var expectedMessage = expectedMessages[i];
+
+                        streamMessage.MessageId.ShouldBe(expectedMessage.MessageId);
+                        (await streamMessage.GetJsonData()).ShouldBe(await expectedMessage.GetJsonData());
+                        streamMessage.JsonMetadata.ShouldBe(expectedMessage.JsonMetadata);
+                        streamMessage.StreamId.ShouldBe(expectedMessage.StreamId);
+                        streamMessage.StreamVersion.ShouldBe(expectedMessage.StreamVersion);
+                        streamMessage.Type.ShouldBe(expectedMessage.Type);
+
+                        // We don't care about StreamMessage.Position and StreamMessage.Position
+                        // as they are non-deterministic
+                    }
+                }
+            }
+        }
+
+        [Theory]
+        [MemberData("GetReadStreamBackwardsTheories")]
+        public async Task Can_read_streams_backwards_without_prefetch(ReadStreamTheory theory)
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await store.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
+
+                    var streamMessagesPage =
+                        await store.ReadStreamBackwards(theory.StreamId, theory.Start, theory.PageSize, false);
 
                     var expectedStreamMessagesPage = theory.ExpectedReadStreamPage;
                     var expectedMessages = theory.ExpectedReadStreamPage.Messages.ToArray();
@@ -317,6 +407,12 @@
         {
             var theories = new[]
             {
+                new ReadStreamTheory("stream-1", StreamVersion.End, 1,
+                    new ReadStreamPage("stream-1", PageReadStatus.Success, -1, 1, 2, ReadDirection.Backward, false,
+                        new [] {
+                          ExpectedStreamMessage("stream-1", 3, 2, SystemClock.GetUtcNow())
+                          })),
+
                 new ReadStreamTheory("stream-1", StreamVersion.End, 2,
                     new ReadStreamPage("stream-1", PageReadStatus.Success, -1, 0, 2, ReadDirection.Backward, false,
                         new [] {

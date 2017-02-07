@@ -617,7 +617,6 @@ namespace SqlStreamStore
                             inMemorymessage.Type,
                             inMemorymessage.JsonMetadata,
                             ct =>  Task.Run(() => ReadMessageData(streamId, inMemorymessage.MessageId), ct));
-                        messages.Add(message);
                     }
                     messages.Add(message);
 

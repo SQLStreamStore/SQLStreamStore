@@ -73,6 +73,7 @@
     <Compile Include="Infrastructure\ReadonlyStreamStoreBase.cs" />
     <Compile Include="Streams\ReadNextAllPage.cs" />
     <Compile Include="Streams\ReadNextStreamPage.cs" />
+    <Compile Include="Streams\SetStreamMetadataResult.cs" />
     <Compile Include="Streams\StreamId.cs" />
     <Compile Include="Streams\StreamMetadataResult.cs" />
     <Compile Include="Streams\Position.cs" />

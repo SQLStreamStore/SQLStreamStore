@@ -154,7 +154,7 @@ namespace SqlStreamStore.Infrastructure
             Guid eventId,
             CancellationToken cancellationToken);
 
-        protected abstract Task SetStreamMetadataInternal(
+        protected abstract Task<SetStreamMetadataResult> SetStreamMetadataInternal(
            string streamId,
            int expectedStreamMetadataVersion,
            int? maxAge,

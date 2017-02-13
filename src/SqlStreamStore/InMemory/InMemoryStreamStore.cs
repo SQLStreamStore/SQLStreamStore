@@ -207,7 +207,7 @@ namespace SqlStreamStore
             }
         }
 
-        protected override async Task SetStreamMetadataInternal(
+        protected override async Task<SetStreamMetadataResult> SetStreamMetadataInternal(
             string streamId,
             int expectedStreamMetadataVersion,
             int? maxAge,
@@ -229,9 +229,11 @@ namespace SqlStreamStore
                 var json = SimpleJson.SerializeObject(metadataMessage);
                 var newmessage = new NewStreamMessage(Guid.NewGuid(), "$stream-metadata", json);
 
-                AppendToStreamInternal(metaStreamId, expectedStreamMetadataVersion, new[] { newmessage });
+                var result = AppendToStreamInternal(metaStreamId, expectedStreamMetadataVersion, new[] { newmessage });
 
                 await CheckStreamMaxCount(streamId, metadataMessage.MaxCount, cancellationToken);
+
+                return new SetStreamMetadataResult(result.CurrentVersion);
             }
         }
 

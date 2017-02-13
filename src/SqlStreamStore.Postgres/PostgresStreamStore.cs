@@ -99,7 +99,7 @@
             throw new NotImplementedException();
         }
 
-        protected override Task SetStreamMetadataInternal(
+        protected override Task<SetStreamMetadataResult> SetStreamMetadataInternal(
             string streamId,
             int expectedStreamMetadataVersion,
             int? maxAge,

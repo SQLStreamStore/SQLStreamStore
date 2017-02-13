@@ -9,6 +9,8 @@
 
     public partial class StreamStoreAcceptanceTests
     {
+        //TODO: Port some of the tests from AppendStream with regard to expected version to verify behavior of Get/SetStreamMetadata.
+
         [Fact]
         public async Task When_get_non_existent_metadata_then_meta_stream_version_should_be_negative()
         {

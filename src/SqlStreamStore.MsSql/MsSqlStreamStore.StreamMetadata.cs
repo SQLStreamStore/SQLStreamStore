@@ -45,7 +45,7 @@
                    metadataMessage.MetaJson);
         }
 
-        protected override async Task SetStreamMetadataInternal(
+        protected override async Task<SetStreamMetadataResult> SetStreamMetadataInternal(
             string streamId,
             int expectedStreamMetadataVersion,
             int? maxAge,
@@ -53,6 +53,7 @@
             string metadataJson,
             CancellationToken cancellationToken)
         {
+            Tuple<int?, int> result;
             using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken);
@@ -71,7 +72,7 @@
                     var json = SimpleJson.SerializeObject(metadataMessage);
                     var newmessage = new NewStreamMessage(Guid.NewGuid(), "$stream-metadata", json);
 
-                    await AppendToStreamInternal(
+                    result = await AppendToStreamInternal(
                         connection,
                         transaction,
                         streamIdInfo.MetadataSqlStreamId,
@@ -84,6 +85,8 @@
             }
 
             await CheckStreamMaxCount(streamId, maxCount, cancellationToken);
+
+            return new SetStreamMetadataResult(result.Item2); //Item2 = CurrentVersion
         }
     }
 }

@@ -2,11 +2,12 @@
 #tool "nuget:?package=ILRepack&Version=2.0.12"
 
 #addin "Cake.FileHelpers"
+#addin "Cake.Json"
 
-var target          = Argument("target", "Default");
+var target          = Argument("target", "Merge");
 var configuration   = Argument("configuration", "Release");
 var artifactsDir    = Directory("./artifacts");
-var solution        = "./src/SqlStreamStore.sln";
+var solution        = "./SqlStreamStore.sln";
 var buildNumber     = string.IsNullOrWhiteSpace(EnvironmentVariable("BUILD_NUMBER")) ? "0" : EnvironmentVariable("BUILD_NUMBER");
 
 Task("Clean")
@@ -19,7 +20,7 @@ Task("RestorePackages")
     .IsDependentOn("Clean")
     .Does(() =>
 {
-    NuGetRestore(solution);
+	DotNetCoreRestore("./");
 });
 
 Task("UpdateAssemblyInfoVersion")
@@ -27,28 +28,51 @@ Task("UpdateAssemblyInfoVersion")
 {
     var version = FileReadText("version.txt");
     ReplaceTextInFiles("src/SharedAssemblyInfo.cs", "1.0.0.0", version);
+
+	var projects = GetFiles("./**/project.json");
+	foreach(var project in projects)
+	{
+		var json = ParseJsonFromFile(project);
+		json["version"] = version + "-*";
+		SerializeJsonToFile(project, json);
+	}
 });
 
 Task("Build")
     .IsDependentOn("RestorePackages")
     .Does(() =>
 {
-    MSBuild(solution, settings => settings.SetConfiguration(configuration));
+	var settings = new DotNetCoreBuildSettings
+	{
+		Configuration = configuration
+	};
+
+	var projects = GetFiles("./**/project.json");
+	foreach(var project in projects)
+	{
+		Information(project.GetDirectory().FullPath);
+		if(project.GetDirectory().FullPath == @"C:/Development/SqlStreamStore/src/Example")
+			continue;
+		DotNetCoreBuild(project.GetDirectory().FullPath, settings);
+	}
 });
 
 Task("RunTests")
     .IsDependentOn("Build")
     .Does(() =>
 {
-    var testProjects = new string[] { "SqlStreamStore", "SqlStreamStore.MsSql" };
-    foreach(var testProject in testProjects){
-        var dll = "./src/"+ testProject +".Tests/bin/" + configuration + "/" + testProject + ".Tests.dll";
-        XUnit(
-            dll,
-            new XUnitSettings 
-            { 
-                ToolPath = "./tools/xunit.runner.console/tools/xunit.console.exe"
-            });
+    //var testProjects = new string[] { "SqlStreamStore.Tests", "SqlStreamStore.MsSql.Tests" };
+
+	var testSettings = new DotNetCoreTestSettings
+	{
+		NoBuild = true
+	};
+
+	var testProjects = new string[] { "SqlStreamStore.Tests" };
+    foreach(var testProject in testProjects)
+	{
+        var projectDir = "./test/"+ testProject;
+		DotNetCoreTest(projectDir, testSettings);
     }
 });
 
@@ -58,11 +82,11 @@ Task("Merge")
 {
     Action<string[], string> merge = (sourceAssemblies, primaryAssemblyName) => {
         var assemblyPaths = sourceAssemblies
-            .Select(assembly => GetFiles("./src/" + primaryAssemblyName + "/bin/" + configuration + "/" + assembly + ".dll").Single())
+            .Select(assembly => GetFiles("./src/" + primaryAssemblyName + "/bin/" + configuration + "/net46/" + assembly + ".dll").Single())
             .ToArray();
 
         var outputAssembly = artifactsDir.Path + "/" + primaryAssemblyName + ".dll";
-        var primaryAssembly = "./src/" + primaryAssemblyName + "/bin/" + configuration + "/" + primaryAssemblyName + ".dll";
+        var primaryAssembly = "./src/" + primaryAssemblyName + "/bin/" + configuration + "/net46/" + primaryAssemblyName + ".dll";
 
         ILRepack(outputAssembly, primaryAssembly, assemblyPaths, new ILRepackSettings 
         { 
@@ -74,8 +98,8 @@ Task("Merge")
     var assemblies = new [] { "Ensure.That", "Nito.AsyncEx", "Nito.AsyncEx.Concurrent", "Nito.AsyncEx.Enlightenment" };
     merge(assemblies, "SqlStreamStore");
 
-    assemblies = new [] { "Ensure.That" };
-    merge(assemblies, "SqlStreamStore.MsSql");
+    //assemblies = new [] { "Ensure.That" };
+    //merge(assemblies, "SqlStreamStore.MsSql");
 });
 
 Task("NuGetPack")
@@ -83,16 +107,20 @@ Task("NuGetPack")
     .Does(() =>
 {
     var version = FileReadText("version.txt");
-    var packageVersion = version + "-build" + buildNumber.ToString().PadLeft(5, '0');
-    Information(packageVersion);
+	var build = "build" + buildNumber.ToString().PadLeft(5, '0');
+    Information(version + build);
 
-    var nuGetPackSettings   = new NuGetPackSettings {
-        Version = packageVersion,
-        OutputDirectory = artifactsDir
+    var dotNetCorePackSettings   = new DotNetCorePackSettings
+	{
+		VersionSuffix = build,
+        OutputDirectory = artifactsDir,
+		NoBuild = true,
+		Configuration = "Release"
     };
 
-    NuGetPack("./src/SqlStreamStore/SqlStreamStore.nuspec", nuGetPackSettings);
-    NuGetPack("./src/SqlStreamStore.MsSql/SqlStreamStore.MsSql.nuspec", nuGetPackSettings);
+    
+	DotNetCorePack("./src/SqlStreamStore", dotNetCorePackSettings);
+    //NuGetPack("./src/SqlStreamStore.MsSql/SqlStreamStore.MsSql.nuspec", nuGetPackSettings);
 });
 
 Task("Default")

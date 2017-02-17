@@ -1,1 +1,39 @@
-{"version":"0.6.1-*","buildOptions":{"debugType":"portable"},"dependencies":{"System.Runtime.Serialization.Primitives":"4.3.0","xunit":"2.2.0-beta5-build3474","dotnet-test-xunit":"2.2.0-preview2-build1029","Shouldly":"2.8.2","SqlStreamStore":"1.0.0-*","Serilog":"2.3.0","Serilog.Sinks.Observable":"2.0.1","System.Reactive":"3.1.1"},"testRunner":"xunit","frameworks":{"net46":{"dependencies":{"Nito.AsyncEx":{"version":"3.0.1","type":"build"}}},"netcoreapp1.1":{"dependencies":{"Microsoft.NETCore.App":{"type":"platform","version":"1.1.0"}},"imports":["dotnet5.4","portable-net451+win8"]}}}
+{
+  "version": "0.6.1-*",
+  "buildOptions": {
+    "debugType": "portable",
+    "compile": {
+      "include": "../SqlStreamStore.AcceptanceTests/*.cs"
+    }
+  },
+  "dependencies": {
+    "System.Runtime.Serialization.Primitives": "4.3.0",
+    "xunit": "2.2.0-beta5-build3474",
+    "dotnet-test-xunit": "2.2.0-preview2-build1029",
+    "Shouldly": "2.8.2",
+    "SqlStreamStore": "1.0.0-*",
+    "Serilog": "2.3.0",
+    "Serilog.Sinks.Observable": "2.0.1",
+    "System.Reactive": "3.1.1"
+  },
+  "testRunner": "xunit",
+  "frameworks": {
+    "net46": {
+      "dependencies": {
+        "Nito.AsyncEx": {
+          "version": "3.0.1",
+          "type": "build"
+        }
+      }
+    },
+    "netcoreapp1.1": {
+      "dependencies": {
+        "Microsoft.NETCore.App": {
+          "type": "platform",
+          "version": "1.1.0"
+        }
+      },
+      "imports": [ "dotnet5.4", "portable-net451+win8" ]
+    }
+  }
+}

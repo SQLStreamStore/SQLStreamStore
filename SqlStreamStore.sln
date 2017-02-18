@@ -4,8 +4,6 @@ VisualStudioVersion = 15.0.26403.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.Tests", "SqlStreamStore.Tests\SqlStreamStore.Tests.csproj", "{F3FB96CF-4A3D-448D-A25E-6BC66E370BF6}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.MsSql", "SqlStreamStore.MsSql\SqlStreamStore.MsSql.csproj", "{40510896-D9A1-4E22-8D11-E718857611F8}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.MsSql.Tests", "SqlStreamStore.MsSql.Tests\SqlStreamStore.MsSql.Tests.csproj", "{97AA016B-0B9F-44C2-8228-A13B4E251FB0}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SqlStreamStore.AcceptanceTests", "SqlStreamStore.AcceptanceTests", "{833038D7-0582-4D07-9458-8230A83CAC1F}"
@@ -40,6 +38,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{2FA0B849-9
 EndProject
 Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "SqlStreamStore.Tests", "test\SqlStreamStore.Tests\SqlStreamStore.Tests.xproj", "{0EEB4031-7F4E-434C-B87D-4852CEFE8221}"
 EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "SqlStreamStore.MsSql", "src\SqlStreamStore.MsSql\SqlStreamStore.MsSql.xproj", "{E611E49A-D734-418B-81C1-9124D7DF0DE2}"
+EndProject
+Project("{8BB2217D-0F2D-49D1-97BC-3654ED321F3B}") = "SqlStreamStore.MsSql.Tests", "test\SqlStreamStore.MsSql.Tests\SqlStreamStore.MsSql.Tests.xproj", "{DADB2D9D-87EB-4284-810C-77C2FD2904B3}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -50,10 +52,6 @@ Global
 		{F3FB96CF-4A3D-448D-A25E-6BC66E370BF6}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F3FB96CF-4A3D-448D-A25E-6BC66E370BF6}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F3FB96CF-4A3D-448D-A25E-6BC66E370BF6}.Release|Any CPU.Build.0 = Release|Any CPU
-		{40510896-D9A1-4E22-8D11-E718857611F8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{40510896-D9A1-4E22-8D11-E718857611F8}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{40510896-D9A1-4E22-8D11-E718857611F8}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{40510896-D9A1-4E22-8D11-E718857611F8}.Release|Any CPU.Build.0 = Release|Any CPU
 		{97AA016B-0B9F-44C2-8228-A13B4E251FB0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{97AA016B-0B9F-44C2-8228-A13B4E251FB0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{97AA016B-0B9F-44C2-8228-A13B4E251FB0}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -86,6 +84,14 @@ Global
 		{0EEB4031-7F4E-434C-B87D-4852CEFE8221}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{0EEB4031-7F4E-434C-B87D-4852CEFE8221}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{0EEB4031-7F4E-434C-B87D-4852CEFE8221}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E611E49A-D734-418B-81C1-9124D7DF0DE2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E611E49A-D734-418B-81C1-9124D7DF0DE2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E611E49A-D734-418B-81C1-9124D7DF0DE2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E611E49A-D734-418B-81C1-9124D7DF0DE2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{DADB2D9D-87EB-4284-810C-77C2FD2904B3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{DADB2D9D-87EB-4284-810C-77C2FD2904B3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{DADB2D9D-87EB-4284-810C-77C2FD2904B3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{DADB2D9D-87EB-4284-810C-77C2FD2904B3}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -93,5 +99,7 @@ Global
 	GlobalSection(NestedProjects) = preSolution
 		{1BE143EC-E137-4B9F-82F0-F90CF1CC7ADA} = {19058155-88E8-471F-8106-ECDBB9E3ACDC}
 		{0EEB4031-7F4E-434C-B87D-4852CEFE8221} = {2FA0B849-995C-4046-BDD3-441267C26B7E}
+		{E611E49A-D734-418B-81C1-9124D7DF0DE2} = {19058155-88E8-471F-8106-ECDBB9E3ACDC}
+		{DADB2D9D-87EB-4284-810C-77C2FD2904B3} = {2FA0B849-995C-4046-BDD3-441267C26B7E}
 	EndGlobalSection
 EndGlobal

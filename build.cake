@@ -61,14 +61,15 @@ Task("RunTests")
     .IsDependentOn("Build")
     .Does(() =>
 {
-    //var testProjects = new string[] { "SqlStreamStore.Tests", "SqlStreamStore.MsSql.Tests" };
 
 	var testSettings = new DotNetCoreTestSettings
 	{
-		NoBuild = true
+		NoBuild = true,
+		Configuration = configuration
 	};
 
-	var testProjects = new string[] { "SqlStreamStore.Tests" };
+    var testProjects = new string[] { "SqlStreamStore.Tests", "SqlStreamStore.MsSql.Tests" };
+
     foreach(var testProject in testProjects)
 	{
         var projectDir = "./test/"+ testProject;
@@ -98,8 +99,8 @@ Task("Merge")
     var assemblies = new [] { "Ensure.That", "Nito.AsyncEx", "Nito.AsyncEx.Concurrent", "Nito.AsyncEx.Enlightenment" };
     merge(assemblies, "SqlStreamStore");
 
-    //assemblies = new [] { "Ensure.That" };
-    //merge(assemblies, "SqlStreamStore.MsSql");
+    assemblies = new [] { "Ensure.That" };
+    merge(assemblies, "SqlStreamStore.MsSql");
 });
 
 Task("NuGetPack")
@@ -115,12 +116,12 @@ Task("NuGetPack")
 		VersionSuffix = build,
         OutputDirectory = artifactsDir,
 		NoBuild = true,
-		Configuration = "Release"
+		Configuration = configuration
     };
 
     
 	DotNetCorePack("./src/SqlStreamStore", dotNetCorePackSettings);
-    //NuGetPack("./src/SqlStreamStore.MsSql/SqlStreamStore.MsSql.nuspec", nuGetPackSettings);
+	DotNetCorePack("./src/SqlStreamStore.MsSql", dotNetCorePackSettings);
 });
 
 Task("Default")

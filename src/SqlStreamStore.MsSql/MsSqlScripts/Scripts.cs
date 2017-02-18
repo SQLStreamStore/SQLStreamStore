@@ -3,6 +3,9 @@
     using System;
     using System.Collections.Concurrent;
     using System.IO;
+#if NETSTANDARD1_6
+    using System.Reflection;
+#endif
 
     internal class Scripts
     {
@@ -64,15 +67,17 @@
             return _scripts.GetOrAdd(name,
                 key =>
                 {
-                    using(Stream stream = typeof(Scripts)
-                        .Assembly
-                        .GetManifestResourceStream("SqlStreamStore.MsSqlScripts." + key + ".sql"))
+#if NETSTANDARD1_6
+                    using (Stream stream = typeof(Scripts).GetTypeInfo().Assembly.GetManifestResourceStream("SqlStreamStore.MsSql.MsSqlScripts." + key + ".sql"))
+#elif NET46
+                    using (Stream stream = typeof(Scripts).Assembly.GetManifestResourceStream("SqlStreamStore.MsSql.MsSqlScripts." + key + ".sql"))
+#endif
                     {
-                        if(stream == null)
+                        if (stream == null)
                         {
                             throw new Exception($"Embedded resource, {name}, not found. BUG!");
                         }
-                        using(StreamReader reader = new StreamReader(stream))
+                        using (StreamReader reader = new StreamReader(stream))
                         {
                             return reader
                                 .ReadToEnd()

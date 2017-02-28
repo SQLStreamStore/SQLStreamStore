@@ -109,6 +109,9 @@
     <Compile Include="..\SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.DeleteStream.cs">
       <Link>StreamStoreAcceptanceTests.DeleteStream.cs</Link>
     </Compile>
+    <Compile Include="..\SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.Mirror.cs">
+      <Link>SqlStreamStoreAcceptanceTests.Mirror.cs</Link>
+    </Compile>
     <Compile Include="..\SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.ReadAll.cs">
       <Link>StreamStoreAcceptanceTests.ReadAll.cs</Link>
     </Compile>

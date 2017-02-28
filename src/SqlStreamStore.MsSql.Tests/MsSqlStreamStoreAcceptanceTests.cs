@@ -22,7 +22,7 @@
         [Fact]
         public async Task Can_use_multiple_schemas()
         {
-            using(var fixture = new MsSqlStreamStoreFixture("dbo"))
+            using(var fixture = new MsSqlStreamStoreFixture())
             {
                 using(var dboStore = await fixture.GetStreamStore())
                 {
@@ -48,7 +48,7 @@
         [Fact]
         public async Task Can_get_stream_message_count_with_created_before_date()
         {
-            using (var fixture = new MsSqlStreamStoreFixture("dbo"))
+            using (var fixture = new MsSqlStreamStoreFixture())
             {
                 using (var store = await fixture.GetMsSqlStreamStore())
                 {

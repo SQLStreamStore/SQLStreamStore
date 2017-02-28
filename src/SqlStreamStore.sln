@@ -15,6 +15,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SqlStreamStore.AcceptanceTe
 		SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.cs = SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.cs
 		SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.DeleteEvent.cs = SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.DeleteEvent.cs
 		SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.DeleteStream.cs = SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.DeleteStream.cs
+		SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.Mirror.cs = SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.Mirror.cs
 		SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.ReadAll.cs = SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.ReadAll.cs
 		SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.ReadHeadCheckpoint.cs = SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.ReadHeadCheckpoint.cs
 		SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.ReadStream.cs = SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.ReadStream.cs

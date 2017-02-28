@@ -33,6 +33,7 @@
             maxAge.Value.ShouldBe(60);
             _cache.Count.ShouldBe(1);
             _cache.CacheHitCount.ShouldBe(0);
+            _cache.CacheMissCount.ShouldBe(1);
         }
 
         [Fact]

@@ -10,6 +10,10 @@ namespace SqlStreamStore.Infrastructure
     using SqlStreamStore.Subscriptions;
     using SqlStreamStore;
 
+    /// <summary>
+    ///     An abstract implementation of a <see cref="IReadonlyStreamStore"/> that provides shared behaviour across
+    ///     all readonly stream store implementations such as guard clauses, logging and filtering expired messages.
+    /// </summary>
     public abstract class ReadonlyStreamStoreBase : IReadonlyStreamStore
     {
         private const int DefaultReloadInterval = 3000;
@@ -18,6 +22,13 @@ namespace SqlStreamStore.Infrastructure
         private bool _isDisposed;
         private readonly MetadataMaxAgeCache _metadataMaxAgeCache;
 
+        /// <summary>
+        ///     Initialized a new instance of <see cref="ReadonlyStreamStoreBase"/>
+        /// </summary>
+        /// <param name="metadataMaxAgeCacheExpiry"></param>
+        /// <param name="metadataMaxAgeCacheMaxSize"></param>
+        /// <param name="getUtcNow"></param>
+        /// <param name="logName"></param>
         protected ReadonlyStreamStoreBase(
             TimeSpan metadataMaxAgeCacheExpiry,
             int metadataMaxAgeCacheMaxSize,
@@ -31,6 +42,7 @@ namespace SqlStreamStore.Infrastructure
                 metadataMaxAgeCacheMaxSize, GetUtcNow);
         }
 
+        /// <inheritdoc />
         public async Task<ReadAllPage> ReadAllForwards(
             long fromPositionInclusive,
             int maxCount,
@@ -39,8 +51,8 @@ namespace SqlStreamStore.Infrastructure
         {
             Ensure.That(fromPositionInclusive, nameof(fromPositionInclusive)).IsGte(0);
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
-
             GuardAgainstDisposed();
+
             cancellationToken.ThrowIfCancellationRequested();
 
             if (Logger.IsDebugEnabled())
@@ -58,7 +70,7 @@ namespace SqlStreamStore.Infrastructure
             // Under heavy parallel load, gaps may appear in the position sequence due to sequence
             // number reservation of in-flight transactions.
             // Here we check if there are any gaps, and in the unlikely event there is, we delay a little bit
-            // and re-issue the read. This is expected 
+            // and re-issue the read. This is expected.
             if(!page.IsEnd || page.Messages.Length <= 1)
             {
                 return await FilterExpired(page, readNext, cancellationToken).NotOnCapturedContext();
@@ -83,6 +95,7 @@ namespace SqlStreamStore.Infrastructure
             return await FilterExpired(page, readNext, cancellationToken).NotOnCapturedContext();
         }
 
+        /// <inheritdoc />
         public async Task<ReadAllPage> ReadAllBackwards(
             long fromPositionInclusive,
             int maxCount,
@@ -91,8 +104,8 @@ namespace SqlStreamStore.Infrastructure
         {
             Ensure.That(fromPositionInclusive, nameof(fromPositionInclusive)).IsGte(-1);
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
-
             GuardAgainstDisposed();
+
             cancellationToken.ThrowIfCancellationRequested();
 
             if (Logger.IsDebugEnabled())
@@ -106,6 +119,7 @@ namespace SqlStreamStore.Infrastructure
             return await FilterExpired(page, readNext, cancellationToken);
         }
 
+        /// <inheritdoc />
         public async Task<ReadStreamPage> ReadStreamForwards(
             StreamId streamId,
             int fromVersionInclusive,
@@ -131,6 +145,7 @@ namespace SqlStreamStore.Infrastructure
             return await FilterExpired(page, readNext, cancellationToken);
         }
 
+        /// <inheritdoc />
         public async Task<ReadStreamPage> ReadStreamBackwards(
             StreamId streamId,
             int fromVersionInclusive,
@@ -156,6 +171,7 @@ namespace SqlStreamStore.Infrastructure
             return await FilterExpired(page, readNext, cancellationToken);
         }
 
+        /// <inheritdoc />
         public IStreamSubscription SubscribeToStream(
             StreamId streamId,
             int? continueAfterVersion,
@@ -180,6 +196,7 @@ namespace SqlStreamStore.Infrastructure
                 name);
         }
 
+        /// <inheritdoc />
         public IAllStreamSubscription SubscribeToAll(
             long? continueAfterPosition,
             AllStreamMessageReceived streamMessageReceived,
@@ -201,6 +218,7 @@ namespace SqlStreamStore.Infrastructure
                 name);
         }
 
+        /// <inheritdoc />
         public Task<StreamMetadataResult> GetStreamMetadata(
            string streamId,
            CancellationToken cancellationToken = default(CancellationToken))
@@ -215,6 +233,7 @@ namespace SqlStreamStore.Infrastructure
             return GetStreamMetadataInternal(streamId, cancellationToken);
         }
 
+        /// <inheritdoc />
         public Task<long> ReadHeadPosition(CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
@@ -222,6 +241,7 @@ namespace SqlStreamStore.Infrastructure
             return ReadHeadPositionInternal(cancellationToken);
         }
 
+        /// <inheritdoc />
         public void Dispose()
         {
             OnDispose?.Invoke();

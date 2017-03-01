@@ -64,7 +64,11 @@ Task("Merge")
         var outputAssembly = artifactsDir.Path + "/" + primaryAssemblyName + ".dll";
         var primaryAssembly = "./src/" + primaryAssemblyName + "/bin/" + configuration + "/" + primaryAssemblyName + ".dll";
 
-        ILRepack(outputAssembly, primaryAssembly, assemblyPaths);
+        ILRepack(outputAssembly, primaryAssembly, assemblyPaths, new ILRepackSettings 
+        { 
+            Internalize = true, 
+            Parallel = true        
+        });
     };
 
     var assemblies = new [] { "Ensure.That", "Nito.AsyncEx", "Nito.AsyncEx.Concurrent", "Nito.AsyncEx.Enlightenment" };

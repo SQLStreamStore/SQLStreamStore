@@ -8,13 +8,13 @@ namespace Example
     using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
 
-    public class SubscriptToAllExample : IDisposable
+    public class SubscribeToAllExample : IDisposable
     {
         private readonly IStreamStore _streamStore;
         private IAllStreamSubscription _subscription;
         private long? _currentPosition;
 
-        public SubscriptToAllExample(IStreamStore streamStore)
+        public SubscribeToAllExample(IStreamStore streamStore)
         {
             _streamStore = streamStore;
             _subscription = streamStore.SubscribeToAll(null, StreamMessageReceived, SubscriptionDropped, IsCaughtUp);

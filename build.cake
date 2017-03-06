@@ -15,14 +15,14 @@ Task("Clean")
     CleanDirectory(artifactsDir);
 });
 
-Task("Restore-NuGet-Packages")
+Task("RestorePackages")
     .IsDependentOn("Clean")
     .Does(() =>
 {
     NuGetRestore(solution);
 });
 
-Task("Update-Version")
+Task("UpdateAssemblyInfoVersion")
     .Does(() =>
 {
     var version = FileReadText("version.txt");
@@ -30,13 +30,13 @@ Task("Update-Version")
 });
 
 Task("Build")
-    .IsDependentOn("Restore-NuGet-Packages")
+    .IsDependentOn("RestorePackages")
     .Does(() =>
 {
     MSBuild(solution, settings => settings.SetConfiguration(configuration));
 });
 
-Task("Run-Unit-Tests")
+Task("RunTests")
     .IsDependentOn("Build")
     .Does(() =>
 {
@@ -66,8 +66,8 @@ Task("Merge")
 
         ILRepack(outputAssembly, primaryAssembly, assemblyPaths, new ILRepackSettings 
         { 
-            Internalize = true, 
-            Parallel = true        
+            Internalize = true,
+            Parallel = true
         });
     };
 
@@ -78,7 +78,7 @@ Task("Merge")
     merge(assemblies, "SqlStreamStore.MsSql");
 });
 
-Task("Nuget-Pack")
+Task("NuGetPack")
     .IsDependentOn("Merge")
     .Does(() =>
 {
@@ -96,8 +96,8 @@ Task("Nuget-Pack")
 });
 
 Task("Default")
-    .IsDependentOn("Update-Version")
-    .IsDependentOn("Run-Unit-Tests")
-    .IsDependentOn("Nuget-Pack");
+    .IsDependentOn("UpdateAssemblyInfoVersion")
+    .IsDependentOn("RunTests")
+    .IsDependentOn("NuGetPack");
 
 RunTarget(target);

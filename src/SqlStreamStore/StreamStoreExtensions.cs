@@ -182,7 +182,7 @@
         ///     The cancellation instruction.
         /// </param>
         /// <returns>A task representing the asynchronous operation.</returns>
-        public static Task AppendToStream(
+        public static Task<AppendResult> AppendToStream(
             this IStreamStore store,
             string streamId,
             int expectedVersion,

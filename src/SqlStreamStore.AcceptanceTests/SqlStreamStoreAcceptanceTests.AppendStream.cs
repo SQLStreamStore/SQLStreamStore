@@ -180,7 +180,7 @@
         }
 
         [Fact]
-        public async Task Can_append_stream_with_correct_expected_version()
+        public async Task Can_append_multiple_messages_to_stream_with_correct_expected_version()
         {
             using (var fixture = GetFixture())
             {
@@ -194,6 +194,25 @@
                         await store.AppendToStream(streamId, result.CurrentVersion, CreateNewStreamMessages(4, 5, 6));
 
                     result.CurrentVersion.ShouldBe(5);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Can_append_single_message_to_stream_with_correct_expected_version()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    const string streamId = "stream-1";
+                    var result = await store
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+
+                    result =
+                        await store.AppendToStream(streamId, result.CurrentVersion, CreateNewStreamMessages(4)[0]);
+
+                    result.CurrentVersion.ShouldBe(3);
                 }
             }
         }
@@ -220,8 +239,7 @@
         }
 
         [Fact]
-        public async Task
-    When_append_stream_with_correct_expected_version_second_time_with_same_messages_then_should_have_expected_result()
+        public async Task When_append_multiple_messages_to_stream_with_correct_expected_version_second_time_with_same_messages_then_should_have_expected_result()
         {
             using (var fixture = GetFixture())
             {
@@ -237,6 +255,27 @@
 
                     result.CurrentVersion.ShouldBe(5);
                     //result.NextExpectedVersion.ShouldBe(5);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_append_single_message_to_stream_with_correct_expected_version_second_time_with_same_messages_then_should_have_expected_result()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    const string streamId = "stream-1";
+                    await store
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await store.AppendToStream(streamId, 2, CreateNewStreamMessages(4)[0]);
+
+                    var result = await
+                            store.AppendToStream(streamId, 2, CreateNewStreamMessages(4)[0]);
+
+                    result.CurrentVersion.ShouldBe(3);
+                    //result.NextExpectedVersion.ShouldBe(4);
                 }
             }
         }
@@ -264,9 +303,7 @@
         }
 
         [Fact]
-        public async Task
-    When_append_stream_with_correct_expected_version_second_time_with_same_initial_messages_then_should_have_expected_result
-    ()
+        public async Task When_append_multiple_messages_to_stream_with_correct_expected_version_second_time_with_same_initial_messages_then_should_have_expected_result()
         {
             using (var fixture = GetFixture())
             {
@@ -281,6 +318,27 @@
                             store.AppendToStream(streamId, 2, CreateNewStreamMessages(4, 5));
 
                     result.CurrentVersion.ShouldBe(5);
+                    //result.NextExpectedVersion.ShouldBe(5);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_append_single_message_to_stream_with_correct_expected_version_second_time_with_same_initial_messages_then_should_have_expected_result()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    const string streamId = "stream-1";
+                    await store
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await store.AppendToStream(streamId, 2, CreateNewStreamMessages(4)[0]);
+
+                    var result = await
+                            store.AppendToStream(streamId, 1, CreateNewStreamMessages(3)[0]);
+
+                    result.CurrentVersion.ShouldBe(3);
                     //result.NextExpectedVersion.ShouldBe(4);
                 }
             }
@@ -309,7 +367,7 @@
         }
 
         [Fact]
-        public async Task Can_append_to_non_existing_stream_with_expected_version_any()
+        public async Task Can_append_multiple_messages_to_non_existing_stream_with_expected_version_any()
         {
             using (var fixture = GetFixture())
             {
@@ -324,6 +382,26 @@
                     var page = await store
                         .ReadStreamForwards(streamId, StreamVersion.Start, 4);
                     page.Messages.Length.ShouldBe(3);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Can_append_single_message_to_non_existing_stream_with_expected_version_any()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    const string streamId = "stream-1";
+                    var result =
+                        await store.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1)[0]);
+
+                    result.CurrentVersion.ShouldBe(0);
+
+                    var page = await store
+                        .ReadStreamForwards(streamId, StreamVersion.Start, 2);
+                    page.Messages.Length.ShouldBe(1);
                 }
             }
         }
@@ -353,9 +431,7 @@
         }
 
         [Fact]
-        public async Task
-    When_append_stream_second_time_with_expected_version_any_and_all_messages_committed_then_should_have_expected_result
-    ()
+        public async Task When_append_multiple_messages_to_stream_second_time_with_expected_version_any_and_all_messages_committed_then_should_have_expected_result()
         {
             using (var fixture = GetFixture())
             {
@@ -378,6 +454,34 @@
                     var page = await store
                         .ReadStreamForwards(streamId, StreamVersion.Start, 10);
                     page.Messages.Length.ShouldBe(3);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_append_single_message_to_stream_second_time_with_expected_version_any_and_all_messages_committed_then_should_have_expected_result()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    const string streamId = "stream-1";
+
+                    var result1 = await store
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1)[0]);
+
+                    result1.CurrentVersion.ShouldBe(0);
+                    //result1.NextExpectedVersion.ShouldBe(0);
+
+                    var result2 = await store
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1)[0]);
+
+                    result2.CurrentVersion.ShouldBe(0);
+                    //result2.NextExpectedVersion.ShouldBe(0);
+
+                    var page = await store
+                        .ReadStreamForwards(streamId, StreamVersion.Start, 3);
+                    page.Messages.Length.ShouldBe(1);
                 }
             }
         }
@@ -408,9 +512,7 @@
 
 
         [Fact]
-        public async Task
-            When_append_stream_with_expected_version_any_and_some_of_the_messages_previously_committed_then_should_have_expected_result
-            ()
+        public async Task When_append_multiple_messages_to_stream_with_expected_version_any_and_some_of_the_messages_previously_committed_then_should_have_expected_result()
         {
             using (var fixture = GetFixture())
             {
@@ -431,6 +533,33 @@
 
                     var page = await store
                         .ReadStreamForwards(streamId, StreamVersion.Start, 10);
+                    page.Messages.Length.ShouldBe(3);
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_append_single_message_to_stream_with_expected_version_any_and_some_of_the_messages_previously_committed_then_should_have_expected_result()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    const string streamId = "stream-1";
+
+                    var result1 = await store
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1, 2, 3));
+                    result1.CurrentVersion.ShouldBe(2);
+                    //result1.NextExpectedVersion.ShouldBe(2);
+
+                    var result2 = await store
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1)[0]);
+
+                    result2.CurrentVersion.ShouldBe(2);
+                    //result1.NextExpectedVersion.ShouldBe(1);
+
+                    var page = await store
+                        .ReadStreamForwards(streamId, StreamVersion.Start, 4);
                     page.Messages.Length.ShouldBe(3);
                 }
             }
@@ -459,7 +588,7 @@
         }
 
         [Fact]
-        public async Task Can_append_stream_with_expected_version_any_and_none_of_the_messages_previously_committed_should_have_expected_results()
+        public async Task Can_append_multiple_messages_to_stream_with_expected_version_any_and_none_of_the_messages_previously_committed_should_have_expected_results()
         {
             using (var fixture = GetFixture())
             {
@@ -482,6 +611,30 @@
             }
         }
 
+
+        [Fact]
+        public async Task Can_append_single_message_to_stream_with_expected_version_any_and_none_of_the_messages_previously_committed_should_have_expected_results()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    const string streamId = "stream-1";
+
+                    var result1 = await store
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1, 2, 3));
+                    result1.CurrentVersion.ShouldBe(2);
+
+                    var result2 = await store
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(4)[0]);
+                    result2.CurrentVersion.ShouldBe(3);
+
+                    var page = await store
+                        .ReadStreamForwards(streamId, StreamVersion.Start, 5);
+                    page.Messages.Length.ShouldBe(4);
+                }
+            }
+        }
         [Fact]
         public async Task
             When_append_stream_with_expected_version_any_and_some_of_the_messages_previously_committed_and_with_additional_messages_then_should_throw

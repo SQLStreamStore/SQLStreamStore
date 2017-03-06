@@ -34,6 +34,8 @@ namespace SqlStreamStore.InMemory
 
         internal int CurrentVersion { get; private set; } = -1;
 
+        internal int CurrentPosition { get; private set; } = -1;
+
         internal void AppendToStream(int expectedVersion, NewStreamMessage[] newMessages)
         {
             switch(expectedVersion)
@@ -141,6 +143,7 @@ namespace SqlStreamStore.InMemory
             {
                 var position = _getNextPosition();
                 CurrentVersion++;
+                CurrentPosition = position;
 
                 var inMemorymessage = new InMemoryStreamMessage(
                     _streamId,

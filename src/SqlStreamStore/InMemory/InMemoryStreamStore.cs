@@ -140,7 +140,7 @@ namespace SqlStreamStore
                     inMemoryStream.AppendToStream(expectedVersion, messages);
                     _streams.Add(streamId, inMemoryStream);
                 }
-                return new AppendResult(inMemoryStream.CurrentVersion);
+                return new AppendResult(inMemoryStream.CurrentVersion, inMemoryStream.CurrentPosition);
             }
 
             if (!_streams.TryGetValue(streamId, out inMemoryStream))
@@ -149,7 +149,7 @@ namespace SqlStreamStore
                     ErrorMessages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
             }
             inMemoryStream.AppendToStream(expectedVersion, messages);
-            return new AppendResult(inMemoryStream.CurrentVersion);
+            return new AppendResult(inMemoryStream.CurrentVersion, inMemoryStream.CurrentPosition);
         }
 
         protected override Task DeleteEventInternal(string streamId, Guid eventId, CancellationToken cancellationToken)

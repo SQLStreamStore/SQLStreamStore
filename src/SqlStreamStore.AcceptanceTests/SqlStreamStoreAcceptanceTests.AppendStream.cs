@@ -715,6 +715,7 @@
                     page.Status.ShouldBe(PageReadStatus.Success);
                     page.FromStreamVersion.ShouldBe(0);
                     page.LastStreamVersion.ShouldBe(-1);
+                    page.LastStreamPosition.ShouldBe(-1);
                     page.NextStreamVersion.ShouldBe(0);
                     page.IsEnd.ShouldBe(true);
                 }

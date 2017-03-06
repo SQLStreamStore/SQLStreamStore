@@ -34,8 +34,12 @@ INSERT INTO dbo.Messages (StreamIdInternal, StreamVersion, Id, Created, [Type], 
       WHERE dbo.Messages.StreamIDInternal = @streamIdInternal
    ORDER BY dbo.Messages.Position DESC
 
+	IF @latestStreamPosition IS NULL
+	SET @latestStreamPosition = -1
+
      UPDATE dbo.Streams
-        SET dbo.Streams.[Version] = @latestStreamVersion
+        SET dbo.Streams.[Version] = @latestStreamVersion,
+			dbo.Streams.[Position] = @latestStreamPosition
       WHERE dbo.Streams.IdInternal = @streamIdInternal
 
 COMMIT TRANSACTION AppendStream;

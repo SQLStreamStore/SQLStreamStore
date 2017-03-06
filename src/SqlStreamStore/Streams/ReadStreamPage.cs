@@ -14,26 +14,19 @@
         public readonly int FromStreamVersion;
         public readonly bool IsEnd;
         public readonly int LastStreamVersion;
+        public readonly long LastStreamPosition;
         public readonly int NextStreamVersion;
         public readonly ReadDirection ReadDirection;
         public readonly PageReadStatus Status;
         public readonly string StreamId;
 
-        public ReadStreamPage(
-            string streamId,
-            PageReadStatus status,
-            int fromStreamVersion,
-            int nextStreamVersion,
-            int lastStreamVersion,
-            ReadDirection direction,
-            bool isEnd,
-            StreamMessage[] messages,
-            ReadNextStreamPage readNext = null)
+        public ReadStreamPage(string streamId, PageReadStatus status, int fromStreamVersion, int nextStreamVersion, int lastStreamVersion, long lastStreamPosition, ReadDirection direction, bool isEnd, StreamMessage[] messages, ReadNextStreamPage readNext = null)
         {
             StreamId = streamId;
             Status = status;
             FromStreamVersion = fromStreamVersion;
             LastStreamVersion = lastStreamVersion;
+            LastStreamPosition = lastStreamPosition;
             NextStreamVersion = nextStreamVersion;
             ReadDirection = direction;
             IsEnd = isEnd;

@@ -53,7 +53,7 @@
             string metadataJson,
             CancellationToken cancellationToken)
         {
-            Tuple<int?, int> result;
+            MsSqlAppendResult result;
             using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken);
@@ -86,7 +86,7 @@
 
             await CheckStreamMaxCount(streamId, maxCount, cancellationToken);
 
-            return new SetStreamMetadataResult(result.Item2); //Item2 = CurrentVersion
+            return new SetStreamMetadataResult(result.CurrentVersion);
         }
     }
 }

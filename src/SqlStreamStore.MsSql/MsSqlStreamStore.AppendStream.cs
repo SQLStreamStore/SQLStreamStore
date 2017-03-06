@@ -15,6 +15,20 @@
 
     public partial class MsSqlStreamStore
     {
+        private class MsSqlAppendResult
+        {
+            public readonly int? MaxCount;
+            public readonly int CurrentVersion;
+            public readonly long CurrentPosition;
+
+            public MsSqlAppendResult(int? maxCount, int currentVersion, long currentPosition)
+            {
+                MaxCount = maxCount;
+                CurrentVersion = currentVersion;
+                CurrentPosition = currentPosition;
+            }
+        }
+
         private static readonly Tuple<int?, int> NullAppendResult = new Tuple<int?, int>(null, -1);
 
         protected override async Task<AppendResult> AppendToStreamInternal(
@@ -28,7 +42,7 @@
             Ensure.That(messages, "Messages").IsNotNull();
             GuardAgainstDisposed();
 
-            Tuple<int?,int> result;
+            MsSqlAppendResult result;
             using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
@@ -37,15 +51,15 @@
                     messages, cancellationToken);
             }
 
-            if(result.Item1 != null)
+            if(result.MaxCount.HasValue)
             {
-                await CheckStreamMaxCount(streamId, result.Item1, cancellationToken);
+                await CheckStreamMaxCount(streamId, result.MaxCount.Value, cancellationToken);
             }
 
-            return new AppendResult(result.Item2);
+            return new AppendResult(result.CurrentVersion, result.CurrentPosition);
         }
 
-        private Task<Tuple<int?, int>> AppendToStreamInternal(
+        private Task<MsSqlAppendResult> AppendToStreamInternal(
            SqlConnection connection,
            SqlTransaction transaction,
            SqlStreamId sqlStreamId,
@@ -110,7 +124,7 @@
             return default(T); // never actually run
         }
 
-        private async Task<Tuple<int?, int>> AppendToStreamExpectedVersionAny(
+        private async Task<MsSqlAppendResult> AppendToStreamExpectedVersionAny(
             SqlConnection connection,
             SqlTransaction transaction,
             SqlStreamId sqlStreamId,
@@ -143,6 +157,7 @@
                     {
                         await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
                         var currentVersion = reader.GetInt32(0);
+                        var currentPosition = reader.GetInt64(1);
                         int? maxCount = null;
 
                         await reader.NextResultAsync(cancellationToken);
@@ -153,7 +168,7 @@
                             maxCount = metadataMessage.MaxCount;
                         }
 
-                        return new Tuple<int?, int>(maxCount, currentVersion);
+                        return new MsSqlAppendResult(maxCount, currentVersion, currentPosition);
                     }
                 }
                 
@@ -190,7 +205,10 @@
                                 ex);
                         }
                     }
-                    return new Tuple<int?, int>(null, page.LastStreamVersion);
+                    return new MsSqlAppendResult(
+                                null,
+                                page.LastStreamVersion,
+                                page.Messages.Length == 0 ? -1L : page.Messages[page.Messages.Length - 1].Position);
                 }
                 catch(SqlException ex) when(ex.IsUniqueConstraintViolation())
                 {
@@ -201,7 +219,7 @@
             }
         }
 
-        private async Task<Tuple<int?, int>> AppendToStreamExpectedVersionNoStream(
+        private async Task<MsSqlAppendResult> AppendToStreamExpectedVersionNoStream(
             SqlConnection connection,
             SqlTransaction transaction,
             SqlStreamId sqlStreamId,
@@ -234,6 +252,7 @@
                     {
                         await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
                         var currentVersion = reader.GetInt32(0);
+                        var currentPosition = reader.GetInt64(1);
                         int? maxCount = null;
 
                         if (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
@@ -242,7 +261,7 @@
                             var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(jsonData);
                             maxCount = metadataMessage.MaxCount;
                         }
-                        return new Tuple<int?, int>(maxCount, currentVersion);
+                        return new MsSqlAppendResult(maxCount, currentVersion, currentPosition);
                     }
                 }
                 catch(SqlException ex)
@@ -282,7 +301,10 @@
                             }
                         }
 
-                        return new Tuple<int?, int>(null, page.LastStreamVersion);
+                        return new MsSqlAppendResult(
+                                null,
+                                page.LastStreamVersion,
+                                page.Messages.Length == 0 ? -1L : page.Messages[page.Messages.Length - 1].Position);
                     }
 
                     if(ex.IsUniqueConstraintViolation())
@@ -298,7 +320,7 @@
             }
         }
 
-        private async Task<Tuple<int?, int>> AppendToStreamExpectedVersion(
+        private async Task<MsSqlAppendResult> AppendToStreamExpectedVersion(
             SqlConnection connection,
             SqlTransaction transaction,
             SqlStreamId sqlStreamId,
@@ -323,6 +345,7 @@
                     {
                         await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
                         var currentVersion = reader.GetInt32(0);
+                        var currentPosition = reader.GetInt64(1);
                         int? maxCount = null;
 
                         await reader.NextResultAsync(cancellationToken);
@@ -334,7 +357,7 @@
 
                         }
 
-                        return new Tuple<int?, int>(maxCount, currentVersion);
+                        return new MsSqlAppendResult(maxCount, currentVersion, currentPosition);
                     }
                 }
                 catch(SqlException ex)
@@ -375,7 +398,10 @@
                                 }
                             }
 
-                            return new Tuple<int?, int>(null, page.LastStreamVersion);
+                            return new MsSqlAppendResult(
+                                null, 
+                                page.LastStreamVersion, 
+                                page.Messages.Length == 0 ? -1L : page.Messages[page.Messages.Length - 1].Position);
                         }
                     }
                     if(ex.IsUniqueConstraintViolation())

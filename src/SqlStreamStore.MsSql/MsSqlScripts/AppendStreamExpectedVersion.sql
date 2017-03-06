@@ -1,6 +1,7 @@
 BEGIN TRANSACTION AppendStream;
     DECLARE @streamIdInternal AS INT;
     DECLARE @latestStreamVersion AS INT;
+	DECLARE @latestStreamPosition AS BIGINT;
 
      SELECT @streamIdInternal = dbo.Streams.IdInternal,
             @latestStreamVersion = dbo.Streams.[Version]
@@ -33,7 +34,8 @@ INSERT INTO dbo.Messages (StreamIdInternal, StreamVersion, Id, Created, [Type], 
    ORDER BY StreamVersion;
 
   SELECT TOP(1)
-            @latestStreamVersion = dbo.Messages.StreamVersion
+            @latestStreamVersion = dbo.Messages.StreamVersion,
+			@latestStreamPosition = dbo.Messages.Position
        FROM dbo.Messages
       WHERE dbo.Messages.StreamIDInternal = @streamIdInternal
    ORDER BY dbo.Messages.Position DESC
@@ -44,9 +46,9 @@ INSERT INTO dbo.Messages (StreamIdInternal, StreamVersion, Id, Created, [Type], 
 
 COMMIT TRANSACTION AppendStream;
 
-/* Select CurrentVersion */
+/* Select CurrentVersion, CurrentPosition */
 
-     SELECT currentVersion = @latestStreamVersion
+     SELECT currentVersion = @latestStreamVersion, currentPosition = @latestStreamPosition
 
 /* Select Metadata */
     DECLARE @metadataStreamId as NVARCHAR(42)

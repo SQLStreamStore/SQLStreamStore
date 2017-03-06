@@ -28,8 +28,12 @@ BEGIN TRANSACTION CreateStream;
              IF @latestStreamVersion IS NULL
             SET @latestStreamVersion = -1
 
+			 IF @latestStreamPosition IS NULL
+            SET @latestStreamPosition = -1
+
             UPDATE dbo.Streams
-               SET dbo.Streams.[Version] = @latestStreamVersion
+               SET dbo.Streams.[Version] = @latestStreamVersion,
+				   dbo.Streams.[Position] = @latestStreamPosition
              WHERE dbo.Streams.IdInternal = @streamIdInternal
     END;
 COMMIT TRANSACTION CreateStream;

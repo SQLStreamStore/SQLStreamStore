@@ -208,7 +208,7 @@
                     return new MsSqlAppendResult(
                                 null,
                                 page.LastStreamVersion,
-                                page.Messages.Length == 0 ? -1L : page.Messages[page.Messages.Length - 1].Position);
+                                page.LastStreamPosition);
                 }
                 catch(SqlException ex) when(ex.IsUniqueConstraintViolation())
                 {
@@ -231,7 +231,7 @@
                 command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
                 command.Parameters.AddWithValue("streamIdOriginal", sqlStreamId.IdOriginal);
 
-                if(messages.Any())
+                if(messages.Length != 0)
                 {
                     var sqlDataRecords = CreateSqlDataRecords(messages);
                     var eventsParam = CreateNewMessagesSqlParameter(sqlDataRecords);
@@ -304,7 +304,7 @@
                         return new MsSqlAppendResult(
                                 null,
                                 page.LastStreamVersion,
-                                page.Messages.Length == 0 ? -1L : page.Messages[page.Messages.Length - 1].Position);
+                                page.LastStreamPosition);
                     }
 
                     if(ex.IsUniqueConstraintViolation())
@@ -401,7 +401,7 @@
                             return new MsSqlAppendResult(
                                 null, 
                                 page.LastStreamVersion, 
-                                page.Messages.Length == 0 ? -1L : page.Messages[page.Messages.Length - 1].Position);
+                                page.LastStreamPosition);
                         }
                     }
                     if(ex.IsUniqueConstraintViolation())

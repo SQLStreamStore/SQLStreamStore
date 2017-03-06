@@ -103,6 +103,7 @@
                               PageReadStatus.StreamNotFound,
                               start,
                               -1,
+                              -1, 
                               -1,
                               direction,
                               true,
@@ -110,6 +111,7 @@
                               readNext);
                     }
                     var lastStreamVersion = reader.GetInt32(0);
+                    var lastStreamPosition = reader.GetInt64(1);
 
                     await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
                     var messages = new List<StreamMessage>();
@@ -166,6 +168,7 @@
                         start,
                         getNextVersion(messages, lastStreamVersion),
                         lastStreamVersion,
+                        lastStreamPosition,
                         direction,
                         isEnd,
                         messages.ToArray(),

@@ -2131,7 +2131,7 @@ namespace StreamStoreStore.Json
 // ReSharper restore RedundantExplicitArrayCreation
 // ReSharper restore SuggestUseVarKeywordEvident
 
-#if NETSTANDARD1_6
+#if NETSTANDARD1_3
 namespace System.Runtime.Serialization
 {
     public class SerializationException : Exception

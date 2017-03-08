@@ -10,7 +10,7 @@
     {
 #if NET46
         private static readonly ILog s_logger = LogProvider.GetCurrentClassLogger();
-#elif NETSTANDARD1_6
+#elif NETSTANDARD1_3
         private static readonly ILog s_logger = LogProvider.GetLogger("SqlStreamStore.Subscriptions.PollingStreamStoreNotifier");
 #endif
         private readonly CancellationTokenSource _disposed = new CancellationTokenSource();

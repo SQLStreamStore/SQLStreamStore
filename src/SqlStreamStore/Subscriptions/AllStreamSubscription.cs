@@ -14,7 +14,7 @@
         public const int DefaultPageSize = 10;
 #if NET46
         private static readonly ILog s_logger = LogProvider.GetCurrentClassLogger();
-#elif NETSTANDARD1_6
+#elif NETSTANDARD1_3
         private static readonly ILog s_logger = LogProvider.GetLogger("SqlStreamStore.Subscriptions.AllStreamSubscription");
 #endif
         private int _pageSize = DefaultPageSize;
@@ -29,7 +29,7 @@
         private readonly AsyncAutoResetEvent _streamStoreNotification = new AsyncAutoResetEvent();
 #if NET46
         private readonly TaskCompletionSource _started = new TaskCompletionSource();
-#elif NETSTANDARD1_6
+#elif NETSTANDARD1_3
         private readonly TaskCompletionSource<object> _started = new TaskCompletionSource<object>();
 #endif
         private readonly InterlockedBoolean _notificationRaised = new InterlockedBoolean();
@@ -105,7 +105,7 @@
             }
 #if NET46
             _started.SetResult();
-#elif NETSTANDARD1_6
+#elif NETSTANDARD1_3
             _started.SetResult(null);
 #endif
             while (true)

@@ -1,0 +1,64 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <Description>A libray for writing and reading streams (also known as an 'event store') with a focus on SQL based implementations. This contains the core interfaces, abstractions and an in-memory implementation for tests.</Description>
+    <AssemblyTitle>SQL Stream Store</AssemblyTitle>
+    <VersionPrefix>0.6.1</VersionPrefix>
+    <Authors>Damian Hickey</Authors>
+    <TargetFrameworks>netstandard1.3;net46</TargetFrameworks>
+    <DefineConstants>$(DefineConstants);LIBLOG_PUBLIC</DefineConstants>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AssemblyName>SqlStreamStore</AssemblyName>
+    <PackageId>SqlStreamStore</PackageId>
+    <PackageTags>cqrs;event-sourcing;domain-driven-design;event-store;stream-store</PackageTags>
+    <PackageReleaseNotes>- AppendStream returns an AppendResult
+- JsonData loading is async with ability to disable prefecthing
+- Subscription callbacks include the subscription instance
+- Subscriptions dispose themselves when the underlying store is disposed</PackageReleaseNotes>
+    <PackageProjectUrl>https://github.com/damianh/SqlStreamStore</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/damianh/SqlStreamStore/blob/master/LICENSE</PackageLicenseUrl>
+    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.1</NetStandardImplicitPackageVersion>
+    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="SimpleJson" Version="0.38.0">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="LibLog" Version="4.2.6">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
+    <PackageReference Include="System.Runtime" Version="4.3.0" />
+    <PackageReference Include="System.Threading.Tasks" Version="4.3.0" />
+    <PackageReference Include="Nito.AsyncEx.Coordination" Version="1.0.2" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
+    <PackageReference Include="Ensure.That" Version="5.0.0" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
+    <DefineConstants>$(DefineConstants);LIBLOG_PORTABLE</DefineConstants>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net46' ">
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
+    <PackageReference Include="Nito.AsyncEx" Version="3.0.1">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Ensure.That" Version="5.0.0">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="System.Runtime" Version="4.1.0" />
+    <PackageReference Include="System.Threading.Tasks" Version="4.0.11" />
+    <Reference Include="System" />
+    <Reference Include="Microsoft.CSharp" />
+  </ItemGroup>
+
+</Project>

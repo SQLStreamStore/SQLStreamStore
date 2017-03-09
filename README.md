@@ -27,4 +27,4 @@ See [Wiki](../../wiki) to get started.
 
 # Licences
 
-Licenced under [MIT](licence.txt).
+Licenced under [MIT](LICENSE).

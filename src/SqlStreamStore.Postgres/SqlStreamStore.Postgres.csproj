@@ -1,14 +1,19 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <Description>Postgre SQL provider for SQL StreamStore</Description>
     <AssemblyTitle>Stream Store - Postgres</AssemblyTitle>
-    <AssemblyName>SqlStreamStore.Postgres</AssemblyName>
+    <VersionPrefix>0.6.1</VersionPrefix>
     <TargetFrameworks>netstandard1.3;net46</TargetFrameworks>
-    <Version>0.61</Version>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AssemblyName>SqlStreamStore.Postgres</AssemblyName>
+    <PackageId>SqlStreamStore.Postgres</PackageId>
+    <PackageTags>cqrs;event-sourcing;domain-driven-design;event-store;postgre</PackageTags>
     <PackageProjectUrl>https://github.com/damianh/SqlStreamStore</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/damianh/SqlStreamStore/blob/master/LICENSE</PackageLicenseUrl>
     <PackageTags>cqrs;event-sourcing;domain-driven-design;event-store</PackageTags>
-    <AssemblyVersion>0.6.1.0</AssemblyVersion>
-    <FileVersion>0.6.1.0</FileVersion>
+    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.1</NetStandardImplicitPackageVersion>
+    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Npgsql" Version="3.1.9" />

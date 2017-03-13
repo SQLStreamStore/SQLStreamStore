@@ -21,10 +21,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{19058155-88E
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "test", "test", "{2FA0B849-995C-4046-BDD3-441267C26B7E}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoadTests", "LoadTests\LoadTests.csproj", "{E7397C6F-7837-4362-A7F7-20F255ACD48A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.Postgres.Tests", "SqlStreamStore.Postgres.Tests\SqlStreamStore.Postgres.Tests.csproj", "{55054819-94FE-4E33-9E2A-AA8CCE12D333}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore", "src\SqlStreamStore\SqlStreamStore.csproj", "{1BE143EC-E137-4B9F-82F0-F90CF1CC7ADA}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.Tests", "test\SqlStreamStore.Tests\SqlStreamStore.Tests.csproj", "{0EEB4031-7F4E-434C-B87D-4852CEFE8221}"
@@ -37,20 +33,16 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.Postgres", "
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Example", "src\Example\Example.csproj", "{B95A2815-4039-4E70-B34C-0238AE8C6EAB}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.Postgres.Tests", "test\SqlStreamStore.Postgres.Tests\SqlStreamStore.Postgres.Tests.csproj", "{3F739AB5-58F3-4BD5-A1DE-6EB7309076CE}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "LoadTests", "test\LoadTests\LoadTests.csproj", "{E5960CFD-409F-416D-9830-F288C002ABF0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{E7397C6F-7837-4362-A7F7-20F255ACD48A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E7397C6F-7837-4362-A7F7-20F255ACD48A}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E7397C6F-7837-4362-A7F7-20F255ACD48A}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E7397C6F-7837-4362-A7F7-20F255ACD48A}.Release|Any CPU.Build.0 = Release|Any CPU
-		{55054819-94FE-4E33-9E2A-AA8CCE12D333}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{55054819-94FE-4E33-9E2A-AA8CCE12D333}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{55054819-94FE-4E33-9E2A-AA8CCE12D333}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{55054819-94FE-4E33-9E2A-AA8CCE12D333}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1BE143EC-E137-4B9F-82F0-F90CF1CC7ADA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1BE143EC-E137-4B9F-82F0-F90CF1CC7ADA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1BE143EC-E137-4B9F-82F0-F90CF1CC7ADA}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -75,6 +67,14 @@ Global
 		{B95A2815-4039-4E70-B34C-0238AE8C6EAB}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B95A2815-4039-4E70-B34C-0238AE8C6EAB}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B95A2815-4039-4E70-B34C-0238AE8C6EAB}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3F739AB5-58F3-4BD5-A1DE-6EB7309076CE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3F739AB5-58F3-4BD5-A1DE-6EB7309076CE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3F739AB5-58F3-4BD5-A1DE-6EB7309076CE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3F739AB5-58F3-4BD5-A1DE-6EB7309076CE}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5960CFD-409F-416D-9830-F288C002ABF0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5960CFD-409F-416D-9830-F288C002ABF0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5960CFD-409F-416D-9830-F288C002ABF0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5960CFD-409F-416D-9830-F288C002ABF0}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -86,5 +86,7 @@ Global
 		{DADB2D9D-87EB-4284-810C-77C2FD2904B3} = {2FA0B849-995C-4046-BDD3-441267C26B7E}
 		{81471C47-2CB6-488C-9B83-2FDE672F4DA0} = {19058155-88E8-471F-8106-ECDBB9E3ACDC}
 		{B95A2815-4039-4E70-B34C-0238AE8C6EAB} = {19058155-88E8-471F-8106-ECDBB9E3ACDC}
+		{3F739AB5-58F3-4BD5-A1DE-6EB7309076CE} = {2FA0B849-995C-4046-BDD3-441267C26B7E}
+		{E5960CFD-409F-416D-9830-F288C002ABF0} = {2FA0B849-995C-4046-BDD3-441267C26B7E}
 	EndGlobalSection
 EndGlobal

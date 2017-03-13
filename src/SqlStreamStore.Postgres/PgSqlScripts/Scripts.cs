@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Concurrent;
     using System.IO;
+    using System.Reflection;
 
     internal class Scripts
     {
@@ -52,9 +53,11 @@
             return _scripts.GetOrAdd(name,
                 key =>
                 {
-                    using (Stream stream = typeof(Scripts)
-                        .Assembly
-                        .GetManifestResourceStream("SqlStreamStore.PgSqlScripts." + key + ".pgsql"))
+#if NETSTANDARD1_3
+                    using (Stream stream = typeof(Scripts).GetTypeInfo().Assembly.GetManifestResourceStream("SqlStreamStore.Postgres.PgSqlScripts." + key + ".sql"))
+#elif NET46
+                    using (Stream stream = typeof(Scripts).Assembly.GetManifestResourceStream("SqlStreamStore.Postgres.PgSqlScripts." + key + ".pgsql"))
+#endif
                     {
                         if (stream == null)
                         {

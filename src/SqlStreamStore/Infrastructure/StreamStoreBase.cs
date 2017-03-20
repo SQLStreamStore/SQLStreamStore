@@ -31,14 +31,14 @@ namespace SqlStreamStore.Infrastructure
                                    "{messageCount} messages.", streamId, expectedVersion, messages.Length);
             }
 
-            //TODO: What should I do here? I don't know the CurrentPosition at this point.
-            //Gut feeling says I should push this down to each implementation so they can do the right thing ...
-            if(messages.Length == 0 && expectedVersion >= 0) 
-            {
-                // If there is an expected version then nothing to do...
-                return Task.FromResult(new AppendResult(expectedVersion));
-            }
-            // ... expectedVersion.NoStream and ExpectedVesion.Any may create an empty stream though
+            // //TODO: What should I do here? I don't know the CurrentPosition at this point.
+            // //Gut feeling says I should push this down to each implementation so they can do the right thing ...
+            // if(messages.Length == 0 && expectedVersion >= 0) 
+            // {
+            //     // If there is an expected version then nothing to do...
+            //     return Task.FromResult(new AppendResult(expectedVersion));
+            // }
+            // // ... expectedVersion.NoStream and ExpectedVesion.Any may create an empty stream though
             return AppendToStreamInternal(streamId, expectedVersion, messages, cancellationToken);
         }
 

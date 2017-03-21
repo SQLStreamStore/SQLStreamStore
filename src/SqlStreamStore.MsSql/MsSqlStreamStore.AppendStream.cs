@@ -459,7 +459,11 @@
             var eventsParam = new SqlParameter("newMessages", SqlDbType.Structured)
             {
                 TypeName = $"{_scripts.Schema}.NewStreamMessages",
-                Value = sqlDataRecords.Length == 0 ? null : sqlDataRecords
+                Value = sqlDataRecords == null
+                    ? null
+                    : sqlDataRecords.Length == 0
+                        ? null
+                        : sqlDataRecords
             };
             return eventsParam;
         }

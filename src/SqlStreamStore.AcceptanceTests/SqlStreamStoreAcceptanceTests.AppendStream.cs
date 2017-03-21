@@ -679,6 +679,24 @@
         }
 
         [Fact]
+        public async Task When_append_stream_with_expected_version_and_no_messages_then_should_have_expected_result()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    const string streamId = "stream-1";
+                    await store
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+
+                    var result = await store.AppendToStream(streamId, 2, new NewStreamMessage[0]);
+
+                    result.CurrentVersion.ShouldBe(2);
+                }
+            }
+        }
+
+        [Fact]
         public async Task When_append_stream_with_expected_version_and_duplicate_message_Id_then_should_throw()
         {
             using (var fixture = GetFixture())

@@ -36,7 +36,7 @@ BEGIN
         [Type]              NVARCHAR(128)                           NOT NULL,
         JsonData            NVARCHAR(max)                           NOT NULL,
         JsonMetadata        NVARCHAR(max)                                   ,
-        CONSTRAINT PK_Events PRIMARY KEY CLUSTERED (Position),
+        CONSTRAINT PK_Events PRIMARY KEY NONCLUSTERED (Position),
         CONSTRAINT FK_Events_Streams FOREIGN KEY (StreamIdInternal) REFERENCES dbo.Streams(IdInternal)
     );
 END

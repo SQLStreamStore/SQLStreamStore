@@ -692,6 +692,7 @@
                     var result = await store.AppendToStream(streamId, 2, new NewStreamMessage[0]);
 
                     result.CurrentVersion.ShouldBe(2);
+                    result.CurrentPosition.ShouldBe(2);
                 }
             }
         }

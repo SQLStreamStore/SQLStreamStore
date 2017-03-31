@@ -30,8 +30,19 @@ namespace SqlStreamStore.Infrastructure
                 Logger.DebugFormat("AppendToStream {streamId} with expected version {expectedVersion} and " +
                                    "{messageCount} messages.", streamId, expectedVersion, messages.Length);
             }
-
+            if (messages.Length == 0 && expectedVersion >= 0)
+            {
+                // If there is an expected version then nothing to do...
+                return CreateAppendResultAtHeadPosition(expectedVersion, cancellationToken);
+            }
+            // ... expectedVersion.NoStream and ExpectedVesion.Any may create an empty stream though
             return AppendToStreamInternal(streamId, expectedVersion, messages, cancellationToken);
+        }
+
+        private async Task<AppendResult> CreateAppendResultAtHeadPosition(int expectedVersion, CancellationToken cancellationToken)
+        {
+            var position = await ReadHeadPosition(cancellationToken);
+            return new AppendResult(expectedVersion, position);
         }
 
         /// <summary>

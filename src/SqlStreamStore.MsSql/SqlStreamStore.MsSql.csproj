@@ -74,7 +74,7 @@
     <EmbeddedResource Include="MsSqlScripts\GetStreamMessageBeforeCreatedCount.sql" />
     <EmbeddedResource Include="MsSqlScripts\GetStreamMessageCount.sql" />
     <EmbeddedResource Include="MsSqlScripts\DeleteStreamMessage.sql" />
-    <EmbeddedResource Include="MsSqlScripts\CreateSchema-v1.sql" />
+    <EmbeddedResource Include="MsSqlScripts\CreateSchema_v1.sql" />
     <EmbeddedResource Include="MsSqlScripts\GetSchemaVersion.sql" />
     <Content Include="MsSqlScripts\DropTestDBs.sql" />
     <EmbeddedResource Include="MsSqlScripts\ReadHeadPosition.sql" />

@@ -8,16 +8,16 @@
         /// <summary>
         ///     The version of the schema checked.
         /// </summary>
-        public int SchemaVersion { get; }
+        public int CurrentVersion { get; }
 
         /// <summary>
         ///     The expected version for this version of MsSqlStreamStore to be compatible with.
         /// </summary>
         public int ExpectedVersion { get; }
 
-        public CheckSchemaResult(int schemaVersion, int expectedVersion)
+        public CheckSchemaResult(int currentVersion, int expectedVersion)
         {
-            SchemaVersion = schemaVersion;
+            CurrentVersion = currentVersion;
             ExpectedVersion = expectedVersion;
         }
 
@@ -27,7 +27,7 @@
         /// <returns>True if the version match, otherwise False.</returns>
         public bool IsMatch()
         {
-            return SchemaVersion == ExpectedVersion;
+            return CurrentVersion == ExpectedVersion;
         }
     }
 }

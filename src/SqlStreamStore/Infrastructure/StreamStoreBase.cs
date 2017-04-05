@@ -128,7 +128,7 @@ namespace SqlStreamStore.Infrastructure
         /// </summary>
         /// <param name="streamId">The stream id.</param>
         /// <param name="cancellationToken">The cancellation instruction.</param>
-        /// <returns>The cancellation instruction.</returns>
+        /// <returns>The number of messages in a stream.</returns>
         protected abstract Task<int> GetStreamMessageCount(
             string streamId,
             CancellationToken cancellationToken = default(CancellationToken));

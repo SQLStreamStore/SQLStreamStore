@@ -56,9 +56,12 @@
             _appendToStreamSqlMetadata = sqlMetaData.ToArray();
         }
 
-        public async Task CreateSchema(
-            bool ignoreErrors = false,
-            CancellationToken cancellationToken = default(CancellationToken))
+        /// <summary>
+        ///     Creates a scheme to hold stream 
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation instruction.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task CreateSchema(CancellationToken cancellationToken = default(CancellationToken))
         {
             GuardAgainstDisposed();
 
@@ -86,23 +89,19 @@
 
                 using (var command = new SqlCommand(_scripts.CreateSchema, connection))
                 {
-                    if(ignoreErrors)
-                    {
-                        await ExecuteAndIgnoreErrors(() => command.ExecuteNonQueryAsync(cancellationToken))
-                            .NotOnCapturedContext();
-                    }
-                    else
-                    {
-                        await command.ExecuteNonQueryAsync(cancellationToken)
-                            .NotOnCapturedContext();
-                    }
+                    await command.ExecuteNonQueryAsync(cancellationToken)
+                        .NotOnCapturedContext();
                 }
             }
         }
 
-        public async Task DropAll(
-            bool ignoreErrors = false,
-            CancellationToken cancellationToken = default(CancellationToken))
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="ignoreErrors">Ignore any errors raised.</param>
+        /// <param name="cancellationToken">The cancellation instruction.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task DropAll(CancellationToken cancellationToken = default(CancellationToken))
         {
             GuardAgainstDisposed();
 
@@ -112,16 +111,15 @@
 
                 using(var command = new SqlCommand(_scripts.DropAll, connection))
                 {
-                    if(ignoreErrors)
-                    {
-                        await ExecuteAndIgnoreErrors(() => command.ExecuteNonQueryAsync(cancellationToken))
-                            .NotOnCapturedContext();
-                    }
-                    else
+                    try
                     {
                         await command
                             .ExecuteNonQueryAsync(cancellationToken)
                             .NotOnCapturedContext();
+                    }
+                    catch(Exception ex)
+                    {
+                        throw;
                     }
                 }
             }
@@ -214,17 +212,5 @@
         }
 
         private IObservable<Unit> GetStoreObservable => _streamStoreNotifier.Value;
-
-        private static async Task<T> ExecuteAndIgnoreErrors<T>(Func<Task<T>> operation)
-        {
-            try
-            {
-                return await operation().NotOnCapturedContext();
-            }
-            catch
-            {
-                return default(T);
-            }
-        }
     }
 }

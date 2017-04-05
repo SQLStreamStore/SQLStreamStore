@@ -45,7 +45,6 @@ namespace SqlStreamStore
                 GetUtcNow = () => GetUtcNow()
             };
             var store = new MsSqlStreamStore(settings);
-            await store.DropAll(ignoreErrors: true);
             await store.CreateSchema();
 
             return store;
@@ -75,7 +74,6 @@ namespace SqlStreamStore
             };
 
             var store = new MsSqlStreamStore(settings);
-            await store.DropAll(ignoreErrors: true);
             await store.CreateSchema();
 
             return store;

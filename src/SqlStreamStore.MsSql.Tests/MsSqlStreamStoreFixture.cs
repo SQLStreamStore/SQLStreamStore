@@ -26,7 +26,7 @@ namespace SqlStreamStore
             {
                 Version = s_sqlLocalDbProviderVersionToUse
             };
-            s_localDbInstance = new TemporarySqlLocalDbInstance("MsSqlStreamStoreInstance", localDbProvider);
+            s_localDbInstance = new TemporarySqlLocalDbInstance($"SSS-{Guid.NewGuid()}", localDbProvider);
         }
 
         public MsSqlStreamStoreFixture(string schema)

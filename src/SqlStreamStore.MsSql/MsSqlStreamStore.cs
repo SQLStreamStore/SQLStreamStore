@@ -18,6 +18,8 @@
         private readonly Lazy<IStreamStoreNotifier> _streamStoreNotifier;
         private readonly Scripts _scripts;
         private readonly SqlMetaData[] _appendToStreamSqlMetadata;
+        private const int FirstSchemaVersion = 1;
+        private const int CurrentSchemaVersion = 1;
 
         public MsSqlStreamStore(MsSqlStreamStoreSettings settings)
             :base(settings.MetadataMaxAgeCacheExpire, settings.MetadataMaxAgeCacheMaxSize,
@@ -98,7 +100,33 @@
         /// <summary>
         /// 
         /// </summary>
-        /// <param name="ignoreErrors">Ignore any errors raised.</param>
+        /// <param name="cancellationToken"></param>
+        /// <returns>A <see cref="CheckSchemaResult"/> representing the result of the operation.</returns>
+        public async Task<CheckSchemaResult> CheckSchema(
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            GuardAgainstDisposed();
+
+            using(var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken);
+
+                using (var command = new SqlCommand(_scripts.GetSchemaVersion, connection))
+                {
+                    var schemaVersion =  await command
+                        .ExecuteScalarAsync(cancellationToken)
+                        .NotOnCapturedContext();
+
+                    return schemaVersion == null 
+                        ? new CheckSchemaResult(FirstSchemaVersion, CurrentSchemaVersion)  // First schema (1) didn't have extended properties.
+                        : new CheckSchemaResult((int)schemaVersion, CurrentSchemaVersion);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Drops all tables related to this store instance.
+        /// </summary>
         /// <param name="cancellationToken">The cancellation instruction.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task DropAll(CancellationToken cancellationToken = default(CancellationToken))
@@ -111,16 +139,9 @@
 
                 using(var command = new SqlCommand(_scripts.DropAll, connection))
                 {
-                    try
-                    {
-                        await command
-                            .ExecuteNonQueryAsync(cancellationToken)
-                            .NotOnCapturedContext();
-                    }
-                    catch(Exception ex)
-                    {
-                        throw;
-                    }
+                    await command
+                        .ExecuteNonQueryAsync(cancellationToken)
+                        .NotOnCapturedContext();
                 }
             }
         }

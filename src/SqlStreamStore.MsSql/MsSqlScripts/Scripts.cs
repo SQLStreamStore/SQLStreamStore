@@ -35,6 +35,10 @@
 
         internal string CreateSchema => GetScript(nameof(CreateSchema));
 
+        internal string CreateSchema_v1 => GetScript(nameof(CreateSchema_v1));
+
+        internal string GetSchemaVersion => GetScript(nameof(GetSchemaVersion));
+
         internal string ReadHeadPosition => GetScript(nameof(ReadHeadPosition));
 
         internal string ReadAllForward => GetScript(nameof(ReadAllForward));

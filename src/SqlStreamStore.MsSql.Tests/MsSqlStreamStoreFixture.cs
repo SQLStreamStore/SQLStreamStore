@@ -39,15 +39,7 @@ namespace SqlStreamStore
         {
             await CreateDatabase();
 
-            var settings = new MsSqlStreamStoreSettings(ConnectionString)
-            {
-                Schema = _schema,
-                GetUtcNow = () => GetUtcNow()
-            };
-            var store = new MsSqlStreamStore(settings);
-            await store.CreateSchema();
-
-            return store;
+            return await GetStreamStore(_schema);
         }
 
         public async Task<IStreamStore> GetStreamStore(string schema)
@@ -59,6 +51,20 @@ namespace SqlStreamStore
             };
             var store = new MsSqlStreamStore(settings);
             await store.CreateSchema();
+
+            return store;
+        }
+
+        public async Task<MsSqlStreamStore> GetStreamStore_v1Schema()
+        {
+            await CreateDatabase();
+            var settings = new MsSqlStreamStoreSettings(ConnectionString)
+            {
+                Schema = _schema,
+                GetUtcNow = () => GetUtcNow()
+            };
+            var store = new MsSqlStreamStore(settings);
+            await store.CreateSchema_v1_ForTests();
 
             return store;
         }

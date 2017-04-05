@@ -108,9 +108,25 @@
                 {
                     var result = await store.CheckSchema();
 
-                    result.ExpectedVersion.ShouldBe(1);
-                    result.SchemaVersion.ShouldBe(1);
+                    result.ExpectedVersion.ShouldBe(2);
+                    result.SchemaVersion.ShouldBe(2);
                     result.IsMatch().ShouldBeTrue();
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_schema_is_v1_then_should_not_match()
+        {
+            using (var fixture = new MsSqlStreamStoreFixture("dbo"))
+            {
+                using (var store = await fixture.GetStreamStore_v1Schema())
+                {
+                    var result = await store.CheckSchema();
+
+                    result.ExpectedVersion.ShouldBe(2);
+                    result.SchemaVersion.ShouldBe(1);
+                    result.IsMatch().ShouldBeFalse();
                 }
             }
         }

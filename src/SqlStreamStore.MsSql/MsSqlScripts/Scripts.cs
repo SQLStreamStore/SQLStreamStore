@@ -76,7 +76,7 @@
                         {
                             return reader
                                 .ReadToEnd()
-                                .Replace("dbo.", Schema + ".");
+                                .Replace("dbo", Schema);
                         }
                     }
                 });

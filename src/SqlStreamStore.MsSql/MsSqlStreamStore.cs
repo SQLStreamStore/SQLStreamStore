@@ -19,7 +19,7 @@
         private readonly Scripts _scripts;
         private readonly SqlMetaData[] _appendToStreamSqlMetadata;
         private const int FirstSchemaVersion = 1;
-        private const int CurrentSchemaVersion = 1;
+        private const int CurrentSchemaVersion = 2;
 
         public MsSqlStreamStore(MsSqlStreamStoreSettings settings)
             :base(settings.MetadataMaxAgeCacheExpire, settings.MetadataMaxAgeCacheMaxSize,
@@ -97,6 +97,40 @@
             }
         }
 
+        internal async Task CreateSchema_v1_ForTests(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            GuardAgainstDisposed();
+
+            using (var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                if (_scripts.Schema != "dbo")
+                {
+                    using (var command = new SqlCommand($@"
+                        IF NOT EXISTS (
+                        SELECT  schema_name
+                        FROM    information_schema.schemata
+                        WHERE   schema_name = '{_scripts.Schema}' ) 
+
+                        BEGIN
+                        EXEC sp_executesql N'CREATE SCHEMA {_scripts.Schema}'
+                        END", connection))
+                    {
+                        await command
+                            .ExecuteNonQueryAsync(cancellationToken)
+                            .NotOnCapturedContext();
+                    }
+                }
+
+                using (var command = new SqlCommand(_scripts.CreateSchema_v1, connection))
+                {
+                    await command.ExecuteNonQueryAsync(cancellationToken)
+                        .NotOnCapturedContext();
+                }
+            }
+        }
+
         /// <summary>
         /// 
         /// </summary>
@@ -119,7 +153,7 @@
 
                     return schemaVersion == null 
                         ? new CheckSchemaResult(FirstSchemaVersion, CurrentSchemaVersion)  // First schema (1) didn't have extended properties.
-                        : new CheckSchemaResult((int)schemaVersion, CurrentSchemaVersion);
+                        : new CheckSchemaResult(int.Parse(schemaVersion.ToString()), CurrentSchemaVersion);
                 }
             }
         }

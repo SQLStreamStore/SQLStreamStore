@@ -1,3 +1,3 @@
 DROP TABLE dbo.Messages;
 DROP TABLE dbo.Streams;
-DROP TYPE dbo.Newmessages;
+DROP TYPE dbo.NewStreamMessages;

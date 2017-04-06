@@ -1,6 +1,6 @@
 ﻿using System.Reflection;
 using System.Runtime.CompilerServices;
 
-[assembly: AssemblyTitle("StreamStore.MsSql2008")]
+[assembly: AssemblyTitle("SqlStreamStore.MsSql")]
 [assembly: AssemblyDescription("")]
-[assembly: InternalsVisibleTo("StreamStore.MsSql2008.Tests")]
+[assembly: InternalsVisibleTo("SqlStreamStore.MsSql.Tests")]

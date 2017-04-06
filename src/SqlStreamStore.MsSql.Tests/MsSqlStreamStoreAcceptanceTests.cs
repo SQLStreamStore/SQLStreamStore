@@ -86,5 +86,49 @@
                 }
             }
         }
+
+        [Fact]
+        public async Task Can_drop_all()
+        {
+            using (var fixture = new MsSqlStreamStoreFixture("dbo"))
+            {
+                using (var store = await fixture.GetMsSqlStreamStore())
+                {
+                    await store.DropAll();
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Can_check_schema()
+        {
+            using (var fixture = new MsSqlStreamStoreFixture("dbo"))
+            {
+                using (var store = await fixture.GetMsSqlStreamStore())
+                {
+                    var result = await store.CheckSchema();
+
+                    result.ExpectedVersion.ShouldBe(2);
+                    result.CurrentVersion.ShouldBe(2);
+                    result.IsMatch().ShouldBeTrue();
+                }
+            }
+        }
+
+        [Fact]
+        public async Task When_schema_is_v1_then_should_not_match()
+        {
+            using (var fixture = new MsSqlStreamStoreFixture("dbo"))
+            {
+                using (var store = await fixture.GetStreamStore_v1Schema())
+                {
+                    var result = await store.CheckSchema();
+
+                    result.ExpectedVersion.ShouldBe(2);
+                    result.CurrentVersion.ShouldBe(1);
+                    result.IsMatch().ShouldBeFalse();
+                }
+            }
+        }
     }
 }

@@ -36,7 +36,7 @@ BEGIN
         [Type]              NVARCHAR(128)                           NOT NULL,
         JsonData            NVARCHAR(max)                           NOT NULL,
         JsonMetadata        NVARCHAR(max)                                   ,
-        CONSTRAINT PK_Events PRIMARY KEY NONCLUSTERED (Position),
+        CONSTRAINT PK_Events PRIMARY KEY CLUSTERED (Position),
         CONSTRAINT FK_Events_Streams FOREIGN KEY (StreamIdInternal) REFERENCES dbo.Streams(IdInternal)
     );
 END
@@ -86,13 +86,4 @@ BEGIN
         JsonData            NVARCHAR(max)                           NULL,
         JsonMetadata        NVARCHAR(max)                           NULL
     );
-END
-
-BEGIN
-    IF NOT EXISTS (SELECT NULL FROM SYS.EXTENDED_PROPERTIES WHERE [major_id] = OBJECT_ID('dbo.Streams') AND [name] = N'Version' AND [minor_id] = 0)
-    EXEC sys.sp_addextendedproperty   
-    @name = N'Version',
-    @value = N'2',
-    @level0type = N'SCHEMA', @level0name = 'dbo',
-    @level1type = N'TABLE',  @level1name = 'Streams';
 END

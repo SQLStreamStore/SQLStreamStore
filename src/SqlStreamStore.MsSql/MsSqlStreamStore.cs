@@ -18,6 +18,8 @@
         private readonly Lazy<IStreamStoreNotifier> _streamStoreNotifier;
         private readonly Scripts _scripts;
         private readonly SqlMetaData[] _appendToStreamSqlMetadata;
+        private const int FirstSchemaVersion = 1;
+        private const int CurrentSchemaVersion = 2;
 
         public MsSqlStreamStore(MsSqlStreamStoreSettings settings)
             :base(settings.MetadataMaxAgeCacheExpire, settings.MetadataMaxAgeCacheMaxSize,
@@ -56,9 +58,12 @@
             _appendToStreamSqlMetadata = sqlMetaData.ToArray();
         }
 
-        public async Task CreateSchema(
-            bool ignoreErrors = false,
-            CancellationToken cancellationToken = default(CancellationToken))
+        /// <summary>
+        ///     Creates a scheme to hold stream 
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation instruction.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task CreateSchema(CancellationToken cancellationToken = default(CancellationToken))
         {
             GuardAgainstDisposed();
 
@@ -86,23 +91,79 @@
 
                 using (var command = new SqlCommand(_scripts.CreateSchema, connection))
                 {
-                    if(ignoreErrors)
-                    {
-                        await ExecuteAndIgnoreErrors(() => command.ExecuteNonQueryAsync(cancellationToken))
-                            .NotOnCapturedContext();
-                    }
-                    else
-                    {
-                        await command.ExecuteNonQueryAsync(cancellationToken)
-                            .NotOnCapturedContext();
-                    }
+                    await command.ExecuteNonQueryAsync(cancellationToken)
+                        .NotOnCapturedContext();
                 }
             }
         }
 
-        public async Task DropAll(
-            bool ignoreErrors = false,
+        internal async Task CreateSchema_v1_ForTests(CancellationToken cancellationToken = default(CancellationToken))
+        {
+            GuardAgainstDisposed();
+
+            using (var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                if (_scripts.Schema != "dbo")
+                {
+                    using (var command = new SqlCommand($@"
+                        IF NOT EXISTS (
+                        SELECT  schema_name
+                        FROM    information_schema.schemata
+                        WHERE   schema_name = '{_scripts.Schema}' ) 
+
+                        BEGIN
+                        EXEC sp_executesql N'CREATE SCHEMA {_scripts.Schema}'
+                        END", connection))
+                    {
+                        await command
+                            .ExecuteNonQueryAsync(cancellationToken)
+                            .NotOnCapturedContext();
+                    }
+                }
+
+                using (var command = new SqlCommand(_scripts.CreateSchema_v1, connection))
+                {
+                    await command.ExecuteNonQueryAsync(cancellationToken)
+                        .NotOnCapturedContext();
+                }
+            }
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns>A <see cref="CheckSchemaResult"/> representing the result of the operation.</returns>
+        public async Task<CheckSchemaResult> CheckSchema(
             CancellationToken cancellationToken = default(CancellationToken))
+        {
+            GuardAgainstDisposed();
+
+            using(var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken);
+
+                using (var command = new SqlCommand(_scripts.GetSchemaVersion, connection))
+                {
+                    var schemaVersion =  await command
+                        .ExecuteScalarAsync(cancellationToken)
+                        .NotOnCapturedContext();
+
+                    return schemaVersion == null 
+                        ? new CheckSchemaResult(FirstSchemaVersion, CurrentSchemaVersion)  // First schema (1) didn't have extended properties.
+                        : new CheckSchemaResult(int.Parse(schemaVersion.ToString()), CurrentSchemaVersion);
+                }
+            }
+        }
+
+        /// <summary>
+        ///     Drops all tables related to this store instance.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation instruction.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task DropAll(CancellationToken cancellationToken = default(CancellationToken))
         {
             GuardAgainstDisposed();
 
@@ -112,17 +173,9 @@
 
                 using(var command = new SqlCommand(_scripts.DropAll, connection))
                 {
-                    if(ignoreErrors)
-                    {
-                        await ExecuteAndIgnoreErrors(() => command.ExecuteNonQueryAsync(cancellationToken))
-                            .NotOnCapturedContext();
-                    }
-                    else
-                    {
-                        await command
-                            .ExecuteNonQueryAsync(cancellationToken)
-                            .NotOnCapturedContext();
-                    }
+                    await command
+                        .ExecuteNonQueryAsync(cancellationToken)
+                        .NotOnCapturedContext();
                 }
             }
         }
@@ -214,17 +267,5 @@
         }
 
         private IObservable<Unit> GetStoreObservable => _streamStoreNotifier.Value;
-
-        private static async Task<T> ExecuteAndIgnoreErrors<T>(Func<Task<T>> operation)
-        {
-            try
-            {
-                return await operation().NotOnCapturedContext();
-            }
-            catch
-            {
-                return default(T);
-            }
-        }
     }
 }

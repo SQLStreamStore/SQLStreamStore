@@ -32,6 +32,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.Postgres", "
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.Postgres.Tests", "SqlStreamStore.Postgres.Tests\SqlStreamStore.Postgres.Tests.csproj", "{55054819-94FE-4E33-9E2A-AA8CCE12D333}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.SQLite", "SqlStreamStore.SQLite\SqlStreamStore.SQLite.csproj", "{6695FE7A-9787-47CF-BA9D-D1E4D242C430}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.SQLite.Tests", "SqlStreamStore.SQLite.Tests\SqlStreamStore.SQLite.Tests.csproj", "{2819B0AD-F0FE-4E4D-AE5C-692F29092437}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -70,6 +74,14 @@ Global
 		{55054819-94FE-4E33-9E2A-AA8CCE12D333}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{55054819-94FE-4E33-9E2A-AA8CCE12D333}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{55054819-94FE-4E33-9E2A-AA8CCE12D333}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6695FE7A-9787-47CF-BA9D-D1E4D242C430}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6695FE7A-9787-47CF-BA9D-D1E4D242C430}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6695FE7A-9787-47CF-BA9D-D1E4D242C430}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6695FE7A-9787-47CF-BA9D-D1E4D242C430}.Release|Any CPU.Build.0 = Release|Any CPU
+		{2819B0AD-F0FE-4E4D-AE5C-692F29092437}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{2819B0AD-F0FE-4E4D-AE5C-692F29092437}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{2819B0AD-F0FE-4E4D-AE5C-692F29092437}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{2819B0AD-F0FE-4E4D-AE5C-692F29092437}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

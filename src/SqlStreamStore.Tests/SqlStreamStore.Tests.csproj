@@ -108,6 +108,9 @@
     <Compile Include="..\SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.DeleteStream.cs">
       <Link>InMemory\StreamStoreAcceptanceTests.DeleteStream.cs</Link>
     </Compile>
+    <Compile Include="..\SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.Mirror.cs">
+      <Link>InMemory\SqlStreamStoreAcceptanceTests.Mirror.cs</Link>
+    </Compile>
     <Compile Include="..\SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.ReadAll.cs">
       <Link>InMemory\StreamStoreAcceptanceTests.ReadAll.cs</Link>
     </Compile>

@@ -60,6 +60,7 @@
       <Link>Properties\SharedAssemblyInfo.cs</Link>
     </Compile>
     <Compile Include="Infrastructure\EnsureStringExtensions.cs" />
+    <Compile Include="Infrastructure\StreamStoreMirror.cs" />
     <Compile Include="Streams\AppendResult.cs" />
     <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
     <Compile Include="Infrastructure\AsyncLazy.cs" />

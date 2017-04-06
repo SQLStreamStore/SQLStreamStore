@@ -19,7 +19,7 @@ namespace SqlStreamStore
                 .Max(provider => provider.Version)
                 .ToString(2);
 
-        public MsSqlStreamStoreFixture(string schema)
+        public MsSqlStreamStoreFixture(string schema = "dbo")
         {
             _schema = schema;
             var localDbProvider = new SqlLocalDbProvider

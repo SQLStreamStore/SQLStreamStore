@@ -25,6 +25,6 @@
         <file src="..\..\artifacts\SqlStreamStore.MsSql.dll" target="lib\net46" />
         <file src="..\..\artifacts\SqlStreamStore.MsSql.pdb" target="lib\net46" />
         <file src="bin\Release\SqlStreamStore.MsSql.xml" target="lib\net46" />
-        <file src="MsSqlScripts\Migration_v2.sql" target="tools\Migration_v2.sql">
+        <file src="MsSqlScripts\Migration_v2.sql" target="tools\Migration_v2.sql" />
     </files>
 </package>

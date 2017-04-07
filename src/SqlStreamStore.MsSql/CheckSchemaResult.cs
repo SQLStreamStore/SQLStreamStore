@@ -15,6 +15,11 @@
         /// </summary>
         public int ExpectedVersion { get; }
 
+        /// <summary>
+        ///     Initializes a new instance of <see cref="CheckSchemaResult"/>
+        /// </summary>
+        /// <param name="currentVersion">The current version of the schema.</param>
+        /// <param name="expectedVersion">The expected version of the schema.</param>
         public CheckSchemaResult(int currentVersion, int expectedVersion)
         {
             CurrentVersion = currentVersion;

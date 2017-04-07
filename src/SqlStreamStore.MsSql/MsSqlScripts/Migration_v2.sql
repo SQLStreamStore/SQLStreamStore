@@ -1,6 +1,9 @@
 /***
     Make sure you back up your database first! 
 
+    This script will migrate an MSSQL Stream store schema version 1 (package
+    versions prior to 0.8.0) to version 2 (package version 0.8.0 and later).
+
     If you are using a different schema for the stream and messages,
     replace 'dbo' with your schema name.
     

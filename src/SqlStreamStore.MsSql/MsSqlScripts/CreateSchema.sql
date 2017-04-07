@@ -13,7 +13,7 @@ BEGIN
         IdOriginal          NVARCHAR(1000)                          NOT NULL,
         IdInternal          INT                 IDENTITY(1,1)       NOT NULL,
         [Version]           INT                 DEFAULT(-1)         NOT NULL,
-		Position            BIGINT              DEFAULT(-1)			NOT NULL,
+        Position            BIGINT              DEFAULT(-1)         NOT NULL,
         CONSTRAINT PK_Streams PRIMARY KEY CLUSTERED (IdInternal)
     );
 END
@@ -90,9 +90,9 @@ BEGIN
 END
 
 BEGIN
-    IF NOT EXISTS (SELECT NULL FROM SYS.EXTENDED_PROPERTIES WHERE [major_id] = OBJECT_ID('dbo.Streams') AND [name] = N'Version' AND [minor_id] = 0)
+    IF NOT EXISTS (SELECT NULL FROM SYS.EXTENDED_PROPERTIES WHERE [major_id] = OBJECT_ID('dbo.Streams') AND [name] = N'version' AND [minor_id] = 0)
     EXEC sys.sp_addextendedproperty   
-    @name = N'Version',
+    @name = N'version',
     @value = N'2',
     @level0type = N'SCHEMA', @level0name = 'dbo',
     @level1type = N'TABLE',  @level1name = 'Streams';

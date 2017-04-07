@@ -2,7 +2,7 @@
 
 BEGIN
     ALTER TABLE [dbo].[Streams]
-    ADD [Position] bigint NOT NULL DEFAULT 0;
+    ADD [Position] bigint DEFAULT 0;
 END
 
 BEGIN

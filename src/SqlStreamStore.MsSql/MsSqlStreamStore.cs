@@ -12,6 +12,9 @@
     using SqlStreamStore.MsSqlScripts;
     using SqlStreamStore.Subscriptions;
 
+    /// <summary>
+    ///     Represents a Micrsoft SQL Server stream store implementation.
+    /// </summary>
     public sealed partial class MsSqlStreamStore : StreamStoreBase
     {
         private readonly Func<SqlConnection> _createConnection;
@@ -21,6 +24,10 @@
         private const int FirstSchemaVersion = 1;
         private const int CurrentSchemaVersion = 2;
 
+        /// <summary>
+        ///     Initializes a new instance of <see cref="MsSqlStreamStore"/>
+        /// </summary>
+        /// <param name="settings"></param>
         public MsSqlStreamStore(MsSqlStreamStoreSettings settings)
             :base(settings.MetadataMaxAgeCacheExpire, settings.MetadataMaxAgeCacheMaxSize,
                  settings.GetUtcNow, settings.LogName)
@@ -147,13 +154,22 @@
 
                 using (var command = new SqlCommand(_scripts.GetSchemaVersion, connection))
                 {
-                    var schemaVersion =  await command
-                        .ExecuteScalarAsync(cancellationToken)
+                    var extendedProperties =  await command
+                        .ExecuteReaderAsync(cancellationToken)
                         .NotOnCapturedContext();
 
-                    return schemaVersion == null 
+                    int? version = null;
+                    while(await extendedProperties.ReadAsync(cancellationToken))
+                    {
+                        if(extendedProperties.GetString(0) != "version")
+                            continue;
+                        version = int.Parse(extendedProperties.GetString(1));
+                        break;
+                    }
+
+                    return version == null 
                         ? new CheckSchemaResult(FirstSchemaVersion, CurrentSchemaVersion)  // First schema (1) didn't have extended properties.
-                        : new CheckSchemaResult(int.Parse(schemaVersion.ToString()), CurrentSchemaVersion);
+                        : new CheckSchemaResult(int.Parse(version.ToString()), CurrentSchemaVersion);
                 }
             }
         }

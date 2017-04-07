@@ -20,7 +20,7 @@ BEGIN TRANSACTION CreateStream;
 
              SELECT TOP(1)
                     @latestStreamVersion = dbo.Messages.StreamVersion,
-					@latestStreamPosition = dbo.Messages.Position
+                    @latestStreamPosition = dbo.Messages.Position
               FROM dbo.Messages
              WHERE dbo.Messages.StreamIDInternal = @streamIdInternal
           ORDER BY dbo.Messages.Position DESC
@@ -28,12 +28,12 @@ BEGIN TRANSACTION CreateStream;
              IF @latestStreamVersion IS NULL
             SET @latestStreamVersion = -1
 
-			 IF @latestStreamPosition IS NULL
+             IF @latestStreamPosition IS NULL
             SET @latestStreamPosition = -1
 
             UPDATE dbo.Streams
                SET dbo.Streams.[Version] = @latestStreamVersion,
-				   dbo.Streams.[Position] = @latestStreamPosition
+                   dbo.Streams.[Position] = @latestStreamPosition
              WHERE dbo.Streams.IdInternal = @streamIdInternal
     END;
 COMMIT TRANSACTION CreateStream;

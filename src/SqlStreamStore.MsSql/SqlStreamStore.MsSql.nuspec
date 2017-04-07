@@ -16,7 +16,10 @@
         <frameworkAssemblies>
             <frameworkAssembly assemblyName="System.Data" targetFramework="net45" />
         </frameworkAssemblies>
-        <releaseNotes/>
+        <releaseNotes>
+            - Contains a schema breaking change.
+            - Migration script is in the package tools folder.
+        </releaseNotes>
         <dependencies>
             <dependency id="SqlStreamStore" version="[0.8, 0.9)" />
         </dependencies>

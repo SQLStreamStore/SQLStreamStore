@@ -1,21 +1,29 @@
-/*** Make sure you back up your database first! ***/
+/***
+    Make sure you back up your database first! 
 
-BEGIN
-    ALTER TABLE [dbo].[Streams]
-    ADD [Position] bigint NOT NULL DEFAULT 0;
-END
+    If you are using a different schema for the stream and messages,
+    replace 'dbo' with your schema name.
+    
+***/
 
-BEGIN
-    UPDATE [dbo].[Streams]
-    SET [dbo].[Streams].[Position] = (SELECT MAX([dbo].[Messages].[Position])
-      FROM [dbo].[Messages]
-      WHERE [dbo].[Messages].[StreamIdInternal] = [dbo].[Streams].[IdInternal])
-END
+IF NOT EXISTS (SELECT 1 FROM SYS.COLUMNS WHERE OBJECT_ID = OBJECT_ID(N'[dbo].[Streams]') AND name = 'Position')
+ALTER TABLE [dbo].[Streams]
+ADD [Position] bigint NOT NULL DEFAULT -1;
 
-BEGIN
-    EXEC sys.sp_addextendedproperty   
-    @name = N'version',
-    @value = N'2',
-    @level0type = N'SCHEMA', @level0name = 'dbo',
-    @level1type = N'TABLE',  @level1name = 'Streams';
-END
+GO
+
+UPDATE [dbo].[Streams]
+SET [dbo].[Streams].[Position] = (SELECT ISNULL(MAX([dbo].[Messages].[Position]), -1)
+    FROM [dbo].[Messages]
+    WHERE [dbo].[Messages].[StreamIdInternal] = [dbo].[Streams].[IdInternal])
+
+GO
+
+IF NOT EXISTS (SELECT NULL FROM SYS.EXTENDED_PROPERTIES WHERE [major_id] = OBJECT_ID('dbo.Streams') AND [name] = N'version' AND [minor_id] = 0)
+EXEC sys.sp_addextendedproperty
+@name = N'version',
+@value = N'2',
+@level0type = N'SCHEMA', @level0name = 'dbo',
+@level1type = N'TABLE',  @level1name = 'Streams';
+
+GO

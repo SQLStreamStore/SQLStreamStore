@@ -76,6 +76,7 @@
     <EmbeddedResource Include="MsSqlScripts\DeleteStreamMessage.sql" />
     <EmbeddedResource Include="MsSqlScripts\CreateSchema_v1.sql" />
     <EmbeddedResource Include="MsSqlScripts\GetSchemaVersion.sql" />
+    <EmbeddedResource Include="MsSqlScripts\Migration_v2.sql" />
     <Content Include="MsSqlScripts\DropTestDBs.sql" />
     <EmbeddedResource Include="MsSqlScripts\ReadHeadPosition.sql" />
     <EmbeddedResource Include="MsSqlScripts\ReadStreamBackward.sql" />

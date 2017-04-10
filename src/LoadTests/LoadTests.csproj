@@ -35,13 +35,13 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="EasyConsole, Version=1.1.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\EasyConsole.1.1.0\lib\net452\EasyConsole.dll</HintPath>
+      <HintPath>..\packages\EasyConsole.1.1.0\lib\net452\EasyConsole.dll</HintPath>
     </Reference>
     <Reference Include="Serilog, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Serilog.2.4.0\lib\net46\Serilog.dll</HintPath>
+      <HintPath>..\packages\Serilog.2.3.0\lib\net46\Serilog.dll</HintPath>
     </Reference>
     <Reference Include="Serilog.Sinks.File, Version=2.0.0.0, Culture=neutral, PublicKeyToken=24c2f752a8e58a10, processorArchitecture=MSIL">
-      <HintPath>..\..\packages\Serilog.Sinks.File.3.2.0\lib\net45\Serilog.Sinks.File.dll</HintPath>
+      <HintPath>..\packages\Serilog.Sinks.File.3.2.0\lib\net45\Serilog.Sinks.File.dll</HintPath>
     </Reference>
     <Reference Include="System" />
     <Reference Include="System.Core" />
@@ -69,7 +69,7 @@
       <Name>SqlStreamStore</Name>
     </ProjectReference>
     <ProjectReference Include="..\SqlStreamStore.MsSql.Tests\SqlStreamStore.MsSql.Tests.csproj">
-      <Project>{dadb2d9d-87eb-4284-810c-77c2fd2904b3}</Project>
+      <Project>{a70607e7-0c6d-49dd-a4c3-971898f58c82}</Project>
       <Name>SqlStreamStore.MsSql.Tests</Name>
     </ProjectReference>
   </ItemGroup>

@@ -4,10 +4,10 @@
 #addin "Cake.FileHelpers"
 #addin "Cake.Json"
 
-var target          = Argument("target", "Merge");
+var target          = Argument("target", "Default");
 var configuration   = Argument("configuration", "Release");
 var artifactsDir    = Directory("./artifacts");
-var solution        = "./SqlStreamStore.sln";
+var solution        = "./src/SqlStreamStore.sln";
 var buildNumber     = string.IsNullOrWhiteSpace(EnvironmentVariable("BUILD_NUMBER")) ? "0" : EnvironmentVariable("BUILD_NUMBER");
 
 Task("Clean")
@@ -20,7 +20,8 @@ Task("RestorePackages")
     .IsDependentOn("Clean")
     .Does(() =>
 {
-	DotNetCoreRestore("./");
+	DotNetCoreRestore(solution);
+	NuGetRestore(solution);
 });
 
 Task("UpdateAssemblyInfoVersion")
@@ -47,14 +48,7 @@ Task("Build")
 		Configuration = configuration
 	};
 
-	var projects = GetFiles("./**/project.json");
-	foreach(var project in projects)
-	{
-		Information(project.GetDirectory().FullPath);
-		if(project.GetDirectory().FullPath == @"C:/Development/SqlStreamStore/src/Example")
-			continue;
-		DotNetCoreBuild(project.GetDirectory().FullPath, settings);
-	}
+	DotNetCoreBuild(solution, settings);
 });
 
 Task("RunTests")
@@ -72,7 +66,7 @@ Task("RunTests")
 
     foreach(var testProject in testProjects)
 	{
-        var projectDir = "./test/"+ testProject;
+        var projectDir = "./src/"+ testProject + "/" + testProject + ".csproj";
 		DotNetCoreTest(projectDir, testSettings);
     }
 });

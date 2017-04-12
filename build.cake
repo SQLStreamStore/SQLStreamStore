@@ -2,7 +2,6 @@
 #tool "nuget:?package=ILRepack&Version=2.0.12"
 
 #addin "Cake.FileHelpers"
-#addin "Cake.Json"
 
 var target          = Argument("target", "Default");
 var configuration   = Argument("configuration", "Release");
@@ -58,6 +57,7 @@ Task("RunTests")
     }
 });
 
+/*
 Task("Merge")
     .IsDependentOn("Build")
     .Does(() =>
@@ -83,12 +83,12 @@ Task("Merge")
     assemblies = new [] { "Ensure.That" };
     merge(assemblies, "SqlStreamStore.MsSql");
 });
+*/
 
 Task("NuGetPack")
-    .IsDependentOn("Merge")
+    .IsDependentOn("Build")
     .Does(() =>
 {
-	var build = "build" + buildNumber.ToString().PadLeft(5, '0');
 	var packageVersion = version + "-build" + buildNumber.ToString().PadLeft(5, '0');
     Information(packageVersion);
 

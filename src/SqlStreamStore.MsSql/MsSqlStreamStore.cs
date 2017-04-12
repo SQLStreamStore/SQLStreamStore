@@ -27,7 +27,7 @@
         /// <summary>
         ///     Initializes a new instance of <see cref="MsSqlStreamStore"/>
         /// </summary>
-        /// <param name="settings"></param>
+        /// <param name="settings">A settings class to configur this instance.</param>
         public MsSqlStreamStore(MsSqlStreamStoreSettings settings)
             :base(settings.MetadataMaxAgeCacheExpire, settings.MetadataMaxAgeCacheMaxSize,
                  settings.GetUtcNow, settings.LogName)

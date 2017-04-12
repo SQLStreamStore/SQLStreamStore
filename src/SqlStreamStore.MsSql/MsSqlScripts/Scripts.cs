@@ -68,9 +68,9 @@
                 key =>
                 {
 #if NETSTANDARD1_3
-                    using (Stream stream = typeof(Scripts).GetTypeInfo().Assembly.GetManifestResourceStream("SqlStreamStore.MsSql.MsSqlScripts." + key + ".sql"))
+                    using (Stream stream = typeof(Scripts).GetTypeInfo().Assembly.GetManifestResourceStream("SqlStreamStore.MsSqlScripts." + key + ".sql"))
 #elif NET46
-                    using (Stream stream = typeof(Scripts).Assembly.GetManifestResourceStream("SqlStreamStore.MsSql.MsSqlScripts." + key + ".sql"))
+                    using (Stream stream = typeof(Scripts).Assembly.GetManifestResourceStream("SqlStreamStore.MsSqlScripts." + key + ".sql"))
 #endif
                     {
                         if (stream == null)

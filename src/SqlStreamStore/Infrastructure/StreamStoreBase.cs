@@ -8,6 +8,10 @@ namespace SqlStreamStore.Infrastructure
     using SqlStreamStore;
     using SqlStreamStore.Logging;
 
+    /// <summary>
+    ///     Represnets a base implementation of a stream store. It's primary purpose is to handle 
+    ///     common needs across all derived implementations such as guard clauses and logging.
+    /// </summary>
     public abstract class StreamStoreBase : ReadonlyStreamStoreBase, IStreamStore
     {
         private readonly TaskQueue _taskQueue = new TaskQueue();
@@ -20,6 +24,7 @@ namespace SqlStreamStore.Infrastructure
             : base(metadataMaxAgeCacheExpiry, metadataMaxAgeCacheMaxSize, getUtcNow, logName)
         {}
 
+        /// <inheritdoc />
         public Task<AppendResult> AppendToStream(StreamId streamId, int expectedVersion, NewStreamMessage[] messages, CancellationToken cancellationToken = default(CancellationToken))
         {
             Ensure.That(streamId.Value, nameof(streamId)).DoesNotStartWith("$");
@@ -45,17 +50,6 @@ namespace SqlStreamStore.Infrastructure
             return new AppendResult(expectedVersion, position);
         }
 
-        /// <summary>
-        /// Hard deletes a stream and all of its messages. Deleting a stream will result in a '$stream-deleted'
-        /// message being appended to the '$deleted' stream. See <see cref="Deleted.StreamDeleted" /> for the
-        /// message structure.
-        /// </summary>
-        /// <param name="streamId">The stream Id to delete.</param>
-        /// <param name="expectedVersion">The stream expected version. See <see cref="ExpectedVersion" /> for const values.</param>
-        /// <param name="cancellationToken">The cancellation instruction.</param>
-        /// <returns>
-        /// A task representing the asynchronous operation.
-        /// </returns>
         public Task DeleteStream(
             StreamId streamId,
             int expectedVersion = ExpectedVersion.Any,

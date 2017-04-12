@@ -3,8 +3,15 @@
     using System;
     using System.Threading.Tasks;
 
+    /// <summary>
+    ///     Represents a subscript to all streams.
+    /// </summary>
+    /// <seealso cref="System.IDisposable" />
     public interface IAllStreamSubscription : IDisposable
     {
+        /// <summary>
+        /// Gets the name of the subscription. Useful for debugging and diagnostics.
+        /// </summary>
         string Name { get; }
 
         /// <summary>

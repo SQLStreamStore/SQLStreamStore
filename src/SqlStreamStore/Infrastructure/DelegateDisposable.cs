@@ -2,7 +2,7 @@ namespace SqlStreamStore.Infrastructure
 {
     using System;
 
-    public class DelegateDisposable : IDisposable
+    internal class DelegateDisposable : IDisposable
     {
         private readonly Action _action;
 

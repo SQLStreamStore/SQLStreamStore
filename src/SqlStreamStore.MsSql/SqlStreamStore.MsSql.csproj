@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Description>SqlServer provider (2012+) for SQL StreamStore</Description>
     <AssemblyTitle>Stream Store - MS Sql Server (2012+)</AssemblyTitle>
-    <VersionPrefix>0.6.1</VersionPrefix>
+    <Version>0.0.0.0</Version>
     <Authors>Damian Hickey</Authors>
     <TargetFrameworks>netstandard1.3;net46</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

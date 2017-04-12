@@ -9,6 +9,7 @@ var configuration   = Argument("configuration", "Release");
 var artifactsDir    = Directory("./artifacts");
 var solution        = "./src/SqlStreamStore.sln";
 var buildNumber     = string.IsNullOrWhiteSpace(EnvironmentVariable("BUILD_NUMBER")) ? "0" : EnvironmentVariable("BUILD_NUMBER");
+var version         = FileReadText("version.txt");
 
 Task("Clean")
     .Does(() =>
@@ -24,27 +25,13 @@ Task("RestorePackages")
 	NuGetRestore(solution);
 });
 
-Task("UpdateAssemblyInfoVersion")
-    .Does(() =>
-{
-    var version = FileReadText("version.txt");
-    ReplaceTextInFiles("src/SharedAssemblyInfo.cs", "1.0.0.0", version);
-
-	var projects = GetFiles("./**/project.json");
-	foreach(var project in projects)
-	{
-		var json = ParseJsonFromFile(project);
-		json["version"] = version + "-*";
-		SerializeJsonToFile(project, json);
-	}
-});
-
 Task("Build")
     .IsDependentOn("RestorePackages")
     .Does(() =>
 {
 	var settings = new DotNetCoreBuildSettings
 	{
+		ArgumentCustomization = args => args.Append("/p:Version=" + version + ";FileVersion=" + version),
 		Configuration = configuration
 	};
 
@@ -101,13 +88,13 @@ Task("NuGetPack")
     .IsDependentOn("Merge")
     .Does(() =>
 {
-    var version = FileReadText("version.txt");
 	var build = "build" + buildNumber.ToString().PadLeft(5, '0');
-    Information(version + build);
+	var packageVersion = version + "-build" + buildNumber.ToString().PadLeft(5, '0');
+    Information(packageVersion);
 
     var dotNetCorePackSettings   = new DotNetCorePackSettings
 	{
-		VersionSuffix = build,
+		ArgumentCustomization = args => args.Append("/p:Version=" + packageVersion),
         OutputDirectory = artifactsDir,
 		NoBuild = true,
 		Configuration = configuration
@@ -119,7 +106,6 @@ Task("NuGetPack")
 });
 
 Task("Default")
-    .IsDependentOn("UpdateAssemblyInfoVersion")
     .IsDependentOn("RunTests")
     .IsDependentOn("NuGetPack");
 

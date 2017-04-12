@@ -12,7 +12,6 @@
     using SqlStreamStore.Infrastructure;
     using Xunit.Abstractions;
 #if NETCOREAPP1_1
-    using System.Collections.Generic;
     using System.Threading;
 #endif
 

@@ -1,9 +1,9 @@
 ﻿<ProjectConfiguration>
   <Settings>
     <FrameworkUtilisationTypeForXUnit2>UseDynamicAnalysis</FrameworkUtilisationTypeForXUnit2>
-    <HiddenComponentWarnings>
-      <Value>AbnormalReferenceResolution</Value>
-    </HiddenComponentWarnings>
+    <IgnoredTests>
+      <AllTestsSelector />
+    </IgnoredTests>
     <PreviouslyBuiltSuccessfully>True</PreviouslyBuiltSuccessfully>
   </Settings>
 </ProjectConfiguration>

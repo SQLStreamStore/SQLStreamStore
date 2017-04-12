@@ -7,7 +7,7 @@ namespace SqlStreamStore.Infrastructure
     using EnsureThat;
     using SqlStreamStore;
 
-    public class MetadataMaxAgeCache
+    internal class MetadataMaxAgeCache
     {
         private readonly IReadonlyStreamStore _store;
         private readonly TimeSpan _expiration;

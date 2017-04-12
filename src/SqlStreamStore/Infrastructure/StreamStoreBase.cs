@@ -50,6 +50,7 @@ namespace SqlStreamStore.Infrastructure
             return new AppendResult(expectedVersion, position);
         }
 
+        /// <inheritdoc />
         public Task DeleteStream(
             StreamId streamId,
             int expectedVersion = ExpectedVersion.Any,
@@ -66,6 +67,7 @@ namespace SqlStreamStore.Infrastructure
             return DeleteStreamInternal(streamId, expectedVersion, cancellationToken);
         }
 
+        /// <inheritdoc />
         public Task DeleteMessage(
             StreamId streamId,
             Guid messageId,
@@ -81,20 +83,7 @@ namespace SqlStreamStore.Infrastructure
             return DeleteEventInternal(streamId, messageId, cancellationToken);
         }
 
-        /// <summary>
-        /// Sets the metadata for a stream.
-        /// </summary>
-        /// <param name="streamId">The stream Id to whose metadata is to be set.</param>
-        /// <param name="expectedStreamMetadataVersion">The expected version number of the metadata stream to apply the metadata. Used for concurrency
-        ///     handling. Default value is <see cref="ExpectedVersion.Any" />. If specified and does not match
-        ///     current version then <see cref="WrongExpectedVersionException" /> will be thrown.</param>
-        /// <param name="maxAge">The max age of the messages in the stream in seconds.</param>
-        /// <param name="maxCount">The max count of messages in the stream.</param>
-        /// <param name="metadataJson">Custom meta data to associate with the stream.</param>
-        /// <param name="cancellationToken">The cancellation instruction.</param>
-        /// <returns>
-        /// A task representing the asynchronous operation.
-        /// </returns>
+        /// <inheritdoc />
         public Task SetStreamMetadata(
             StreamId streamId,
             int expectedStreamMetadataVersion = ExpectedVersion.Any,

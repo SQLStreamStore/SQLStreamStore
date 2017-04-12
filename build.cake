@@ -8,6 +8,7 @@ var configuration   = Argument("configuration", "Release");
 var artifactsDir    = Directory("./artifacts");
 var solution        = "./src/SqlStreamStore.sln";
 var buildNumber     = string.IsNullOrWhiteSpace(EnvironmentVariable("BUILD_NUMBER")) ? "0" : EnvironmentVariable("BUILD_NUMBER");
+var version         = FileReadText("version.txt");
 
 Task("Clean")
     .Does(() =>
@@ -19,50 +20,55 @@ Task("RestorePackages")
     .IsDependentOn("Clean")
     .Does(() =>
 {
-    NuGetRestore(solution);
-});
-
-Task("UpdateAssemblyInfoVersion")
-    .Does(() =>
-{
-    var version = FileReadText("version.txt");
-    ReplaceTextInFiles("src/SharedAssemblyInfo.cs", "1.0.0.0", version);
+	DotNetCoreRestore(solution);
+	NuGetRestore(solution);
 });
 
 Task("Build")
     .IsDependentOn("RestorePackages")
     .Does(() =>
 {
-    MSBuild(solution, settings => settings.SetConfiguration(configuration));
+	var settings = new DotNetCoreBuildSettings
+	{
+		ArgumentCustomization = args => args.Append("/p:Version=" + version + ";FileVersion=" + version),
+		Configuration = configuration
+	};
+
+	DotNetCoreBuild(solution, settings);
 });
 
 Task("RunTests")
     .IsDependentOn("Build")
     .Does(() =>
 {
-    var testProjects = new string[] { "SqlStreamStore", "SqlStreamStore.MsSql" };
-    foreach(var testProject in testProjects){
-        var dll = "./src/"+ testProject +".Tests/bin/" + configuration + "/" + testProject + ".Tests.dll";
-        XUnit(
-            dll,
-            new XUnitSettings 
-            { 
-                ToolPath = "./tools/xunit.runner.console/tools/xunit.console.exe"
-            });
+
+	var testSettings = new DotNetCoreTestSettings
+	{
+		NoBuild = true,
+		Configuration = configuration
+	};
+
+    var testProjects = new string[] { "SqlStreamStore.Tests", "SqlStreamStore.MsSql.Tests" };
+
+    foreach(var testProject in testProjects)
+	{
+        var projectDir = "./src/"+ testProject + "/" + testProject + ".csproj";
+		DotNetCoreTest(projectDir, testSettings);
     }
 });
 
+/*
 Task("Merge")
     .IsDependentOn("Build")
     .Does(() =>
 {
     Action<string[], string> merge = (sourceAssemblies, primaryAssemblyName) => {
         var assemblyPaths = sourceAssemblies
-            .Select(assembly => GetFiles("./src/" + primaryAssemblyName + "/bin/" + configuration + "/" + assembly + ".dll").Single())
+            .Select(assembly => GetFiles("./src/" + primaryAssemblyName + "/bin/" + configuration + "/net46/" + assembly + ".dll").Single())
             .ToArray();
 
         var outputAssembly = artifactsDir.Path + "/" + primaryAssemblyName + ".dll";
-        var primaryAssembly = "./src/" + primaryAssemblyName + "/bin/" + configuration + "/" + primaryAssemblyName + ".dll";
+        var primaryAssembly = "./src/" + primaryAssemblyName + "/bin/" + configuration + "/net46/" + primaryAssemblyName + ".dll";
 
         ILRepack(outputAssembly, primaryAssembly, assemblyPaths, new ILRepackSettings 
         { 
@@ -77,26 +83,29 @@ Task("Merge")
     assemblies = new [] { "Ensure.That" };
     merge(assemblies, "SqlStreamStore.MsSql");
 });
+*/
 
 Task("NuGetPack")
-    .IsDependentOn("Merge")
+    .IsDependentOn("Build")
     .Does(() =>
 {
-    var version = FileReadText("version.txt");
-    var packageVersion = version + "-build" + buildNumber.ToString().PadLeft(5, '0');
+	var packageVersion = version + "-build" + buildNumber.ToString().PadLeft(5, '0');
     Information(packageVersion);
 
-    var nuGetPackSettings   = new NuGetPackSettings {
-        Version = packageVersion,
-        OutputDirectory = artifactsDir
+    var dotNetCorePackSettings   = new DotNetCorePackSettings
+	{
+		ArgumentCustomization = args => args.Append("/p:Version=" + packageVersion),
+        OutputDirectory = artifactsDir,
+		NoBuild = true,
+		Configuration = configuration
     };
 
-    NuGetPack("./src/SqlStreamStore/SqlStreamStore.nuspec", nuGetPackSettings);
-    NuGetPack("./src/SqlStreamStore.MsSql/SqlStreamStore.MsSql.nuspec", nuGetPackSettings);
+    
+	DotNetCorePack("./src/SqlStreamStore", dotNetCorePackSettings);
+	DotNetCorePack("./src/SqlStreamStore.MsSql", dotNetCorePackSettings);
 });
 
 Task("Default")
-    .IsDependentOn("UpdateAssemblyInfoVersion")
     .IsDependentOn("RunTests")
     .IsDependentOn("NuGetPack");
 

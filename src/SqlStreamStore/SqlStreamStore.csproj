@@ -1,139 +1,64 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
-<Project ToolsVersion="14.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
   <PropertyGroup>
-    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
-    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{5A8DF1A1-9B3B-499D-B9E9-A5E0F6F06953}</ProjectGuid>
-    <OutputType>Library</OutputType>
-    <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>SqlStreamStore</RootNamespace>
+    <Description>A libray for writing and reading streams (also known as an 'event store') with a focus on SQL based implementations. This contains the core interfaces, abstractions and an in-memory implementation for tests.</Description>
+    <AssemblyTitle>SQL Stream Store</AssemblyTitle>
+    <Version>0.0.0.0</Version>
+    <Authors>Damian Hickey</Authors>
+    <TargetFrameworks>netstandard1.3;net46</TargetFrameworks>
+    <DefineConstants>$(DefineConstants);LIBLOG_PUBLIC</DefineConstants>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>SqlStreamStore</AssemblyName>
-    <TargetFrameworkVersion>v4.6</TargetFrameworkVersion>
-    <FileAlignment>512</FileAlignment>
-    <TargetFrameworkProfile />
+    <PackageId>SqlStreamStore</PackageId>
+    <PackageTags>cqrs;event-sourcing;domain-driven-design;event-store;stream-store</PackageTags>
+    <PackageReleaseNotes>- AppendStream returns an AppendResult
+- JsonData loading is async with ability to disable prefecthing
+- Subscription callbacks include the subscription instance
+- Subscriptions dispose themselves when the underlying store is disposed</PackageReleaseNotes>
+    <PackageProjectUrl>https://github.com/damianh/SqlStreamStore</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/damianh/SqlStreamStore/blob/master/LICENSE</PackageLicenseUrl>
+    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.1</NetStandardImplicitPackageVersion>
+    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
+    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
   </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
-    <DebugSymbols>true</DebugSymbols>
-    <DebugType>full</DebugType>
-    <Optimize>false</Optimize>
-    <OutputPath>bin\Debug\</OutputPath>
-    <DefineConstants>TRACE;DEBUG;LIBLOG_PUBLIC</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Debug\SqlStreamStore.xml</DocumentationFile>
-    <NoWarn>1591</NoWarn>
-  </PropertyGroup>
-  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
-    <DebugType>pdbonly</DebugType>
-    <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
-    <DefineConstants>TRACE;LIBLOG_PUBLIC</DefineConstants>
-    <ErrorReport>prompt</ErrorReport>
-    <WarningLevel>4</WarningLevel>
-    <DocumentationFile>bin\Release\SqlStreamStore.xml</DocumentationFile>
-    <NoWarn>1591</NoWarn>
-  </PropertyGroup>
+
   <ItemGroup>
-    <Reference Include="Ensure.That, Version=5.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Ensure.That.5.0.0\lib\net45\Ensure.That.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Nito.AsyncEx, Version=3.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Nito.AsyncEx.3.0.1\lib\net45\Nito.AsyncEx.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Nito.AsyncEx.Concurrent, Version=3.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Nito.AsyncEx.3.0.1\lib\net45\Nito.AsyncEx.Concurrent.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
-    <Reference Include="Nito.AsyncEx.Enlightenment, Version=3.0.1.0, Culture=neutral, processorArchitecture=MSIL">
-      <HintPath>..\packages\Nito.AsyncEx.3.0.1\lib\net45\Nito.AsyncEx.Enlightenment.dll</HintPath>
-      <Private>True</Private>
-    </Reference>
+    <PackageReference Include="SimpleJson" Version="0.38.0">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="LibLog" Version="4.2.6">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
+    <PackageReference Include="System.Runtime" Version="4.3.0" />
+    <PackageReference Include="System.Threading.Tasks" Version="4.3.0" />
+    <PackageReference Include="Nito.AsyncEx.Coordination" Version="1.0.2" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
+    <PackageReference Include="Ensure.That" Version="5.0.0" />
+  </ItemGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
+    <DefineConstants>$(DefineConstants);LIBLOG_PORTABLE</DefineConstants>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net46' ">
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
+    <PackageReference Include="Nito.AsyncEx" Version="3.0.1">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="Ensure.That" Version="5.0.0">
+      <PrivateAssets>All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="System.Runtime" Version="4.1.0" />
+    <PackageReference Include="System.Threading.Tasks" Version="4.0.11" />
     <Reference Include="System" />
-    <Reference Include="System.Core" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>
-  <ItemGroup>
-    <Compile Include="..\SharedAssemblyInfo.cs">
-      <Link>Properties\SharedAssemblyInfo.cs</Link>
-    </Compile>
-    <Compile Include="Infrastructure\EnsureStringExtensions.cs" />
-    <Compile Include="Streams\AppendResult.cs" />
-    <Compile Include="App_Packages\LibLog.4.2\LibLog.cs" />
-    <Compile Include="Infrastructure\AsyncLazy.cs" />
-    <Compile Include="Infrastructure\MetadataMaxAgeCache.cs" />
-    <Compile Include="Infrastructure\ReaderWriterLockSlimExtension.cs" />
-    <Compile Include="Infrastructure\TaskQueue.cs" />
-    <Compile Include="Infrastructure\EnsureThatExtensions.cs" />
-    <Compile Include="Infrastructure\StreamStoreBase.cs" />
-    <Compile Include="InMemory\InMemoryAllStream.cs" />
-    <Compile Include="Streams\MetadataMessage.cs" />
-    <Compile Include="Infrastructure\ReadonlyStreamStoreBase.cs" />
-    <Compile Include="Streams\ReadNextAllPage.cs" />
-    <Compile Include="Streams\ReadNextStreamPage.cs" />
-    <Compile Include="Streams\SetStreamMetadataResult.cs" />
-    <Compile Include="Streams\StreamId.cs" />
-    <Compile Include="Streams\StreamMetadataResult.cs" />
-    <Compile Include="Streams\Position.cs" />
-    <Compile Include="StreamStoreExtensions.cs" />
-    <Compile Include="IAllStreamSubscription.cs" />
-    <Compile Include="IStreamStore.cs" />
-    <Compile Include="Infrastructure\DelegateDisposable.cs" />
-    <Compile Include="Infrastructure\GetUtcNow.cs" />
-    <Compile Include="Infrastructure\InterlockedBoolean.cs" />
-    <Compile Include="Infrastructure\InterlockedBooleanExtensions.cs" />
-    <Compile Include="Infrastructure\StringExtensions.cs" />
-    <Compile Include="Infrastructure\SystemClock.cs" />
-    <Compile Include="Infrastructure\TaskExtensions.cs" />
-    <Compile Include="Infrastructure\TaskHelpers.cs" />
-    <Compile Include="Infrastructure\Unit.cs" />
-    <Compile Include="InMemory\InMemoryStreamStore.cs" />
-    <Compile Include="InMemory\InMemoryStream.cs" />
-    <Compile Include="InMemory\InMemoryStreamMessage.cs" />
-    <Compile Include="IReadonlyStreamStore.cs" />
-    <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="SimpleJson.cs" />
-    <Compile Include="Streams\ReadAllPage.cs" />
-    <Compile Include="Streams\Deleted.cs" />
-    <Compile Include="Streams\ErrorMessages.cs" />
-    <Compile Include="Subscriptions\AllStreamMessageReceived.cs" />
-    <Compile Include="Subscriptions\AllSubscriptionDropped.cs" />
-    <Compile Include="Subscriptions\CreateStreamStoreNotifier.cs" />
-    <Compile Include="Subscriptions\HasCaughtUp.cs" />
-    <Compile Include="Subscriptions\IStreamStoreNotifier.cs" />
-    <Compile Include="Subscriptions\PollingStreamStoreNotifier.cs" />
-    <Compile Include="Subscriptions\StreamMessageReceived.cs" />
-    <Compile Include="Streams\ExpectedVersion.cs" />
-    <Compile Include="Streams\NewStreamMessage.cs" />
-    <Compile Include="Streams\PageReadStatus.cs" />
-    <Compile Include="Streams\ReadDirection.cs" />
-    <Compile Include="Streams\StreamMessage.cs" />
-    <Compile Include="Streams\StreamMessageExtensions.cs" />
-    <Compile Include="Streams\ReadStreamPage.cs" />
-    <Compile Include="Streams\StreamVersion.cs" />
-    <Compile Include="Subscriptions\StreamSubscription.cs" />
-    <Compile Include="Subscriptions\SubscriptionDropped.cs" />
-    <Compile Include="Streams\WrongExpectedVersionException.cs" />
-    <Compile Include="Subscriptions\AllStreamSubscription.cs" />
-    <Compile Include="Infrastructure\Subject.cs" />
-    <Compile Include="Infrastructure\AnonymousObserver.cs" />
-    <Compile Include="Infrastructure\ObservableExtensions.cs" />
-    <Compile Include="IStreamSubscription.cs" />
-    <Compile Include="Subscriptions\SubscriptionDroppedReason.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="packages.config" />
-    <None Include="SqlStreamStore.nuspec" />
-  </ItemGroup>
-  <ItemGroup />
-  <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
-  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
-       Other similar extension points exist, see Microsoft.Common.targets.
-  <Target Name="BeforeBuild">
-  </Target>
-  <Target Name="AfterBuild">
-  </Target>
-  -->
+
 </Project>

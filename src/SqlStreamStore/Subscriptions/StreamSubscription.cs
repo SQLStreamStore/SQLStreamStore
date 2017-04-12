@@ -11,7 +11,11 @@
     public sealed class StreamSubscription: IStreamSubscription
     {
         public const int DefaultPageSize = 10;
+#if NET46
         private static readonly ILog s_logger = LogProvider.GetCurrentClassLogger();
+#elif NETSTANDARD1_3
+        private static readonly ILog s_logger = LogProvider.GetLogger("SqlStreamStore.Subscriptions.StreamSubscription");
+#endif
         private int _pageSize = DefaultPageSize;
         private int _nextVersion;
         private readonly int? _continueAfterVersion;
@@ -23,7 +27,11 @@
         private readonly IDisposable _notification;
         private readonly CancellationTokenSource _disposed = new CancellationTokenSource();
         private readonly AsyncAutoResetEvent _streamStoreNotification = new AsyncAutoResetEvent();
+#if NET46
         private readonly TaskCompletionSource _started = new TaskCompletionSource();
+#elif NETSTANDARD1_3
+        private readonly TaskCompletionSource<object> _started = new TaskCompletionSource<object>();
+#endif
         private readonly InterlockedBoolean _notificationRaised = new InterlockedBoolean();
 
         public StreamSubscription(
@@ -105,8 +113,12 @@
                 _nextVersion = _continueAfterVersion.Value + 1;
             }
 
+#if NET46
             _started.SetResult();
-            while(true)
+#elif NETSTANDARD1_3
+            _started.SetResult(null);
+#endif
+            while (true)
             {
                 bool pause = false;
                 bool? lastHasCaughtUp = null;

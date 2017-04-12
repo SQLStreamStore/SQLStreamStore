@@ -2,7 +2,9 @@ namespace SqlStreamStore
 {
     using System;
     using System.Data.SqlClient;
+#if NET46
     using System.Data.SqlLocalDb;
+#endif
     using System.Linq;
     using System.Threading.Tasks;
 
@@ -10,24 +12,13 @@ namespace SqlStreamStore
     {
         public readonly string ConnectionString;
         private readonly string _schema;
-        private readonly ISqlLocalDbInstance _localDbInstance;
         private readonly string _databaseName;
-
-        private static readonly string s_sqlLocalDbProviderVersionToUse = new SqlLocalDbProvider()
-                .GetVersions()
-                .Where(provider => provider.Exists)
-                .Max(provider => provider.Version)
-                .ToString(2);
+        private readonly ILocalInstance _localInstance;
 
         public MsSqlStreamStoreFixture(string schema)
         {
             _schema = schema;
-            var localDbProvider = new SqlLocalDbProvider
-            {
-                Version = s_sqlLocalDbProviderVersionToUse
-            };
-            _localDbInstance = localDbProvider.GetOrCreateInstance("StreamStoreTests");
-            _localDbInstance.Start();
+            _localInstance = new LocalInstance();
 
             var uniqueName = Guid.NewGuid().ToString().Replace("-", string.Empty);
             _databaseName = $"StreamStoreTests-{uniqueName}";
@@ -93,7 +84,7 @@ namespace SqlStreamStore
                 SqlConnection.ClearPool(sqlConnection);
             }
 
-            using (var connection = _localDbInstance.CreateConnection())
+            using (var connection = _localInstance.CreateConnection())
             {
                 connection.Open();
                 using (var command = new SqlCommand($"DROP DATABASE [{_databaseName}]", connection))
@@ -105,7 +96,7 @@ namespace SqlStreamStore
 
         private async Task CreateDatabase()
         {
-            using(var connection = _localDbInstance.CreateConnection())
+            using(var connection = _localInstance.CreateConnection())
             {
                 await connection.OpenAsync();
                 using(var command = new SqlCommand($"CREATE DATABASE  [{_databaseName}]", connection))
@@ -117,12 +108,66 @@ namespace SqlStreamStore
 
         private string CreateConnectionString()
         {
-            var connectionStringBuilder = _localDbInstance.CreateConnectionStringBuilder();
+            var connectionStringBuilder = _localInstance.CreateConnectionStringBuilder();
             connectionStringBuilder.MultipleActiveResultSets = true;
             connectionStringBuilder.IntegratedSecurity = true;
             connectionStringBuilder.InitialCatalog = _databaseName;
 
             return connectionStringBuilder.ToString();
         }
+
+        private interface ILocalInstance
+        {
+            SqlConnection CreateConnection();
+            SqlConnectionStringBuilder CreateConnectionStringBuilder();
+        }
+
+#if NETCOREAPP1_1
+        private class LocalInstance : ILocalInstance
+        {
+            private readonly string connectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=master;Integrated Security=SSPI;";
+
+            public SqlConnection CreateConnection()
+            {
+                return new SqlConnection(connectionString);
+            }
+
+            public SqlConnectionStringBuilder CreateConnectionStringBuilder()
+            {
+                return new SqlConnectionStringBuilder(connectionString);
+            }
+        }
+#elif NET46
+        private class LocalInstance : ILocalInstance
+        {
+            private readonly ISqlLocalDbInstance _localDbInstance;
+
+            private static readonly string s_sqlLocalDbProviderVersionToUse = new SqlLocalDbProvider()
+                    .GetVersions()
+                    .Where(provider => provider.Exists)
+                    .Max(provider => provider.Version)
+                    .ToString(2);
+
+            public LocalInstance()
+            {
+                var localDbProvider = new SqlLocalDbProvider
+                {
+                    Version = s_sqlLocalDbProviderVersionToUse
+                };
+                _localDbInstance = localDbProvider.GetOrCreateInstance("StreamStoreTests");
+                _localDbInstance.Start();
+            }
+
+            public SqlConnection CreateConnection()
+            {
+                return _localDbInstance.CreateConnection();
+            }
+
+            public SqlConnectionStringBuilder CreateConnectionStringBuilder()
+            {
+                return _localDbInstance.CreateConnectionStringBuilder();
+            }
+        }
+#endif
     }
 }

@@ -1,4 +1,4 @@
 using System.Reflection;
 
-[assembly: AssemblyTitle("StreamStore")]
+[assembly: AssemblyTitle("SqlStreamStore")]
 [assembly: AssemblyDescription("")]

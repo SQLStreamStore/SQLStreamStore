@@ -29,8 +29,6 @@
             }
         }
 
-        private static readonly Tuple<int?, int> NullAppendResult = new Tuple<int?, int>(null, -1);
-
         protected override async Task<AppendResult> AppendToStreamInternal(
            string streamId,
            int expectedVersion,

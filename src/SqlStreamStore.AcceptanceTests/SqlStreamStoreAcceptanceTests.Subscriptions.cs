@@ -30,7 +30,7 @@
                     using (var subscription = store.SubscribeToStream(
                         streamId1,
                         null,
-                        (_, message) =>
+                        (_, message, ct) =>
                         {
                             receivedMessages.Add(message);
                             if (message.StreamVersion == 11)
@@ -68,7 +68,7 @@
                     using (var subscription = store.SubscribeToStream(
                         streamId,
                         null,
-                        (sub, _) =>
+                        (sub, _, ct) =>
                         {
                             done.SetResult(sub);
                             return Task.CompletedTask;
@@ -96,7 +96,7 @@
                     using (var subscription = store.SubscribeToStream(
                         streamId,
                         null,
-                        (_, message) =>
+                        (_, message, ct) =>
                         {
                             receivedMessages.Add(message);
                             if (message.StreamVersion == 1)
@@ -244,7 +244,7 @@
                     using (var subscription = store.SubscribeToStream(
                         streamId1,
                         StreamVersion.End,
-                        (_, message) =>
+                        (_, message, ct) =>
                         {
                             _testOutputHelper.WriteLine($"Received message {message.StreamId} {message.StreamVersion} "
                                                         + $"{message.Position}");
@@ -370,7 +370,7 @@
                     using (var subscription = store.SubscribeToStream(
                         streamId1,
                         7,
-                        (_, message) =>
+                        (_, message, ct) =>
                         {
                             receivedCount++;
                             if (message.StreamVersion == 11)
@@ -457,7 +457,7 @@
                         .Select(index => store.SubscribeToStream(
                             streamId1,
                             0,
-                            (_, message) =>
+                            (_, message, ct) =>
                             {
                                 if(message.StreamVersion == 1)
                                 {
@@ -530,7 +530,7 @@
                 using(var store = await fixture.GetStreamStore())
                 {
                     var eventReceivedException = new TaskCompletionSource<SubscriptionDroppedReason>();
-                    StreamMessageReceived messageReceived = (_, __) =>
+                    StreamMessageReceived messageReceived = (_, __, ___) =>
                     {
                         throw new Exception();
                     };
@@ -566,7 +566,7 @@
                     var tcs = new TaskCompletionSource<SubscriptionDroppedReason>();
                     var subscription = store.SubscribeToStream("stream-1",
                         StreamVersion.End,
-                        (_, __) => Task.CompletedTask,
+                        (_, __, ___) => Task.CompletedTask,
                         (_, reason, __) =>
                         {
                             tcs.SetResult(reason);
@@ -590,7 +590,7 @@
                     var subscription = store.SubscribeToStream(
                         "stream-1",
                         null,
-                        (_, __) => Task.CompletedTask,
+                        (_, __, ___) => Task.CompletedTask,
                         (sub, _, __) =>
                         {
                             tcs.SetResult(sub);
@@ -616,7 +616,7 @@
                     var handler = new AsyncAutoResetEvent();
                     var subscription = store.SubscribeToStream(streamId,
                         StreamVersion.Start,
-                        async (_, __) =>
+                        async (_, __, ___) =>
                         {
                             handler.Set();
                             await handler.WaitAsync(); // block "handling" while a dispose occurs
@@ -648,7 +648,7 @@
                     string streamId = "stream-1";
                     var subscription = store.SubscribeToStream(streamId,
                         StreamVersion.Start,
-                        (_, __) => Task.CompletedTask);
+                        (_, __, ___) => Task.CompletedTask);
                     await AppendMessages(store, streamId, 2);
                     subscription.Dispose();
                     subscription.Dispose();
@@ -829,7 +829,7 @@
                     var subscription = store.SubscribeToStream(
                         streamId,
                         null,
-                        (_, __) => Task.CompletedTask,
+                        (_, __, ___) => Task.CompletedTask,
                         hasCaughtUp: b =>
                         {
                             if (b)
@@ -893,7 +893,7 @@
                     var subscription = store.SubscribeToStream(
                         streamId,
                         null,
-                        (_, __) => Task.CompletedTask,
+                        (_, __, ___) => Task.CompletedTask,
                         hasCaughtUp: b =>
                         {
                             if (b)
@@ -923,7 +923,7 @@
                 var subscription = store.SubscribeToStream(
                     "stream-1",
                     null,
-                    (_, __) => Task.CompletedTask,
+                    (_, __, ___) => Task.CompletedTask,
                     subscriptionDropped: (streamSubscription, reason, exception) =>
                     {
                         subscriptionDropped.SetResult(reason);

@@ -1,5 +1,6 @@
 ﻿namespace SqlStreamStore.Subscriptions
 {
+    using System.Threading;
     using System.Threading.Tasks;
     using SqlStreamStore.Streams;
 
@@ -12,6 +13,9 @@
     /// <param name="streamMessage">
     ///     The stream message.
     /// </param>
+    /// <param name="cancellationToken">
+    ///     The cancellation instruction.
+    /// </param>
     /// <returns>A task that represents the asynchronous handling of the stream message.</returns>
-    public delegate Task StreamMessageReceived(IStreamSubscription subscription, StreamMessage streamMessage);
+    public delegate Task StreamMessageReceived(IStreamSubscription subscription, StreamMessage streamMessage, CancellationToken cancellationToken);
 }

@@ -4,8 +4,8 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
-    using Nito.AsyncEx;
     using Shouldly;
+    using SqlStreamStore.Imports.AsyncEx.Nito.AsyncEx.Coordination;
     using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
     using Xunit;

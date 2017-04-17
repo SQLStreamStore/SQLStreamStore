@@ -36,8 +36,6 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
-    <PackageReference Include="Nito.AsyncEx" Version="3.0.1" />
-    <PackageReference Include="Ensure.That" Version="5.0.0" />
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>

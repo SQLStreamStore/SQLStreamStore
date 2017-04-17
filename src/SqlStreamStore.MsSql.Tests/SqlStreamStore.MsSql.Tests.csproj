@@ -15,7 +15,12 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectCapability Include="ShowFilesOutsideOfProject" />
     <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" Exclude="bin\**;obj\**;**\*.xproj;packages\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="SqlStreamStore.MsSql.Tests.v3.ncrunchproject" />
   </ItemGroup>
 
   <ItemGroup>
@@ -36,8 +41,6 @@
   </ItemGroup>
 
   <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
-    <PackageReference Include="Nito.AsyncEx" Version="3.0.1" />
-    <PackageReference Include="Ensure.That" Version="5.0.0" />
     <PackageReference Include="System.Data.SqlLocalDb" Version="1.15.0" />
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />

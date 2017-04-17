@@ -226,7 +226,7 @@
                 LastVersion = message.StreamVersion;
                 try
                 {
-                    await _streamMessageReceived(this, message).NotOnCapturedContext();
+                    await _streamMessageReceived(this, message, _disposed.Token).NotOnCapturedContext();
                 }
                 catch (Exception ex)
                 {

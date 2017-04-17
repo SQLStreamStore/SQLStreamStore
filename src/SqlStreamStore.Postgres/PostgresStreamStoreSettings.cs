@@ -1,9 +1,7 @@
 ﻿namespace SqlStreamStore.Postgres
 {
     using System;
-
-    using EnsureThat;
-
+    using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Subscriptions;
 

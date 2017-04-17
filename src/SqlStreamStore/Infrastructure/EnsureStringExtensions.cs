@@ -1,6 +1,6 @@
 ﻿namespace SqlStreamStore.Infrastructure
 {
-    using EnsureThat;
+    using SqlStreamStore.Imports.Ensure.That;
 
     internal static class EnsureStringExtensions
     {

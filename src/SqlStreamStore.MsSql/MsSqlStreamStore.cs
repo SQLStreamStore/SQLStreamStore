@@ -6,8 +6,8 @@
     using System.Data.SqlClient;
     using System.Threading;
     using System.Threading.Tasks;
-    using EnsureThat;
     using Microsoft.SqlServer.Server;
+    using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.MsSqlScripts;
     using SqlStreamStore.Subscriptions;

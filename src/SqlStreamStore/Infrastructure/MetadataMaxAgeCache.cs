@@ -4,8 +4,8 @@ namespace SqlStreamStore.Infrastructure
     using System.Collections.Concurrent;
     using System.Threading;
     using System.Threading.Tasks;
-    using EnsureThat;
     using SqlStreamStore;
+    using SqlStreamStore.Imports.Ensure.That;
 
     internal class MetadataMaxAgeCache
     {

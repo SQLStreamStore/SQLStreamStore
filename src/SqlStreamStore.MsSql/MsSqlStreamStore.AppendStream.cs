@@ -7,8 +7,8 @@
     using System.Runtime.ExceptionServices;
     using System.Threading;
     using System.Threading.Tasks;
-    using EnsureThat;
     using Microsoft.SqlServer.Server;
+    using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Streams;
     using SqlStreamStore.Infrastructure;
     using StreamStoreStore.Json;

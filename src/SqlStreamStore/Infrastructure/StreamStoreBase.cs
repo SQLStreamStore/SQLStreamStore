@@ -3,9 +3,9 @@ namespace SqlStreamStore.Infrastructure
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using EnsureThat;
     using SqlStreamStore.Streams;
     using SqlStreamStore;
+    using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Logging;
 
     /// <summary>

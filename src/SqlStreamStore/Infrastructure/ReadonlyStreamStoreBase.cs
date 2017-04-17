@@ -4,11 +4,11 @@ namespace SqlStreamStore.Infrastructure
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using EnsureThat;
     using SqlStreamStore.Logging;
     using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
     using SqlStreamStore;
+    using SqlStreamStore.Imports.Ensure.That;
 
     public abstract class ReadonlyStreamStoreBase : IReadonlyStreamStore
     {

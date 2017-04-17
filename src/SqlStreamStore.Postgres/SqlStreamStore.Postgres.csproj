@@ -19,15 +19,9 @@
   <ItemGroup>
     <PackageReference Include="Npgsql" Version="3.1.9" />
   </ItemGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
-    <PackageReference Include="Ensure.That" Version="5.0.0" />
-  </ItemGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
     <DebugType>portable</DebugType>
   </PropertyGroup>
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
-    <PackageReference Include="Ensure.That" Version="5.0.0" />
-  </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />
   </ItemGroup>

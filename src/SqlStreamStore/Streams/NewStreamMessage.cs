@@ -1,7 +1,7 @@
 ﻿namespace SqlStreamStore.Streams
 {
     using System;
-    using EnsureThat;
+    using SqlStreamStore.Imports.Ensure.That;
 
     public class NewStreamMessage
     {

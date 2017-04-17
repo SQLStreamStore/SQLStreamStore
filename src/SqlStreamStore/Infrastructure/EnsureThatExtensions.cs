@@ -1,12 +1,16 @@
 ﻿namespace SqlStreamStore.Infrastructure
 {
-    using EnsureThat;
+    using SqlStreamStore.Imports.Ensure.That;
 
     internal static class EnsureThatExtensions
     {
         internal static Param<string> DoesNotStartWith(this Param<string> param, string s)
         {
-            if(param.Value.StartsWith(s))
+            if (!Ensure.IsActive)
+            {
+                return param;
+            }
+            if (param.Value.StartsWith(s))
             {
                 throw ExceptionFactory.CreateForParamValidation(param, $"Must not start with{s}");
             }

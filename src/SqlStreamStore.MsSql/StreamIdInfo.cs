@@ -3,7 +3,7 @@ namespace SqlStreamStore
     using System;
     using System.Security.Cryptography;
     using System.Text;
-    using EnsureThat;
+    using SqlStreamStore.Imports.Ensure.That;
 
     internal struct StreamIdInfo // Hate this name
     {

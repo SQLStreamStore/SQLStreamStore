@@ -254,3 +254,6 @@ paket-files/
 # Tools Cake
 tools/**
 !tools/packages.config
+
+#DotNetCore
+.dotnet

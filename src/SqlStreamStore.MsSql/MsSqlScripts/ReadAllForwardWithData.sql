@@ -1,5 +1,5 @@
 /* SQL Server 2008+ */
-     SELECT TOP(@count)
+     SELECT TOP(@pageSize)
             dbo.Streams.IdOriginal As StreamId,
             dbo.Messages.StreamVersion,
             dbo.Messages.Position,

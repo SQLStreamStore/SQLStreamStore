@@ -13,12 +13,12 @@ namespace SqlStreamStore
     {
         protected override async Task<ReadAllPage> ReadAllForwardsInternal(
             long fromPositionExlusive,
-            int maxCount,
+            int pageSize,
             bool prefetch,
             ReadNextAllPage readNext,
             CancellationToken cancellationToken)
         {
-            maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;
+            pageSize = pageSize == int.MaxValue ? pageSize - 1 : pageSize;
             long ordinal = fromPositionExlusive;
 
             using (var connection = _createConnection())
@@ -29,7 +29,7 @@ namespace SqlStreamStore
                 using (var command = new SqlCommand(commandText, connection))
                 {
                     command.Parameters.AddWithValue("ordinal", ordinal);
-                    command.Parameters.AddWithValue("count", maxCount + 1); //Read extra row to see if at end or not
+                    command.Parameters.AddWithValue("pageSize", pageSize + 1); //Read extra row to see if at end or not
                     var reader = await command
                         .ExecuteReaderAsync(cancellationToken)
                         .NotOnCapturedContext();
@@ -48,7 +48,7 @@ namespace SqlStreamStore
 
                     while (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                     {
-                        if(messages.Count == maxCount)
+                        if(messages.Count == pageSize)
                         {
                             messages.Add(default(StreamMessage));
                         }
@@ -89,10 +89,10 @@ namespace SqlStreamStore
 
                     bool isEnd = true;
 
-                    if (messages.Count == maxCount + 1) // An extra row was read, we're not at the end
+                    if (messages.Count == pageSize + 1) // An extra row was read, we're not at the end
                     {
                         isEnd = false;
-                        messages.RemoveAt(maxCount);
+                        messages.RemoveAt(pageSize);
                     }
 
                     var nextPosition = messages[messages.Count - 1].Position + 1;

@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore.Streams
+﻿namespace SqlStreamStore
 {
     /// <summary>
     ///     Represents the result of an append to stream operation.

@@ -30,6 +30,6 @@
         /// may result in larger payloads and memory usage whereas smaller values will result in more round-trips
         /// to the store. The correct value requires benchmarking of your application.
         /// </summary>
-        int MaxCountPerRead { get; set; }
+        int PageSizePerRead { get; set; }
     }
 }

@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore.Subscriptions
+﻿namespace SqlStreamStore
 {
     /// <summary>
     ///     A delegate that is invoked when a subscription has either caught up or fallen behind.

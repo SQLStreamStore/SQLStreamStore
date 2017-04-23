@@ -45,6 +45,6 @@ namespace SqlStreamStore
             IdOriginal = idOriginal;
         }
 
-        internal static readonly SqlStreamId Deleted = new StreamIdInfo(Streams.Deleted.DeletedStreamId).SqlStreamId;
+        internal static readonly SqlStreamId Deleted = new StreamIdInfo(SqlStreamStore.Deleted.DeletedStreamId).SqlStreamId;
     }
 }

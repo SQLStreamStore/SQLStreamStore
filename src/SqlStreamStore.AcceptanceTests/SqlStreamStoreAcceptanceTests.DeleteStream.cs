@@ -6,7 +6,7 @@
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
-    using static Streams.Deleted;
+    using static SqlStreamStore.Deleted;
 
     public partial class StreamStoreAcceptanceTests
     {

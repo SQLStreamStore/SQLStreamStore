@@ -11,7 +11,7 @@ namespace SqlStreamStore
     using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
     using StreamStoreStore.Json;
-    using static Streams.Deleted;
+    using static SqlStreamStore.Deleted;
 
     /// <summary>
     ///     Represents an in-memory implementation of a stream store. Use for testing or high/speed + volatile scenarios.

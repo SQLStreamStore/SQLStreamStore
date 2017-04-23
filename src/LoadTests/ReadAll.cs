@@ -5,7 +5,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using EasyConsole;
-    using SqlStreamStore.Streams;
+    using SqlStreamStore;
 
     public class ReadAll : LoadTest
     {

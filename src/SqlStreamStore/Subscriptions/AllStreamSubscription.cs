@@ -71,7 +71,7 @@
 
         public Task Started => _started.Task;
 
-        public int MaxCountPerRead
+        public int PageSizePerRead
         {
             get { return _pageSize; }
             set { _pageSize = (value <= 0) ? 1 : value; }
@@ -174,7 +174,7 @@
             try
             {
                 readAllPage = await _readonlyStreamStore
-                    .ReadAllForwards(_nextPosition, MaxCountPerRead, _prefetchJsonData, _disposed.Token)
+                    .ReadAllForwards(_nextPosition, PageSizePerRead, _prefetchJsonData, _disposed.Token)
                     .NotOnCapturedContext();
             }
             catch(ObjectDisposedException)

@@ -3,8 +3,6 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using SqlStreamStore.Streams;
-    using SqlStreamStore.Subscriptions;
 
     public interface IReadonlyStreamStore : IDisposable
     {

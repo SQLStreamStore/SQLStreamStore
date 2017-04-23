@@ -2,7 +2,6 @@
 {
     using System.Threading.Tasks;
     using Shouldly;
-    using SqlStreamStore.Streams;
     using Xunit;
 
     public partial class StreamStoreAcceptanceTests

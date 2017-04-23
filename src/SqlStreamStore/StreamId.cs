@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore.Streams
+﻿namespace SqlStreamStore
 {
     using System;
     using SqlStreamStore.Imports.Ensure.That;

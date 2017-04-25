@@ -7,14 +7,19 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public partial class StreamStoreAcceptanceTests
+    public class MsSqlStreamStoreAcceptanceTests : StreamStoreAcceptanceTests
     {
-        private StreamStoreAcceptanceTestFixture GetFixture(string schema = "foo")
+        public MsSqlStreamStoreAcceptanceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
         {
+        }
+
+        protected override StreamStoreAcceptanceTestFixture GetFixture()
+        {
+            string schema = "foo";
             return new MsSqlStreamStoreFixture(schema);
         }
 
-        private IDisposable CaptureLogs(ITestOutputHelper testOutputHelper)
+        protected override IDisposable CaptureLogs(ITestOutputHelper testOutputHelper)
         {
             return LoggingHelper.Capture(testOutputHelper);
         }

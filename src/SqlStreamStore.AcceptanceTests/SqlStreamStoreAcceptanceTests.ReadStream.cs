@@ -7,7 +7,7 @@
     using SqlStreamStore.Infrastructure;
     using Xunit;
 
-    public partial class StreamStoreAcceptanceTests
+    public abstract partial class StreamStoreAcceptanceTests
     {
         [Theory]
         [MemberData("GetReadStreamForwardsTheories")]

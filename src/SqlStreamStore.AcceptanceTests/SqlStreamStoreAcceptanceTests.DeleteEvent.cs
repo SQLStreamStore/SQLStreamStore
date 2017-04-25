@@ -7,7 +7,7 @@
     using Xunit;
     using static SqlStreamStore.Deleted;
 
-    public partial class StreamStoreAcceptanceTests
+    public abstract partial class StreamStoreAcceptanceTests
     {
         [Fact]
         public async Task When_delete_message_then_message_should_be_removed_from_stream()

@@ -5,14 +5,18 @@ namespace SqlStreamStore
     using SqlStreamStore.InMemory;
     using Xunit.Abstractions;
 
-    public partial class StreamStoreAcceptanceTests
+    public class InMemoryStreamStoreAcceptanceTests : StreamStoreAcceptanceTests
     {
-        private StreamStoreAcceptanceTestFixture GetFixture()
+        public InMemoryStreamStoreAcceptanceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        {
+        }
+
+        protected override StreamStoreAcceptanceTestFixture GetFixture()
         {
             return new InMemoryStreamStoreFixture();
         }
 
-        private IDisposable CaptureLogs(ITestOutputHelper testOutputHelper)
+        protected override IDisposable CaptureLogs(ITestOutputHelper testOutputHelper)
         {
             return LoggingHelper.Capture(testOutputHelper);
         }

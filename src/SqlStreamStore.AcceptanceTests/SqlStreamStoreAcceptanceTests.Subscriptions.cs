@@ -8,7 +8,7 @@
     using SqlStreamStore.Imports.AsyncEx.Nito.AsyncEx.Coordination;
     using Xunit;
 
-    public partial class StreamStoreAcceptanceTests
+    public abstract partial class StreamStoreAcceptanceTests
     {
         [Fact]
         public async Task Can_subscribe_to_a_stream_from_start()

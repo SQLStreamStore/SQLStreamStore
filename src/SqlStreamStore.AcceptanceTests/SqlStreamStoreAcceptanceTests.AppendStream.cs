@@ -5,7 +5,7 @@
     using SqlStreamStore.Streams;
     using Xunit;
 
-    public partial class StreamStoreAcceptanceTests
+    public abstract partial class StreamStoreAcceptanceTests
     {
         [Fact]
         public async Task When_append_stream_second_time_with_no_stream_expected_and_different_message_then_should_throw

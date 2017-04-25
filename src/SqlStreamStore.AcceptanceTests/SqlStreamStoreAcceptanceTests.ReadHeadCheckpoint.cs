@@ -4,7 +4,7 @@
     using Shouldly;
     using Xunit;
 
-    public partial class StreamStoreAcceptanceTests
+    public abstract partial class StreamStoreAcceptanceTests
     {
         [Fact]
         public async Task Given_empty_store_when_get_head_position_Then_should_be_minus_one()

@@ -8,7 +8,7 @@
     using Xunit;
     using static SqlStreamStore.Deleted;
 
-    public partial class StreamStoreAcceptanceTests
+    public abstract partial class StreamStoreAcceptanceTests
     {
         [Fact]
         public async Task When_delete_stream_with_no_expected_version_and_read_then_should_get_StreamNotFound()

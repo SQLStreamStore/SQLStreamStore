@@ -1,13 +1,81 @@
 ﻿namespace SqlStreamStore
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Shouldly;
     using Xunit;
+    using static SqlStreamStore.Infrastructure.StreamStoreConstants;
 
     public abstract partial class StreamStoreAcceptanceTests
     {
+        [Theory]
+        [InlineData(-1)]
+        [InlineData(-2)]
+        [InlineData(long.MinValue)]
+        public async Task ReadAllForwards_Throws_An_ArgumentException_When_Position_Is_Less_Than_Zero(long invalidPosition)
+        {
+            // given
+            var pageSize = MinimumPageSize;
+
+            // when
+            var exception = await Record.ExceptionAsync(() => store.ReadAllForwards(invalidPosition, pageSize));
+
+            // then
+            exception.ShouldBeOfType<ArgumentException>();
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(-1)]
+        [InlineData(-2)]
+        [InlineData(int.MinValue)]
+        public async Task ReadAllForwards_Throws_An_ArgumentException_When_PageSize_Is_Less_Than_One(int invalidPageSize)
+        {
+            // given
+            var position = MinimumReadAllForwardPosition;
+
+            // when
+            var exception = await Record.ExceptionAsync(() => store.ReadAllForwards(position, invalidPageSize));
+
+            // then
+            exception.ShouldBeOfType<ArgumentException>();
+        }
+
+        [Fact]
+        public async Task ReadAllForwards_Throws_An_ObjectDisposedException_When_The_StreamStore_Has_Been_Disposed()
+        {
+            // given
+            var position = MinimumReadAllForwardPosition;
+            var pageSize = MinimumPageSize;
+            store.Dispose();
+
+            // when
+            var exception = await Record.ExceptionAsync(() => store.ReadAllForwards(position, pageSize));
+
+            // then
+            exception.ShouldBeOfType<ObjectDisposedException>();
+        }
+
+        [Theory]
+        [InlineData(0)]
+        [InlineData(1)]
+        [InlineData(10)]
+        [InlineData(long.MaxValue)]
+        public async Task ReadAllForwards_Returns_The_Expected_Page_When_The_Store_Is_Empty(long position)
+        {
+            // when
+            var page = await store.ReadAllForwards(position, int.MaxValue);
+
+            // then
+            page.FromPosition.ShouldBe(position, $"FromPosition should be: {position}");
+            page.NextPosition.ShouldBe(0, $"NextPosition");
+            page.IsEnd.ShouldBeTrue();
+            page.Direction.ShouldBe(ReadDirection.Forward);
+            page.Messages.ShouldBeEmpty();
+        }
+
         [Fact]
         public async Task Can_read_all_forwards()
         {

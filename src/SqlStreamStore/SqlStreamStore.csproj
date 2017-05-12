@@ -3,8 +3,6 @@
   <PropertyGroup>
     <Description>A libray for writing and reading streams (also known as an 'event store') with a focus on SQL based implementations. This contains the core interfaces, abstractions and an in-memory implementation for tests.</Description>
     <AssemblyTitle>SQL Stream Store</AssemblyTitle>
-    <Version>0.0.0.0</Version>
-    <Authors>Damian Hickey</Authors>
     <TargetFrameworks>netstandard1.3;net46</TargetFrameworks>
     <DefineConstants>$(DefineConstants);LIBLOG_PUBLIC</DefineConstants>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
@@ -12,8 +10,7 @@
     <PackageId>SqlStreamStore</PackageId>
     <PackageTags>cqrs;event-sourcing;domain-driven-design;event-store;stream-store</PackageTags>
     <PackageReleaseNotes> - Support for NetStandard 1.3</PackageReleaseNotes>
-    <PackageProjectUrl>https://github.com/damianh/SqlStreamStore</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/damianh/SqlStreamStore/blob/master/LICENSE</PackageLicenseUrl>
+
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.1</NetStandardImplicitPackageVersion>
     <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
     <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>

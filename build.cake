@@ -8,7 +8,6 @@ var configuration   = Argument("configuration", "Release");
 var artifactsDir    = Directory("./artifacts");
 var solution        = "./src/SqlStreamStore.sln";
 var buildNumber     = string.IsNullOrWhiteSpace(EnvironmentVariable("BUILD_NUMBER")) ? "0" : EnvironmentVariable("BUILD_NUMBER");
-var version         = FileReadText("version.txt");
 
 Task("Clean")
     .Does(() =>
@@ -30,7 +29,6 @@ Task("Build")
 {
 	var settings = new DotNetCoreBuildSettings
 	{
-		ArgumentCustomization = args => args.Append("/p:Version=" + version + ";FileVersion=" + version),
 		Configuration = configuration
 	};
 
@@ -57,49 +55,20 @@ Task("RunTests")
     }
 });
 
-/*
-Task("Merge")
-    .IsDependentOn("Build")
-    .Does(() =>
-{
-    Action<string[], string> merge = (sourceAssemblies, primaryAssemblyName) => {
-        var assemblyPaths = sourceAssemblies
-            .Select(assembly => GetFiles("./src/" + primaryAssemblyName + "/bin/" + configuration + "/net46/" + assembly + ".dll").Single())
-            .ToArray();
-
-        var outputAssembly = artifactsDir.Path + "/" + primaryAssemblyName + ".dll";
-        var primaryAssembly = "./src/" + primaryAssemblyName + "/bin/" + configuration + "/net46/" + primaryAssemblyName + ".dll";
-
-        ILRepack(outputAssembly, primaryAssembly, assemblyPaths, new ILRepackSettings 
-        { 
-            Internalize = true,
-            Parallel = true
-        });
-    };
-
-    var assemblies = new [] { "Ensure.That", "Nito.AsyncEx", "Nito.AsyncEx.Concurrent", "Nito.AsyncEx.Enlightenment" };
-    merge(assemblies, "SqlStreamStore");
-
-    assemblies = new [] { "Ensure.That" };
-    merge(assemblies, "SqlStreamStore.MsSql");
-});
-*/
-
 Task("NuGetPack")
     .IsDependentOn("Build")
     .Does(() =>
 {
-	var packageVersion = version + "-build" + buildNumber.ToString().PadLeft(5, '0');
-    Information(packageVersion);
+    var versionSuffix = "build" + buildNumber.ToString().PadLeft(5, '0');
 
     var dotNetCorePackSettings   = new DotNetCorePackSettings
 	{
-		ArgumentCustomization = args => args.Append("/p:Version=" + packageVersion),
+        ArgumentCustomization = args => args.Append("/p:Version=0.9.0-" + versionSuffix),
         OutputDirectory = artifactsDir,
 		NoBuild = true,
-		Configuration = configuration
+		Configuration = configuration,
+        VersionSuffix = versionSuffix
     };
-
     
 	DotNetCorePack("./src/SqlStreamStore", dotNetCorePackSettings);
 	DotNetCorePack("./src/SqlStreamStore.MsSql", dotNetCorePackSettings);

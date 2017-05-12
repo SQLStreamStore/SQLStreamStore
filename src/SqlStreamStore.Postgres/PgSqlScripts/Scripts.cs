@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore.Postgres.PgSqlScripts
+﻿namespace SqlStreamStore.PgSqlScripts
 {
     using System;
     using System.Collections.Concurrent;

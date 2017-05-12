@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore.Postgres
+﻿namespace SqlStreamStore
 {
     using System;
     using SqlStreamStore.Imports.Ensure.That;

@@ -63,7 +63,7 @@ Task("NuGetPack")
 
     var dotNetCorePackSettings   = new DotNetCorePackSettings
 	{
-        ArgumentCustomization = args => args.Append("/p:Version=0.9.0-" + versionSuffix),
+        ArgumentCustomization = args => args.Append("/p:Version=1.0.0-" + versionSuffix),
         OutputDirectory = artifactsDir,
 		NoBuild = true,
 		Configuration = configuration,

@@ -11,7 +11,7 @@ namespace SqlStreamStore
     using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
     using StreamStoreStore.Json;
-    using static Streams.Deleted;
+    using static SqlStreamStore.Deleted;
 
     /// <summary>
     ///     Represents an in-memory implementation of a stream store. Use for testing or high/speed + volatile scenarios.
@@ -281,7 +281,7 @@ namespace SqlStreamStore
             AppendToStreamInternal(DeletedStreamId, ExpectedVersion.Any, new[] { streamDeletedEvent });
         }
 
-        protected override Task<ReadAllPage> ReadAllForwardsInternal(long fromPositionExlusive, int maxCount,
+        protected override Task<ReadAllPage> ReadAllForwardsInternal(long fromPositionExlusive, int pageSize,
             bool prefetch, ReadNextAllPage readNext, CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
@@ -312,7 +312,7 @@ namespace SqlStreamStore
                 }
 
                 var messages = new List<StreamMessage>();
-                while(maxCount > 0 && current != null)
+                while(pageSize > 0 && current != null)
                 {
                     StreamMessage message;
                     if (prefetch)
@@ -345,7 +345,7 @@ namespace SqlStreamStore
                             });
                     }
                     messages.Add(message);
-                    maxCount--;
+                    pageSize--;
                     previous = current;
                     current = current.Next;
                 }
@@ -368,7 +368,7 @@ namespace SqlStreamStore
 
         protected override Task<ReadAllPage> ReadAllBackwardsInternal(
             long fromPositionExclusive,
-            int maxCount,
+            int pageSize,
             bool prefetch,
             ReadNextAllPage readNext,
             CancellationToken cancellationToken)
@@ -405,7 +405,7 @@ namespace SqlStreamStore
                 }
 
                 var messages = new List<StreamMessage>();
-                while(maxCount > 0 && current != _allStream.First)
+                while(pageSize > 0 && current != _allStream.First)
                 {
                     StreamMessage message;
                     if (prefetch)
@@ -439,7 +439,7 @@ namespace SqlStreamStore
                     }
                     messages.Add(message);
 
-                    maxCount--;
+                    pageSize--;
                     previous = current;
                     current = current.Previous;
                 }
@@ -471,7 +471,7 @@ namespace SqlStreamStore
             }
         }
 
-        protected override Task<ReadStreamPage> ReadStreamForwardsInternal(string streamId, int start, int count, bool prefetch, ReadNextStreamPage readNext, CancellationToken cancellationToken)
+        protected override Task<ReadStreamPage> ReadStreamForwardsInternal(string streamId, int start, int pageSize, bool prefetch, ReadNextStreamPage readNext, CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
@@ -498,7 +498,7 @@ namespace SqlStreamStore
                 var messages = new List<StreamMessage>();
                 var i = start;
 
-                while(i < stream.Messages.Count && count > 0)
+                while(i < stream.Messages.Count && pageSize > 0)
                 {
                     var inMemorymessage = stream.Messages[i];
                     StreamMessage message;
@@ -529,7 +529,7 @@ namespace SqlStreamStore
                     messages.Add(message);
 
                     i++;
-                    count--;
+                    pageSize--;
                 }
 
                 var lastStreamVersion = stream.CurrentVersion;
@@ -567,7 +567,7 @@ namespace SqlStreamStore
         protected override Task<ReadStreamPage> ReadStreamBackwardsInternal(
             string streamId,
             int fromVersionInclusive,
-            int count,
+            int pageSize,
             bool prefetch,
             ReadNextStreamPage readNext,
             CancellationToken cancellationToken)
@@ -595,7 +595,7 @@ namespace SqlStreamStore
 
                 var messages = new List<StreamMessage>();
                 var i = fromVersionInclusive == StreamVersion.End ? stream.Messages.Count - 1 : fromVersionInclusive;
-                while (i >= 0 && count > 0)
+                while (i >= 0 && pageSize > 0)
                 {
                     var inMemorymessage = stream.Messages[i];
                     StreamMessage message;
@@ -626,7 +626,7 @@ namespace SqlStreamStore
                     messages.Add(message);
 
                     i--;
-                    count--;
+                    pageSize--;
                 }
 
                 var lastStreamVersion = stream.Messages.Count > 0 

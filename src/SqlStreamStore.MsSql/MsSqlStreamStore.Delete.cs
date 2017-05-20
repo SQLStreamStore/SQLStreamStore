@@ -6,7 +6,7 @@ namespace SqlStreamStore
     using System.Threading.Tasks;
     using SqlStreamStore.Streams;
     using SqlStreamStore.Infrastructure;
-    using static Streams.Deleted;
+    using static Deleted;
 
     public partial class MsSqlStreamStore
     {

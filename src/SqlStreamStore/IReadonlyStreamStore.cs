@@ -3,8 +3,6 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using SqlStreamStore.Streams;
-    using SqlStreamStore.Subscriptions;
 
     public interface IReadonlyStreamStore : IDisposable
     {
@@ -15,7 +13,7 @@
         ///     The position to start reading from. Use <see cref="Position.Start"/> to start from the beginning.
         ///     Note: messages that have expired will be filtered out.
         /// </param>
-        /// <param name="maxCount">
+        /// <param name="pageSize">
         ///     The maximum number of messages to read (int.MaxValue is a bad idea).
         /// </param>
         /// <param name="prefetchJsonData">
@@ -31,7 +29,7 @@
         /// </returns>
         Task<ReadAllPage> ReadAllForwards(
             long fromPositionInclusive,
-            int maxCount,
+            int pageSize,
             bool prefetchJsonData = true,
             CancellationToken cancellationToken = default(CancellationToken));
 
@@ -42,7 +40,7 @@
         ///     The position to start reading from. Use <see cref="Position.End"/> to start from the end.
         ///     Note: messages that have expired will be filtered out.
         /// </param>
-        /// <param name="maxCount">
+        /// <param name="pageSize">
         ///     The maximum number of messages to read (int.MaxValue is a bad idea). 
         /// </param>
         /// <param name="prefetchJsonData">
@@ -58,7 +56,7 @@
         /// </returns>
         Task<ReadAllPage> ReadAllBackwards(
             long fromPositionInclusive,
-            int maxCount,
+            int pageSize,
             bool prefetchJsonData = true,
             CancellationToken cancellationToken = default(CancellationToken));
 
@@ -72,7 +70,7 @@
         ///     The version of the stream to start reading from. Use <see cref="StreamVersion.Start"/> to read from 
         ///     the start.
         /// </param>
-        /// <param name="maxCount">
+        /// <param name="pageSize">
         ///     The maximum number of messages to read (int.MaxValue is a bad idea).
         /// </param>
         /// <param name="prefetchJsonData">
@@ -89,7 +87,7 @@
         Task<ReadStreamPage> ReadStreamForwards(
             StreamId streamId,
             int fromVersionInclusive,
-            int maxCount,
+            int pageSize,
             bool prefetchJsonData = true,
             CancellationToken cancellationToken = default(CancellationToken));
 
@@ -103,7 +101,7 @@
         ///     The version of the stream to start reading from. Use <see cref="StreamVersion.End"/> to read from 
         ///     the end.
         /// </param>
-        /// <param name="maxCount">
+        /// <param name="pageSize">
         ///     The maximum number of messages to read (int.MaxValue is a bad idea).
         /// </param>
         /// <param name="prefetchJsonData">
@@ -120,7 +118,7 @@
         Task<ReadStreamPage> ReadStreamBackwards(
             StreamId streamId,
             int fromVersionInclusive,
-            int maxCount,
+            int pageSize,
             bool prefetchJsonData = true,
             CancellationToken cancellationToken = default(CancellationToken));
 

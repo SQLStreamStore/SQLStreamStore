@@ -1,5 +1,6 @@
-﻿namespace SqlStreamStore.Streams
+﻿namespace SqlStreamStore
 {
+    using SqlStreamStore.Streams;
     using System;
     using System.Threading;
     using System.Threading.Tasks;

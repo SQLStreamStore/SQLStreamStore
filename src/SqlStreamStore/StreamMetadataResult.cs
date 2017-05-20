@@ -1,4 +1,4 @@
-namespace SqlStreamStore.Streams
+namespace SqlStreamStore
 {
     public class StreamMetadataResult
     {

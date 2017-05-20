@@ -6,11 +6,9 @@
     using System.Threading.Tasks;
     using Shouldly;
     using SqlStreamStore.Imports.AsyncEx.Nito.AsyncEx.Coordination;
-    using SqlStreamStore.Streams;
-    using SqlStreamStore.Subscriptions;
     using Xunit;
 
-    public partial class StreamStoreAcceptanceTests
+    public abstract partial class StreamStoreAcceptanceTests
     {
         [Fact]
         public async Task Can_subscribe_to_a_stream_from_start()
@@ -809,7 +807,7 @@
                                 caughtUp.SetResult(b);
                             }
                         });
-                    subscription.MaxCountPerRead = 10;
+                    subscription.PageSizePerRead = 10;
                     await caughtUp.Task.WithTimeout(5000);
                     subscription.Dispose();
                 }
@@ -870,7 +868,7 @@
                                 fallenBehind.SetResult(b);
                             }
                         });
-                    subscription.MaxCountPerRead = 10;
+                    subscription.PageSizePerRead = 10;
 
                     await fallenBehind.Task.WithTimeout(5000);
                     subscription.Dispose();

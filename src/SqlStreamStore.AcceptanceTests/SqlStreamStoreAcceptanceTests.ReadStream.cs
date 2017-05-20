@@ -5,10 +5,9 @@
     using System.Threading.Tasks;
     using Shouldly;
     using SqlStreamStore.Infrastructure;
-    using SqlStreamStore.Streams;
     using Xunit;
 
-    public partial class StreamStoreAcceptanceTests
+    public abstract partial class StreamStoreAcceptanceTests
     {
         [Theory]
         [MemberData("GetReadStreamForwardsTheories")]

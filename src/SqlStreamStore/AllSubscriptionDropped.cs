@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore.Subscriptions
+﻿namespace SqlStreamStore
 {
     using System;
 
@@ -9,10 +9,9 @@
     ///     The source subscription.
     /// </param>
     /// <param name="reason">
-    ///     The subscription dropped reason.
-    /// </param>
+    ///     The subscription dropped reason.</param>
     /// <param name="exception">
     ///     The underlying exception that caused the subscription to drop, if one exists.
     /// </param>
-    public delegate void SubscriptionDropped(IStreamSubscription subscription, SubscriptionDroppedReason reason, Exception exception = null);
+    public delegate void AllSubscriptionDropped(IAllStreamSubscription subscription, SubscriptionDroppedReason reason, Exception exception = null);
 }

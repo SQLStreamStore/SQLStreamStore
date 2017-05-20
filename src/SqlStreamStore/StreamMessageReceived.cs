@@ -1,8 +1,7 @@
-﻿namespace SqlStreamStore.Subscriptions
+﻿namespace SqlStreamStore
 {
     using System.Threading;
     using System.Threading.Tasks;
-    using SqlStreamStore.Streams;
 
     /// <summary>
     ///       Repesents a delegate that is invoked when a stream messages has been received in a subscription.

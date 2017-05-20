@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore.Subscriptions
+﻿namespace SqlStreamStore
 {
     public enum SubscriptionDroppedReason
     {

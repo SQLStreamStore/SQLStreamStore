@@ -10,21 +10,31 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public partial class StreamStoreAcceptanceTests : IDisposable
+    public abstract partial class StreamStoreAcceptanceTests : IDisposable
     {
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly IDisposable _logCapture;
+        protected readonly StreamStoreAcceptanceTestFixture fixture;
+        protected readonly IStreamStore store;
 
         public StreamStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
             _logCapture = CaptureLogs(testOutputHelper);
+            fixture = GetFixture();
+            store = fixture.GetStreamStore().Result;
         }
 
         public void Dispose()
         {
+            store.Dispose();
+            fixture.Dispose();
             _logCapture.Dispose();
         }
+
+        protected abstract StreamStoreAcceptanceTestFixture GetFixture();
+
+        protected abstract IDisposable CaptureLogs(ITestOutputHelper testOutputHelper);
 
         [Fact]
         public async Task When_dispose_and_read_then_should_throw()

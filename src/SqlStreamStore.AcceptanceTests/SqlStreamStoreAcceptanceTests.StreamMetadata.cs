@@ -4,10 +4,9 @@
     using System.Linq;
     using System.Threading.Tasks;
     using Shouldly;
-    using SqlStreamStore.Streams;
     using Xunit;
 
-    public partial class StreamStoreAcceptanceTests
+    public abstract partial class StreamStoreAcceptanceTests
     {
         //TODO: Port some of the tests from AppendStream with regard to expected version to verify behavior of Get/SetStreamMetadata.
 

@@ -5,5 +5,26 @@
     <Authors>Damian Hickey</Authors>
     <PackageProjectUrl>https://github.com/damianh/SqlStreamStore</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/damianh/SqlStreamStore/blob/master/LICENSE</PackageLicenseUrl>
+    <DisableImplicitFrameworkReferences Condition=" '$(TargetFramework)' == 'net461' ">true</DisableImplicitFrameworkReferences>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageTags>cqrs;event-sourcing;event-store;stream-store</PackageTags>
   </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
+    <DefineConstants>$(DefineConstants);LIBLOG_PORTABLE</DefineConstants>
+    <DebugType>portable</DebugType>
+  </PropertyGroup>
+
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net461' ">
+    <DebugType>full</DebugType>
+  </PropertyGroup>
+
+  <ItemGroup Condition=" '$(MSBuildProjectName)' != 'SqlStreamStore' ">
+    <ProjectReference Include="../SqlStreamStore/SqlStreamStore.csproj" />
+  </ItemGroup>
+
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System" />
+  </ItemGroup>
 </Project>

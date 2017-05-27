@@ -1,20 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <VersionPrefix>0.6.1</VersionPrefix>
-    <TargetFrameworks>netcoreapp1.1;net46</TargetFrameworks>
+    <TargetFrameworks>netcoreapp1.0;net461</TargetFrameworks>
     <DebugType>portable</DebugType>
     <AssemblyName>SqlStreamStore.Postgres.Tests</AssemblyName>
     <PackageId>SqlStreamStore.Postgres.Tests</PackageId>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.1' ">$(PackageTargetFallback);dotnet5.4;portable-net451+win8</PackageTargetFallback>
-    <RuntimeFrameworkVersion Condition=" '$(TargetFramework)' == 'netcoreapp1.1' ">1.1.1</RuntimeFrameworkVersion>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
-    <RootNamespace>SqlStreamStore.Postgres</RootNamespace>
+    <RootNamespace>SqlStreamStore</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" Exclude="bin\**;obj\**;**\*.xproj;packages\**" />
+    <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs"/>
   </ItemGroup>
 
   <ItemGroup>
@@ -34,7 +29,7 @@
     <PackageReference Include="Npgsql" Version="3.1.9" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />
   </ItemGroup>

@@ -55,7 +55,7 @@
                 {
 #if NETSTANDARD1_3
                     using (Stream stream = typeof(Scripts).GetTypeInfo().Assembly.GetManifestResourceStream("SqlStreamStore.Postgres.PgSqlScripts." + key + ".pgsql"))
-#elif NET46
+#elif NET461
                     using (Stream stream = typeof(Scripts).Assembly.GetManifestResourceStream("SqlStreamStore.Postgres.PgSqlScripts." + key + ".pgsql"))
 #endif
                     {

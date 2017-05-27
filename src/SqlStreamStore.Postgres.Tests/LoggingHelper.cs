@@ -3,7 +3,7 @@
     using System;
     using System.IO;
     using System.Reactive.Linq;
-#if NET46
+#if NET461
     using System.Runtime.Remoting.Messaging;
 #endif
     using Serilog;
@@ -11,7 +11,7 @@
     using Serilog.Formatting.Display;
     using SqlStreamStore.Infrastructure;
     using Xunit.Abstractions;
-#if NETCOREAPP1_1
+#if NETCOREAPP1_0
     using System.Threading;
 #endif
 
@@ -38,7 +38,7 @@
         {
             var captureId = Guid.NewGuid();
 
-#if NETCOREAPP1_1
+#if NETCOREAPP1_0
             var CallContextData = new AsyncLocal<Tuple<string, Guid>>
             {
                 Value = new Tuple<string, Guid>(CaptureCorrelationIdKey, captureId)
@@ -48,9 +48,9 @@
 #endif
 
             Func<LogEvent, bool> filter = logEvent =>
-#if NETCOREAPP1_1
+#if NETCOREAPP1_0
                 CallContextData.Value.Item2.Equals(captureId);
-#elif NET46
+#elif NET461
                 CallContext.LogicalGetData(CaptureCorrelationIdKey).Equals(captureId);
 #endif
 
@@ -66,9 +66,9 @@
             return new DisposableAction(() =>
             {
                 subscription.Dispose();
-#if NETCOREAPP1_1
+#if NETCOREAPP1_0
                 CallContextData.Value = null;
-#elif NET46
+#elif NET461
                 CallContext.FreeNamedDataSlot(CaptureCorrelationIdKey);
 #endif
             });

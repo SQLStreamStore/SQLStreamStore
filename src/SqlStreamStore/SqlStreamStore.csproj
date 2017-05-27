@@ -3,17 +3,11 @@
   <PropertyGroup>
     <Description>A libray for writing and reading streams (also known as an 'event store') with a focus on SQL based implementations. This contains the core interfaces, abstractions and an in-memory implementation for tests.</Description>
     <AssemblyTitle>SQL Stream Store</AssemblyTitle>
-    <TargetFrameworks>netstandard1.3;net46</TargetFrameworks>
+    <TargetFrameworks>netstandard1.3;net461</TargetFrameworks>
     <DefineConstants>$(DefineConstants);LIBLOG_PUBLIC</DefineConstants>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <AssemblyName>SqlStreamStore</AssemblyName>
-    <PackageId>SqlStreamStore</PackageId>
-    <PackageTags>cqrs;event-sourcing;domain-driven-design;event-store;stream-store</PackageTags>
-    <PackageReleaseNotes> - Support for NetStandard 1.3</PackageReleaseNotes>
-
+    <PackageReleaseNotes></PackageReleaseNotes>
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.1</NetStandardImplicitPackageVersion>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
   </PropertyGroup>
 
   <ItemGroup>
@@ -36,7 +30,7 @@
     <DebugType>portable</DebugType>
   </PropertyGroup>
 
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net46' ">
+  <PropertyGroup Condition=" '$(TargetFramework)' == 'net461' ">
     <DebugType>full</DebugType>
   </PropertyGroup>
 

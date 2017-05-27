@@ -2,7 +2,7 @@ namespace SqlStreamStore
 {
     using System;
     using System.Data.SqlClient;
-#if NET46
+#if NET461
     using System.Data.SqlLocalDb;
 #endif
     using System.Linq;
@@ -122,7 +122,7 @@ namespace SqlStreamStore
             SqlConnectionStringBuilder CreateConnectionStringBuilder();
         }
 
-#if NETCOREAPP1_1
+#if NETCOREAPP1_0
         private class LocalInstance : ILocalInstance
         {
             private readonly string connectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=master;Integrated Security=SSPI;";
@@ -137,7 +137,7 @@ namespace SqlStreamStore
                 return new SqlConnectionStringBuilder(connectionString);
             }
         }
-#elif NET46
+#elif NET461
         private class LocalInstance : ILocalInstance
         {
             private readonly ISqlLocalDbInstance _localDbInstance;

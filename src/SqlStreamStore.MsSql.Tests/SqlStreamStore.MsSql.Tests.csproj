@@ -1,21 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp1.1;net46</TargetFrameworks>
-    <DebugType>portable</DebugType>
+    <TargetFrameworks>netcoreapp1.0;net461</TargetFrameworks>
     <AssemblyName>SqlStreamStore.MsSql.Tests</AssemblyName>
     <PackageId>SqlStreamStore.MsSql.Tests</PackageId>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
-    <PackageTargetFallback Condition=" '$(TargetFramework)' == 'netcoreapp1.1' ">$(PackageTargetFallback);dotnet5.4;portable-net451+win8</PackageTargetFallback>
-    <RuntimeFrameworkVersion Condition=" '$(TargetFramework)' == 'netcoreapp1.1' ">1.1.1</RuntimeFrameworkVersion>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
     <RootNamespace>SqlStreamStore</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>
     <ProjectCapability Include="ShowFilesOutsideOfProject" />
-    <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" Exclude="bin\**;obj\**;**\*.xproj;packages\**" />
+    <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" />
   </ItemGroup>
 
   <ItemGroup>
@@ -23,7 +18,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SqlStreamStore.MsSql\SqlStreamStore.MsSql.csproj" />
+    <ProjectReference Include="..\SqlStreamStore.MsSql\SqlStreamStore.MsSql.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -38,7 +33,7 @@
     <PackageReference Include="System.Reactive.Linq" Version="3.1.1" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net46' ">
+  <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">
     <PackageReference Include="System.Data.SqlLocalDb" Version="1.15.0" />
     <Reference Include="System" />
     <Reference Include="Microsoft.CSharp" />

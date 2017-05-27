@@ -2,29 +2,17 @@
   <PropertyGroup>
     <Description>Postgre SQL provider for SQL StreamStore</Description>
     <AssemblyTitle>Stream Store - Postgres</AssemblyTitle>
-    <TargetFrameworks>netstandard1.3;net46</TargetFrameworks>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <TargetFrameworks>netstandard1.3;net461</TargetFrameworks>
     <AssemblyName>SqlStreamStore.Postgres</AssemblyName>
     <PackageId>SqlStreamStore.Postgres</PackageId>
-    <PackageTags>cqrs;event-sourcing;domain-driven-design;event-store;postgres</PackageTags>
-    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.1</NetStandardImplicitPackageVersion>
-    <GenerateAssemblyTitleAttribute>false</GenerateAssemblyTitleAttribute>
-    <GenerateAssemblyDescriptionAttribute>false</GenerateAssemblyDescriptionAttribute>
     <RootNamespace>SqlStreamStore</RootNamespace>
   </PropertyGroup>
+
   <ItemGroup>
     <PackageReference Include="Npgsql" Version="3.1.9" />
   </ItemGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
-    <DebugType>portable</DebugType>
-  </PropertyGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />
   </ItemGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net46' ">
-    <DebugType>full</DebugType>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(TargetFramework)|$(Platform)'=='Debug|netstandard1.3|AnyCPU'">
-    <DocumentationFile>bin\Debug\netstandard1.3\SqlStreamStore.Postgres.xml</DocumentationFile>
-  </PropertyGroup>
 </Project>

@@ -8,7 +8,7 @@
 
     public sealed class PollingStreamStoreNotifier : IStreamStoreNotifier
     {
-#if NET46
+#if NET461
         private static readonly ILog s_logger = LogProvider.GetCurrentClassLogger();
 #elif NETSTANDARD1_3
         private static readonly ILog s_logger = LogProvider.GetLogger("SqlStreamStore.Subscriptions.PollingStreamStoreNotifier");

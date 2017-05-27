@@ -2,7 +2,6 @@
   <Settings>
     <AllowParallelTestExecution>True</AllowParallelTestExecution>
     <AllowTestsToRunInParallelWithThemselves>False</AllowTestsToRunInParallelWithThemselves>
-    <FrameworkUtilisationTypeForXUnit2>UseStaticAnalysis</FrameworkUtilisationTypeForXUnit2>
     <SolutionConfigured>True</SolutionConfigured>
   </Settings>
 </SolutionConfiguration>

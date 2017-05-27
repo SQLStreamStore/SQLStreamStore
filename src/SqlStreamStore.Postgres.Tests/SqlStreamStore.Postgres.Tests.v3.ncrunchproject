@@ -1,9 +1,0 @@
-﻿<ProjectConfiguration>
-  <Settings>
-    <FrameworkUtilisationTypeForXUnit2>UseDynamicAnalysis</FrameworkUtilisationTypeForXUnit2>
-    <IgnoredTests>
-      <AllTestsSelector />
-    </IgnoredTests>
-    <PreviouslyBuiltSuccessfully>True</PreviouslyBuiltSuccessfully>
-  </Settings>
-</ProjectConfiguration>

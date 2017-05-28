@@ -11,7 +11,7 @@
     public partial class StreamStoreAcceptanceTests
     {
         [Theory]
-        [MemberData("GetReadStreamForwardsTheories")]
+        [MemberData(nameof(GetReadStreamForwardsTheories))]
         public async Task Can_read_streams_forwards_with_prefetch(ReadStreamTheory theory)
         {
             using(var fixture = GetFixture())
@@ -56,7 +56,7 @@
         }
 
         [Theory]
-        [MemberData("GetReadStreamForwardsTheories")]
+        [MemberData(nameof(GetReadStreamForwardsTheories))]
         public async Task Can_read_streams_forwards_without_prefetch(ReadStreamTheory theory)
         {
             using (var fixture = GetFixture())
@@ -156,7 +156,7 @@
         }
 
         [Theory]
-        [MemberData("GetReadStreamBackwardsTheories")]
+        [MemberData(nameof(GetReadStreamBackwardsTheories))]
         public async Task Can_read_streams_backwards_with_prefetch(ReadStreamTheory theory)
         {
             using (var fixture = GetFixture())
@@ -201,7 +201,7 @@
         }
 
         [Theory]
-        [MemberData("GetReadStreamBackwardsTheories")]
+        [MemberData(nameof(GetReadStreamBackwardsTheories))]
         public async Task Can_read_streams_backwards_without_prefetch(ReadStreamTheory theory)
         {
             using (var fixture = GetFixture())

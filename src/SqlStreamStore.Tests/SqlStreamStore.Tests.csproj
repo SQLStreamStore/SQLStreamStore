@@ -5,6 +5,7 @@
     <DebugType>portable</DebugType>
     <AssemblyName>SqlStreamStore.Tests</AssemblyName>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+    <RuntimeFrameworkVersion>1.0.4</RuntimeFrameworkVersion>
   </PropertyGroup>
 
   <ItemGroup>

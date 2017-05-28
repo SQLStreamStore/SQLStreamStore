@@ -6,6 +6,7 @@
     <PackageId>SqlStreamStore.MsSql.Tests</PackageId>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <RootNamespace>SqlStreamStore</RootNamespace>
+    <RuntimeFrameworkVersion>1.0.4</RuntimeFrameworkVersion>
   </PropertyGroup>
 
   <ItemGroup>

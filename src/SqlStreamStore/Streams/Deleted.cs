@@ -40,6 +40,7 @@
         ///     Createts a <see cref="NewStreamMessage"/> that contains a message deleted message.
         /// </summary>
         /// <param name="streamId">The stream id of the deleted stream.</param>
+        /// <param name="messageId">The message id of the deleted message.</param>
         /// <returns>A <see cref="NewStreamMessage"/>A <see cref="NewStreamMessage"/>.</returns>
         public static NewStreamMessage CreateMessageDeletedMessage(string streamId, Guid messageId)
         {

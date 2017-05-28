@@ -24,7 +24,7 @@
         public readonly bool IsEnd;
 
         /// <summary>
-        ///     The direction of the he read request.
+        ///     The direction of the the read request.
         /// </summary>
         public readonly ReadDirection Direction;
         private readonly ReadNextAllPage _readNext;
@@ -34,20 +34,29 @@
         /// </summary>
         public readonly StreamMessage[] Messages;
 
+        /// <summary>
+        ///     Initializes a new instance of <see cref="ReadAllPage"/>
+        /// </summary>
+        /// <param name="fromPosition">A long representing the position where this page was read from.</param>
+        /// <param name="nextPosition">A long representing the position where the next page should be read from.</param>
+        /// <param name="isEnd">True if page reach end of the all stream at time of reading. Otherwise false.</param>
+        /// <param name="direction">The direction of the the read request.</param>
+        /// <param name="readNext">An operation to read the next page of messages.</param>
+        /// <param name="messages">The collection messages read.</param>
         public ReadAllPage(
             long fromPosition,
             long nextPosition,
             bool isEnd,
             ReadDirection direction,
-            StreamMessage[] messages,
-            ReadNextAllPage readNext)
+            ReadNextAllPage readNext,
+            StreamMessage[] messages = null)
         {
             FromPosition = fromPosition;
             NextPosition = nextPosition;
             IsEnd = isEnd;
             Direction = direction;
-            Messages = messages;
             _readNext = readNext;
+            Messages = messages ?? new StreamMessage[0];
         }
 
         /// <inheritdoc />

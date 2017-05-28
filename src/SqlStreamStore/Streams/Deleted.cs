@@ -4,7 +4,7 @@
     using StreamStoreStore.Json;
 
     /// <summary>
-    ///     Represnts 
+    ///     Represents information regarding deleted messages and streams.
     /// </summary>
     public static class Deleted
     {

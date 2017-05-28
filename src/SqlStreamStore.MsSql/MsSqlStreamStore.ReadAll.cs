@@ -42,8 +42,8 @@ namespace SqlStreamStore
                             fromPositionExlusive,
                             true,
                             ReadDirection.Forward,
-                            messages.ToArray(),
-                            readNext);
+                            readNext,
+                            messages.ToArray());
                     }
 
                     while (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
@@ -102,8 +102,8 @@ namespace SqlStreamStore
                         nextPosition,
                         isEnd,
                         ReadDirection.Forward,
-                        messages.ToArray(),
-                        readNext);
+                        readNext,
+                        messages.ToArray());
                 }
             }
         }
@@ -141,8 +141,8 @@ namespace SqlStreamStore
                             Position.Start,
                             true,
                             ReadDirection.Backward,
-                            messages.ToArray(),
-                            readNext);
+                            readNext,
+                            messages.ToArray());
                     }
 
                     long lastOrdinal = 0;
@@ -197,8 +197,8 @@ namespace SqlStreamStore
                         nextPosition,
                         isEnd,
                         ReadDirection.Backward,
-                        messages.ToArray(),
-                        readNext);
+                        readNext,
+                        messages.ToArray());
                 }
             }
         }

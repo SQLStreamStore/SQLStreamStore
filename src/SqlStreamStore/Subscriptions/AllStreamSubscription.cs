@@ -9,6 +9,10 @@
     using SqlStreamStore.Imports.AsyncEx.Nito.AsyncEx.Coordination;
     using SqlStreamStore.Logging;
 
+    /// <summary>
+    ///     Represents a subscription to all streams.
+    /// </summary>
+
     public sealed class AllStreamSubscription : IAllStreamSubscription
     {
         public const int DefaultPageSize = 10;
@@ -63,20 +67,26 @@
                           $"{continueAfterPosition?.ToString() ?? "<null>"}.");
         }
 
+        /// <inheritdoc />
         public string Name { get; }
 
+        /// <inheritdoc />
         public long? FromPosition { get; }
 
+        /// <inheritdoc />
         public long? LastPosition { get; private set; }
 
+        /// <inheritdoc />
         public Task Started => _started.Task;
 
+        /// <inheritdoc />
         public int MaxCountPerRead
         {
-            get { return _pageSize; }
-            set { _pageSize = (value <= 0) ? 1 : value; }
+            get => _pageSize;
+            set => _pageSize = value <= 0 ? 1 : value;
         }
 
+        /// <inheritdoc />
         public void Dispose()
         {
             if (_disposed.IsCancellationRequested)

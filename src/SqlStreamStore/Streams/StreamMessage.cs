@@ -9,8 +9,6 @@
     /// </summary>
     public struct StreamMessage
     {
-        public static readonly StreamMessage[] EmptyArray = new StreamMessage[0];
-
         public readonly long Position;
         public readonly DateTime CreatedUtc;
         public readonly Guid MessageId;

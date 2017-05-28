@@ -107,7 +107,6 @@
                               -1,
                               direction,
                               true,
-                              StreamMessage.EmptyArray,
                               readNext);
                     }
                     var lastStreamVersion = reader.GetInt32(0);
@@ -171,8 +170,8 @@
                         lastStreamPosition,
                         direction,
                         isEnd,
-                        messages.ToArray(),
-                        readNext);
+                        readNext,
+                        messages.ToArray());
                 }
             }
         }

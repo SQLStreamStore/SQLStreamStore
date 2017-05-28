@@ -350,8 +350,8 @@ namespace SqlStreamStore.Infrastructure
                 page.LastStreamPosition,
                 page.ReadDirection,
                 page.IsEnd,
-                valid.ToArray(),
-                readNext);
+                readNext,
+                valid.ToArray());
         }
 
         private async Task<ReadAllPage> FilterExpired(
@@ -388,8 +388,8 @@ namespace SqlStreamStore.Infrastructure
                 readAllPage.NextPosition,
                 readAllPage.IsEnd,
                 readAllPage.Direction,
-                valid.ToArray(),
-                readNext);
+                readNext,
+                valid.ToArray());
         }
 
         ~ReadonlyStreamStoreBase()

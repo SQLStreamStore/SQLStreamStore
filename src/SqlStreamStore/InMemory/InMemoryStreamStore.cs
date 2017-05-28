@@ -293,8 +293,7 @@ namespace SqlStreamStore
                 var current = _allStream.First;
                 if(current.Next == null) //Empty store
                 {
-                    var result = new ReadAllPage(Position.Start, Position.Start, true, ReadDirection.Forward,
-                        StreamMessage.EmptyArray, readNext);
+                    var result = new ReadAllPage(Position.Start, Position.Start, true, ReadDirection.Forward, readNext);
                     return Task.FromResult(result);
                 }
 
@@ -304,7 +303,7 @@ namespace SqlStreamStore
                     if(current.Next == null) // fromPosition is past end of store
                     {
                         var result = new ReadAllPage(fromPositionExlusive, fromPositionExlusive, true,
-                            ReadDirection.Forward, StreamMessage.EmptyArray, readNext);
+                            ReadDirection.Forward, readNext);
                         return Task.FromResult(result);
                     }
                     previous = current;
@@ -359,8 +358,8 @@ namespace SqlStreamStore
                     nextCheckPoint,
                     isEnd,
                     ReadDirection.Forward,
-                    messages.ToArray(),
-                    readNext);
+                    readNext,
+                    messages.ToArray());
 
                 return Task.FromResult(page);
             }
@@ -386,8 +385,7 @@ namespace SqlStreamStore
                 var current = _allStream.First;
                 if(current.Next == null) //Empty store
                 {
-                    var result = new ReadAllPage(Position.Start, Position.Start, true, ReadDirection.Backward,
-                        StreamMessage.EmptyArray, readNext);
+                    var result = new ReadAllPage(Position.Start, Position.Start, true, ReadDirection.Backward, readNext);
                     return Task.FromResult(result);
                 }
 
@@ -397,7 +395,7 @@ namespace SqlStreamStore
                     if(current.Next == null) // fromPosition is past end of store
                     {
                         var result = new ReadAllPage(fromPositionExclusive, fromPositionExclusive, true,
-                                ReadDirection.Backward, StreamMessage.EmptyArray, readNext);
+                                ReadDirection.Backward, readNext);
                         return Task.FromResult(result);
                     }
                     previous = current;
@@ -464,8 +462,8 @@ namespace SqlStreamStore
                     nextCheckPoint,
                     isEnd,
                     ReadDirection.Backward,
-                    messages.ToArray(),
-                    readNext);
+                    readNext,
+                    messages.ToArray());
 
                 return Task.FromResult(page);
             }
@@ -490,7 +488,6 @@ namespace SqlStreamStore
                         -1,
                         ReadDirection.Forward,
                         true,
-                        StreamMessage.EmptyArray,
                         s_readNextNotFound);
                     return Task.FromResult(notFound);
                 }
@@ -557,8 +554,8 @@ namespace SqlStreamStore
                     stream.CurrentPosition,
                     ReadDirection.Forward,
                     endOfStream,
-                    messages.ToArray(),
-                    readNext);
+                    readNext,
+                    messages.ToArray());
 
                 return Task.FromResult(page);
             }
@@ -588,7 +585,6 @@ namespace SqlStreamStore
                         -1,
                         ReadDirection.Backward,
                         true,
-                        StreamMessage.EmptyArray,
                         s_readNextNotFound);
                     return Task.FromResult(notFound);
                 }
@@ -646,8 +642,8 @@ namespace SqlStreamStore
                     stream.CurrentPosition,
                     ReadDirection.Backward,
                     endOfStream,
-                    messages.ToArray(),
-                    readNext);
+                    readNext,
+                    messages.ToArray());
 
                 return Task.FromResult(page);
             }

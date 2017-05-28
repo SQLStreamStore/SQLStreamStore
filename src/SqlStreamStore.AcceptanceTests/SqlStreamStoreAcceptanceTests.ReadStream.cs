@@ -385,17 +385,18 @@
             {
                 new ReadStreamTheory("stream-1", StreamVersion.Start, 2,
                     new ReadStreamPage("stream-1", PageReadStatus.Success, 0, 2, 2, -1, ReadDirection.Forward, false,
+                    messages:
                     new [] {
                         ExpectedStreamMessage("stream-1", 1, 0, SystemClock.GetUtcNow()),
                         ExpectedStreamMessage("stream-1", 2, 1, SystemClock.GetUtcNow())
                     })),
 
                 new ReadStreamTheory("not-exist", 1, 2,
-                    new ReadStreamPage("not-exist", PageReadStatus.StreamNotFound, 1, -1, -1, -1, ReadDirection.Forward, true,
-                        StreamMessage.EmptyArray)),
+                    new ReadStreamPage("not-exist", PageReadStatus.StreamNotFound, 1, -1, -1, -1, ReadDirection.Forward, true)),
 
                 new ReadStreamTheory("stream-2", 1, 2,
                     new ReadStreamPage("stream-2", PageReadStatus.Success, 1, 3, 2, -1, ReadDirection.Forward, true,
+                        messages:
                     new [] {
                         ExpectedStreamMessage("stream-2", 5, 1, SystemClock.GetUtcNow()),
                         ExpectedStreamMessage("stream-2", 6, 2, SystemClock.GetUtcNow())
@@ -410,20 +411,20 @@
             var theories = new[]
             {
                 new ReadStreamTheory("stream-1", StreamVersion.End, 1,
-                    new ReadStreamPage("stream-1", PageReadStatus.Success, -1, 1, 2, -1, ReadDirection.Backward, false,
+                    new ReadStreamPage("stream-1", PageReadStatus.Success, -1, 1, 2, -1, ReadDirection.Backward, false, messages:
                         new [] {
                             ExpectedStreamMessage("stream-1", 3, 2, SystemClock.GetUtcNow())
                         })),
 
                 new ReadStreamTheory("stream-1", StreamVersion.End, 2,
-                    new ReadStreamPage("stream-1", PageReadStatus.Success, -1, 0, 2, -1, ReadDirection.Backward, false,
+                    new ReadStreamPage("stream-1", PageReadStatus.Success, -1, 0, 2, -1, ReadDirection.Backward, false, messages:
                         new [] {
                             ExpectedStreamMessage("stream-1", 3, 2, SystemClock.GetUtcNow()),
                             ExpectedStreamMessage("stream-1", 2, 1, SystemClock.GetUtcNow())
                         })),
 
                  new ReadStreamTheory("stream-1", StreamVersion.End, 4,
-                    new ReadStreamPage("stream-1", PageReadStatus.Success, -1, -1, 2, -1, ReadDirection.Backward, true,
+                    new ReadStreamPage("stream-1", PageReadStatus.Success, -1, -1, 2, -1, ReadDirection.Backward, true, messages:
                         new [] {
                             ExpectedStreamMessage("stream-1", 3, 2, SystemClock.GetUtcNow()),
                             ExpectedStreamMessage("stream-1", 2, 1, SystemClock.GetUtcNow()),

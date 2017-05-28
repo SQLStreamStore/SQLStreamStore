@@ -44,12 +44,15 @@
         /// </returns>
         public static implicit operator StreamId(string value) => new StreamId(value);
 
+        /// <inheritdoc />
         public bool Equals(StreamId other) =>
             !ReferenceEquals(null, other) && (ReferenceEquals(this, other) || string.Equals(Value, other.Value));
 
+        /// <inheritdoc />
         public override bool Equals(object obj) =>
             !ReferenceEquals(null, obj) && (ReferenceEquals(this, obj) || obj is StreamId && Equals((StreamId)obj));
 
+        /// <inheritdoc />
         public override int GetHashCode() => Value.GetHashCode();
 
         public static bool operator ==(StreamId left, StreamId right) => Equals(left, right);

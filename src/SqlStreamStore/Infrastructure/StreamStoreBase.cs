@@ -16,6 +16,13 @@ namespace SqlStreamStore.Infrastructure
     {
         private readonly TaskQueue _taskQueue = new TaskQueue();
 
+        /// <summary>
+        ///     Initialized an new instance of a <see cref="StreamStoreBase"/>
+        /// </summary>
+        /// <param name="metadataMaxAgeCacheExpiry"></param>
+        /// <param name="metadataMaxAgeCacheMaxSize"></param>
+        /// <param name="getUtcNow"></param>
+        /// <param name="logName"></param>
         protected StreamStoreBase(
             TimeSpan metadataMaxAgeCacheExpiry,
             int metadataMaxAgeCacheMaxSize,
@@ -121,10 +128,17 @@ namespace SqlStreamStore.Infrastructure
             string streamId,
             CancellationToken cancellationToken = default(CancellationToken));
 
+        /// <summary>
+        ///     Queues a task to purge expired message.
+        /// </summary>
+        /// <param name="streamMessage"></param>
         protected override void PurgeExpiredMessage(StreamMessage streamMessage)
         {
             _taskQueue.Enqueue(ct => DeleteEventInternal(streamMessage.StreamId, streamMessage.MessageId, ct));
         }
+
+
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
 
         protected abstract Task<AppendResult> AppendToStreamInternal(
             string streamId,
@@ -158,5 +172,9 @@ namespace SqlStreamStore.Infrastructure
             }
             base.Dispose(disposing);
         }
+
+#pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
+
     }
+
 }

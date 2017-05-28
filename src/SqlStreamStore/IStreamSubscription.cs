@@ -3,6 +3,9 @@
     using System;
     using System.Threading.Tasks;
 
+    /// <summary>
+    ///     Represents a subscription to a stream.
+    /// </summary>
     public interface IStreamSubscription : IDisposable
     {
         /// <summary>

@@ -5,22 +5,37 @@
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    ///     Represents a queue of tasks where a task is processed one at a time. When disposed
+    ///     the outstanding tasks are cancelled.
+    /// </summary>
     public class TaskQueue : IDisposable
     {
         private readonly ConcurrentQueue<Func<Task>> _taskQueue = new ConcurrentQueue<Func<Task>>();
         private readonly CancellationTokenSource _isDisposed = new CancellationTokenSource();
         private readonly InterlockedBoolean _isProcessing = new InterlockedBoolean();
 
+
+        /// <summary>
+        ///     Enqueues a task for processing.
+        /// </summary>
+        /// <param name="action">The operations to invoke.</param>
+        /// <returns>A task representing the operation. Awaiting is optional.</returns>
         public Task Enqueue(Action action)
         {
             var task = Enqueue(_ =>
             {
                 action();
-                return TaskHelpers.CompletedTask;
+                return Task.CompletedTask;
             });
             return task;
         }
 
+        /// <summary>
+        ///     Enqueues a task for processing.
+        /// </summary>
+        /// <param name="function">The operations to invoke.</param>
+        /// <returns>A task representing the operation. Awaiting is optional.</returns>
         public Task<T> Enqueue<T>(Func<T> function)
         {
             var task = Enqueue(_ =>
@@ -31,6 +46,11 @@
             return task;
         }
 
+        /// <summary>
+        ///     Enqueues a task for processing.
+        /// </summary>
+        /// <param name="function">The operation to invoke that is co-operatively cancelable.</param>
+        /// <returns>A task representing the operation. Awaiting is optional.</returns>
         public Task Enqueue(Func<CancellationToken, Task> function)
         {
             var task = Enqueue(async ct =>
@@ -41,6 +61,11 @@
             return task;
         }
 
+        /// <summary>
+        ///     Enqueues a task for processing.
+        /// </summary>
+        /// <param name="function">The operation to invoke that is co-operatively cancelable.</param>
+        /// <returns>A task representing the operation. Awaiting is optional.</returns>
         public Task<TResult> Enqueue<TResult>(Func<CancellationToken, Task<TResult>> function)
         {
             return EnqueueInternal(_taskQueue, function);
@@ -89,8 +114,7 @@
         {
             do
             {
-                Func<Task> function;
-                if(_taskQueue.TryDequeue(out function))
+                if (_taskQueue.TryDequeue(out Func<Task> function))
                 {
                     await function();
                 }

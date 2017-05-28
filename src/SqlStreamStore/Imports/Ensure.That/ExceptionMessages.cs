@@ -1,4 +1,6 @@
-﻿namespace SqlStreamStore.Imports.Ensure.That
+﻿#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
+namespace SqlStreamStore.Imports.Ensure.That
 {
     public class ExceptionMessages
     {

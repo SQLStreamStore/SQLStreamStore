@@ -10,6 +10,9 @@ namespace SqlStreamStore.Infrastructure
     using SqlStreamStore;
     using SqlStreamStore.Imports.Ensure.That;
 
+    /// <summary>
+    ///     Represents a base implementation of a readonly stream store.
+    /// </summary>
     public abstract class ReadonlyStreamStoreBase : IReadonlyStreamStore
     {
         private const int DefaultReloadInterval = 3000;
@@ -49,9 +52,9 @@ namespace SqlStreamStore.Infrastructure
                                    "{maxCount}.", fromPositionInclusive, maxCount);
             }
 
-            ReadNextAllPage readNext = (nextPosition, ct) => ReadAllForwards(nextPosition, maxCount, prefetchJsonData, ct);
+            Task<ReadAllPage> ReadNext(long nextPosition, CancellationToken ct) => ReadAllForwards(nextPosition, maxCount, prefetchJsonData, ct);
 
-            var page = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, prefetchJsonData, readNext, cancellationToken)
+            var page = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken)
                 .NotOnCapturedContext();
 
             // https://github.com/damianh/SqlStreamStore/issues/31
@@ -61,13 +64,13 @@ namespace SqlStreamStore.Infrastructure
             // and re-issue the read. This is expected 
             if(!page.IsEnd || page.Messages.Length <= 1)
             {
-                return await FilterExpired(page, readNext, cancellationToken).NotOnCapturedContext();
+                return await FilterExpired(page, ReadNext, cancellationToken).NotOnCapturedContext();
             }
 
             // Check for gap between last page and this.
             if (page.Messages[0].Position != fromPositionInclusive)
             {
-                page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, readNext, cancellationToken);
+                page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken);
             }
 
             // check for gap in messages collection
@@ -75,12 +78,12 @@ namespace SqlStreamStore.Infrastructure
             {
                 if(page.Messages[i].Position + 1 != page.Messages[i + 1].Position)
                 {
-                    page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, readNext, cancellationToken);
+                    page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken);
                     break;
                 }
             }
 
-            return await FilterExpired(page, readNext, cancellationToken).NotOnCapturedContext();
+            return await FilterExpired(page, ReadNext, cancellationToken).NotOnCapturedContext();
         }
 
         public async Task<ReadAllPage> ReadAllBackwards(

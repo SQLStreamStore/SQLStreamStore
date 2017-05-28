@@ -4,6 +4,9 @@
     using System.Threading.Tasks;
     using SqlStreamStore.Streams;
 
+    /// <summary>
+    ///     A collection of extensions over a StreamStore instance.
+    /// </summary>
     public static class StreamStoreExtensions
     {
         /// <summary>

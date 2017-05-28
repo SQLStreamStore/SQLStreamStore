@@ -6,6 +6,9 @@
     using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
 
+    /// <summary>
+    ///     Represents a readonly stream store.
+    /// </summary>
     public interface IReadonlyStreamStore : IDisposable
     {
         /// <summary>

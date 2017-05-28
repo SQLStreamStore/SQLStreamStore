@@ -3,7 +3,7 @@ namespace SqlStreamStore.Infrastructure
     using System;
     using System.Threading;
 
-    public static class ReaderWriterLockSlimExtension
+    internal static class ReaderWriterLockSlimExtension
     {
         public static IDisposable UseReadLock(this ReaderWriterLockSlim lockSlim)
         {

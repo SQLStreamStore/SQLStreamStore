@@ -3,6 +3,9 @@
     using System.Runtime.CompilerServices;
     using System.Threading.Tasks;
 
+    /// <summary>
+    ///     Represents extensions on Tasks.
+    /// </summary>
     public static class TaskExtensions
     {
         /// <summary>

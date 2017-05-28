@@ -4,6 +4,9 @@
     using System.Threading;
     using System.Threading.Tasks;
 
+    /// <summary>
+    ///     Represents t
+    /// </summary>
     public struct StreamMessage
     {
         public static readonly StreamMessage[] EmptyArray = new StreamMessage[0];

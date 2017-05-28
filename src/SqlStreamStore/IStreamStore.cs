@@ -5,6 +5,9 @@
     using System.Threading.Tasks;
     using SqlStreamStore.Streams;
 
+    /// <summary>
+    ///     Represents a readable and writable stream store.
+    /// </summary>
     public interface IStreamStore : IReadonlyStreamStore
     {
         /// <summary>

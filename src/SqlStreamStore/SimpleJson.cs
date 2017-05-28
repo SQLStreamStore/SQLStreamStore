@@ -19,6 +19,8 @@
 
 // VERSION: 0.38.0
 
+#pragma warning disable CS1591 // Missing XML comment for publicly visible type or member
+
 #define SIMPLE_JSON_TYPEINFO
 // NOTE: uncomment the following line to make SimpleJson class internal.
 // define SIMPLE_JSON_INTERNAL

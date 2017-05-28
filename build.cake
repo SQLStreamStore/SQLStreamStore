@@ -40,18 +40,17 @@ Task("RunTests")
     .Does(() =>
 {
 
-	var testSettings = new DotNetCoreTestSettings
-	{
-		NoBuild = true,
-		Configuration = configuration
-	};
-
     var testProjects = new string[] { "SqlStreamStore.Tests", "SqlStreamStore.MsSql.Tests" };
 
     foreach(var testProject in testProjects)
 	{
-        var projectDir = "./src/"+ testProject + "/" + testProject + ".csproj";
-		DotNetCoreTest(projectDir, testSettings);
+        var projectDir = "./src/"+ testProject + "/";
+        var settings = new ProcessSettings
+        {
+            Arguments = "xunit",
+            WorkingDirectory = projectDir
+        };
+        StartProcess("dotnet", settings);
     }
 });
 

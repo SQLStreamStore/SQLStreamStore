@@ -134,7 +134,7 @@
         ///     The stream to subscribe to.
         /// </param>
         /// <param name="continueAfterVersion">
-        ///     The version to subscribe from.
+        ///     The version a subscription from. If the version is unknown (i.e. first time subscription), use null.
         /// </param>
         /// <param name="streamMessageReceived">
         ///     A delegate that is invoked when a message is available. If an exception is thrown, the subscription

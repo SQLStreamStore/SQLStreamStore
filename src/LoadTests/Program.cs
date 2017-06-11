@@ -24,11 +24,14 @@
                     "Append with ExpectedVersion.Any",
                     () => new AppendExpectedVersionAnyParallel().Run(cts.Token))
                 .Add(
-                    "Read All",
+                    "Read all",
                     () => new ReadAll().Run(cts.Token))
                 .Add(
-                    "Append Max Count",
+                    "Append max count",
                     () => new AppendMaxCount().Run(cts.Token))
+                .Add(
+                    "Many steam subscriptions",
+                    () => new StreamSubscription().Run(cts.Token))
                 .Display();
 
             if(Debugger.IsAttached)

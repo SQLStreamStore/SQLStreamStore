@@ -9,6 +9,6 @@ services:
 
 before_install:
 - docker pull microsoft/mssql-server-linux
-- docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=sqlstreamstore' -p 127.0.0.1:1433:1433 -d microsoft/mssql-server-linux
+- docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=SqlStreamSt0re' -p 127.0.0.1:1433:1433 -d microsoft/mssql-server-linux
 
 script: ./build.sh

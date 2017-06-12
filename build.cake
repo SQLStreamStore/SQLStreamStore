@@ -71,7 +71,7 @@ Task("RunTests")
 {
     if (Context.Environment.Platform.IsUnix())
     {
-        var testProjects = new string[] { "SqlStreamStore.Tests" };
+        var testProjects = new string[] { "SqlStreamStore.Tests", "SqlStreamStore.MsSql.Tests" };
 
         foreach(var testProject in testProjects)
         {
@@ -84,7 +84,7 @@ Task("RunTests")
             StartProcess("dotnet", settings);
         }
 
-        Warning("Skipping the SqlStreamStore.MsSql test suite. Running it is not possible on Unix based systems.");
+        //Warning("Skipping the SqlStreamStore.MsSql test suite. Running it is not possible on Unix based systems.");
     }
     else
     {

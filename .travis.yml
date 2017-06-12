@@ -1,0 +1,6 @@
+language: csharp
+mono: alpha
+dotnet: 1.0.3
+sudo: required
+dist: trusty
+script: ./build.sh

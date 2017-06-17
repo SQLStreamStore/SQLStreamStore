@@ -6,7 +6,7 @@
     using SqlStreamStore.Streams;
     using Xunit;
 
-    public class messageTests
+    public class StreamEventTests
     {
         [Fact]
         public async Task Can_deserialize()

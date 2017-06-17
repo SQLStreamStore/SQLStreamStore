@@ -11,7 +11,7 @@
     {
         //TODO: Port some of the tests from AppendStream with regard to expected version to verify behavior of Get/SetStreamMetadata.
 
-        [Fact]
+        [Fact, Trait("Category", "StreamMetadata")]
         public async Task When_get_non_existent_metadata_then_meta_stream_version_should_be_negative()
         {
             using (var fixture = GetFixture())
@@ -31,7 +31,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "StreamMetadata")]
         public async Task Can_set_and_get_stream_metadata_for_non_existent_stream()
         {
             using(var fixture = GetFixture())
@@ -53,7 +53,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "StreamMetadata")]
         public async Task Can_set_and_get_stream_metadata_after_stream_is_created()
         {
             using (var fixture = GetFixture())
@@ -79,7 +79,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "StreamMetadata")]
         public async Task When_delete_stream_with_metadata_then_meta_data_stream_is_deleted()
         {
             using(var fixture = GetFixture())
@@ -107,7 +107,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "StreamMetadata")]
         public async Task When_stream_has_max_count_and_append_exceeds_then_should_maintain_max_count()
         {
             using (var fixture = GetFixture())
@@ -128,7 +128,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "StreamMetadata")]
         public async Task When_stream_max_count_is_set_then_stream_should_have_max_count()
         {
             using (var fixture = GetFixture())
@@ -150,7 +150,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "StreamMetadata")]
         public async Task When_stream_has_expired_messages_and_read_forwards_then_should_not_get_expired_messages()
         {
             using (var fixture = GetFixture())
@@ -175,7 +175,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "StreamMetadata")]
         public async Task When_stream_has_expired_messages_and_read_backward_then_should_not_get_expired_messages()
         {
             using (var fixture = GetFixture())
@@ -200,7 +200,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "StreamMetadata")]
         public async Task When_streams_have_expired_messages_and_read_all_forwards_then_should_not_get_expired_messages()
         {
             using (var fixture = GetFixture())
@@ -238,7 +238,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "StreamMetadata")]
         public async Task When_streams_have_expired_messages_and_read_all_backwards_then_should_not_get_expired_messages()
         {
             using (var fixture = GetFixture())

@@ -10,7 +10,7 @@
 
     public partial class StreamStoreAcceptanceTests
     {
-        [Theory]
+        [Theory, Trait("Category", "ReadStream")]
         [MemberData(nameof(GetReadStreamForwardsTheories))]
         public async Task Can_read_streams_forwards_with_prefetch(ReadStreamTheory theory)
         {
@@ -55,7 +55,7 @@
             }
         }
 
-        [Theory]
+        [Theory, Trait("Category", "ReadStream")]
         [MemberData(nameof(GetReadStreamForwardsTheories))]
         public async Task Can_read_streams_forwards_without_prefetch(ReadStreamTheory theory)
         {
@@ -100,7 +100,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "ReadStream")]
         public async Task Can_read_whole_stream_forwards_without_prefetch()
         {
             using (var fixture = GetFixture())
@@ -121,7 +121,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "ReadStream")]
         public async Task Can_read_next_page_past_end_of_stream()
         {
             using (var fixture = GetFixture())
@@ -139,7 +139,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "ReadStream")]
         public async Task Can_read_all_messages()
         {
             using (var fixture = GetFixture())
@@ -155,7 +155,7 @@
             }
         }
 
-        [Theory]
+        [Theory, Trait("Category", "ReadStream")]
         [MemberData(nameof(GetReadStreamBackwardsTheories))]
         public async Task Can_read_streams_backwards_with_prefetch(ReadStreamTheory theory)
         {
@@ -200,7 +200,7 @@
             }
         }
 
-        [Theory]
+        [Theory, Trait("Category", "ReadStream")]
         [MemberData(nameof(GetReadStreamBackwardsTheories))]
         public async Task Can_read_streams_backwards_without_prefetch(ReadStreamTheory theory)
         {
@@ -245,7 +245,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "ReadStream")]
         public async Task Can_read_stream_backwards_without_prefetch()
         {
             using (var fixture = GetFixture())
@@ -266,7 +266,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "ReadStream")]
         public async Task Can_read_empty_stream_backwards()
         {
             using (var fixture = GetFixture())
@@ -289,7 +289,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "ReadStream")]
         public async Task Can_read_empty_stream_forwards()
         {
             using (var fixture = GetFixture())
@@ -312,7 +312,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "ReadStream")]
         public async Task When_read_non_exist_stream_forwards_then_should_get_StreamNotFound()
         {
             using(var fixture = GetFixture())
@@ -327,7 +327,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "ReadStream")]
         public async Task When_read_non_exist_stream_backwards_then_should_get_StreamNotFound()
         {
             using (var fixture = GetFixture())
@@ -342,7 +342,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "ReadStream")]
         public async Task When_read_deleted_stream_forwards_then_should_get_StreamNotFound()
         {
             using (var fixture = GetFixture())
@@ -360,7 +360,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "ReadStream")]
         public async Task When_read_deleted_stream_backwards_then_should_get_StreamNotFound()
         {
             using (var fixture = GetFixture())

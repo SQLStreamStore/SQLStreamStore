@@ -12,7 +12,7 @@
 
     public partial class StreamStoreAcceptanceTests
     {
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task Can_subscribe_to_a_stream_from_start()
         {
             using(var fixture = GetFixture())
@@ -54,7 +54,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task When_subscribe_to_a_stream_and_receive_message_then_should_get_subscription_instance()
         {
             using (var fixture = GetFixture())
@@ -82,7 +82,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task Can_subscribe_to_a_stream_from_start_before_messages_are_written()
         {
             using (var fixture = GetFixture())
@@ -120,7 +120,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task Can_subscribe_to_all_stream_from_start()
         {
             using (var fixture = GetFixture())
@@ -159,7 +159,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task When_subscribe_to_all_and_receive_message_then_should_get_subscription_instance()
         {
             using (var fixture = GetFixture())
@@ -186,7 +186,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task Can_subscribe_to_all_stream_from_start_before_messages_are_written()
         {
             using (var fixture = GetFixture())
@@ -226,7 +226,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task Can_subscribe_to_a_stream_from_end()
         {
             using (var fixture = GetFixture())
@@ -277,7 +277,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task Given_non_empty_streamstore_can_subscribe_to_all_stream_from_end()
         {
             using (var fixture = GetFixture())
@@ -318,7 +318,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task Given_empty_streamstore_can_subscribe_to_all_stream_from_end()
         {
             using (var fixture = GetFixture())
@@ -352,7 +352,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task Can_subscribe_to_a_stream_from_a_specific_version()
         {
             using (var fixture = GetFixture())
@@ -394,7 +394,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task Can_have_multiple_subscriptions_to_all()
         {
             using (var fixture = GetFixture())
@@ -436,7 +436,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task Can_have_multiple_subscriptions_to_stream()
         {
             using (var fixture = GetFixture())
@@ -482,7 +482,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task When_delete_then_deleted_message_should_have_correct_position()
         {
             using(var fixture = GetFixture())
@@ -522,7 +522,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task When_exception_throw_by_stream_subscriber_then_should_drop_subscription_with_reason_SubscriberError()
         {
             using(var fixture = GetFixture())
@@ -556,7 +556,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task When_stream_subscription_disposed_then_should_drop_subscription_with_reason_Disposed()
         {
             using(var fixture = GetFixture())
@@ -579,7 +579,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task When_stream_subscription_dropped_then_should_supply_subscription_instance()
         {
             using (var fixture = GetFixture())
@@ -604,7 +604,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task When_stream_subscription_disposed_while_handling_messages_then_should_drop_subscription_with_reason_Disposed()
         {
             using(var fixture = GetFixture())
@@ -638,7 +638,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task Can_dispose_stream_subscription_multiple_times()
         {
             using (var fixture = GetFixture())
@@ -656,7 +656,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task When_exception_throw_by_all_stream_subscriber_then_should_drop_subscription_with_reason_SubscriberError()
         {
             using (var fixture = GetFixture())
@@ -690,7 +690,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task When_all_stream_subscription_disposed_then_should_drop_subscription_with_reason_Disposed()
         {
             using (var fixture = GetFixture())
@@ -713,7 +713,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task When_all_stream_subscription_dropped_then_should_supply_subscription_instance()
         {
             using (var fixture = GetFixture())
@@ -736,7 +736,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task When_all_stream_subscription_disposed_while_handling_messages_then_should_drop_subscription_with_reason_Disposed()
         {
             using (var fixture = GetFixture())
@@ -771,7 +771,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task Can_dispose_all_stream_subscription_multiple_times()
         {
             using (var fixture = GetFixture())
@@ -789,7 +789,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task When_caughtup_to_all_then_then_should_notify()
         {
             using (var fixture = GetFixture())
@@ -816,7 +816,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task When_caughtup_to_stream_then_then_should_notify()
         {
             using (var fixture = GetFixture())
@@ -844,7 +844,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task When_falls_behind_on_all_then_then_should_notify()
         {
             using (var fixture = GetFixture())
@@ -878,7 +878,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task When_falls_behind_on_stream_then_then_should_notify()
         {
             using (var fixture = GetFixture())
@@ -913,7 +913,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task When_dispose_store_then_should_dispose_stream_subscriptions()
         {
             using (var fixture = GetFixture())
@@ -937,7 +937,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task When_dispose_store_then_should_dispose_all_stream_subscriptions()
         {
             using (var fixture = GetFixture())

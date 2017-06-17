@@ -10,7 +10,7 @@
 
     public partial class StreamStoreAcceptanceTests
     {
-        [Fact]
+        [Fact, Trait("Category", "DeleteStream")]
         public async Task When_delete_stream_with_no_expected_version_and_read_then_should_get_StreamNotFound()
         {
             using (var fixture = GetFixture())
@@ -30,7 +30,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "DeleteStream")]
         public async Task When_delete_stream_with_expected_version_any_and_then_read_then_should_stream_deleted_message()
         {
             using (var fixture = GetFixture())
@@ -54,7 +54,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "DeleteStream")]
         public async Task When_delete_stream_with_no_expected_version_and_read_all_then_should_not_see_deleted_stream_messages()
         {
             using (var fixture = GetFixture())
@@ -73,7 +73,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "DeleteStream")]
         public async Task When_delete_stream_that_does_not_exist()
         {
             using (var fixture = GetFixture())
@@ -88,7 +88,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "DeleteStream")]
         public async Task When_delete_stream_with_a_matching_expected_version_and_read_then_should_get_StreamNotFound()
         {
             using (var fixture = GetFixture())
@@ -108,7 +108,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "DeleteStream")]
         public async Task When_delete_stream_with_a_matching_expected_version_and_read_then_should_get_stream_deleted_message()
         {
             using (var fixture = GetFixture())
@@ -132,7 +132,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "DeleteStream")]
         public async Task When_delete_stream_with_a_matching_expected_version_and_read_all_then_should_not_see_deleted_stream_messages()
         {
             using (var fixture = GetFixture())
@@ -151,7 +151,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "DeleteStream")]
         public async Task When_delete_stream_that_does_not_exist_then_should_not_throw()
         {
             using (var fixture = GetFixture())
@@ -167,7 +167,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "DeleteStream")]
         public async Task When_delete_stream_that_does_not_exist_with_expected_version_number_then_should_not_throw()
         {
             using (var fixture = GetFixture())
@@ -186,7 +186,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "DeleteStream")]
         public async Task When_delete_stream_with_a_non_matching_expected_version_then_should_throw()
         {
             using (var fixture = GetFixture())

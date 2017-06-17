@@ -21,6 +21,10 @@
         private static readonly Subject<LogEvent> s_logEventSubject = new Subject<LogEvent>();
 
         private static readonly MessageTemplateTextFormatter s_formatter = new MessageTemplateTextFormatter(
+            "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level}] {Message}",
+            null);
+
+        private static readonly MessageTemplateTextFormatter s_formatterWithException = new MessageTemplateTextFormatter(
             "{Timestamp:yyyy-MM-dd HH:mm:ss.fff zzz} [{Level}] {Message}{NewLine}{Exception}",
             null);
 
@@ -39,7 +43,7 @@
             var captureId = Guid.NewGuid();
 
 #if NETCOREAPP1_0
-            var CallContextData = new AsyncLocal<Tuple<string, Guid>>
+            var callContextData = new AsyncLocal<Tuple<string, Guid>>
             {
                 Value = new Tuple<string, Guid>(CaptureCorrelationIdKey, captureId)
             };
@@ -49,7 +53,7 @@
 
             Func<LogEvent, bool> filter = logEvent =>
 #if NETCOREAPP1_0
-                CallContextData.Value.Item2.Equals(captureId);
+                callContextData.Value.Item2.Equals(captureId);
 #elif NET461
                 CallContext.LogicalGetData(CaptureCorrelationIdKey).Equals(captureId);
 #endif
@@ -58,7 +62,14 @@
             {
                 using (var writer = new StringWriter())
                 {
-                    s_formatter.Format(logEvent, writer);
+                    if(logEvent.Exception != null)
+                    {
+                        s_formatterWithException.Format(logEvent, writer);
+                    }
+                    else
+                    {
+                        s_formatter.Format(logEvent, writer);
+                    }
                     testOutputHelper.WriteLine(writer.ToString());
                 }
             });
@@ -67,7 +78,7 @@
             {
                 subscription.Dispose();
 #if NETCOREAPP1_0
-                CallContextData.Value = null;
+                callContextData.Value = null;
 #elif NET461
                 CallContext.FreeNamedDataSlot(CaptureCorrelationIdKey);
 #endif

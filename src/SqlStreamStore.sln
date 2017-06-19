@@ -1,21 +1,7 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
-VisualStudioVersion = 15.0.26430.6
+VisualStudioVersion = 15.0.26430.13
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SqlStreamStore.AcceptanceTests", "SqlStreamStore.AcceptanceTests", "{833038D7-0582-4D07-9458-8230A83CAC1F}"
-	ProjectSection(SolutionItems) = preProject
-		SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTestFixture.cs = SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTestFixture.cs
-		SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.AppendStream.cs = SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.AppendStream.cs
-		SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.cs = SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.cs
-		SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.DeleteEvent.cs = SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.DeleteEvent.cs
-		SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.DeleteStream.cs = SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.DeleteStream.cs
-		SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.ReadAll.cs = SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.ReadAll.cs
-		SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.ReadHeadCheckpoint.cs = SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.ReadHeadCheckpoint.cs
-		SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.ReadStream.cs = SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.ReadStream.cs
-		SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.StreamMetadata.cs = SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.StreamMetadata.cs
-		SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.Subscriptions.cs = SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.Subscriptions.cs
-	EndProjectSection
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore", "SqlStreamStore\SqlStreamStore.csproj", "{8F86833A-6686-409C-B0E4-6FBFB70F7DE1}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.Tests", "SqlStreamStore.Tests\SqlStreamStore.Tests.csproj", "{BCE11962-A65F-4913-919C-3DF87308FB8B}"

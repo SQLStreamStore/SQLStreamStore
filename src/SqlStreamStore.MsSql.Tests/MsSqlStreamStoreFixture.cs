@@ -7,6 +7,7 @@ namespace SqlStreamStore
 #endif
     using System.Linq;
     using System.Threading.Tasks;
+    using SqlStreamStore.Infrastructure;
 
     public class MsSqlStreamStoreFixture : StreamStoreAcceptanceTestFixture
     {
@@ -98,7 +99,7 @@ namespace SqlStreamStore
         {
             using(var connection = _localInstance.CreateConnection())
             {
-                await connection.OpenAsync();
+                await connection.OpenAsync().NotOnCapturedContext();
                 var tempPath = Environment.GetEnvironmentVariable("Temp");
                 var createDatabase = $"CREATE DATABASE [{_databaseName}] on (name='{_databaseName}', "
                                      + $"filename='{tempPath}\\{_databaseName}.mdf')";

@@ -56,7 +56,7 @@
             MsSqlAppendResult result;
             using(var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken);
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
                 using(var transaction = connection.BeginTransaction())
                 {

@@ -960,6 +960,46 @@
             }
         }
 
+        [Fact, Trait("Category", "Subscriptions")]
+        public async Task When_subscribe_to_stream_and_append_messages_then_should_receive_message()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    string streamId1 = "stream-1";
+                    string streamId2 = "stream-2";
+                    var received = new AsyncAutoResetEvent();
+                    string streamIdReceived = null;
+                    using (store.SubscribeToStream(
+                        streamId1,
+                        null,
+                        (_, message, ct) =>
+                        {
+                            streamIdReceived = message.StreamId;
+                            received.Set();
+                            return Task.CompletedTask;
+                        }))
+                    {
+                        await AppendMessages(store, streamId1, 1);
+                        await AppendMessages(store, streamId2, 1);
+                        await received.WaitAsync().WithTimeout();
+                        streamIdReceived.ShouldBe(streamId1);
+
+                        await AppendMessages(store, streamId1, 1);
+                        await AppendMessages(store, streamId2, 1);
+                        await received.WaitAsync().WithTimeout();
+                        streamIdReceived.ShouldBe(streamId1);
+
+                        await AppendMessages(store, streamId1, 1);
+                        await AppendMessages(store, streamId2, 1);
+                        await received.WaitAsync().WithTimeout();
+                        streamIdReceived.ShouldBe(streamId1);
+                    }
+                }
+            }
+        }
+
         private static async Task AppendMessages(IStreamStore streamStore, string streamId, int numberOfEvents)
         {
             for(int i = 0; i < numberOfEvents; i++)

@@ -150,7 +150,7 @@
 
             using(var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken);
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
                 using (var command = new SqlCommand(_scripts.GetSchemaVersion, connection))
                 {
@@ -253,7 +253,7 @@
 
             using(var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken);
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
                 using(var command = new SqlCommand(_scripts.ReadHeadPosition, connection))
                 {

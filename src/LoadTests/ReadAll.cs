@@ -21,6 +21,7 @@
                 .Append(streamStore, ct);
 
             int readPageSize = Input.ReadInt("Read page size: ", 1, 10000);
+            var prefectch = Input.ReadEnum<YesNo>("Prefetch: ");
 
             var stopwatch = Stopwatch.StartNew();
             int count = 0;
@@ -28,7 +29,7 @@
             ReadAllPage page;
             do
             {
-                page = await streamStore.ReadAllForwards(position, readPageSize, cancellationToken: ct);
+                page = await streamStore.ReadAllForwards(position, readPageSize, prefetchJsonData: prefectch == YesNo.Yes, cancellationToken: ct);
                 count += page.Messages.Length;
                 Console.Write($"\r> Read {count}");
                 position = page.NextPosition;
@@ -39,6 +40,12 @@
 
             Output.WriteLine("");
             Output.WriteLine($"> {count} messages read in {stopwatch.Elapsed} ({rate} m/s)");
+        }
+
+        private enum YesNo
+        {
+            Yes,
+            No
         }
     }
 }

@@ -29,16 +29,7 @@
 
         public async Task<int> Append(IStreamStore streamStore, CancellationToken ct)
         {
-            int numberOfStreams = -1;
-            Output.WriteLine(ConsoleColor.Yellow, "Number of streams:");
-            new Menu()
-                .Add("1", () => numberOfStreams = 1)
-                .Add("10", () => numberOfStreams = 10)
-                .Add("100", () => numberOfStreams = 100)
-                .Add("1000", () => numberOfStreams = 1000)
-                .Add("10000", () => numberOfStreams = 10000)
-                .Add("Custom", () => { })
-                .Display();
+            var numberOfStreams = Input.ReadInt("Number of streams: ", 1, 100000000);
 
             int parallelTasks = Input.ReadInt(
                 $"Number of parallel write tasks (Processor count = {Environment.ProcessorCount}): ", 1, 100);

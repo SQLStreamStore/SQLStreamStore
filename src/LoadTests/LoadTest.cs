@@ -22,7 +22,13 @@
             Output.WriteLine(ConsoleColor.Yellow, "Store type:");
             new Menu()
                 .Add("InMem", () => streamStore = new InMemoryStreamStore())
-                .Add("MS SQL (SqlLocalDB, NamedPipes)", () => streamStore = new MsSqlStreamStoreFixture("dbo").GetStreamStore().Result)
+                .Add("MS SQL (SqlLocalDB, NamedPipes)",
+                    () =>
+                    {
+                        var fixture = new MsSqlStreamStoreFixture("dbo");
+                        Console.WriteLine(fixture.ConnectionString);
+                        streamStore = fixture.GetStreamStore().Result;
+                    })
                 .Display();
 
             return streamStore;

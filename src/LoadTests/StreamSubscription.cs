@@ -25,7 +25,7 @@ namespace LoadTests
                 1,
                 1000);
 
-            int numberOfAmends = Input.ReadInt("Number of times each stream will have an ammend: ", 1, 1000);
+            int numberOfAppends = Input.ReadInt("Number of times each stream will have an append: ", 1, 1000);
 
             string jsonData = "{}";
 
@@ -46,10 +46,10 @@ namespace LoadTests
 
             int amendAcount = 0;
             int eventNumber = 1;
-            var totalMessages = numberOfAmends * numberOfStreams;
+            var totalMessages = numberOfAppends * numberOfStreams;
             var stopwatch = Stopwatch.StartNew();
 
-            while (amendAcount < numberOfAmends)
+            while (amendAcount < numberOfAppends)
             {
                 for(int i = 0; i < numberOfStreams; i++)
                 {
@@ -58,16 +58,16 @@ namespace LoadTests
                     eventNumber++;
                 }
                 amendAcount++;
-                Console.Write($"\r> Ammending: {amendAcount} / {numberOfAmends} . Received: {messagesReceived} / {totalMessages}");
+                Console.Write($"\r> Appending: {amendAcount} / {numberOfAppends} . Received: {messagesReceived} / {totalMessages}");
             }
 
             while(messagesReceived < totalMessages)
             {
-                Console.Write($"\r> Ammending: {amendAcount} / {numberOfAmends} . Received: {messagesReceived} / {totalMessages}");
+                Console.Write($"\r> Appending: {amendAcount} / {numberOfAppends} . Received: {messagesReceived} / {totalMessages}");
                 await Task.Delay(100, ct);
             }
 
-            Console.WriteLine($"\r> Ammending: {amendAcount} / {numberOfAmends} . Received: {messagesReceived} / {totalMessages}");
+            Console.WriteLine($"\r> Appending: {amendAcount} / {numberOfAppends} . Received: {messagesReceived} / {totalMessages}");
 
             foreach (var subscription in subscriptions)
             {

@@ -17,7 +17,7 @@
 
             var streamStore = GetStore();
 
-            await new AppendExpectedVersionAnyParallel()
+            await new UniqueStreams()
                 .Append(streamStore, ct);
 
             int readPageSize = Input.ReadInt("Read page size: ", 1, 10000);

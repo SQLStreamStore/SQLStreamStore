@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <Description>SqlServer provider (2012+) for SQL StreamStore</Description>
-    <AssemblyTitle>Stream Store - MS Sql Server (2012+)</AssemblyTitle>
+    <Description>SQL Server (2012+) provider for SQL Stream Store</Description>
+    <AssemblyTitle>SqlStreamStore.MsSql</AssemblyTitle>
     <TargetFrameworks>netstandard1.3;net461</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>SqlStreamStore.MsSql</AssemblyName>

@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>A libray for writing and reading streams (also known as an 'event store') with a focus on SQL based implementations. This contains the core interfaces, abstractions and an in-memory implementation for tests.</Description>
-    <AssemblyTitle>SqlStreamStore</AssemblyTitle>
+    <AssemblyTitle>SQL Stream Store</AssemblyTitle>
     <TargetFrameworks>netstandard1.3;net461</TargetFrameworks>
     <DefineConstants>$(DefineConstants);LIBLOG_PUBLIC</DefineConstants>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>

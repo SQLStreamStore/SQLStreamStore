@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <Description>SQL Server (2012+) provider for SQL Stream Store</Description>
-    <AssemblyTitle>SqlStreamStore.MsSql</AssemblyTitle>
+    <AssemblyTitle>SQL Stream Store - SQL Server (2012+) Provider</AssemblyTitle>
     <TargetFrameworks>netstandard1.3;net461</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>SqlStreamStore.MsSql</AssemblyName>

@@ -1,5 +1,4 @@
 #tool "nuget:?package=xunit.runner.console&version=2.1.0"
-#tool "nuget:?package=ILRepack&Version=2.0.12"
 
 #addin "Cake.FileHelpers"
 

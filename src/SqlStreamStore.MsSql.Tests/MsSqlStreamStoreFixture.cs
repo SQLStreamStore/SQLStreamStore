@@ -61,6 +61,17 @@ namespace SqlStreamStore
             return store;
         }
 
+        public async Task<MsSqlStreamStore> GetUninitializedStreamStore()
+        {
+            await CreateDatabase();
+            
+            return new MsSqlStreamStore(new MsSqlStreamStoreSettings(ConnectionString)
+            {
+                Schema = _schema,
+                GetUtcNow = () => GetUtcNow()
+            });
+        }
+
         public async Task<MsSqlStreamStore> GetMsSqlStreamStore()
         {
             await CreateDatabase();

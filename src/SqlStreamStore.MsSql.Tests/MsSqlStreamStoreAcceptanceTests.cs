@@ -130,5 +130,21 @@
                 }
             }
         }
+
+        [Fact]
+        public async Task When_schema_is_not_created_then_should_be_indicated()
+        {
+            using (var fixture = new MsSqlStreamStoreFixture("dbo"))
+            {
+                using (var store = await fixture.GetUninitializedStreamStore())
+                {
+                    var result = await store.CheckSchema();
+
+                    result.ExpectedVersion.ShouldBe(2);
+                    result.CurrentVersion.ShouldBe(0);
+                    result.IsMatch().ShouldBeFalse();
+                }
+            }
+        }
     }
 }

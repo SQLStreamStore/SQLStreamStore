@@ -21,8 +21,8 @@
         private readonly Lazy<IStreamStoreNotifier> _streamStoreNotifier;
         private readonly Scripts _scripts;
         private readonly SqlMetaData[] _appendToStreamSqlMetadata;
-        private const int FirstSchemaVersion = 1;
-        private const int CurrentSchemaVersion = 2;
+        public const int FirstSchemaVersion = 1;
+        public const int CurrentSchemaVersion = 2;
 
         /// <summary>
         ///     Initializes a new instance of <see cref="MsSqlStreamStore"/>

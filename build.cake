@@ -42,7 +42,7 @@ Task("RunTests")
     var testProjects = new string[] { "SqlStreamStore.Tests", "SqlStreamStore.MsSql.Tests" };
 
     foreach(var testProject in testProjects)
-	{
+    {
         var projectDir = "./src/"+ testProject + "/";
         var settings = new ProcessSettings
         {
@@ -60,8 +60,8 @@ Task("NuGetPack")
     var versionSuffix = "build" + buildNumber.ToString().PadLeft(5, '0');
 
     var dotNetCorePackSettings   = new DotNetCorePackSettings
-	{
-        ArgumentCustomization = args => args.Append("/p:Version=1.0.0-" + versionSuffix),
+    {
+        ArgumentCustomization = args => args.Append("/p:Version=1.0.1-" + versionSuffix),
         OutputDirectory = artifactsDir,
 		NoBuild = true,
 		Configuration = configuration,

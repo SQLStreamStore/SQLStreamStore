@@ -1,0 +1,14 @@
+language: csharp
+mono: alpha
+dotnet: 1.0.3
+sudo: required
+dist: trusty
+
+services:
+- docker
+
+before_install:
+- docker pull microsoft/mssql-server-linux
+- docker run -e 'ACCEPT_EULA=Y' -e 'SA_PASSWORD=SqlStreamSt0re' -p 127.0.0.1:1433:1433 -d microsoft/mssql-server-linux
+
+script: ./build.sh

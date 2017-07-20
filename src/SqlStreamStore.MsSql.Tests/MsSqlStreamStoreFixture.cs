@@ -113,7 +113,7 @@ namespace SqlStreamStore
                 await connection.OpenAsync().NotOnCapturedContext();
                 var tempPath = Environment.GetEnvironmentVariable("Temp");
                 var createDatabase = $"CREATE DATABASE [{_databaseName}] on (name='{_databaseName}', "
-                                     + $"filename='{tempPath}\\{_databaseName}.mdf')";
+                                     + $"filename='{tempPath}/{_databaseName}.mdf')";
                 using (var command = new SqlCommand(createDatabase, connection))
                 {
                     await command.ExecuteNonQueryAsync();
@@ -125,7 +125,8 @@ namespace SqlStreamStore
         {
             var connectionStringBuilder = _localInstance.CreateConnectionStringBuilder();
             connectionStringBuilder.MultipleActiveResultSets = true;
-            connectionStringBuilder.IntegratedSecurity = true;
+            connectionStringBuilder.UserID = "sa";
+            connectionStringBuilder.Password = "SqlStreamSt0re";
             connectionStringBuilder.InitialCatalog = _databaseName;
 
             return connectionStringBuilder.ToString();
@@ -140,7 +141,7 @@ namespace SqlStreamStore
 #if NETCOREAPP1_0
         private class LocalInstance : ILocalInstance
         {
-            private readonly string connectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=master;Integrated Security=SSPI;";
+            private readonly string connectionString = @"Data Source=tcp:127.0.0.1,1433;Initial Catalog=master;User ID=sa;Password=SqlStreamSt0re;";
 
             public SqlConnection CreateConnection()
             {

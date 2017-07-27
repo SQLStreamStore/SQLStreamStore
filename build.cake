@@ -53,7 +53,7 @@ Task("RunTests")
     }
 });
 
-Task("NuGetPack")
+Task("DotNetPack")
     .IsDependentOn("Build")
     .Does(() =>
 {
@@ -61,7 +61,6 @@ Task("NuGetPack")
 
     var dotNetCorePackSettings   = new DotNetCorePackSettings
     {
-        ArgumentCustomization = args => args.Append("/p:Version=1.0.1-" + versionSuffix),
         OutputDirectory = artifactsDir,
 		NoBuild = true,
 		Configuration = configuration,
@@ -74,6 +73,6 @@ Task("NuGetPack")
 
 Task("Default")
     .IsDependentOn("RunTests")
-    .IsDependentOn("NuGetPack");
+    .IsDependentOn("DotNetPack");
 
 RunTarget(target);

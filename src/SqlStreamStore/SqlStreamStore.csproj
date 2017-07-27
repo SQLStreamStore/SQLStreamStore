@@ -10,6 +10,7 @@
     <PackageId>SqlStreamStore</PackageId>
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.0</NetStandardImplicitPackageVersion>
     <NoWarn>1701;1702;1705;1591</NoWarn>
+    <PackageVersion>1.0.0</PackageVersion>
   </PropertyGroup>
 
   <ItemGroup>

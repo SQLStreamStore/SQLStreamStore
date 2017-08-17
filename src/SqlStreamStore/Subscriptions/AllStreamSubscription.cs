@@ -120,14 +120,14 @@
                 {
                     var page = await Pull();
 
-                    if(!lastHasCaughtUp.HasValue || lastHasCaughtUp.Value != page.IsEnd)
+                    await Push(page);
+
+                    if (!lastHasCaughtUp.HasValue || lastHasCaughtUp.Value != page.IsEnd)
                     {
                         // Only raise if the state changes
                         lastHasCaughtUp = page.IsEnd;
                         _hasCaughtUp(page.IsEnd);
                     }
-
-                    await Push(page);
 
                     pause = page.IsEnd && page.Messages.Length == 0;
                 }

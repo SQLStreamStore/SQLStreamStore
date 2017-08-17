@@ -146,7 +146,6 @@
                         lastHasCaughtUp = page.IsEnd;
                         _hasCaughtUp(page.IsEnd);
                     }
-                    _hasCaughtUp(page.IsEnd);
 
                     pause = page.IsEnd && page.Messages.Length == 0;
                 }

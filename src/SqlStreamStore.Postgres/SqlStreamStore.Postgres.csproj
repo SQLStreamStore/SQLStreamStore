@@ -2,16 +2,15 @@
   <PropertyGroup>
     <Description>Postgre SQL provider for SQL StreamStore</Description>
     <AssemblyTitle>Stream Store - Postgres</AssemblyTitle>
-    <TargetFrameworks>netstandard1.3;net461</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <AssemblyName>SqlStreamStore.Postgres</AssemblyName>
     <PackageId>SqlStreamStore.Postgres</PackageId>
     <RootNamespace>SqlStreamStore</RootNamespace>
-    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.0</NetStandardImplicitPackageVersion>
     <NoWarn>1701;1702;1705;1591</NoWarn>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Npgsql" Version="3.2.2" />
+    <PackageReference Include="Npgsql" Version="3.2.5" />
   </ItemGroup>
 
   <ItemGroup>

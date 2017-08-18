@@ -3,13 +3,12 @@
   <PropertyGroup>
     <Description>SQL Server (2012+) provider for SQL Stream Store</Description>
     <AssemblyTitle>SQL Stream Store - SQL Server (2012+) Provider</AssemblyTitle>
-    <TargetFrameworks>netstandard1.3;net461</TargetFrameworks>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>SqlStreamStore.MsSql</AssemblyName>
     <PackageId>SqlStreamStore.MsSql</PackageId>
     <RootNamespace>SqlStreamStore</RootNamespace>
     <NoWarn>1701;1702;1705;1591</NoWarn>
-    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.0</NetStandardImplicitPackageVersion>
     <PackageVersion>1.0.1</PackageVersion>
   </PropertyGroup>
 
@@ -21,15 +20,8 @@
     <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />
   </ItemGroup>
 
-  <ItemGroup Condition=" '$(TargetFramework)' == 'netstandard1.3' ">
-    <PackageReference Include="System.Data.SqlClient" Version="4.1.0" />
-  </ItemGroup>
-
-  <ItemGroup Condition=" '$(TargetFramework)' == 'net461' ">
-    <Reference Include="System.Core" />
-    <Reference Include="System.Data" />
-    <Reference Include="System" />
-    <Reference Include="Microsoft.CSharp" />
+  <ItemGroup>
+    <PackageReference Include="System.Data.SqlClient" Version="4.4.0" />
   </ItemGroup>
 
 </Project>

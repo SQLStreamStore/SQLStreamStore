@@ -3,17 +3,12 @@
     using System;
     using System.IO;
     using System.Reactive.Linq;
-#if NET461
-    using System.Runtime.Remoting.Messaging;
-#endif
     using Serilog;
     using Serilog.Events;
     using Serilog.Formatting.Display;
     using SqlStreamStore.Infrastructure;
     using Xunit.Abstractions;
-#if NETCOREAPP1_0
     using System.Threading;
-#endif
 
     internal static class LoggingHelper
     {
@@ -42,21 +37,13 @@
         {
             var captureId = Guid.NewGuid();
 
-#if NETCOREAPP1_0
             var callContextData = new AsyncLocal<Tuple<string, Guid>>
             {
                 Value = new Tuple<string, Guid>(CaptureCorrelationIdKey, captureId)
             };
-#elif NET46
-            CallContext.LogicalSetData(CaptureCorrelationIdKey, captureId);
-#endif
 
             Func<LogEvent, bool> filter = logEvent =>
-#if NETCOREAPP1_0
                 callContextData.Value.Item2.Equals(captureId);
-#elif NET461
-                CallContext.LogicalGetData(CaptureCorrelationIdKey).Equals(captureId);
-#endif
 
             var subscription = s_logEventSubject.Where(filter).Subscribe(logEvent =>
             {
@@ -77,11 +64,7 @@
             return new DisposableAction(() =>
             {
                 subscription.Dispose();
-#if NETCOREAPP1_0
                 callContextData.Value = null;
-#elif NET461
-                CallContext.FreeNamedDataSlot(CaptureCorrelationIdKey);
-#endif
             });
         }
 

@@ -27,6 +27,19 @@
         public string Value { get; }
 
         /// <summary>
+        /// Returns a string representation of the current StreamId value.
+        /// 
+        /// </summary>
+        /// 
+        /// <returns>
+        /// String representation of the StreamId value.
+        /// </returns>
+        public override string ToString()
+        {
+            return Value;
+        }
+
+        /// <summary>
         ///     Performs an implicit conversion from <see cref="StreamId"/> to <see cref="System.String"/>.
         /// </summary>
         /// <param name="streamId">The stream identifier.</param>

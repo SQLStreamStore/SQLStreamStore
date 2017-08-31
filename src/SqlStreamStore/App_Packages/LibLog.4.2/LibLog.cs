@@ -729,8 +729,6 @@ namespace SqlStreamStore.Logging.LogProviders
     using System.Linq;
     using System.Linq.Expressions;
     using System.Reflection;
-#if !LIBLOG_PORTABLE
-#endif
     using System.Text.RegularExpressions;
 
     internal abstract class LogProviderBase : ILogProvider

@@ -1,5 +1,3 @@
-#tool "nuget:?package=xunit.runner.console&version=2.1.0"
-
 #addin "Cake.FileHelpers"
 
 var target          = Argument("target", "Default");
@@ -19,7 +17,6 @@ Task("RestorePackages")
     .Does(() =>
 {
 	DotNetCoreRestore(solution);
-	NuGetRestore(solution);
 });
 
 Task("Build")
@@ -43,13 +40,14 @@ Task("RunTests")
 
     foreach(var testProject in testProjects)
     {
-        var projectDir = "./src/"+ testProject + "/";
-        var settings = new ProcessSettings
+        var projectDir = "./src/" + testProject + "/";
+        var projectFile = testProject + ".csproj";
+        var settings = new DotNetCoreTestSettings
         {
-            Arguments = "xunit",
+            Configuration = configuration,
             WorkingDirectory = projectDir
         };
-        StartProcess("dotnet", settings);
+        DotNetCoreTest(projectFile, settings);
     }
 });
 

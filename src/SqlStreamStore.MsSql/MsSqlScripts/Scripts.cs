@@ -3,9 +3,7 @@
     using System;
     using System.Collections.Concurrent;
     using System.IO;
-#if NETSTANDARD1_3
     using System.Reflection;
-#endif
 
     internal class Scripts
     {
@@ -67,11 +65,7 @@
             return _scripts.GetOrAdd(name,
                 key =>
                 {
-#if NETSTANDARD1_3
                     using (Stream stream = typeof(Scripts).GetTypeInfo().Assembly.GetManifestResourceStream("SqlStreamStore.MsSqlScripts." + key + ".sql"))
-#elif NET461
-                    using (Stream stream = typeof(Scripts).Assembly.GetManifestResourceStream("SqlStreamStore.MsSqlScripts." + key + ".sql"))
-#endif
                     {
                         if (stream == null)
                         {

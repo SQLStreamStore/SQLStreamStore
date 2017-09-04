@@ -16,11 +16,7 @@
     public sealed class AllStreamSubscription : IAllStreamSubscription
     {
         public const int DefaultPageSize = 10;
-#if NET461
-        private static readonly ILog s_logger = LogProvider.GetCurrentClassLogger();
-#elif NETSTANDARD1_3
         private static readonly ILog s_logger = LogProvider.GetLogger("SqlStreamStore.Subscriptions.AllStreamSubscription");
-#endif
         private int _pageSize = DefaultPageSize;
         private long _nextPosition;
         private readonly IReadonlyStreamStore _readonlyStreamStore;

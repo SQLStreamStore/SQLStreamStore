@@ -18,11 +18,8 @@
         ///     The default page size to read.
         /// </summary>
         public const int DefaultPageSize = 10;
-#if NET461
-        private static readonly ILog s_logger = LogProvider.GetCurrentClassLogger();
-#elif NETSTANDARD1_3
         private static readonly ILog s_logger = LogProvider.GetLogger("SqlStreamStore.Subscriptions.StreamSubscription");
-#endif
+
         private int _pageSize = DefaultPageSize;
         private int _nextVersion;
         private readonly int? _continueAfterVersion;

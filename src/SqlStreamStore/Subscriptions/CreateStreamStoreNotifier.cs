@@ -3,7 +3,7 @@
     using SqlStreamStore;
 
     /// <summary>
-    ///     Represents an operaion to create a stream store notifier.
+    ///     Represents an operation to create a stream store notifier.
     /// </summary>
     /// <param name="readonlyStreamStore"></param>
     /// <returns></returns>

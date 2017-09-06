@@ -32,6 +32,9 @@
                 .Add(
                     "Many steam subscriptions",
                     () => new StreamSubscription().Run(cts.Token))
+                .Add(
+                    "All stream subscriptions",
+                    () => new AllStreamSubscription().Run(cts.Token))
                 .Display();
 
             if(Debugger.IsAttached)

@@ -35,7 +35,6 @@ Task("RunTests")
     .IsDependentOn("Build")
     .Does(() =>
 {
-
     var testProjects = new string[] { "SqlStreamStore.Tests", "SqlStreamStore.MsSql.Tests" };
 
     foreach(var testProject in testProjects)

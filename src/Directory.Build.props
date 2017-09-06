@@ -12,8 +12,5 @@
   <PropertyGroup>
     <DefineConstants>$(DefineConstants);LIBLOG_PORTABLE</DefineConstants>
   </PropertyGroup>
-  <ItemGroup Condition=" '$(MSBuildProjectName)' != 'SqlStreamStore' ">
-    <ProjectReference Include="../SqlStreamStore/SqlStreamStore.csproj" />
-  </ItemGroup>
 
 </Project>

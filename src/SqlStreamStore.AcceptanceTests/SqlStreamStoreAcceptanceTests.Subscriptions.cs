@@ -817,6 +817,38 @@
         }
 
         [Fact, Trait("Category", "Subscriptions")]
+        public async Task When_caughtup_to_all_then_then_should_notify_only_once()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    string streamId = "stream-1";
+                    await AppendMessages(store, streamId, 30);
+                    var caughtUp = new TaskCompletionSource<bool>();
+                    var numberOfCaughtUps = 0;
+                    var subscription = store.SubscribeToAll(
+                        null,
+                        (_, __) => Task.CompletedTask,
+                        hasCaughtUp: b =>
+                        {
+                            if(b)
+                            {
+                                if(++numberOfCaughtUps > 1)
+                                    caughtUp.SetException(new Exception("Should not raise hasCaughtUp more than once."));
+                            }
+                        });
+                    subscription.MaxCountPerRead = 10;
+
+                    await Assert.ThrowsAsync<TimeoutException>(
+                        async () => await caughtUp.Task.WithTimeout(1000));
+
+                    subscription.Dispose();
+                }
+            }
+        }
+
+        [Fact, Trait("Category", "Subscriptions")]
         public async Task When_caughtup_to_stream_then_then_should_notify()
         {
             using (var fixture = GetFixture())

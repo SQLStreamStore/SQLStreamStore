@@ -26,10 +26,8 @@ namespace SqlStreamStore
         private readonly Subject<Unit> _subscriptions = new Subject<Unit>();
         private readonly InterlockedBoolean _signallingToSubscribers = new InterlockedBoolean();
         private int _currentPosition;
-        private static readonly ReadNextStreamPage s_readNextNotFound = (_, ct) =>
-        {
-            throw new InvalidOperationException("Cannot read next page of non-exisitent stream");
-        };
+        private static readonly ReadNextStreamPage s_readNextNotFound = 
+            (_, ct) => throw new InvalidOperationException("Cannot read next page of non-exisitent stream");
 
         public InMemoryStreamStore(GetUtcNow getUtcNow = null, string logName = null)
             : base(TimeSpan.FromMinutes(1), 10000, getUtcNow, logName ?? nameof(InMemoryStreamStore))

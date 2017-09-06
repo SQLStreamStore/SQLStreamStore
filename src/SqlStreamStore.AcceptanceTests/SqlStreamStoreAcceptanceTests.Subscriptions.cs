@@ -835,7 +835,10 @@
                             if(b)
                             {
                                 if(++numberOfCaughtUps > 1)
-                                    caughtUp.SetException(new Exception("Should not raise hasCaughtUp more than once."));
+                                {
+                                    caughtUp.SetException(
+                                        new Exception("Should not raise hasCaughtUp more than once."));
+                                }
                             }
                         });
                     subscription.MaxCountPerRead = 10;

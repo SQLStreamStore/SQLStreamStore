@@ -9,8 +9,4 @@
     <PackageTags>cqrs;event-sourcing;event-store;stream-store</PackageTags>
   </PropertyGroup>
 
-  <PropertyGroup>
-    <DefineConstants>$(DefineConstants);LIBLOG_PORTABLE</DefineConstants>
-  </PropertyGroup>
-
 </Project>

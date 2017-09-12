@@ -12,7 +12,7 @@ implementations. Typically used in event sourced based applications.
 
 <!-- TOC -->
 
-- [1. Introduction](#1-introduction)
+- [1. Preface](#1-preface)
 - [2. Things you need to know before adopting](#2-things-you-need-to-know-before-adopting)
 - [3. Using](#3-using)
     - [3.1. Appending messages](#31-appending-messages)
@@ -25,15 +25,23 @@ implementations. Typically used in event sourced based applications.
     - [3.6. Testing with In Memory provider](#36-testing-with-in-memory-provider)
 - [4. MS SqlServer Provider](#4-ms-sqlserver-provider)
 - [5. MySql Provider](#5-mysql-provider)
-- [6. Acknowledgements](#6-acknowledgements)
+- [6. Patterns](#6-patterns)
+- [7. Acknowledgements](#7-acknowledgements)
 
 <!-- /TOC -->
 
-# 1. Introduction
+# 1. Preface
+
+I built this libray to primarily assist with building event sourced and stream
+based applications with collaborative domains using relational databases as the
+persistance store. The need to support relational stores is due to deploying
+software where the only operational support is with relational databases only.
+That is, introducing and deploying alternative specialized storage is not viable
+nor accepted. If you are not bound by such constraints, then you may consider
+alternatives such as [Event Store](https://geteventstore.com)
 
 The purpose of this library is to provide stream based API over relational based
-stores. The API and behavior is heavily influenced by [Event
-Store](https://geteventstore.com) but is not designed to be completely
+stores.  The API and behavior is heavily influenced by  but is not designed to be completely
 compatible with it. That is, if your needs grow 
 
 # 2. Things you need to know before adopting
@@ -83,7 +91,9 @@ compatible with it. That is, if your needs grow
 
 # 5. MySql Provider
 
-# 6. Acknowledgements
+# 6. Patterns
+
+# 7. Acknowledgements
 
 
 

@@ -23,7 +23,7 @@ namespace SqlStreamStore
             }
             else
             {
-                using(var sha1 = SHA1.Create())
+                using(var sha1 = new SHA1Managed())
                 {
                     var hashBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(idOriginal));
                     id = BitConverter.ToString(hashBytes).Replace("-", string.Empty);

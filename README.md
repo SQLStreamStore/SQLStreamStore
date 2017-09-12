@@ -1,16 +1,16 @@
 # SQL Stream Store
 
 A stream store library for .NET that specifically target SQL based implementations. Typically
-used in Event Sourced based applications.
+used in event sourced based applications.
 
 | Package | Install |
 | --- | --- |
-| SqlStreamStore (Memory) | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg)](https://www.nuget.org/packages/SqlStreamStore) |
+| Core Library (with in-memory store for testing) | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg)](https://www.nuget.org/packages/SqlStreamStore) |
 | MSSql | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg)](https://www.nuget.org/packages/SqlStreamStore.MsSql) |
-| Postgres | _under development_ |
-| MySql | [_up for grabs_](https://github.com/damianh/SqlStreamStore/issues/29) |
+| Postgres | [_up for grabs_](https://github.com/damianh/SqlStreamStore/issues/98) |
+| MySql | [_under development_](https://github.com/damianh/SqlStreamStore/issues/29) |
 | Sqlite | [_up for grabs_](https://github.com/damianh/SqlStreamStore/issues/28) |
-| HTTP Wrapper API | _under development_ |
+| HTTP API | [_under development_](https://github.com/SQLStreamStore/SQLStreamStore.HAL) |
 
 # Design considerations:
 

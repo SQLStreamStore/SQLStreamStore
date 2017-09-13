@@ -12,5 +12,7 @@ namespace SqlStreamStore
 
         public virtual void Dispose()
         {}
+
+        public abstract long MinPosition { get; }
     }
 }

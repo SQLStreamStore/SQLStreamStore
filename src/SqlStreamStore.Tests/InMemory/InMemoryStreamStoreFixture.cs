@@ -10,5 +10,7 @@ namespace SqlStreamStore.InMemory
             IStreamStore streamStore = new InMemoryStreamStore(() => GetUtcNow());
             return Task.FromResult(streamStore);
         }
+
+        public override long MinPosition => 0;
     }
 }

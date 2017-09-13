@@ -34,8 +34,9 @@ namespace LoadTests
 
             for(int i = 0; i < numberOfStreams; i++)
             {
-                var subscription =
-                    streamStore.SubscribeToStream($"stream-{i}", null,
+                var subscription = streamStore.SubscribeToStream(
+                        $"stream-{i}",
+                        StreamVersion.None,
                         (_, __, ___) =>
                         {
                             Interlocked.Increment(ref messagesReceived);

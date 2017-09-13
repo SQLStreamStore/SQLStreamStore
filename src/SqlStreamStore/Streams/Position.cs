@@ -6,6 +6,11 @@
     public static class Position
     {
         /// <summary>
+        ///     No position
+        /// </summary>
+        public static readonly long? None = null;
+
+        /// <summary>
         ///     The start of the store.
         /// </summary>
         public const long Start = 0;

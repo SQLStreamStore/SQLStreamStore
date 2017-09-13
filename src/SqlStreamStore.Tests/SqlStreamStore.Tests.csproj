@@ -9,8 +9,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectCapability Include="ShowFilesOutsideOfProject" />
-    <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" />
+    <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" LinkBase="InMemory" />
   </ItemGroup>
 
   <ItemGroup>

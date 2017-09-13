@@ -23,6 +23,8 @@ namespace SqlStreamStore
             ConnectionString = CreateConnectionString();
         }
 
+        public override long MinPosition => 0;
+
         public override async Task<IStreamStore> GetStreamStore()
         {
             await CreateDatabase();

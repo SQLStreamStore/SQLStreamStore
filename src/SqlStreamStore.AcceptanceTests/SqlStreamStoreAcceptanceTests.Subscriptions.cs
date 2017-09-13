@@ -491,33 +491,40 @@
                 using(var store = await fixture.GetStreamStore())
                 {
                     // Arrange
-                    string streamId1 = "stream-1";
+                    var streamId = "stream-1";
 
-                    var receiveMessage = new TaskCompletionSource<StreamMessage>();
+                    var receiveMessage = new TaskCompletionSource<bool>();
+                    var receiveDeletedMessage = new TaskCompletionSource<StreamMessage>();
                     List<StreamMessage> receivedMessages = new List<StreamMessage>();
-                    using (store.SubscribeToAll(
+                    using (var subscription = store.SubscribeToAll(
                         Position.None,
                         (_, message) =>
                         {
                             _testOutputHelper.WriteLine($"Received message {message.StreamId} " +
                                                         $"{message.StreamVersion} {message.Position}");
                             receivedMessages.Add(message);
+                            if (message.StreamId == streamId)
+                            {
+                                receiveMessage.SetResult(true);
+                            }
                             if (message.StreamId == Deleted.DeletedStreamId
                                 && message.Type == Deleted.StreamDeletedMessageType)
                             {
-                                receiveMessage.SetResult(message);
+                                receiveDeletedMessage.SetResult(message);
                             }
                             return Task.CompletedTask;
                         }))
                     {
-                        await AppendMessages(store, streamId1, 1);
-
-                        // Act
-                        await store.DeleteStream(streamId1);
+                        await AppendMessages(store, streamId, 1);
                         await receiveMessage.Task.WithTimeout();
 
+
+                        // Act
+                        await store.DeleteStream(streamId);
+                        await receiveDeletedMessage.Task.WithTimeout();
+
                         // Assert
-                        receivedMessages.Last().Position.ShouldBe(1);
+                        receivedMessages[1].Position.ShouldBeGreaterThan(receivedMessages[0].Position);
                     }
                 }
             }

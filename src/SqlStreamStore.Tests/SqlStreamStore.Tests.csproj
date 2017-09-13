@@ -6,6 +6,7 @@
     <AssemblyName>SqlStreamStore.Tests</AssemblyName>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <NoWarn>1701;1702;1705;1591</NoWarn>
+    <RootNamespace>SqlStreamStore</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

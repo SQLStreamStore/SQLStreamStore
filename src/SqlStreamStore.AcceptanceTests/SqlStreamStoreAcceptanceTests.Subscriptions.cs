@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using Shouldly;
     using SqlStreamStore.Imports.AsyncEx.Nito.AsyncEx.Coordination;
@@ -19,10 +20,10 @@
             {
                 using(var store = await fixture.GetStreamStore())
                 {
-                    string streamId1 = "stream-1";
+                    var streamId1 = "stream-1";
                     await AppendMessages(store, streamId1, 10);
 
-                    string streamId2 = "stream-2";
+                    var streamId2 = "stream-2";
                     await AppendMessages(store, streamId2, 10);
 
                     var done = new TaskCompletionSource<StreamMessage>();
@@ -61,7 +62,7 @@
             {
                 using (var store = await fixture.GetStreamStore())
                 {
-                    const string streamId = "stream-1";
+                    var streamId = "stream-1";
                     await AppendMessages(store, streamId, 10);
 
                     var done = new TaskCompletionSource<IStreamSubscription>();
@@ -89,10 +90,10 @@
             {
                 using (var store = await fixture.GetStreamStore())
                 {
-                    string streamId = "stream-1";
-
+                    var streamId = "stream-1";
                     var done = new TaskCompletionSource<StreamMessage>();
                     var receivedMessages = new List<StreamMessage>();
+
                     using (var subscription = store.SubscribeToStream(
                         streamId,
                         StreamVersion.None,
@@ -530,19 +531,15 @@
                 using(var store = await fixture.GetStreamStore())
                 {
                     var eventReceivedException = new TaskCompletionSource<SubscriptionDroppedReason>();
-                    StreamMessageReceived messageReceived = (_, __, ___) =>
-                    {
-                        throw new Exception();
-                    };
-                    SubscriptionDropped subscriptionDropped = (_, reason, __) =>
-                    {
-                        eventReceivedException.SetResult(reason);
-                    };
-                    string streamId = "stream-1";
-                    using(store.SubscribeToStream("stream-1",
+                    Task MessageReceived(IStreamSubscription _, StreamMessage __, CancellationToken ___) => throw new Exception();
+                    void SubscriptionDropped(IStreamSubscription _, SubscriptionDroppedReason reason, Exception __) => eventReceivedException.SetResult(reason);
+                    var streamId = "stream-1";
+
+                    using(store.SubscribeToStream(
+                        streamId,
                         StreamVersion.None,
-                        messageReceived,
-                        subscriptionDropped))
+                        MessageReceived,
+                        SubscriptionDropped))
                     {
                         await store.AppendToStream(streamId,
                             ExpectedVersion.NoStream,
@@ -564,7 +561,8 @@
                 using(var store = await fixture.GetStreamStore())
                 {
                     var tcs = new TaskCompletionSource<SubscriptionDroppedReason>();
-                    var subscription = store.SubscribeToStream("stream-1",
+                    var subscription = store.SubscribeToStream(
+                        "stream-1",
                         StreamVersion.End,
                         (_, __, ___) => Task.CompletedTask,
                         (_, reason, __) =>
@@ -645,7 +643,7 @@
             {
                 using (var store = await fixture.GetStreamStore())
                 {
-                    string streamId = "stream-1";
+                    var streamId = "stream-1";
                     var subscription = store.SubscribeToStream(streamId,
                         StreamVersion.Start,
                         (_, __, ___) => Task.CompletedTask);
@@ -664,21 +662,17 @@
                 using (var store = await fixture.GetStreamStore())
                 {
                     var eventReceivedException = new TaskCompletionSource<SubscriptionDroppedReason>();
-                    AllStreamMessageReceived messageReceived = (_, __) =>
-                    {
-                        throw new Exception();
-                    };
-                    AllSubscriptionDropped subscriptionDropped = (_, reason, __) =>
-                    {
-                        eventReceivedException.SetResult(reason);
-                    };
-                    string streamId = "stream-1";
+                    Task MessageReceived(IAllStreamSubscription _, StreamMessage __) => throw new Exception();
+                    void SubscriptionDropped(IAllStreamSubscription _, SubscriptionDroppedReason reason, Exception __) => eventReceivedException.SetResult(reason);
+                    var streamId = "stream-1";
+
                     using (store.SubscribeToAll(
                         Position.None,
-                        messageReceived,
-                        subscriptionDropped))
+                        MessageReceived,
+                        SubscriptionDropped))
                     {
-                        await store.AppendToStream(streamId,
+                        await store.AppendToStream(
+                            streamId,
                             ExpectedVersion.NoStream,
                             new NewStreamMessage(Guid.NewGuid(), "type", "{}"));
 
@@ -778,7 +772,7 @@
             {
                 using (var store = await fixture.GetStreamStore())
                 {
-                    string streamId = "stream-1";
+                    var streamId = "stream-1";
                     var subscription = store.SubscribeToAll(
                         Position.Start,
                         (_, __) => Task.CompletedTask);
@@ -796,7 +790,7 @@
             {
                 using (var store = await fixture.GetStreamStore())
                 {
-                    string streamId = "stream-1";
+                    var streamId = "stream-1";
                     await AppendMessages(store, streamId, 30);
                     var caughtUp = new TaskCompletionSource<bool>();
                     var subscription = store.SubscribeToAll(
@@ -823,7 +817,7 @@
             {
                 using (var store = await fixture.GetStreamStore())
                 {
-                    string streamId = "stream-1";
+                    var streamId = "stream-1";
                     await AppendMessages(store, streamId, 30);
                     var caughtUp = new TaskCompletionSource<bool>();
                     var numberOfCaughtUps = 0;
@@ -858,7 +852,7 @@
             {
                 using (var store = await fixture.GetStreamStore())
                 {
-                    string streamId = "stream-1";
+                    var streamId = "stream-1";
                     await AppendMessages(store, streamId, 30);
                     var caughtUp = new TaskCompletionSource<bool>();
                     var subscription = store.SubscribeToStream(
@@ -886,7 +880,7 @@
             {
                 using (var store = await fixture.GetStreamStore())
                 {
-                    string streamId = "stream-1";
+                    var streamId = "stream-1";
                     await AppendMessages(store, streamId, 30);
                     var fallenBehind = new TaskCompletionSource<bool>();
                     bool caughtUp = false;
@@ -920,7 +914,7 @@
             {
                 using (var store = await fixture.GetStreamStore())
                 {
-                    string streamId = "stream-1";
+                    var streamId = "stream-1";
                     await AppendMessages(store, streamId, 30);
                     var fallenBehind = new TaskCompletionSource<bool>();
                     bool caughtUp = false;
@@ -1002,10 +996,11 @@
             {
                 using (var store = await fixture.GetStreamStore())
                 {
-                    string streamId1 = "stream-1";
-                    string streamId2 = "stream-2";
+                    var streamId1 = "stream-1";
+                    var streamId2 = "stream-2";
                     var received = new AsyncAutoResetEvent();
                     string streamIdReceived = null;
+
                     using (store.SubscribeToStream(
                         streamId1,
                         StreamVersion.None,

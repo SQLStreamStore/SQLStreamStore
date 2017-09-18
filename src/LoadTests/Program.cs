@@ -32,6 +32,9 @@
                 .Add(
                     "Many steam subscriptions",
                     () => new StreamSubscription().Run(cts.Token))
+                .Add(
+                    "Test gaps",
+                    () => new TestGaps().Run(cts.Token))
                 .Display();
 
             if(Debugger.IsAttached)

@@ -4,7 +4,6 @@
     using System.Collections.Generic;
     using System.Data.SqlClient;
     using System.Diagnostics;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using EasyConsole;
@@ -50,7 +49,6 @@
             await Task.WhenAll(list);
 
             Output.WriteLine("Writes finished");
-
             linkedToken.Cancel();
 
             await WriteActualGaps(ct, streamStore);
@@ -88,10 +86,12 @@
 
         private static async Task RunRead(CancellationToken ct, IStreamStore streamStore, int readPageSize)
         {
+            int count = 0;
+            var stopwatch = Stopwatch.StartNew();
             try
             {
                 // var position = Position.Start;
-                var part = readPageSize / 3;
+                var part = readPageSize / 5;
                 do
                 {
                     var position = Math.Max(await streamStore.ReadHeadPosition(ct) - part, 0);
@@ -99,6 +99,7 @@
                         readPageSize,
                         prefetchJsonData: false,
                         cancellationToken: ct);
+                    count += page.Messages.Length;
                     if(!page.IsEnd || page.Messages.Length < 2)
                     {
                         continue;
@@ -108,7 +109,8 @@
                     {
                         if(page.Messages[index].Position != page.Messages[index - 1].Position + 1)
                         {
-                            Output.WriteLine($"< Gap found {page.Messages[index - 1].Position} and {page.Messages[index].Position}");
+                            Output.WriteLine(
+                                $"< Gap found {page.Messages[index - 1].Position} and {page.Messages[index].Position}");
                             break;
                         }
                     }
@@ -117,6 +119,13 @@
             catch(Exception ex) when(!(ex is OperationCanceledException))
             {
                 Output.WriteLine(ex.ToString());
+            }
+            finally
+            {
+                stopwatch.Stop();
+                var rate = Math.Round((decimal) count / stopwatch.ElapsedMilliseconds * 1000, 0);
+                Output.WriteLine("");
+                Output.WriteLine($"< {count} messages read {stopwatch.Elapsed} ({rate} m/s)");
             }
         }
 
@@ -163,8 +172,8 @@
             stopwatch.Stop();
             var rate = Math.Round((decimal) count / stopwatch.ElapsedMilliseconds * 1000, 0);
 
-            //Output.WriteLine("");
-            //Output.WriteLine($"> {count - 1} messages written in {stopwatch.Elapsed} ({rate} m/s)");
+            Output.WriteLine("");
+            Output.WriteLine($"> {count - 1} messages written in {stopwatch.Elapsed} ({rate} m/s)");
         }
 
         private enum YesNo

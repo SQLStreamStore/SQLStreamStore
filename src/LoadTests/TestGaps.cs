@@ -108,7 +108,7 @@
                         prefetchJsonData: false,
                         cancellationToken: ct);
                     count += page.Messages.Length;
-                    if(!page.IsEnd || page.Messages.Length < 2)
+                    if(page.Messages.Length < 2)
                     {
                         continue;
                     }

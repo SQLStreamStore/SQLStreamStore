@@ -58,8 +58,11 @@
 
         private static async Task WriteActualGaps(CancellationToken ct, IStreamStore streamStore)
         {
+            var stopwatch = Stopwatch.StartNew();
+            var count = 0;
             Output.WriteLine("Actual gaps:");
-            var page = await streamStore.ReadAllForwards(Position.Start, 100, false, ct);
+            var page = await streamStore.ReadAllForwards(Position.Start, 73, false, ct);
+            count += page.Messages.Length;
             var prevPosition = page.Messages[0].Position;
             for(int i = 1; i < page.Messages.Length; i++)
             {
@@ -72,6 +75,7 @@
             while(!page.IsEnd)
             {
                 page = await page.ReadNext(ct);
+                count += page.Messages.Length;
                 for(int i = 0; i < page.Messages.Length; i++)
                 {
                     if(prevPosition + 1 != page.Messages[i].Position)
@@ -81,6 +85,10 @@
                     prevPosition = page.Messages[i].Position;
                 }
             }
+            stopwatch.Stop();
+            var rate = Math.Round((decimal) count / stopwatch.ElapsedMilliseconds * 1000, 0);
+            Output.WriteLine("");
+            Output.WriteLine($"< {count} messages read {stopwatch.Elapsed} ({rate} m/s)");
         }
 
 

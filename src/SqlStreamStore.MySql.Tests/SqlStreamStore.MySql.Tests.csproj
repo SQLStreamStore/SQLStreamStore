@@ -1,0 +1,46 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFrameworks>netcoreapp2.0</TargetFrameworks>
+    <AssemblyName>SqlStreamStore.MySql.Tests</AssemblyName>
+    <PackageId>SqlStreamStore.MySql.Tests</PackageId>
+    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
+    <RootNamespace>SqlStreamStore</RootNamespace>
+    <NoWarn>1701;1702;1705;1591</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="SqlStreamStore.MySql.Tests.v3.ncrunchproject" />
+  </ItemGroup>
+  <PropertyGroup>
+    <MySQLVersion>5.6.37</MySQLVersion>
+    <DefaultItemExcludes>$(DefaultItemExcludes);.mysql\**\*</DefaultItemExcludes>
+  </PropertyGroup>
+  <ItemGroup>
+    <Content Include=".mysql\mysql-$(MySQLVersion)-winx64\bin\mysqld.exe">
+      <Link>.mysql\mysqld.exe</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include=".mysql\mysql-$(MySQLVersion)-winx64\share\english\errmsg.sys">
+      <Link>.mysql\errmsg.sys</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SqlStreamStore.MySql\SqlStreamStore.MySql.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
+    <PackageReference Include="Shouldly" Version="2.8.3" />
+    <PackageReference Include="Serilog" Version="2.5.0" />
+    <PackageReference Include="Serilog.Sinks.Observable" Version="2.0.1" />
+    <PackageReference Include="System.Reactive.Core" Version="3.1.1" />
+    <PackageReference Include="System.Reactive.Interfaces" Version="3.1.1" />
+    <PackageReference Include="System.Reactive.Linq" Version="3.1.1" />
+    <PackageReference Include="xunit" Version="2.3.0-beta5-build3769" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.3.0-beta5-build3769" />
+    <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.0-beta5-build3769" />
+    <DotNetCliToolReference Include="Microsoft.DotNet.Watcher.Tools" Version="2.0.0" />
+  </ItemGroup>
+</Project>

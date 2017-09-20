@@ -1,20 +1,16 @@
 ﻿ // ReSharper disable once CheckNamespace
 namespace SqlStreamStore
 {
-    using System;
     using SqlStreamStore.InMemory;
     using Xunit.Abstractions;
 
-    public partial class StreamStoreAcceptanceTests
+    public class InMemoryStreamStoreAcceptanceTests : StreamStoreAcceptanceTests
     {
-        private StreamStoreAcceptanceTestFixture GetFixture()
-        {
-            return new InMemoryStreamStoreFixture();
-        }
+        public InMemoryStreamStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
+            : base(testOutputHelper)
+        { }
 
-        private IDisposable CaptureLogs(ITestOutputHelper testOutputHelper)
-        {
-            return LoggingHelper.Capture(testOutputHelper);
-        }
+        protected override  StreamStoreAcceptanceTestFixture GetFixture()
+            => new InMemoryStreamStoreFixture();
     }
 }

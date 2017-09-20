@@ -1,0 +1,22 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>MySql (5.6.26) provider for SQL Stream Store</Description>
+    <AssemblyTitle>SQL Stream Store - MySql (5.6.26) Provider</AssemblyTitle>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AssemblyName>SqlStreamStore.MySql</AssemblyName>
+    <PackageId>SqlStreamStore.MySql</PackageId>
+    <RootNamespace>SqlStreamStore</RootNamespace>
+    <NoWarn>1701;1702;1705;1591</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="MySqlScripts\*.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="System.ValueTuple" Version="4.4.0" />
+    <PackageReference Include="MySqlConnector" Version="0.26.2" />
+  </ItemGroup>
+</Project>

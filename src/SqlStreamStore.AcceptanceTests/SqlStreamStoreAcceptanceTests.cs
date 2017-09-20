@@ -10,12 +10,12 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public partial class StreamStoreAcceptanceTests : IDisposable
+    public abstract partial class StreamStoreAcceptanceTests : IDisposable
     {
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly IDisposable _logCapture;
 
-        public StreamStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
+        protected StreamStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
             _logCapture = CaptureLogs(testOutputHelper);
@@ -25,6 +25,11 @@
         {
             _logCapture.Dispose();
         }
+
+        protected abstract StreamStoreAcceptanceTestFixture GetFixture();
+
+        private static IDisposable CaptureLogs(ITestOutputHelper testOutputHelper) 
+            => LoggingHelper.Capture(testOutputHelper);
 
         [Fact]
         public async Task When_dispose_and_read_then_should_throw()
@@ -70,7 +75,7 @@
                 .ToArray();
         }
 
-        private static NewStreamMessage[] CreateNewStreamMessageSequence(int startId, int count)
+        public static NewStreamMessage[] CreateNewStreamMessageSequence(int startId, int count)
         {
             var messages = new List<NewStreamMessage>();
             for(int i = 0; i < count; i++)
@@ -83,7 +88,7 @@
             return messages.ToArray();
         }
 
-        private static StreamMessage ExpectedStreamMessage(
+        public static StreamMessage ExpectedStreamMessage(
             string streamId,
             int messageNumber,
             int sequenceNumber,

@@ -7,17 +7,15 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public partial class StreamStoreAcceptanceTests
+    public class MsSqlStreamStoreAcceptanceTests : StreamStoreAcceptanceTests
     {
-        private StreamStoreAcceptanceTestFixture GetFixture(string schema = "foo")
-        {
-            return new MsSqlStreamStoreFixture(schema);
-        }
+        public MsSqlStreamStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
+            : base(testOutputHelper)
+        { }
 
-        private IDisposable CaptureLogs(ITestOutputHelper testOutputHelper)
-        {
-            return LoggingHelper.Capture(testOutputHelper);
-        }
+        protected override StreamStoreAcceptanceTestFixture GetFixture()
+            => new MsSqlStreamStoreFixture("foo");
+
 
         [Fact]
         public async Task Can_use_multiple_schemas()

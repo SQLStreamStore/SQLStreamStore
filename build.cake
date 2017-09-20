@@ -3,6 +3,7 @@
 var target          = Argument("target", "Default");
 var configuration   = Argument("configuration", "Release");
 var artifactsDir    = Directory("./artifacts");
+var sourceDir       = Directory("./src");
 var solution        = "./src/SqlStreamStore.sln";
 var buildNumber     = string.IsNullOrWhiteSpace(EnvironmentVariable("BUILD_NUMBER")) ? "0" : EnvironmentVariable("BUILD_NUMBER");
 
@@ -37,16 +38,13 @@ Task("RunTests")
 {
     var testProjects = new string[] { "SqlStreamStore.Tests", "SqlStreamStore.MsSql.Tests" };
 
-    foreach(var testProject in testProjects)
-    {
-        var projectDir = "./src/" + testProject + "/";
-        var projectFile = testProject + ".csproj";
-        var settings = new DotNetCoreTestSettings
-        {
-            Configuration = configuration,
-            WorkingDirectory = projectDir
-        };
-        DotNetCoreTest(projectFile, settings);
+
+    var processes = testProjects.Select(TestAssembly).ToArray();
+
+    foreach (var process in processes) {
+        using (process) {
+            process.WaitForExit();
+        }
     }
 });
 
@@ -73,3 +71,11 @@ Task("Default")
     .IsDependentOn("DotNetPack");
 
 RunTarget(target);
+
+IProcess TestAssembly(string name)
+    => StartAndReturnProcess(
+        "dotnet",
+        new ProcessSettings {
+            Arguments = $"xunit -quiet -parallel all -configuration {configuration} -nobuild",
+            WorkingDirectory = sourceDir + Directory(name)
+        });

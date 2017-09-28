@@ -411,8 +411,7 @@
 
         [Fact, Trait("Category", "AppendStream")]
         public async Task
-            When_append_stream_second_time_with_expected_version_any_and_all_messages_committed_then_should_be_idempotent
-            ()
+            When_append_stream_second_time_with_expected_version_any_and_all_messages_committed_then_should_be_idempotent_first_message()
         {
             using (var fixture = GetFixture())
             {
@@ -432,6 +431,60 @@
                 }
             }
         }
+
+        [Fact, Trait("Category", "AppendStream")]
+        public async Task
+            When_append_stream_with_expected_version_any_and_all_messages_committed_then_should_be_idempotent_subsequent_message()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    const string streamId = "stream-1";
+
+                    await store
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1));
+
+                    await store
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1));
+
+                    await store
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(2));
+
+                    await store
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(2));
+
+                    var page = await store
+                        .ReadStreamForwards(streamId, StreamVersion.Start, 10);
+                    page.Messages.Length.ShouldBe(2);
+                }
+            }
+        }
+
+        [Fact, Trait("Category", "AppendStream")]
+        public async Task
+            When_append_stream_second_time_with_expected_version_any_single_message_and_all_messages_committed_then_should_be_idempotent
+            ()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    const string streamId = "stream-1";
+
+                    await store
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1));
+
+                    await store
+                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1));
+
+                    var page = await store
+                        .ReadStreamForwards(streamId, StreamVersion.Start, 10);
+                    page.Messages.Length.ShouldBe(1);
+                }
+            }
+        }
+
 
         [Fact, Trait("Category", "AppendStream")]
         public async Task When_append_multiple_messages_to_stream_second_time_with_expected_version_any_and_all_messages_committed_then_should_have_expected_result()

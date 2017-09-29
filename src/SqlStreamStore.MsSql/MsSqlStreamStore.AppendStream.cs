@@ -175,10 +175,17 @@
                 catch(SqlException ex)
                     when(ex.IsUniqueConstraintViolationOnIndex("IX_Messages_StreamIdInternal_Id"))
                 {
+                    var streamVersion = await GetStreamVersionOfMessageId(
+                        connection,
+                        transaction,
+                        sqlStreamId,
+                        messages[0].MessageId,
+                        cancellationToken);
+
                     // Idempotency handling. Check if the Messages have already been written.
                     var page = await ReadStreamInternal(
                         sqlStreamId,
-                        StreamVersion.Start,
+                        streamVersion,
                         messages.Length,
                         ReadDirection.Forward,
                         false,
@@ -433,6 +440,25 @@
                         }
                     }
                 }
+            }
+        }
+
+        private async Task<int> GetStreamVersionOfMessageId(
+            SqlConnection connection,
+            SqlTransaction transaction,
+            SqlStreamId sqlStreamId,
+            Guid messageId,
+            CancellationToken cancellationToken)
+        {
+            using(var command = new SqlCommand(_scripts.GetStreamVersionOfMessageId, connection, transaction))
+            {
+                command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
+                command.Parameters.AddWithValue("messageId", messageId);
+
+                var result = await command.ExecuteScalarAsync(cancellationToken)
+                    .NotOnCapturedContext();
+
+                return (int) result;
             }
         }
 

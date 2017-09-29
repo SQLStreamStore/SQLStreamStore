@@ -40,6 +40,8 @@
 
         internal string GetSchemaVersion => GetScript(nameof(GetSchemaVersion));
 
+        internal string GetStreamVersionOfMessageId => GetScript(nameof(GetStreamVersionOfMessageId));
+
         internal string ReadHeadPosition => GetScript(nameof(ReadHeadPosition));
 
         internal string ReadAllForward => GetScript(nameof(ReadAllForward));

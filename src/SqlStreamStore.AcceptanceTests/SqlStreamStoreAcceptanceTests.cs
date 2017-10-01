@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Diagnostics;
+    using System.IO;
     using System.Linq;
     using System.Threading.Tasks;
     using Shouldly;
@@ -58,6 +59,14 @@
                 act.ShouldNotThrow();
             }
         }
+
+        /// <summary>
+        ///     Gets a temporary path by first searching for TEST_TEMP environment variable then falling
+        ///     back to Path.GetTempPath(). Protip: putting "TEST_TEMP" on a RAM drive speeds tests
+        ///     up significantly (especially parallel continous tests) and reduces wear on SSDs.
+        /// </summary>
+        /// <returns></returns>
+        public static string GetTempPath() => Environment.GetEnvironmentVariable("TEST_TEMP") ?? Path.GetTempPath();
 
         public static NewStreamMessage[] CreateNewStreamMessages(params int[] messageNumbers)
         {

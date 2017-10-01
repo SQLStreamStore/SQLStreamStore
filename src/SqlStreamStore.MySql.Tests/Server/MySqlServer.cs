@@ -36,7 +36,8 @@
                 throw new ArgumentOutOfRangeException(nameof(serverPort));
             }
             var mysqlDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".mysql");
-            _dataDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("n"));
+            var tempPath = StreamStoreAcceptanceTests.GetTempPath();
+            _dataDirectory = Path.Combine(tempPath, Guid.NewGuid().ToString("n"));
             _mysqldPath = Path.Combine(mysqlDirectory, "mysqld.exe");
             _mysqlUpgradePath = Path.Combine(mysqlDirectory, "mysql_upgrade.exe");
 

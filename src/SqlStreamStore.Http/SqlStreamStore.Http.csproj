@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>Http (HAL) provider for SQL Stream Store</Description>
+    <AssemblyTitle>SQL Stream Store - Http (HAL) Provider</AssemblyTitle>
+    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AssemblyName>SqlStreamStore.Http</AssemblyName>
+    <PackageId>SqlStreamStore.Http</PackageId>
+    <RootNamespace>SqlStreamStore</RootNamespace>
+    <NoWarn>1701;1702;1705;1591</NoWarn>
+  </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />
+  </ItemGroup>
+</Project>

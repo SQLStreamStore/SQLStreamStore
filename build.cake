@@ -42,6 +42,7 @@ Task("RunTests")
         "SqlStreamStore.MsSql.Tests",
         "SqlStreamStore.MsSql.V3.Tests",
         "SqlStreamStore.Postgres.Tests",
+        "SqlStreamStore.Http.Tests"
     };
 
     foreach(var project in projects)
@@ -70,7 +71,8 @@ Task("DotNetPack")
     {
         "SqlStreamStore",
         "SqlStreamStore.MsSql",
-        "SqlStreamStore.Postgres"
+        "SqlStreamStore.Postgres",
+        "SqlStreamStore.Http"
     };
     var settings = new DotNetCorePackSettings
     {

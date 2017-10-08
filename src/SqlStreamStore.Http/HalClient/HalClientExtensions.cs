@@ -68,7 +68,7 @@
                         : await result.Content.ReadResource()
                 };
 
-            return new HalClient(client, current);
+            return new HalClient(client, current, result.StatusCode);
         }
 
         private static async Task<IResource> ReadResource(this HttpContent content)

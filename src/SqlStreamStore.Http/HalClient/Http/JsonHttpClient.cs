@@ -1,5 +1,6 @@
 namespace SqlStreamStore.HalClient.Http
 {
+    using System.Collections.Generic;
     using System.IO;
     using System.Net.Http;
     using System.Net.Http.Headers;
@@ -32,6 +33,7 @@ namespace SqlStreamStore.HalClient.Http
         public async Task<HttpResponseMessage> PostAsync<T>(
             string uri,
             T value,
+            IDictionary<string, string[]> headers,
             CancellationToken cancellationToken = default(CancellationToken))
         {
             using(var stream = s_streamManager.GetStream())
@@ -40,16 +42,22 @@ namespace SqlStreamStore.HalClient.Http
                 CloseOutput = false
             })
             {
-                await JObject.FromObject(value).WriteToAsync(writer, cancellationToken);
+                await JToken.FromObject(value).WriteToAsync(writer, cancellationToken);
 
-                return await HttpClient.SendAsync(new HttpRequestMessage(HttpMethod.Post, uri)
+                var request = new HttpRequestMessage(HttpMethod.Post, uri)
+                {
+                    Content = new StreamContent(stream)
                     {
-                        Content = new StreamContent(stream)
-                        {
-                            Headers = { ContentType = new MediaTypeHeaderValue("application/json") }
-                        }
-                    },
-                    cancellationToken);
+                        Headers = { ContentType = new MediaTypeHeaderValue("application/json") }
+                    }
+                };
+
+                foreach(var header in headers)
+                {
+                    request.Headers.Add(header.Key, header.Value);
+                }
+
+                return await HttpClient.SendAsync(request, cancellationToken);
             }
         }
 

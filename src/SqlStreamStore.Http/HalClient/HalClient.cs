@@ -2,6 +2,7 @@
 {
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
     using System.Net.Http;
     using SqlStreamStore.HalClient.Http;
     using SqlStreamStore.HalClient.Models;
@@ -20,6 +21,8 @@
         /// The most recently navigated resource.
         /// </summary>
         public IEnumerable<IResource> Current { get; } = Enumerable.Empty<IResource>();
+        
+        public HttpStatusCode? StatusCode { get; }
 
 
         /// <summary>
@@ -62,6 +65,19 @@
         {
             Client = client.Client;
             Current = current;
+            StatusCode = client.StatusCode;
+        }
+
+        /// <summary>
+        /// Creates a copy of the specified client with given resources.
+        /// </summary>
+        /// <param name="client">The client to copy.</param>
+        /// <param name="current">The new resources.</param>
+        public HalClient(IHalClientBase client, IEnumerable<IResource> current, HttpStatusCode statusCode)
+        {
+            Client = client.Client;
+            Current = current;
+            StatusCode = statusCode;
         }
     }
 }

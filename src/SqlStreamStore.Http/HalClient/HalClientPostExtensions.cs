@@ -1,5 +1,7 @@
 ﻿namespace SqlStreamStore.HalClient
 {
+    using System.Collections.Generic;
+    using System.Threading;
     using System.Threading.Tasks;
     using SqlStreamStore.HalClient.Models;
 
@@ -55,11 +57,21 @@
         /// <param name="client">The instance of the client used for the request.</param>
         /// <exception cref="FailedToResolveRelationship" />
         /// <exception cref="TemplateParametersAreRequired" />
-        public static Task<IHalClient> Post(this IHalClient client, string rel, object value, object parameters, string curie)
+        public static Task<IHalClient> Post(
+            this IHalClient client, 
+            string rel, 
+            object value, 
+            object parameters, 
+            string curie,
+            IDictionary<string, string[]> headers = null,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
+            headers = headers ?? new Dictionary<string, string[]>();
+            
             var relationship = HalClientExtensions.Relationship(rel, curie);
 
-            return client.BuildAndExecuteAsync(relationship, parameters, uri => client.Client.PostAsync(uri, value));
+            return client.BuildAndExecuteAsync(relationship, parameters, 
+                uri => client.Client.PostAsync(uri, value, headers, cancellationToken));
         }
 
     }

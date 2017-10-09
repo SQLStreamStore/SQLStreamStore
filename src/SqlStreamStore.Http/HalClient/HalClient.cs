@@ -4,6 +4,7 @@
     using System.Linq;
     using System.Net;
     using System.Net.Http;
+    using Newtonsoft.Json;
     using SqlStreamStore.HalClient.Http;
     using SqlStreamStore.HalClient.Models;
 
@@ -24,24 +25,21 @@
         
         public HttpStatusCode? StatusCode { get; }
 
-
         /// <summary>
         /// Creates an instance of the <see cref="HoneyBear.HalClient"/> class.
         /// </summary>
         /// <param name="client">The <see cref="System.Net.Http.HttpClient"/> to use.</param>
-        public HalClient(
-            HttpClient client)
+        public HalClient(HttpClient client, JsonSerializer serializer)
         {
-            Client = new JsonHttpClient(client);
+            Client = new JsonHttpClient(client, serializer);
         }
-
 
         /// <summary>
         /// Creates an instance of the <see cref="HoneyBear.HalClient"/> class.
         /// Uses a default instance of <see cref="System.Net.Http.HttpClient"/>.
         /// </summary>
-        public HalClient()
-            : this(new HttpClient())
+        public HalClient(JsonSerializer serializer) 
+            : this(new HttpClient(), serializer)
         {
 
         }
@@ -50,8 +48,7 @@
         /// Creates an instance of the <see cref="HoneyBear.HalClient"/> class.
         /// </summary>
         /// <param name="client">The implementation of <see cref="IJsonHttpClient"/> to use.</param>
-        public HalClient(
-            IJsonHttpClient client)
+        public HalClient(IJsonHttpClient client)
         {
             Client = client;
         }

@@ -7,12 +7,20 @@
     using System.Net.Http.Headers;
     using System.Threading;
     using System.Threading.Tasks;
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Serialization;
     using SqlStreamStore.HalClient;
     using SqlStreamStore.HalClient.Models;
     using SqlStreamStore.Streams;
 
     public partial class HttpClientSqlStreamStore : IStreamStore
     {
+        private static readonly JsonSerializer s_serializer = JsonSerializer.Create(new JsonSerializerSettings
+        {
+            TypeNameHandling = TypeNameHandling.None,
+            ContractResolver = new CamelCasePropertyNamesContractResolver()
+        });
+        
         private readonly HttpClient _httpClient;
 
         public HttpClientSqlStreamStore(HttpClientSqlStreamStoreSettings settings)
@@ -73,7 +81,7 @@
         }
 
         private IHalClient CreateClient(IResource resource) => new HalClient.HalClient(CreateClient(), new[]{resource});
-        private IHalClient CreateClient() => new HalClient.HalClient(_httpClient);
+        private IHalClient CreateClient() => new HalClient.HalClient(_httpClient, s_serializer);
 
         public event Action OnDispose;
     }

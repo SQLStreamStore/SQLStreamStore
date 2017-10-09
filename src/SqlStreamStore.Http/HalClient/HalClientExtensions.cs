@@ -65,22 +65,22 @@
                 {
                     result.Content == null
                         ? new Resource()
-                        : await result.Content.ReadResource()
+                        : await result.Content.ReadResource(client.Client.Serializer)
                 };
 
             return new HalClient(client, current, result.StatusCode);
         }
 
-        private static async Task<IResource> ReadResource(this HttpContent content)
+        private static async Task<IResource> ReadResource(this HttpContent content, JsonSerializer serializer)
         {
             var stream = await content.ReadAsStreamAsync();
 
             using(var reader = new JsonTextReader(new StreamReader(stream))
             {
-                CloseInput = true
+                CloseInput = false
             })
             {
-                return await HalResourceJsonReader.ReadResource(reader, CancellationToken.None);
+                return await HalResourceJsonReader.ReadResource(reader, serializer, CancellationToken.None);
             }
         }
 

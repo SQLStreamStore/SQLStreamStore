@@ -4,6 +4,7 @@ namespace SqlStreamStore.HalClient.Http
     using System.Net.Http;
     using System.Threading;
     using System.Threading.Tasks;
+    using Newtonsoft.Json;
 
     /// <summary>
     /// Provides a wrapper for <see cref="System.Net.Http.HttpClient"/> that processes JSON HTTP requests and responses.
@@ -14,6 +15,8 @@ namespace SqlStreamStore.HalClient.Http
         /// A getter for the wrapped instance of <see cref="System.Net.Http.HttpClient"/>.
         /// </summary>
         HttpClient HttpClient { get; }
+        
+        JsonSerializer Serializer { get; }
 
         /// <summary>
         /// Send a GET request to the specified Uri as an asynchronous operation.

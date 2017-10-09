@@ -4,6 +4,7 @@ namespace SqlStreamStore.HalClient.Http
     using System.IO;
     using System.Net.Http;
     using System.Net.Http.Headers;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.IO;
@@ -13,13 +14,16 @@ namespace SqlStreamStore.HalClient.Http
     internal sealed class JsonHttpClient : IJsonHttpClient
     {
         private static readonly RecyclableMemoryStreamManager s_streamManager = new RecyclableMemoryStreamManager();
-        public JsonHttpClient(HttpClient client)
+        
+        public JsonHttpClient(HttpClient client, JsonSerializer serializer)
         {
             HttpClient = client;
+            Serializer = serializer;
             AcceptJson();
         }
 
         public HttpClient HttpClient { get; }
+        public JsonSerializer Serializer { get; }
 
         public Task<HttpResponseMessage> GetAsync(string uri, CancellationToken cancellationToken = default(CancellationToken))
             => HttpClient.GetAsync(uri, cancellationToken);
@@ -42,7 +46,11 @@ namespace SqlStreamStore.HalClient.Http
                 CloseOutput = false
             })
             {
-                await JToken.FromObject(value).WriteToAsync(writer, cancellationToken);
+                await JToken.FromObject(value, Serializer).WriteToAsync(writer, cancellationToken);
+
+                await writer.FlushAsync(cancellationToken);
+
+                stream.Position = 0;
 
                 var request = new HttpRequestMessage(HttpMethod.Post, uri)
                 {

@@ -15,7 +15,7 @@ namespace SqlStreamStore
         public MsSqlStreamStoreFixture(string schema)
         {
             _schema = schema;
-            _localInstance = new LocalInstance();
+            _localInstance = Environment.OSVersion.Platform == PlatformID.Unix ? (ILocalInstance)new DockerInstance() : new LocalInstance();
 
             var uniqueName = Guid.NewGuid().ToString().Replace("-", string.Empty);
             _databaseName = $"StreamStoreTests-{uniqueName}";
@@ -113,7 +113,7 @@ namespace SqlStreamStore
             using(var connection = _localInstance.CreateConnection())
             {
                 await connection.OpenAsync().NotOnCapturedContext();
-                var tempPath = Environment.GetEnvironmentVariable("Temp");
+                var tempPath = System.IO.Path.GetTempPath();
                 var createDatabase = $"CREATE DATABASE [{_databaseName}] on (name='{_databaseName}', "
                                      + $"filename='{tempPath}\\{_databaseName}.mdf')";
                 using (var command = new SqlCommand(createDatabase, connection))
@@ -127,7 +127,6 @@ namespace SqlStreamStore
         {
             var connectionStringBuilder = _localInstance.CreateConnectionStringBuilder();
             connectionStringBuilder.MultipleActiveResultSets = true;
-            connectionStringBuilder.IntegratedSecurity = true;
             connectionStringBuilder.InitialCatalog = _databaseName;
 
             return connectionStringBuilder.ToString();
@@ -142,6 +141,21 @@ namespace SqlStreamStore
         private class LocalInstance : ILocalInstance
         {
             private readonly string connectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=master;Integrated Security=SSPI;";
+
+            public SqlConnection CreateConnection()
+            {
+                return new SqlConnection(connectionString);
+            }
+
+            public SqlConnectionStringBuilder CreateConnectionStringBuilder()
+            {
+                return new SqlConnectionStringBuilder(connectionString);
+            }
+        }
+
+        private class DockerInstance : ILocalInstance
+        {
+            private readonly string connectionString = @"Data Source=127.0.0.1,1433;Initial Catalog=master;User ID=sa;Password=SqlStreamSt0re;";
 
             public SqlConnection CreateConnection()
             {

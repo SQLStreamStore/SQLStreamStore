@@ -1,0 +1,9 @@
+version: '2'
+services:
+  mssql:
+    image: microsoft/mssql-server-linux
+    environment:
+      ACCEPT_EULA: Y
+      SA_PASSWORD: SqlStreamSt0re
+    ports:
+      - 1433:1433

@@ -9,10 +9,7 @@ INSERT INTO Streams (
             ?streamId,
             ?streamIdOriginal,
             -1,
-            -1);
-
-     SELECT LAST_INSERT_ID()
-       INTO @streamIdInternal;
+            0);
 COMMIT;
 
 /* Select CurrentVersion, CurrentPosition */

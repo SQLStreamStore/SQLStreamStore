@@ -28,7 +28,6 @@ namespace SqlStreamStore
                 var commandText = prefetch ? _scripts.ReadAllForwardWithData : _scripts.ReadAllForward;
                 using (var command = new MySqlCommand(commandText, connection))
                 {
-
                     command.Parameters.AddWithValue("ordinal", ordinal.ToMySqlOrdinal());
                     command.Parameters.AddWithValue("count", maxCount + 1); //Read extra row to see if at end or not
 
@@ -41,7 +40,7 @@ namespace SqlStreamStore
                         {
                             return new ReadAllPage(
                                 fromPositionExclusive,
-                                fromPositionExclusive,
+                                Position.End,
                                 true,
                                 ReadDirection.Forward,
                                 readNext,

@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Data.Common;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -62,33 +63,11 @@
 
             // To read backwards from end, need to use int MaxValue
             var streamVersion = start == StreamVersion.End ? int.MaxValue : start;
-            string commandText;
-            Func<List<StreamMessage>, int, int> getNextVersion;
-            if(direction == ReadDirection.Forward)
-            {
-                commandText = prefetch ? _scripts.ReadStreamForwardWithData : _scripts.ReadStreamForward;
-                getNextVersion = (events, lastVersion) =>
-                {
-                    if(events.Any())
-                    {
-                        return events.Last().StreamVersion + 1;
-                    }
-                    return lastVersion + 1;
-                };
-            }
-            else
-            {
-                commandText = prefetch ? _scripts.ReadStreamBackwardWithData : _scripts.ReadStreamBackward;
-                getNextVersion = (events, lastVersion) =>
-                {
-                    if (events.Any())
-                    {
-                        return events.Last().StreamVersion - 1;
-                    }
-                    return -1;
-                };
-            }
 
+            var (commandText, getNextVersion) = direction == ReadDirection.Forward
+                ? ReadForwards(prefetch)
+                : ReadBackwards(prefetch);
+            
             using(var command = new MySqlCommand(commandText, connection, transaction))
             {
                 command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
@@ -98,7 +77,7 @@
                 using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
                 {
                     await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
-                    if(reader.IsDBNull(0))
+                    if(await reader.IsDBNullAsync(0, cancellationToken))
                     {
                         return new ReadStreamPage(
                               sqlStreamId.IdOriginal,
@@ -115,44 +94,12 @@
                     var lastStreamPosition = MySqlOrdinal.CreateFromMySqlOrdinal(reader.GetInt64(1));
 
                     var messages = new List<StreamMessage>();
-                    while (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                    while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                     {
-                        if(messages.Count == count)
-                        {
-                            messages.Add(default(StreamMessage));
-                        }
-                        else
-                        {
-                            var streamVersion1 = reader.GetInt32(0);
-                            var ordinal = MySqlOrdinal.CreateFromMySqlOrdinal(reader.GetInt64(1));
-                            var eventId = reader.GetGuid(2);
-                            var created = new DateTime(reader.GetInt64(3), DateTimeKind.Utc);
-                            var type = reader.GetString(4);
-                            var jsonMetadata = reader.GetString(5);
-
-                            Func<CancellationToken, Task<string>> getJsonData;
-                            if(prefetch)
-                            {
-                                var jsonData = reader.GetString(6);
-                                getJsonData = _ => Task.FromResult(jsonData);
-                            }
-                            else
-                            {
-                                getJsonData = ct => GetJsonData(sqlStreamId.Id, streamVersion1, ct);
-                            }
-
-                            var message = new StreamMessage(
-                                sqlStreamId.IdOriginal,
-                                eventId,
-                                streamVersion1,
-                                ordinal.ToStreamStorePosition(),
-                                created,
-                                type,
-                                jsonMetadata,
-                                getJsonData);
-
-                            messages.Add(message);
-                        }
+                        messages.Add(
+                            messages.Count == count
+                                ? default(StreamMessage)
+                                : ReadStreamMessageInternal(sqlStreamId, prefetch, reader));
                     }
 
                     var isEnd = true;
@@ -175,6 +122,54 @@
                         messages.ToArray());
                 }
             }
+        }
+
+        private (string, Func<List<StreamMessage>, int, int>) ReadBackwards(bool prefetch)
+            => (prefetch
+                    ? _scripts.ReadStreamBackwardWithData
+                    : _scripts.ReadStreamBackward,
+                (events, lastVersion) => events.Any()
+                    ? events.Last().StreamVersion - 1
+                    : -1);
+
+        private (string, Func<List<StreamMessage>, int, int>) ReadForwards(bool prefetch)
+            => (prefetch
+                    ? _scripts.ReadStreamForwardWithData
+                    : _scripts.ReadStreamForward,
+                (events, lastVersion) =>
+                    events.Any()
+                        ? events.Last().StreamVersion + 1
+                        : lastVersion + 1);
+
+        private StreamMessage ReadStreamMessageInternal(MySqlStreamId sqlStreamId, bool prefetch, DbDataReader reader)
+        {
+            var streamVersion = reader.GetInt32(0);
+            var ordinal = MySqlOrdinal.CreateFromMySqlOrdinal(reader.GetInt64(1));
+            var eventId = reader.GetGuid(2);
+            var created = new DateTime(reader.GetInt64(3), DateTimeKind.Utc);
+            var type = reader.GetString(4);
+            var jsonMetadata = reader.GetString(5);
+
+            Func<CancellationToken, Task<string>> getJsonData;
+            if(prefetch)
+            {
+                var jsonData = reader.GetString(6);
+                getJsonData = _ => Task.FromResult(jsonData);
+            }
+            else
+            {
+                getJsonData = ct => GetJsonData(sqlStreamId.Id, streamVersion, ct);
+            }
+
+            return new StreamMessage(
+                sqlStreamId.IdOriginal,
+                eventId,
+                streamVersion,
+                ordinal.ToStreamStorePosition(),
+                created,
+                type,
+                jsonMetadata,
+                getJsonData);
         }
 
         private async Task<string> GetJsonData(string streamId, int streamVersion, CancellationToken cancellationToken)

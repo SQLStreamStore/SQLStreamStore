@@ -21,7 +21,8 @@
 
             ConnectionString = new MySqlConnectionStringBuilder(connectionString)
             {
-                AllowUserVariables = true
+                AllowUserVariables = true,
+                OldGuids = true
             }.ConnectionString;
         }
 

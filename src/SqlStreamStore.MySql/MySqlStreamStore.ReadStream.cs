@@ -112,7 +112,7 @@
                               readNext);
                     }
                     var lastStreamVersion = reader.GetInt32(0);
-                    var lastStreamPosition = reader.GetInt64(1);
+                    var lastStreamPosition = MySqlOrdinal.CreateFromMySqlOrdinal(reader.GetInt64(1));
 
                     var messages = new List<StreamMessage>();
                     while (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
@@ -124,7 +124,7 @@
                         else
                         {
                             var streamVersion1 = reader.GetInt32(0);
-                            var ordinal = reader.GetInt64(1);
+                            var ordinal = MySqlOrdinal.CreateFromMySqlOrdinal(reader.GetInt64(1));
                             var eventId = reader.GetGuid(2);
                             var created = new DateTime(reader.GetInt64(3), DateTimeKind.Utc);
                             var type = reader.GetString(4);
@@ -145,7 +145,7 @@
                                 sqlStreamId.IdOriginal,
                                 eventId,
                                 streamVersion1,
-                                ordinal,
+                                ordinal.ToStreamStorePosition(),
                                 created,
                                 type,
                                 jsonMetadata,
@@ -168,7 +168,7 @@
                         start,
                         getNextVersion(messages, lastStreamVersion),
                         lastStreamVersion,
-                        lastStreamPosition,
+                        lastStreamPosition.ToStreamStorePosition(),
                         direction,
                         isEnd,
                         readNext,

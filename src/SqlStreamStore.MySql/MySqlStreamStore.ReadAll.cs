@@ -19,7 +19,7 @@ namespace SqlStreamStore
             CancellationToken cancellationToken)
         {
             maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;
-            long ordinal = fromPositionExclusive == Position.End ? long.MaxValue : fromPositionExclusive;
+            var ordinal = MySqlOrdinal.CreateFromStreamStorePosition(fromPositionExclusive);
 
             using (var connection = _createConnection())
             {
@@ -29,7 +29,7 @@ namespace SqlStreamStore
                 using (var command = new MySqlCommand(commandText, connection))
                 {
 
-                    command.Parameters.AddWithValue("ordinal", ordinal);
+                    command.Parameters.AddWithValue("ordinal", ordinal.ToMySqlOrdinal());
                     command.Parameters.AddWithValue("count", maxCount + 1); //Read extra row to see if at end or not
 
                     var messages = new List<StreamMessage>();
@@ -58,7 +58,7 @@ namespace SqlStreamStore
                             {
                                 var streamId = reader.GetString(0);
                                 var streamVersion = reader.GetInt32(1);
-                                ordinal = reader.GetInt64(2);
+                                ordinal = MySqlOrdinal.CreateFromMySqlOrdinal(reader.GetInt64(2));
                                 var eventId = reader.GetGuid(3);
                                 var created = new DateTime(reader.GetInt64(4), DateTimeKind.Utc);
                                 var type = reader.GetString(5);
@@ -79,7 +79,7 @@ namespace SqlStreamStore
                                 var message = new StreamMessage(streamId,
                                     eventId,
                                     streamVersion,
-                                    ordinal,
+                                    ordinal.ToStreamStorePosition(),
                                     created,
                                     type,
                                     jsonMetadata,
@@ -98,11 +98,11 @@ namespace SqlStreamStore
                         messages.RemoveAt(maxCount);
                     }
 
-                    var nextPosition = messages[messages.Count - 1].Position + 1;
+                    var nextPosition = MySqlOrdinal.CreateFromMySqlOrdinal(messages[messages.Count - 1].Position + 1);
 
                     return new ReadAllPage(
                         fromPositionExclusive,
-                        nextPosition,
+                        nextPosition.ToStreamStorePosition(),
                         isEnd,
                         ReadDirection.Forward,
                         readNext,
@@ -119,9 +119,7 @@ namespace SqlStreamStore
             CancellationToken cancellationToken)
         {
             maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;
-            long ordinal = fromPositionExclusive == Position.End
-                ? long.MaxValue
-                : fromPositionExclusive;
+            var ordinal = MySqlOrdinal.CreateFromStreamStorePosition(fromPositionExclusive);
 
             using (var connection = _createConnection())
             {
@@ -130,7 +128,7 @@ namespace SqlStreamStore
                 var commandText = prefetch ? _scripts.ReadAllBackwardWithData : _scripts.ReadAllBackward;
                 using (var command = new MySqlCommand(commandText, connection))
                 {
-                    command.Parameters.AddWithValue("ordinal", ordinal);
+                    command.Parameters.AddWithValue("ordinal", ordinal.ToMySqlOrdinal());
                     command.Parameters.AddWithValue("count", maxCount + 1); //Read extra row to see if at end or not
 
                     var messages = new List<StreamMessage>();
@@ -157,7 +155,7 @@ namespace SqlStreamStore
                         {
                             var streamId = reader.GetString(0);
                             var streamVersion = reader.GetInt32(1);
-                            ordinal = reader.GetInt64(2);
+                            ordinal = MySqlOrdinal.CreateFromMySqlOrdinal(reader.GetInt64(2));
                             var eventId = reader.GetGuid(3);
                             var created = new DateTime(reader.GetInt64(4), DateTimeKind.Utc);
                             var type = reader.GetString(5);
@@ -179,13 +177,13 @@ namespace SqlStreamStore
                                 streamId,
                                 eventId,
                                 streamVersion,
-                                ordinal,
+                                ordinal.ToStreamStorePosition(),
                                 created,
                                 type,
                                 jsonMetadata, getJsonData);
 
                             messages.Add(message);
-                            lastOrdinal = ordinal;
+                            lastOrdinal = ordinal.ToStreamStorePosition();
                         }
                     }
 
@@ -198,7 +196,9 @@ namespace SqlStreamStore
                         messages.RemoveAt(maxCount);
                     }
 
-                    fromPositionExclusive = messages.Any() ? messages[0].Position : 0;
+                    fromPositionExclusive = messages.Any() 
+                        ? messages[0].Position 
+                        : 0;
 
                     return new ReadAllPage(
                         fromPositionExclusive,

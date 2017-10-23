@@ -119,7 +119,7 @@
                     {
                         await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
                         var currentVersion = reader.GetInt32(0);
-                        var currentPosition = reader.GetInt64(1);
+                        var currentPosition = MySqlOrdinal.CreateFromMySqlOrdinal(reader.GetInt64(1));
                         int? maxCount = null;
 
                         if(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
@@ -128,7 +128,7 @@
                             var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(jsonData);
                             maxCount = metadataMessage.MaxCount;
                         }
-                        return new MySqlAppendResult(maxCount, currentVersion, currentPosition);
+                        return new MySqlAppendResult(maxCount, currentVersion, currentPosition.ToStreamStorePosition());
                     }
                 }
                 catch(MySqlException ex)
@@ -208,7 +208,7 @@
                     {
                         await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
                         var currentVersion = reader.GetInt32(0);
-                        var currentPosition = reader.GetInt64(1);
+                        var currentPosition = MySqlOrdinal.CreateFromMySqlOrdinal(reader.GetInt64(1));
                         int? maxCount = null;
 
                         if(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
@@ -217,7 +217,7 @@
                             var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(jsonData);
                             maxCount = metadataMessage.MaxCount;
                         }
-                        return new MySqlAppendResult(maxCount, currentVersion, currentPosition);
+                        return new MySqlAppendResult(maxCount, currentVersion, currentPosition.ToStreamStorePosition());
                     }
                 }
                 catch(MySqlException ex)
@@ -359,7 +359,7 @@
                     {
                         await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
                         var currentVersion = reader.GetInt32(0);
-                        var currentPosition = reader.GetInt64(1);
+                        var currentPosition = MySqlOrdinal.CreateFromMySqlOrdinal(reader.GetInt64(1));
                         int? maxCount = null;
 
                         if(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
@@ -369,7 +369,7 @@
                             maxCount = metadataMessage.MaxCount;
                         }
 
-                        return new MySqlAppendResult(maxCount, currentVersion, currentPosition);
+                        return new MySqlAppendResult(maxCount, currentVersion, currentPosition.ToStreamStorePosition());
                     }
                 }
             }
@@ -526,6 +526,5 @@
                 CurrentPosition = currentPosition;
             }
         }
-
     }
 }

@@ -229,11 +229,9 @@
                         .ExecuteScalarAsync(cancellationToken)
                         .NotOnCapturedContext();
 
-                    if(result == DBNull.Value)
-                    {
-                        return -1;
-                    }
-                    return (long) result;
+                    return result == DBNull.Value 
+                        ? Position.End 
+                        : MySqlOrdinal.CreateFromMySqlOrdinal((long) result).ToStreamStorePosition();
                 }
             }
         }

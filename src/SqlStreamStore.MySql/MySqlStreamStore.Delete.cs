@@ -39,7 +39,7 @@ namespace SqlStreamStore
                     using (var command = new MySqlCommand(_scripts.DeleteStreamMessage, connection, transaction))
                     {
                         command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
-                        command.Parameters.AddWithValue("eventId", eventId.ToByteArray());
+                        command.Parameters.AddWithValue("eventId", eventId);
                         var count  = await command
                             .ExecuteScalarAsync(cancellationToken)
                             .NotOnCapturedContext();

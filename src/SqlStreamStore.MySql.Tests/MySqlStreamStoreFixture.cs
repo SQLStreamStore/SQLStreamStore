@@ -66,7 +66,7 @@ namespace SqlStreamStore
 
         public override void Dispose() => _localInstance?.Dispose();
 
-        public override long MinPosition => 1;
+        public override long MinPosition => 0;
 
         private async Task CreateDatabase()
         {

@@ -2,18 +2,20 @@ START TRANSACTION;
 
 INSERT INTO Streams (
             Id,
-            IdOriginal)
+            IdOriginal,
+            Version,
+            Position)
      SELECT ?streamId,
-            ?streamIdOriginal
+            ?streamIdOriginal,
+            -1, 
+            0
        FROM DUAL
       WHERE NOT EXISTS (
      SELECT 1
        FROM Streams
       WHERE Streams.Id = ?streamId
        LOCK IN SHARE MODE);
-COMMIT;
 
-START TRANSACTION;
      SELECT Streams.IdInternal,
             Streams.Version
        FROM Streams

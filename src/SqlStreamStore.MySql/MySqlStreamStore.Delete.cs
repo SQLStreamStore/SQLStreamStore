@@ -160,26 +160,35 @@ namespace SqlStreamStore
            MySqlStreamId streamId,
            CancellationToken cancellationToken)
         {
-            bool aStreamIsDeleted;
-            using (var command = new MySqlCommand(_scripts.DeleteStreamAnyVersion, connection, transaction))
-            {
-                command.Parameters.AddWithValue("streamId", streamId.Id);
-                var i = await command
-                    .ExecuteScalarAsync(cancellationToken)
-                    .NotOnCapturedContext();
+            var streamDeleted = await IsStreamDeleted(connection, transaction, streamId, cancellationToken);
 
-                aStreamIsDeleted = (long)i > 0;
-            }
-
-            if(aStreamIsDeleted)
+            if(streamDeleted)
             {
                 var streamDeletedEvent = CreateStreamDeletedMessage(streamId.IdOriginal);
+                
                 await AppendToStreamExpectedVersionAny(
                     connection,
                     transaction,
                     MySqlStreamId.Deleted,
                     new[] { streamDeletedEvent },
                     cancellationToken);
+            }
+        }
+
+        private async Task<bool> IsStreamDeleted(
+            MySqlConnection connection,
+            MySqlTransaction transaction,
+            MySqlStreamId streamId,
+            CancellationToken cancellationToken)
+        {
+            using(var command = new MySqlCommand(_scripts.DeleteStreamAnyVersion, connection, transaction))
+            {
+                command.Parameters.AddWithValue("streamId", streamId.Id);
+                var i = await command
+                    .ExecuteScalarAsync(cancellationToken)
+                    .NotOnCapturedContext();
+
+                return (long) i > 0;
             }
         }
     }

@@ -98,11 +98,11 @@ namespace SqlStreamStore
                         messages.RemoveAt(maxCount);
                     }
 
-                    var nextPosition = MySqlOrdinal.CreateFromMySqlOrdinal(messages[messages.Count - 1].Position + 1);
+                    var nextPosition = messages[messages.Count - 1].Position + 1;
 
                     return new ReadAllPage(
                         fromPositionExclusive,
-                        nextPosition.ToStreamStorePosition(),
+                        nextPosition,
                         isEnd,
                         ReadDirection.Forward,
                         readNext,

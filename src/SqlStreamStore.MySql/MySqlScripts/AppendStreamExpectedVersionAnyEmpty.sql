@@ -16,15 +16,17 @@ INSERT INTO Streams (
       WHERE Streams.Id = ?streamId
        LOCK IN SHARE MODE);
 
-     SELECT Streams.IdInternal,
-            Streams.Version
+     SELECT Streams.IdInternal
        FROM Streams
       WHERE Streams.Id = ?streamId
-       INTO @streamIdInternal,
-            @latestStreamVersion;
-COMMIT;
+       INTO @streamIdInternal;
 
-/* Select CurrentVersion, CurrentPosition */
-     SELECT -1,
-            0,
-            ''
+     SELECT Messages.StreamVersion,
+            Messages.Position,
+            '' 
+       FROM Messages
+      WHERE Messages.StreamIdInternal = @streamIdInternal
+   ORDER BY Messages.Position DESC
+      LIMIT 1;
+
+COMMIT;

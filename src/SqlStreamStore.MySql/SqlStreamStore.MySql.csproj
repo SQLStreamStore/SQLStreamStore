@@ -17,6 +17,6 @@
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="System.ValueTuple" Version="4.4.0" />
-    <PackageReference Include="MySqlConnector" Version="0.26.2" />
+    <PackageReference Include="MySqlConnector" Version="0.29.1" />
   </ItemGroup>
 </Project>

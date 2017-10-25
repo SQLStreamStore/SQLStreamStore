@@ -21,12 +21,24 @@ INSERT INTO Streams (
       WHERE Streams.Id = ?streamId
        INTO @streamIdInternal;
 
-     SELECT Messages.StreamVersion,
+    (SELECT Messages.StreamVersion,
             Messages.Position,
             '' 
        FROM Messages
       WHERE Messages.StreamIdInternal = @streamIdInternal
    ORDER BY Messages.Position DESC
-      LIMIT 1;
+      LIMIT 1)
 
+      UNION
+    
+    (SELECT -1,
+             0,
+             ''
+       FROM DUAL
+      WHERE NOT EXISTS (
+     SELECT 1
+       FROM Messages
+      WHERE Messages.StreamIdInternal = @streamIdInternal
+       LOCK IN SHARE MODE));
+      
 COMMIT;

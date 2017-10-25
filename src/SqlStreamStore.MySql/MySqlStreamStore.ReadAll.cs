@@ -40,7 +40,7 @@ namespace SqlStreamStore
                         {
                             return new ReadAllPage(
                                 fromPositionExclusive,
-                                Position.End,
+                                fromPositionExclusive,
                                 true,
                                 ReadDirection.Forward,
                                 readNext,

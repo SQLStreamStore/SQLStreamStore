@@ -266,8 +266,9 @@
             }
         }
 
-        [Fact, Trait("Category", "ReadStream")]
-        public async Task Can_read_empty_stream_backwards()
+        [Theory, Trait("Category", "ReadStream")]
+        [InlineData(true), InlineData(false)]
+        public async Task Can_read_empty_stream_backwards(bool prefetch)
         {
             using (var fixture = GetFixture())
             {
@@ -275,7 +276,7 @@
                 {
                     await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages());
 
-                    var page = await store.ReadStreamBackwards("stream-1", StreamVersion.End, 1);
+                    var page = await store.ReadStreamBackwards("stream-1", StreamVersion.End, 1, prefetch);
                     page.Status.ShouldBe(PageReadStatus.Success);
                     page.Messages.Length.ShouldBe(0);
                     page.FromStreamVersion.ShouldBe(StreamVersion.End);
@@ -289,8 +290,9 @@
             }
         }
 
-        [Fact, Trait("Category", "ReadStream")]
-        public async Task Can_read_empty_stream_forwards()
+        [Theory, Trait("Category", "ReadStream")]
+        [InlineData(true), InlineData(false)]
+        public async Task Can_read_empty_stream_forwards(bool prefetch)
         {
             using (var fixture = GetFixture())
             {
@@ -298,7 +300,7 @@
                 {
                     await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages());
 
-                    var page = await store.ReadStreamForwards("stream-1", StreamVersion.Start, 1);
+                    var page = await store.ReadStreamForwards("stream-1", StreamVersion.Start, 1, prefetch);
                     page.Status.ShouldBe(PageReadStatus.Success);
                     page.Messages.Length.ShouldBe(0);
                     page.FromStreamVersion.ShouldBe(StreamVersion.Start);

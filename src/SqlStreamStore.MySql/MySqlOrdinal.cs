@@ -1,6 +1,7 @@
 ﻿namespace SqlStreamStore
 {
     using System;
+    using SqlStreamStore.Streams;
 
     internal struct MySqlOrdinal : IEquatable<MySqlOrdinal>
     {
@@ -9,14 +10,13 @@
         
         public static MySqlOrdinal CreateFromMySqlOrdinal(long ordinal) => new MySqlOrdinal(ordinal - 1, ordinal);
 
-        public static MySqlOrdinal CreateFromStreamStorePosition(long position) => new MySqlOrdinal(position, position + 1);
+        public static MySqlOrdinal CreateFromStreamStorePosition(long position) 
+            => position == Position.End 
+                ? new MySqlOrdinal(Position.End, long.MaxValue) 
+                : new MySqlOrdinal(position, position + 1);
 
         private MySqlOrdinal(long position, long ordinal)
         {
-            if(position + 1 != ordinal)
-            {
-                throw new ArgumentOutOfRangeException(nameof(ordinal));
-            }
             _position = position;
             _ordinal = ordinal;
         }

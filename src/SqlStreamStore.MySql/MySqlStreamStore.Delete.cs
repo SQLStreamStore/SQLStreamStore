@@ -29,7 +29,7 @@ namespace SqlStreamStore
         {
             using (var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken);
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
                 using (var transaction = await connection.BeginTransactionAsync(cancellationToken).NotOnCapturedContext())
                 {
@@ -111,7 +111,7 @@ namespace SqlStreamStore
                                 .ExecuteNonQueryAsync(cancellationToken)
                                 .NotOnCapturedContext();
                         }
-                        catch(MySqlException ex)
+                        catch(MySqlException)
                         {
                             await transaction.RollbackAsync(cancellationToken);
                             throw;
@@ -140,7 +140,7 @@ namespace SqlStreamStore
         {
             using (var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken);
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
                 using (var transaction = await connection.BeginTransactionAsync(cancellationToken).NotOnCapturedContext())
                 {

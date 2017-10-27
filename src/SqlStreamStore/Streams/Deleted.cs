@@ -24,7 +24,7 @@
         public const string MessageDeletedMessageType = "$message-deleted";
 
         /// <summary>
-        ///     Createts <see cref="NewStreamMessage"/> that contains a stream deleted message.
+        ///     Creates a <see cref="NewStreamMessage"/> that contains a stream deleted message.
         /// </summary>
         /// <param name="streamId">The stream id of the deleted stream.</param>
         /// <returns>A <see cref="NewStreamMessage"/>.</returns>
@@ -37,7 +37,7 @@
         }
 
         /// <summary>
-        ///     Createts a <see cref="NewStreamMessage"/> that contains a message deleted message.
+        ///     Creates a <see cref="NewStreamMessage"/> that contains a message deleted message.
         /// </summary>
         /// <param name="streamId">The stream id of the deleted stream.</param>
         /// <param name="messageId">The message id of the deleted message.</param>

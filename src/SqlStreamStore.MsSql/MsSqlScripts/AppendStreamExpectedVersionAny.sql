@@ -1,11 +1,11 @@
 DECLARE @streamIdInternal AS INT;
 
-BEGIN TRANSACTION CreatStreamIfNotExists;
+BEGIN TRANSACTION CreateStreamIfNotExists;
     IF NOT EXISTS (SELECT * FROM dbo.Streams WITH (UPDLOCK, ROWLOCK, HOLDLOCK)
                      WHERE dbo.Streams.Id = @streamId)
      INSERT INTO dbo.Streams (Id, IdOriginal) VALUES (@streamId, @streamIdOriginal);
 
-COMMIT TRANSACTION CreatStreamIfNotExists;
+COMMIT TRANSACTION CreateStreamIfNotExists;
 
 BEGIN TRANSACTION AppendStream;
     DECLARE @latestStreamVersion AS INT;

@@ -42,9 +42,7 @@ Task("Build")
         Warning("Selectively building projects on Unix systems.");
 
         DotNetCoreBuild(projectSqlStreamStore, settings);
-        DotNetCoreBuild(projectSqlStreamStoreMsSql, settings);
         DotNetCoreBuild(projectSqlStreamStoreTests, settings);
-        DotNetCoreBuild(projectSqlStreamStoreMsSqlTests, settings);
     }
     else
     {

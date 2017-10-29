@@ -62,7 +62,6 @@ Task("RunTests")
             DetachedMode = true
         });
         Information("Waiting for the Microsoft SQL Server Docker Instance and SQL to become ready.");
-        System.Threading.Thread.Sleep(2000);
     }
 
     var testProjects = new string[] { "SqlStreamStore.Tests", "SqlStreamStore.MsSql.Tests" };

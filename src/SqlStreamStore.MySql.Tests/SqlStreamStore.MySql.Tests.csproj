@@ -26,6 +26,10 @@
       <Link>.mysql\errmsg.sys</Link>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Include=".mysql\mysql-$(MySQLVersion)-winx64\data\mysql\*.*">
+      <Link>.mysql\data\mysql\%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SqlStreamStore.MySql\SqlStreamStore.MySql.csproj" />

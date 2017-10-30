@@ -4,6 +4,7 @@
     using System.Data;
     using System.Diagnostics;
     using System.IO;
+    using System.Linq;
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
@@ -22,7 +23,7 @@
         private Process _process;
         private readonly string[] _mysqldArguments;
         private readonly string _mysqldPath;
-        private readonly string _mysqlUpgradePath;
+        private readonly string _mysqlDataDirectory;
         private bool _started;
 
         /// <summary>
@@ -38,7 +39,7 @@
             var mysqlDirectory = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, ".mysql");
             _dataDirectory = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("n"));
             _mysqldPath = Path.Combine(mysqlDirectory, "mysqld.exe");
-            _mysqlUpgradePath = Path.Combine(mysqlDirectory, "mysql_upgrade.exe");
+            _mysqlDataDirectory = Path.Combine(mysqlDirectory, "data", "mysql");
 
             ServerPort = serverPort;
 
@@ -85,6 +86,19 @@
         /// </summary>
         public async Task Start(CancellationToken ct = default(CancellationToken))
         {
+            var tempMysqlDataDirectory = Path.Combine(_dataDirectory, "mysql");
+            
+            Directory.CreateDirectory(tempMysqlDataDirectory);
+
+            await Task.WhenAll(Directory.EnumerateFiles(_mysqlDataDirectory).Select(async path =>
+            {
+                using(var stream = File.OpenRead(path))
+                using(var copy = File.Create(Path.Combine(tempMysqlDataDirectory, Path.GetFileName(path))))
+                {
+                    await stream.CopyToAsync(copy);
+                }
+            }));
+            
             _process = new Process
             {
                 StartInfo =

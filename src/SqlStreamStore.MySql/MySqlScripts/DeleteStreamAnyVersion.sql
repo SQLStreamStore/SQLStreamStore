@@ -4,13 +4,11 @@ START TRANSACTION;
       WHERE Streams.Id = ?streamId
        INTO @streamIdInternal;
 
-     DELETE Messages
-       FROM Messages
+DELETE FROM Messages
       WHERE Messages.StreamIdInternal = @streamIdInternal;
 
-     DELETE Streams
-       FROM Streams
+DELETE FROM Streams
       WHERE Streams.IdInternal = @streamIdInternal;
-
      SELECT ROW_COUNT();
+
 COMMIT;

@@ -24,12 +24,10 @@
 
         internal string CreateDatabase => GetScript(nameof(CreateDatabase));
 
-        [Obsolete("Do NOT use this until multiple statements can be executed in a batch", false)]
         internal string DeleteStreamAnyVersion => GetScript(nameof(DeleteStreamAnyVersion));
 
         internal string DeleteStreamMessage => GetScript(nameof(DeleteStreamMessage));
 
-        [Obsolete("Do NOT use this until multiple statements can be executed in a batch", false)]
         internal string DeleteStreamExpectedVersion => GetScript(nameof(DeleteStreamExpectedVersion));
 
         internal string DropAll => GetScript(nameof(DropAll));
@@ -77,12 +75,6 @@
         internal string ReadStreamBackwardWithData => GetScript(nameof(ReadStreamBackwardWithData));
 
         internal string ReadMessageData => GetScript(nameof(ReadMessageData));
-
-        [Obsolete("Only use this until multiple statements can be executed in a batch", false)]
-        internal string WTF_DeleteStreamMessages => GetScript(nameof(WTF_DeleteStreamMessages));
-        
-        [Obsolete("Only use this until multiple statements can be executed in a batch", false)]
-        internal string WTF_DeleteStream => GetScript(nameof(WTF_DeleteStream));
 
         private string GetScript(string name)
         {

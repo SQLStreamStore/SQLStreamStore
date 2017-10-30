@@ -9,6 +9,7 @@ DELETE FROM Messages
 
 DELETE FROM Streams
       WHERE Streams.IdInternal = @streamIdInternal;
+
      SELECT ROW_COUNT();
 
 COMMIT;

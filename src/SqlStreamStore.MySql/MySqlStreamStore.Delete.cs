@@ -160,7 +160,7 @@ namespace SqlStreamStore
            MySqlStreamId streamId,
            CancellationToken cancellationToken)
         {
-            var streamDeleted = await IsStreamDeleted(connection, transaction, streamId, cancellationToken);
+            var streamDeleted = await TryDeleteStreamAnyVersion(connection, transaction, streamId, cancellationToken);
 
             if(streamDeleted)
             {
@@ -175,7 +175,7 @@ namespace SqlStreamStore
             }
         }
 
-        private async Task<bool> IsStreamDeleted(
+        private async Task<bool> TryDeleteStreamAnyVersion(
             MySqlConnection connection,
             MySqlTransaction transaction,
             MySqlStreamId streamId,

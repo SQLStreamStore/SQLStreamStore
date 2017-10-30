@@ -35,19 +35,7 @@ namespace SqlStreamStore
                 {
                     var sqlStreamId = new StreamIdInfo(streamId).SqlStreamId;
 
-                    bool deleted;
-                    using (var command = new MySqlCommand(_scripts.DeleteStreamMessage, connection, transaction))
-                    {
-                        command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
-                        command.Parameters.AddWithValue("eventId", eventId);
-                        var count  = await command
-                            .ExecuteScalarAsync(cancellationToken)
-                            .NotOnCapturedContext();
-
-                        deleted = (long)count == 1;
-                    }
-
-                    if(deleted)
+                    if(await TryDeleteStreamMessage(connection, transaction, sqlStreamId, eventId, cancellationToken))
                     {
                         var eventDeletedEvent = CreateMessageDeletedMessage(sqlStreamId.IdOriginal, eventId);
                         await AppendToStreamExpectedVersionAny(
@@ -72,7 +60,8 @@ namespace SqlStreamStore
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using(var transaction = await connection.BeginTransactionAsync(cancellationToken).NotOnCapturedContext())
+                using(var transaction =
+                    await connection.BeginTransactionAsync(cancellationToken).NotOnCapturedContext())
                 {
                     var streamIdInternal = await GetStreamIdInternal(
                         streamIdInfo.SqlStreamId,
@@ -84,7 +73,8 @@ namespace SqlStreamStore
                     {
                         throw new WrongExpectedVersionException(
                             ErrorMessages.DeleteStreamFailedWrongExpectedVersion(
-                                streamIdInfo.SqlStreamId.IdOriginal, expectedVersion));
+                                streamIdInfo.SqlStreamId.IdOriginal,
+                                expectedVersion));
                     }
 
                     var latestStreamVersion = await GetLatestStreamVersion(
@@ -97,39 +87,29 @@ namespace SqlStreamStore
                     {
                         throw new WrongExpectedVersionException(
                             ErrorMessages.DeleteStreamFailedWrongExpectedVersion(
-                                streamIdInfo.SqlStreamId.IdOriginal, expectedVersion));
+                                streamIdInfo.SqlStreamId.IdOriginal,
+                                expectedVersion));
                     }
 
-                    using(var command = new MySqlCommand(_scripts.DeleteStreamExpectedVersion, connection, transaction))
-                    {
-                        command.Parameters.AddWithValue("streamId", streamIdInfo.SqlStreamId.Id);
-                        command.Parameters.AddWithValue("streamIdInternal", streamIdInternal.Value);
+                    await DeleteStreamMessagesWtfly(connection, transaction, streamIdInternal.Value, cancellationToken);
 
-                        try
-                        {
-                            await command
-                                .ExecuteNonQueryAsync(cancellationToken)
-                                .NotOnCapturedContext();
-                        }
-                        catch(MySqlException)
-                        {
-                            await transaction.RollbackAsync(cancellationToken);
-                            throw;
-                        }
+                    await DeleteStreamWtfly(connection, transaction, streamIdInternal, cancellationToken);
 
-                        var streamDeletedEvent = CreateStreamDeletedMessage(streamIdInfo.SqlStreamId.IdOriginal);
-                        var result = await AppendToStreamExpectedVersionAny(
-                            connection,
-                            transaction,
-                            MySqlStreamId.Deleted,
-                            new[] { streamDeletedEvent },
-                            cancellationToken);
+                    var streamDeletedEvent = CreateStreamDeletedMessage(streamIdInfo.SqlStreamId.IdOriginal);
+                    var result = await AppendToStreamExpectedVersionAny(
+                        connection,
+                        transaction,
+                        MySqlStreamId.Deleted,
+                        new[] { streamDeletedEvent },
+                        cancellationToken);
 
-                        // Delete metadata stream (if it exists)
-                        await DeleteStreamAnyVersion(connection, transaction, streamIdInfo.MetadataSqlStreamId, cancellationToken);
+                    // Delete metadata stream (if it exists)
+                    await DeleteStreamAnyVersion(connection,
+                        transaction,
+                        streamIdInfo.MetadataSqlStreamId,
+                        cancellationToken);
 
-                        await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
-                    }
+                    await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
                 }
             }
         }
@@ -160,9 +140,7 @@ namespace SqlStreamStore
            MySqlStreamId streamId,
            CancellationToken cancellationToken)
         {
-            var streamDeleted = await IsStreamDeleted(connection, transaction, streamId, cancellationToken);
-
-            if(streamDeleted)
+            if(await TryDeleteStreamAnyVersion(connection, transaction, streamId, cancellationToken))
             {
                 var streamDeletedEvent = CreateStreamDeletedMessage(streamId.IdOriginal);
                 
@@ -174,21 +152,75 @@ namespace SqlStreamStore
                     cancellationToken);
             }
         }
+        
+        private async Task<bool> TryDeleteStreamMessage(
+            MySqlConnection connection,
+            MySqlTransaction transaction,
+            MySqlStreamId sqlStreamId,
+            Guid eventId,
+            CancellationToken cancellationToken)
+        {
+            using(var command = new MySqlCommand(_scripts.DeleteStreamMessage, connection, transaction))
+            {
+                command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
+                command.Parameters.AddWithValue("eventId", eventId);
+                var count = await command
+                    .ExecuteScalarAsync(cancellationToken)
+                    .NotOnCapturedContext();
 
-        private async Task<bool> IsStreamDeleted(
+                return (long) count > 1;
+            }
+        }
+
+        private async Task<bool> TryDeleteStreamAnyVersion(
             MySqlConnection connection,
             MySqlTransaction transaction,
             MySqlStreamId streamId,
             CancellationToken cancellationToken)
         {
-            using(var command = new MySqlCommand(_scripts.DeleteStreamAnyVersion, connection, transaction))
-            {
-                command.Parameters.AddWithValue("streamId", streamId.Id);
-                var i = await command
-                    .ExecuteScalarAsync(cancellationToken)
-                    .NotOnCapturedContext();
+            var streamIdInternal = await GetStreamIdInternal(
+                streamId,
+                connection,
+                transaction,
+                cancellationToken);
 
-                return (long) i > 0;
+            if(streamIdInternal == default(int?))
+            {
+                return false;
+            }
+ 
+            await DeleteStreamMessagesWtfly(connection, transaction, streamIdInternal.Value, cancellationToken);
+            
+            return await DeleteStreamWtfly(connection, transaction, streamIdInternal, cancellationToken);
+        }
+
+        private async Task<bool> DeleteStreamWtfly(
+            MySqlConnection connection,
+            MySqlTransaction transaction,
+            int? streamIdInternal,
+            CancellationToken cancellationToken)
+        {
+            using(var command = new MySqlCommand(_scripts.WTF_DeleteStream, connection, transaction)
+            {
+                Parameters = { { "streamIdInternal", streamIdInternal } }
+            })
+            {
+                return (await command.ExecuteNonQueryAsync(cancellationToken) > 0);
+            }
+        }
+
+        private async Task DeleteStreamMessagesWtfly(
+            MySqlConnection connection,
+            MySqlTransaction transaction,
+            int streamIdInternal,
+            CancellationToken cancellationToken)
+        {
+            using(var command = new MySqlCommand(_scripts.WTF_DeleteStreamMessages, connection, transaction)
+            {
+                Parameters = { { "streamIdInternal", streamIdInternal } }
+            })
+            {
+                await command.ExecuteNonQueryAsync(cancellationToken);
             }
         }
     }

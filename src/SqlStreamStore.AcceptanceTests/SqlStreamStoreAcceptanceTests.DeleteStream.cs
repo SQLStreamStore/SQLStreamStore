@@ -40,7 +40,7 @@
                     const string streamId = "stream";
 
                     await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-                    await store.DeleteStream(streamId, 2);
+                    await store.DeleteStream(streamId);
 
                     var page =
                         await store.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);

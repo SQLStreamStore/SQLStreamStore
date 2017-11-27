@@ -23,7 +23,11 @@ used in Event Sourced based applications.
 
 # Using
 
-See [Wiki](../../wiki) to get started.
+Coming soon.
+
+# Help & Support
+
+Ask questions in the `SqlStreamStore` channel in the [ddd-cqrs-es slack](https://ddd-cqrs-es.slack.com) workspace. ([Join here](https://ddd-cqrs-es.herokuapp.com/). 
 
 # Licences
 

@@ -17,27 +17,32 @@ Task("RestorePackages")
     .IsDependentOn("Clean")
     .Does(() =>
 {
-	DotNetCoreRestore(solution);
+    DotNetCoreRestore(solution);
+
+    InstallMySqlD("5.6.37");
 });
 
 Task("Build")
     .IsDependentOn("RestorePackages")
     .Does(() =>
 {
-	var settings = new DotNetCoreBuildSettings
-	{
-		Configuration = configuration
-	};
+    var settings = new DotNetCoreBuildSettings
+    {
+        Configuration = configuration
+    };
 
-	DotNetCoreBuild(solution, settings);
+    DotNetCoreBuild(solution, settings);
 });
 
 Task("RunTests")
     .IsDependentOn("Build")
     .Does(() =>
 {
-    var testProjects = new string[] { "SqlStreamStore.Tests", "SqlStreamStore.MsSql.Tests" };
-
+    var testProjects = new string[] {
+        "SqlStreamStore.Tests",
+        "SqlStreamStore.MsSql.Tests",
+        "SqlStreamStore.MySql.Tests"
+    };
 
     var processes = testProjects.Select(TestAssembly).ToArray();
 
@@ -57,13 +62,14 @@ Task("DotNetPack")
     var dotNetCorePackSettings   = new DotNetCorePackSettings
     {
         OutputDirectory = artifactsDir,
-		NoBuild = true,
-		Configuration = configuration,
+        NoBuild = true,
+        Configuration = configuration,
         VersionSuffix = versionSuffix
     };
     
-	DotNetCorePack("./src/SqlStreamStore", dotNetCorePackSettings);
-	DotNetCorePack("./src/SqlStreamStore.MsSql", dotNetCorePackSettings);
+    DotNetCorePack("./src/SqlStreamStore", dotNetCorePackSettings);
+    DotNetCorePack("./src/SqlStreamStore.MsSql", dotNetCorePackSettings);
+    DotNetCorePack("./src/SqlStreamStore.MySql", dotNetCorePackSettings);
 });
 
 Task("Default")
@@ -79,3 +85,41 @@ IProcess TestAssembly(string name)
             Arguments = $"xunit -quiet -parallel all -configuration {configuration} -nobuild",
             WorkingDirectory = sourceDir + Directory(name)
         });
+
+void InstallMySqlD(string v) {
+    var installDir     = sourceDir + Directory("SqlStreamStore.MySql.Tests/.mysql");
+    var mysqlDir       = installDir + Directory($"mysql-{v}-winx64/bin");
+    var mysqldPath     = mysqlDir + File("mysqld.exe");
+    var installPath    = installDir + File("mysql.zip");
+    var version        = Version.Parse(v);
+
+    EnsureDirectoryExists(mysqlDir);
+
+    if (FileExists(mysqldPath)) {
+        Information("Checking MySQL version...");
+        using (var process = StartAndReturnProcess(mysqldPath, new ProcessSettings {
+            Arguments = "--version",
+            RedirectStandardOutput = true
+        })) {
+            process.WaitForExit();
+
+            var stdout = process.GetStandardOutput().FirstOrDefault();
+
+            Information(stdout);
+
+            if ((stdout ?? string.Empty).Contains(v)) {
+                Information($"MySQL {v} found; skipping installation.");
+
+                return;
+            }
+
+            DeleteDirectory(mysqlDir, true);
+        }
+    }
+
+    var mysqld = $"https://dev.mysql.com/get/Downloads/MySQL-{version.Major}.{version.Minor}/mysql-{version.Major}.{version.Minor}.{version.Build}-winx64.zip";
+
+    DownloadFile(mysqld, installPath);
+
+    Unzip(installPath, installDir);
+}

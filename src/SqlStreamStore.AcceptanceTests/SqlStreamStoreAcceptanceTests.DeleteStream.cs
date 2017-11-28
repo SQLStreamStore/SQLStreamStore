@@ -142,7 +142,7 @@
                     const string streamId = "stream";
 
                     await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-                    await store.DeleteStream(streamId);
+                    await store.DeleteStream(streamId, 2);
 
                     var allMessagesPage = await store.ReadAllForwards(Position.Start, 10);
 

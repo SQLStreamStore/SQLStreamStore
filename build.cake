@@ -1,4 +1,5 @@
 #addin "Cake.FileHelpers"
+#addin "Cake.Docker"
 
 var target          = Argument("target", "Default");
 var configuration   = Argument("configuration", "Release");
@@ -6,6 +7,13 @@ var artifactsDir    = Directory("./artifacts");
 var sourceDir       = Directory("./src");
 var solution        = "./src/SqlStreamStore.sln";
 var buildNumber     = string.IsNullOrWhiteSpace(EnvironmentVariable("BUILD_NUMBER")) ? "0" : EnvironmentVariable("BUILD_NUMBER");
+
+var imageName = "microsoft/mssql-server-linux";
+
+var projectSqlStreamStore = "./src/SqlStreamStore/SqlStreamStore.csproj";
+var projectSqlStreamStoreTests = "./src/SqlStreamStore.Tests/SqlStreamStore.Tests.csproj";
+var projectSqlStreamStoreMsSql = "./src/SqlStreamStore.MsSql/SqlStreamStore.MsSql.csproj";
+var projectSqlStreamStoreMsSqlTests = "./src/SqlStreamStore.MsSql.Tests/SqlStreamStore.MsSql.Tests.csproj";
 
 Task("Clean")
     .Does(() =>
@@ -24,20 +32,39 @@ Task("Build")
     .IsDependentOn("RestorePackages")
     .Does(() =>
 {
-	var settings = new DotNetCoreBuildSettings
-	{
-		Configuration = configuration
-	};
+    var settings = new DotNetCoreBuildSettings
+    {
+        Configuration = configuration
+    };
 
-	DotNetCoreBuild(solution, settings);
+    if (Context.Environment.Platform.IsUnix())
+    {
+        Warning("Selectively building projects on Unix systems.");
+
+        DotNetCoreBuild(projectSqlStreamStore, settings);
+        DotNetCoreBuild(projectSqlStreamStoreTests, settings);
+    }
+    else
+    {
+        DotNetCoreBuild(solution, settings);
+    }
 });
 
 Task("RunTests")
     .IsDependentOn("Build")
     .Does(() =>
 {
-    var testProjects = new string[] { "SqlStreamStore.Tests", "SqlStreamStore.MsSql.Tests" };
+    var containerName = "sss-mssql-server";
+    if (Context.Environment.Platform.IsUnix())
+    {
+        Information("Starting the Microsoft SQL Server Docker Instance.");
+        DockerComposeUp(new DockerComposeUpSettings{
+            DetachedMode = true
+        });
+        Information("Waiting for the Microsoft SQL Server Docker Instance and SQL to become ready.");
+    }
 
+    var testProjects = new string[] { "SqlStreamStore.Tests", "SqlStreamStore.MsSql.Tests" };
 
     var processes = testProjects.Select(TestAssembly).ToArray();
 
@@ -45,6 +72,12 @@ Task("RunTests")
         using (process) {
             process.WaitForExit();
         }
+    }
+
+    if (Context.Environment.Platform.IsUnix())
+    {
+        Information("Stopping the SQL Server Docker Instance.");
+        DockerComposeStop();
     }
 });
 

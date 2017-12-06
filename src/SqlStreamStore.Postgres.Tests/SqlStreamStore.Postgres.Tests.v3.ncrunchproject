@@ -1,5 +1,7 @@
 ﻿<ProjectConfiguration>
   <Settings>
-    <PreviouslyBuiltSuccessfully>True</PreviouslyBuiltSuccessfully>
+    <IgnoredTests>
+      <AllTestsSelector />
+    </IgnoredTests>
   </Settings>
 </ProjectConfiguration>

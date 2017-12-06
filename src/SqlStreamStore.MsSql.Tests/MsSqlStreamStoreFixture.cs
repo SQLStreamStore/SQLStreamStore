@@ -113,7 +113,7 @@ namespace SqlStreamStore
             using(var connection = _localInstance.CreateConnection())
             {
                 await connection.OpenAsync().NotOnCapturedContext();
-                var tempPath = Environment.GetEnvironmentVariable("Temp");
+                var tempPath = StreamStoreAcceptanceTests.GetTempPath();
                 var createDatabase = $"CREATE DATABASE [{_databaseName}] on (name='{_databaseName}', "
                                      + $"filename='{tempPath}\\{_databaseName}.mdf')";
                 using (var command = new SqlCommand(createDatabase, connection))

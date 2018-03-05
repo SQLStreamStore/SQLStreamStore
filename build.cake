@@ -82,4 +82,4 @@ string XUnitArguments(string name) {
     return args;
 }
 
-string[] Projects => new[] {"SqlStreamStore", "SqlStreamStore.MsSql"};
+string[] Projects => new[] {"SqlStreamStore", "SqlStreamStore.MsSql", "SqlStreamStore.Postgres"};

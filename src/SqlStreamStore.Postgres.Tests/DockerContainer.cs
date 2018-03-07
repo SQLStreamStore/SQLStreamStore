@@ -18,9 +18,10 @@ namespace SqlStreamStore
         private readonly int[] _ports;
         private readonly string _image;
         private readonly string _tag;
+        private string ImageWithTag => $"{_image}:{_tag}";
 
-        public string ContainerName { get; set; }
-        public string[] Env { get; set; }
+        public string ContainerName { get; set; } = Guid.NewGuid().ToString("n");
+        public string[] Env { get; set; } = Array.Empty<string>();
 
         public DockerContainer(
             string image,
@@ -40,7 +41,7 @@ namespace SqlStreamStore
 
             var images = await client.Images.ListImagesAsync(new ImagesListParameters
             {
-                MatchName = _image
+                MatchName = ImageWithTag
             });
 
             if(images.Count == 0)
@@ -55,9 +56,9 @@ namespace SqlStreamStore
                     IgnoreProgress.Forever);
             }
 
-            var containers = await client.Containers.ListContainersAsync(new ContainersListParameters {All = true});
+            var containers = await client.Containers.ListContainersAsync(new ContainersListParameters { All = true });
 
-            if(containers.Any(container => container.Image == _image && container.Names.Any(name => name == $"/{ContainerName}")))
+            if(containers.Any(container => container.Image == ImageWithTag && container.Names.Any(name => name == $"/{ContainerName}")))
             {
                 return;
             }
@@ -69,29 +70,31 @@ namespace SqlStreamStore
         {
             try
             {
-                var container = await client.Containers.CreateContainerAsync(
-                    new CreateContainerParameters
+                var createContainerParameters = new CreateContainerParameters
+                {
+                    Image = ImageWithTag,
+                    Name = ContainerName,
+                    Tty = true,
+                    Env = Env,
+                    HostConfig = new HostConfig
                     {
-                        Image = _image,
-                        Name = ContainerName,
-                        Tty = true,
-                        Env = Env,
-                        HostConfig = new HostConfig
-                        {
-                            PortBindings = _ports.ToDictionary(
-                                port => $"{port}/tcp",
-                                port => (IList<PortBinding>) new List<PortBinding>
+                        PortBindings = _ports.ToDictionary(
+                            port => $"{port}/tcp",
+                            port => (IList<PortBinding>) new List<PortBinding>
+                            {
+                                new PortBinding
                                 {
-                                    new PortBinding
-                                    {
-                                        HostPort = port.ToString()
-                                    }
-                                })
-                        }
-                    });
+                                    HostPort = port.ToString()
+                                }
+                            })
+                    }
+                };
+
+                var container = await client.Containers.CreateContainerAsync(createContainerParameters);
 
                 // Starting the container ...
-                var started = await client.Containers.StartContainerAsync(ContainerName, new ContainerStartParameters());
+                var started =
+                    await client.Containers.StartContainerAsync(ContainerName, new ContainerStartParameters());
 
                 if(started)
                 {
@@ -121,9 +124,7 @@ namespace SqlStreamStore
             }
             catch(DockerApiException ex)
                 when(ex.StatusCode == HttpStatusCode.BadRequest)
-            {
-            }
-
+            { }
         }
 
         private class IgnoreProgress : IProgress<JSONMessage>

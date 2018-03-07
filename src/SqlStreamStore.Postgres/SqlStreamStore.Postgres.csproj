@@ -8,12 +8,14 @@
     <RootNamespace>SqlStreamStore</RootNamespace>
     <NoWarn>1701;1702;1705;1591</NoWarn>
     <LangVersion>latest</LangVersion>
+    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.0</NetStandardImplicitPackageVersion>
   </PropertyGroup>
-
+  <ItemGroup>
+    <EmbeddedResource Include="PgSqlScripts\*.sql" Exclude="bin\**;obj\**;packages\**;@(EmbeddedResource)" />
+  </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Npgsql" Version="4.0.0" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Npgsql" Version="4.0.0" />
     <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />

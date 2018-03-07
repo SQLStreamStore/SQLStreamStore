@@ -14,12 +14,12 @@
         { }
 
         protected override StreamStoreAcceptanceTestFixture GetFixture()
-            => new PostgresStreamStoreFixture("foo");
+            => new PostgresStreamStoreFixture("foo", TestOutputHelper);
 
         [Fact]
         public async Task Can_use_multiple_schemas()
         {
-            using(var fixture = new PostgresStreamStoreFixture("dbo"))
+            using(var fixture = new PostgresStreamStoreFixture("dbo", TestOutputHelper))
             {
                 using(var dboStore = await fixture.GetStreamStore())
                 {
@@ -45,7 +45,7 @@
         [Fact]
         public async Task Can_get_stream_message_count_with_created_before_date()
         {
-            using (var fixture = new PostgresStreamStoreFixture("dbo"))
+            using (var fixture = new PostgresStreamStoreFixture("dbo", TestOutputHelper))
             {
                 using (var store = await fixture.GetPostgresStreamStore())
                 {

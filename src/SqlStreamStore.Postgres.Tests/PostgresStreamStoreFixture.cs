@@ -3,21 +3,22 @@ namespace SqlStreamStore
     using System;
     using System.Threading.Tasks;
     using Npgsql;
+    using Xunit.Abstractions;
 
     public class PostgresStreamStoreFixture : StreamStoreAcceptanceTestFixture
     {
-        public string ConnectionString => _databaseManager.ConnectionString;
+        private string ConnectionString => _databaseManager.ConnectionString;
         private readonly string _schema;
-        private readonly string _databaseName;
+        private readonly Guid _databaseId;
         private readonly DatabaseManager _databaseManager;
         
-        public PostgresStreamStoreFixture(string schema)
+        public PostgresStreamStoreFixture(string schema, ITestOutputHelper testOutputHelper)
         {
             _schema = schema;
+
+            _databaseId = Guid.NewGuid();
             
-            _databaseName = Guid.NewGuid().ToString("n");
-            
-            _databaseManager = new DatabaseManager(_databaseName);
+            _databaseManager = new DatabaseManager(testOutputHelper, _databaseId);
         }
 
         public override long MinPosition => 1;
@@ -31,8 +32,10 @@ namespace SqlStreamStore
                 Schema = _schema,
                 GetUtcNow = () => GetUtcNow()
             };
+
             var store = new PostgresStreamStore(settings);
-            await store.DropAll(ignoreErrors: true);
+
+            await store.CreateSchema();
 
             return store;
         }
@@ -46,9 +49,9 @@ namespace SqlStreamStore
                 Schema = schema,
                 GetUtcNow = () => GetUtcNow()
             };
-            IStreamStore store = new PostgresStreamStore(settings);
+            var store = new PostgresStreamStore(settings);
 
-            //await store.CreateSchema();
+            await store.CreateSchema();
 
             return store;
         }
@@ -63,10 +66,7 @@ namespace SqlStreamStore
                 GetUtcNow = () => GetUtcNow()
             };
 
-            var store = new PostgresStreamStore(settings);
-            await store.DropAll(ignoreErrors: true);
-
-            return store;
+            return new PostgresStreamStore(settings);
         }
 
         public override void Dispose()
@@ -78,17 +78,18 @@ namespace SqlStreamStore
 
         private class DatabaseManager : IDisposable
         {
-            private static readonly string s_Tag = Environment.OSVersion.IsWindows() ? WindowsDockerTag : UnixDockerTag;
-            private static readonly string s_Image = Environment.OSVersion.IsWindows() ? WindowsImage : UnixImage;
-            private const string WindowsImage = "dragnet/postgres-windows";
-            private const string WindowsDockerTag = "latest";
+            private static readonly string s_tag = Environment.OSVersion.IsWindows() ? WindowsDockerTag : UnixDockerTag;
+            private static readonly string s_image = Environment.OSVersion.IsWindows() ? WindowsImage : UnixImage;
+            private const string WindowsImage = "postgres";
+            private const string WindowsDockerTag = "9.6.1-alpine";
             private const string UnixImage = "postgres";
             private const string UnixDockerTag = "9.6.1-alpine";
 
+            private readonly ITestOutputHelper _output;
             private readonly int _tcpPort;
             private readonly string _databaseName;
             private readonly DockerContainer _postgresContainer;
-            private readonly TaskCompletionSource<object> _databaseCreated;
+            private bool _started;
 
             public string ConnectionString => ConnectionStringBuilder.ConnectionString;
 
@@ -99,59 +100,86 @@ namespace SqlStreamStore
                     ? "password"
                     : null,
                 Port = _tcpPort,
-                Username = "postgres"
+                Username = "postgres",
+                Host = "localhost"
             };
-
-            public DatabaseManager(string databaseName = null, int tcpPort = 5432)
+            
+            private string DefaultConnectionString => new NpgsqlConnectionStringBuilder(ConnectionString)
             {
-                _databaseName = databaseName ?? Guid.NewGuid().ToString("n");
+                Database = null
+            }.ConnectionString;
+
+            public DatabaseManager(ITestOutputHelper output, Guid databaseId, int tcpPort = 5432)
+            {
+                _output = output;
+                _databaseName = $"test_{databaseId:n}";
                 _tcpPort = tcpPort;
                 _postgresContainer = new DockerContainer(
-                    s_Image,
-                    s_Tag,
-                    ports: tcpPort);
-                _databaseCreated = new TaskCompletionSource<object>();
+                    s_image,
+                    s_tag,
+                    ports: tcpPort)
+                {
+                    ContainerName = "sql-stream-store-tests-postgres"
+                };
             }
 
             public async Task CreateDatabase()
             {
+                var commandText = $"CREATE DATABASE {_databaseName}";
+
                 try
                 {
+
                     await _postgresContainer.TryStart().WithTimeout(60 * 1000);
 
-                    await TryCreateDatabase().WithTimeout(60 * 1000);
+                    using(var connection = new NpgsqlConnection(DefaultConnectionString))
+                    {
+                        await connection.OpenAsync();
 
-                    _databaseCreated.SetResult(null);
+                        using(var command = new NpgsqlCommand(commandText, connection))
+                        {
+                            await command.ExecuteNonQueryAsync();
+                        }
+                    }
+
+                    _started = true;
                 }
                 catch(Exception ex)
                 {
-                    _databaseCreated.SetException(ex);
-                }
-            }
-
-            private async Task TryCreateDatabase()
-            {
-                using(var connection = new NpgsqlConnection(ConnectionString))
-                {
-                    await connection.OpenAsync();
-
-                    using(var command = new NpgsqlCommand($"CREATE DATABASE {_databaseName}", connection))
-                    {
-                        await command.ExecuteNonQueryAsync();
-                    }
+                    _output.WriteLine($@"Attempted to execute ""{commandText}"" but failed: {ex}");
+                    throw;
                 }
             }
 
             public void Dispose()
             {
-                using(var connection = new NpgsqlConnection(ConnectionString))
+                if(!_started)
                 {
-                    connection.Open();
+                    return;
+                }
 
-                    using(var command = new NpgsqlCommand($"DROP DATABASE {_databaseName}", connection))
+                var commandText = $"DROP DATABASE {_databaseName}";
+
+                try
+                {
+                    using(var connection = new NpgsqlConnection(DefaultConnectionString))
                     {
-                        command.ExecuteNonQuery();
+                        connection.Open();
+
+                        using(var command = new NpgsqlCommand($"SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity  WHERE pg_stat_activity.datname = '{_databaseName}' AND pid <> pg_backend_pid()", connection))
+                        {
+                            command.ExecuteNonQuery();
+                        }
+
+                        using(var command = new NpgsqlCommand(commandText, connection))
+                        {
+                            command.ExecuteNonQuery();
+                        }
                     }
+                }
+                catch(Exception ex)
+                {
+                    _output.WriteLine($@"Attempted to execute ""{commandText}"" but failed: {ex}");
                 }
             }
         }

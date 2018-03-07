@@ -15,6 +15,8 @@
         private readonly ITestOutputHelper _testOutputHelper;
         private readonly IDisposable _logCapture;
 
+        protected ITestOutputHelper TestOutputHelper => _testOutputHelper;
+
         protected StreamStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
         {
             _testOutputHelper = testOutputHelper;
@@ -116,6 +118,7 @@
         {
             if (await Task.WhenAny(task, Task.Delay(timeout)) == task)
             {
+                await task;
                 return;
             }
             throw new TimeoutException("Timed out waiting for task");

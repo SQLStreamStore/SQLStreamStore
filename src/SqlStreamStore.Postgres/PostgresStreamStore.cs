@@ -1,45 +1,57 @@
 ﻿namespace SqlStreamStore
 {
     using System;
+    using System.Data;
     using System.Threading;
     using System.Threading.Tasks;
+    using Npgsql;
+    using NpgsqlTypes;
     using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
 
-    public class PostgresStreamStore : StreamStoreBase
+    public partial class PostgresStreamStore : StreamStoreBase
     {
-        private PostgresStreamStoreSettings _settings;
-
+        private readonly PostgresStreamStoreSettings _settings;
+        private readonly Func<NpgsqlConnection> _createConnection;
+        private readonly Scripts _scripts;
+        
         public PostgresStreamStore(PostgresStreamStoreSettings settings)
             : base(settings.MetadataMaxAgeCacheExpire, settings.MetadataMaxAgeCacheMaxSize, settings.GetUtcNow, settings.LogName)
         {
-            this._settings = settings;
+            _settings = settings;
+            _createConnection = () =>
+            {
+                var connection = new NpgsqlConnection(settings.ConnectionString);
+
+                return connection;
+            };
+            _scripts = new Scripts(_settings.Schema);
         }
 
-        protected override Task<ReadAllPage> ReadAllForwardsInternal(long fromPosition, int maxCount, bool prefetch, ReadNextAllPage readNext, CancellationToken cancellationToken)
+        public async Task CreateSchema(CancellationToken cancellationToken = default(CancellationToken))
         {
-            throw new NotImplementedException();
-        }
+            using(var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                
+                //connection.MapComposite<PostgresNewStreamMessage>($"{_settings.Schema}.new_stream_message");
 
-        protected override Task<ReadAllPage> ReadAllBackwardsInternal(long fromPositionExclusive, int maxCount, bool prefetch, ReadNextAllPage readNext, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+                using(var transaction = connection.BeginTransaction())
+                {
+                    using(var command = new NpgsqlCommand($"CREATE SCHEMA IF NOT EXISTS {_settings.Schema}", connection, transaction))
+                    {
+                        await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                    }
+                    using(var command = new NpgsqlCommand(_scripts.CreateSchema, connection, transaction))
+                    {
+                        await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                    }
 
-        protected override Task<ReadStreamPage> ReadStreamForwardsInternal(string streamId, int start, int count, bool prefetch, ReadNextStreamPage readNext, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override Task<ReadStreamPage> ReadStreamBackwardsInternal(string streamId, int fromVersionInclusive, int count, bool prefetch, ReadNextStreamPage readNext, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
+                    await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                }
+            }
         }
 
         protected override IStreamSubscription SubscribeToStreamInternal(
@@ -65,11 +77,6 @@
             throw new NotImplementedException();
         }
 
-        protected override Task<StreamMetadataResult> GetStreamMetadataInternal(string streamId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
         protected override Task<int> GetStreamMessageCount(string streamId, CancellationToken cancellationToken = new CancellationToken())
         {
             throw new NotImplementedException();
@@ -80,13 +87,62 @@
             throw new NotImplementedException();
         }
 
-        protected override Task<AppendResult> AppendToStreamInternal(
+        protected override async Task<AppendResult> AppendToStreamInternal(
             string streamId,
             int expectedVersion,
             NewStreamMessage[] messages,
             CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var streamIdInfo = new StreamIdInfo(streamId);
+
+            using(var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                connection.MapComposite<PostgresNewStreamMessage>($"{_settings.Schema}.new_stream_message");
+
+                //using(var transaction = connection.BeginTransaction(IsolationLevel.ReadCommitted))
+                using(var command = new NpgsqlCommand($"{_settings.Schema}.append_to_stream", connection)
+                {
+                    CommandType = CommandType.StoredProcedure,
+                    Parameters =
+                    {
+                        new NpgsqlParameter
+                        {
+                            NpgsqlDbType = NpgsqlDbType.Char,
+                            Size = 42,
+                            NpgsqlValue = streamIdInfo.PostgresqlStreamId.Id
+                        },
+                        new NpgsqlParameter
+                        {
+                            NpgsqlDbType = NpgsqlDbType.Varchar,
+                            Size = 1000,
+                            NpgsqlValue = streamIdInfo.PostgresqlStreamId.IdOriginal
+                        },
+                        new NpgsqlParameter
+                        {
+                            NpgsqlDbType = NpgsqlDbType.Integer,
+                            NpgsqlValue = expectedVersion
+                        },
+                        new NpgsqlParameter
+                        {
+                            NpgsqlValue = _settings.GetUtcNow(),
+                            NpgsqlDbType = NpgsqlDbType.Timestamp
+                        },
+                        new NpgsqlParameter
+                        {
+                            NpgsqlValue = Array.ConvertAll(messages, PostgresNewStreamMessage.FromNewStreamMessage)
+                        }
+                    }
+                })
+                {
+                    var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext();
+
+                    await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
+                    
+                    return new AppendResult(reader.GetInt32(0), reader.GetInt64(1));
+                }
+            }
         }
 
         protected override Task DeleteStreamInternal(string streamId, int expectedVersion, CancellationToken cancellationToken)
@@ -110,9 +166,67 @@
             throw new NotImplementedException();
         }
 
-        public Task DropAll(bool ignoreErrors)
+        public async Task DropAll(CancellationToken cancellationToken = default (CancellationToken))
         {
-            throw new NotImplementedException();
+            using(var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                using(var command = new NpgsqlCommand(_scripts.DropAll, connection))
+                {
+                    await command
+                        .ExecuteNonQueryAsync(cancellationToken)
+                        .NotOnCapturedContext();
+                }
+            }
+        }
+
+        private class ReadStreamParameters
+        {
+            private ReadStreamParameters()
+            {
+                
+            }
+        }
+
+        private class PostgresNewStreamMessage
+        {
+            public Guid MessageId { get; set; }
+            public string JsonData { get; set; }
+            public string JsonMetadata { get; set; }
+            public string Type { get; set; }
+
+            public static PostgresNewStreamMessage FromNewStreamMessage(NewStreamMessage message)
+                => new PostgresNewStreamMessage
+                {
+                    MessageId = message.MessageId,
+                    Type = message.Type,
+                    JsonData = message.JsonData,
+                    JsonMetadata = message.JsonMetadata
+                };
+        }
+
+        private class PostgresStreamMessageWithJson
+        {
+            public long Position { get; set; }
+            public int StreamVersion { get; set; }
+            public Guid MessageId { get; set; }
+            public string StreamId { get; set; }
+            public DateTime CreatedUtc { get; set; }
+            public string JsonData { get; set; }
+            public string JsonMetadata { get; set; }
+            public string Type { get; set; }
+
+            public static explicit operator StreamMessage(PostgresStreamMessageWithJson message)
+                => new StreamMessage(
+                    message.StreamId,
+                    message.MessageId,
+                    message.StreamVersion,
+                    message.Position,
+                    message.CreatedUtc,
+                    message.Type,
+                    message.JsonMetadata,
+                    message.JsonData);
         }
     }
 }

@@ -7,13 +7,17 @@
 
     internal class Scripts
     {
-        internal readonly string Schema;
+        private readonly string _schema;
         private readonly ConcurrentDictionary<string, string> _scripts
             = new ConcurrentDictionary<string, string>();
 
-        internal Scripts(string schema)
+        private static readonly Assembly s_assembly = typeof(Scripts)
+            .GetTypeInfo()
+            .Assembly;
+
+        public Scripts(string schema)
         {
-            Schema = schema;
+            _schema = schema;
         }
 
         internal string AppendStreamExpectedVersionAny => GetScript(nameof(AppendStreamExpectedVersionAny));
@@ -48,25 +52,22 @@
 
         internal string SetStreamMetadata => GetScript(nameof(SetStreamMetadata));
 
-        private string GetScript(string name)
-        {
-            return _scripts.GetOrAdd(name,
-                key =>
+        private string GetScript(string name) => _scripts.GetOrAdd(name,
+            key =>
+            {
+                using (var stream = s_assembly.GetManifestResourceStream(typeof(Scripts), $"{key}.sql"))
                 {
-                    using (Stream stream = typeof(Scripts).GetTypeInfo().Assembly.GetManifestResourceStream("SqlStreamStore.Postgres.PgSqlScripts." + key + ".pgsql"))
+                    if (stream == null)
                     {
-                        if (stream == null)
-                        {
-                            throw new Exception($"Embedded resource, {name}, not found. BUG!");
-                        }
-                        using (StreamReader reader = new StreamReader(stream))
-                        {
-                            return reader
-                                .ReadToEnd()
-                                .Replace("public.", Schema + ".");
-                        }
+                        throw new Exception($"Embedded resource, {name}, not found. BUG!");
                     }
-                });
-        }
+                    using (StreamReader reader = new StreamReader(stream))
+                    {
+                        return reader
+                            .ReadToEnd()
+                            .Replace("public.", _schema + ".");
+                    }
+                }
+            });
     }
 }

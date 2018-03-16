@@ -80,11 +80,6 @@
                     },
                     new NpgsqlParameter
                     {
-                        NpgsqlDbType = NpgsqlDbType.Bigint,
-                        NpgsqlValue = DBNull.Value
-                    },
-                    new NpgsqlParameter
-                    {
                         NpgsqlDbType = NpgsqlDbType.Integer,
                         NpgsqlValue = streamVersion
                     },
@@ -165,76 +160,6 @@
             }
         }
 
-        private (NpgsqlParameter lastPosition, NpgsqlParameter lastVersion) GetOutParameters() => (
-            new NpgsqlParameter
-            {
-                NpgsqlDbType = NpgsqlDbType.Bigint,
-                Direction = ParameterDirection.Output
-            },
-            new NpgsqlParameter
-            {
-                NpgsqlDbType = NpgsqlDbType.Integer,
-                Direction = ParameterDirection.Output
-            });
-
-        protected override async Task<ReadAllPage> ReadAllForwardsInternal(
-            long fromPositionExlusive,
-            int maxCount,
-            bool prefetch,
-            ReadNextAllPage readNext,
-            CancellationToken cancellationToken)
-        {
-            long nextPosition = fromPositionExlusive;
-
-            var messages = new List<StreamMessage>(maxCount);
-
-            using(var connection = _createConnection())
-            {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
-                using(var command = new NpgsqlCommand($"{_settings.Schema}.read", connection)
-                {
-                    CommandType = CommandType.StoredProcedure,
-                    Parameters =
-                    {
-                        new NpgsqlParameter("count", maxCount),
-                        new NpgsqlParameter("ordinal", fromPositionExlusive),
-                        new NpgsqlParameter("forwards", true),
-                        new NpgsqlParameter("prefetch", prefetch)
-                    }
-                })
-                {
-                    command.Prepare();
-                    using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
-                    {
-                        while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
-                        {
-                            var message = ReadStreamMessage(reader, prefetch);
-                            nextPosition = message.Position;
-                            messages.Add(message);
-                        }
-                    }
-                }
-            }
-
-            return new ReadAllPage(fromPositionExlusive,
-                nextPosition,
-                false,
-                ReadDirection.Forward,
-                readNext,
-                messages.ToArray());
-        }
-
-        protected override Task<ReadAllPage> ReadAllBackwardsInternal(
-            long fromPositionExclusive,
-            int maxCount,
-            bool prefetch,
-            ReadNextAllPage readNext,
-            CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
-
         protected override async Task<ReadStreamPage> ReadStreamForwardsInternal(
             string streamId,
             int start,
@@ -263,7 +188,7 @@
             }
         }
 
-        protected override Task<ReadStreamPage> ReadStreamBackwardsInternal(
+        protected override async Task<ReadStreamPage> ReadStreamBackwardsInternal(
             string streamId,
             int fromVersionInclusive,
             int count,
@@ -271,7 +196,25 @@
             ReadNextStreamPage readNext,
             CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var streamIdInfo = new StreamIdInfo(streamId);
+
+            using(var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                using(var transaction = connection.BeginTransaction())
+                {
+                    return await ReadStreamInternal(
+                        streamIdInfo.PostgresqlStreamId,
+                        fromVersionInclusive,
+                        count,
+                        ReadDirection.Backward,
+                        prefetch,
+                        readNext,
+                        transaction,
+                        cancellationToken);
+                }
+            }
         }
 
         private StreamMessage ReadStreamMessage(IDataRecord reader, bool prefetch)

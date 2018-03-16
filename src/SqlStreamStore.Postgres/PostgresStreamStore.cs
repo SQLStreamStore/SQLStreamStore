@@ -16,9 +16,12 @@
         private readonly PostgresStreamStoreSettings _settings;
         private readonly Func<NpgsqlConnection> _createConnection;
         private readonly Scripts _scripts;
-        
+
         public PostgresStreamStore(PostgresStreamStoreSettings settings)
-            : base(settings.MetadataMaxAgeCacheExpire, settings.MetadataMaxAgeCacheMaxSize, settings.GetUtcNow, settings.LogName)
+            : base(settings.MetadataMaxAgeCacheExpire,
+                settings.MetadataMaxAgeCacheMaxSize,
+                settings.GetUtcNow,
+                settings.LogName)
         {
             _settings = settings;
             _createConnection = () =>
@@ -35,15 +38,18 @@
             using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-                
+
                 //connection.MapComposite<PostgresNewStreamMessage>($"{_settings.Schema}.new_stream_message");
 
                 using(var transaction = connection.BeginTransaction())
                 {
-                    using(var command = new NpgsqlCommand($"CREATE SCHEMA IF NOT EXISTS {_settings.Schema}", connection, transaction))
+                    using(var command = new NpgsqlCommand($"CREATE SCHEMA IF NOT EXISTS {_settings.Schema}",
+                        connection,
+                        transaction))
                     {
                         await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
                     }
+
                     using(var command = new NpgsqlCommand(_scripts.CreateSchema, connection, transaction))
                     {
                         await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
@@ -77,75 +83,25 @@
             throw new NotImplementedException();
         }
 
-        protected override Task<int> GetStreamMessageCount(string streamId, CancellationToken cancellationToken = new CancellationToken())
+        protected override Task<int> GetStreamMessageCount(
+            string streamId,
+            CancellationToken cancellationToken = new CancellationToken())
         {
             throw new NotImplementedException();
         }
 
-        public Task<int> GetmessageCount(string streamId, DateTime TODO_WHAT_IS_THIS_FOR, CancellationToken cancellationToken = new CancellationToken())
+        public Task<int> GetmessageCount(
+            string streamId,
+            DateTime TODO_WHAT_IS_THIS_FOR,
+            CancellationToken cancellationToken = new CancellationToken())
         {
             throw new NotImplementedException();
         }
 
-        protected override async Task<AppendResult> AppendToStreamInternal(
+        protected override Task DeleteStreamInternal(
             string streamId,
             int expectedVersion,
-            NewStreamMessage[] messages,
             CancellationToken cancellationToken)
-        {
-            var streamIdInfo = new StreamIdInfo(streamId);
-
-            using(var connection = _createConnection())
-            {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
-                connection.MapComposite<PostgresNewStreamMessage>($"{_settings.Schema}.new_stream_message");
-
-                //using(var transaction = connection.BeginTransaction(IsolationLevel.ReadCommitted))
-                using(var command = new NpgsqlCommand($"{_settings.Schema}.append_to_stream", connection)
-                {
-                    CommandType = CommandType.StoredProcedure,
-                    Parameters =
-                    {
-                        new NpgsqlParameter
-                        {
-                            NpgsqlDbType = NpgsqlDbType.Char,
-                            Size = 42,
-                            NpgsqlValue = streamIdInfo.PostgresqlStreamId.Id
-                        },
-                        new NpgsqlParameter
-                        {
-                            NpgsqlDbType = NpgsqlDbType.Varchar,
-                            Size = 1000,
-                            NpgsqlValue = streamIdInfo.PostgresqlStreamId.IdOriginal
-                        },
-                        new NpgsqlParameter
-                        {
-                            NpgsqlDbType = NpgsqlDbType.Integer,
-                            NpgsqlValue = expectedVersion
-                        },
-                        new NpgsqlParameter
-                        {
-                            NpgsqlValue = _settings.GetUtcNow(),
-                            NpgsqlDbType = NpgsqlDbType.Timestamp
-                        },
-                        new NpgsqlParameter
-                        {
-                            NpgsqlValue = Array.ConvertAll(messages, PostgresNewStreamMessage.FromNewStreamMessage)
-                        }
-                    }
-                })
-                {
-                    var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext();
-
-                    await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
-                    
-                    return new AppendResult(reader.GetInt32(0), reader.GetInt64(1));
-                }
-            }
-        }
-
-        protected override Task DeleteStreamInternal(string streamId, int expectedVersion, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }
@@ -166,7 +122,7 @@
             throw new NotImplementedException();
         }
 
-        public async Task DropAll(CancellationToken cancellationToken = default (CancellationToken))
+        public async Task DropAll(CancellationToken cancellationToken = default(CancellationToken))
         {
             using(var connection = _createConnection())
             {
@@ -181,30 +137,39 @@
             }
         }
 
-        private class ReadStreamParameters
-        {
-            private ReadStreamParameters()
+        private Func<CancellationToken, Task<string>> GetJsonData(PostgresqlStreamId streamId, int version)
+            => async cancellationToken =>
             {
-                
-            }
-        }
-
-        private class PostgresNewStreamMessage
-        {
-            public Guid MessageId { get; set; }
-            public string JsonData { get; set; }
-            public string JsonMetadata { get; set; }
-            public string Type { get; set; }
-
-            public static PostgresNewStreamMessage FromNewStreamMessage(NewStreamMessage message)
-                => new PostgresNewStreamMessage
+                using(var connection = _createConnection())
                 {
-                    MessageId = message.MessageId,
-                    Type = message.Type,
-                    JsonData = message.JsonData,
-                    JsonMetadata = message.JsonMetadata
-                };
-        }
+                    await connection.OpenAsync(cancellationToken);
+                    using(var command = new NpgsqlCommand($"{_settings.Schema}.read_json_data", connection)
+                    {
+                        CommandType = CommandType.StoredProcedure,
+                        Parameters =
+                        {
+                            new NpgsqlParameter
+                            {
+                                NpgsqlDbType = NpgsqlDbType.Varchar,
+                                Size = 42,
+                                NpgsqlValue = streamId.Id
+                            },
+                            new NpgsqlParameter
+                            {
+                                NpgsqlDbType = NpgsqlDbType.Integer,
+                                Value = version
+                            }
+                        }
+                    })
+                    {
+                        var jsonData = (string) await command
+                            .ExecuteScalarAsync(cancellationToken)
+                            .NotOnCapturedContext();
+                        return jsonData;
+                    }
+                }
+            };
+
 
         private class PostgresStreamMessageWithJson
         {

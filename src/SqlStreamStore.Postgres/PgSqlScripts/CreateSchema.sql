@@ -38,35 +38,108 @@ CREATE TYPE public.new_stream_message AS (
   json_metadata VARCHAR
 );
 
+CREATE OR REPLACE FUNCTION public.read_json_data(
+  _stream_id      VARCHAR(42),
+  _stream_version INT
+)
+  RETURNS VARCHAR
+AS $F$
+BEGIN
+  RETURN (
+    SELECT public.messages.json_data
+    FROM public.messages
+      JOIN public.streams
+        ON public.messages.stream_id_internal = public.streams.id_internal
+    WHERE public.messages.stream_version = _stream_version
+          AND public.streams.id = _stream_id
+    LIMIT 1
+  );
+END;
+$F$
+LANGUAGE 'plpgsql';
+
+CREATE OR REPLACE FUNCTION public.read_all(
+  _count    INT,
+  _position BIGINT,
+  _forwards BOOLEAN,
+  _prefetch BOOLEAN
+)
+  RETURNS TABLE(
+    stream_id      VARCHAR(1000),
+    message_id     UUID,
+    stream_version INT,
+    "position"     BIGINT,
+    create_utc     TIMESTAMP,
+    "type"         VARCHAR(128),
+    json_metadata  VARCHAR,
+    json_data      VARCHAR
+  )
+AS $F$
+BEGIN
+
+  RETURN QUERY
+  SELECT
+    public.streams.id_original,
+    public.messages.message_id,
+    public.messages.stream_version,
+    public.messages.position,
+    public.messages.created_utc,
+    public.messages.type,
+    public.messages.json_metadata,
+    (
+      CASE _prefetch
+      WHEN TRUE
+        THEN
+          public.messages.json_data
+      ELSE
+        NULL
+      END
+    )
+  FROM public.messages
+    INNER JOIN public.streams
+      ON public.messages.stream_id_internal = public.streams.id_internal
+  WHERE
+    (
+      CASE WHEN _forwards
+        THEN
+          public.messages.position >= _position
+      ELSE
+        public.messages.position <= _position
+      END
+    )
+  LIMIT _count;
+END;
+$F$
+LANGUAGE 'plpgsql';
+
 CREATE OR REPLACE FUNCTION public.read(
   _stream_id CHAR(42),
   _count     INT,
-  _position  BIGINT,
   _version   INT,
   _forwards  BOOLEAN,
   _prefetch  BOOLEAN
 )
   RETURNS SETOF REFCURSOR
 AS $F$
-DECLARE 
+DECLARE
   _stream_id_internal INT;
-  stream_info REFCURSOR;
-  messages REFCURSOR;
+  stream_info         REFCURSOR;
+  messages            REFCURSOR;
 BEGIN
   SELECT public.streams.id_internal
   INTO _stream_id_internal
   FROM public.streams
   WHERE public.streams.id = _stream_id;
-  
-  OPEN stream_info FOR 
+
+  OPEN stream_info FOR
   SELECT
-    public.streams.version     as stream_version,
-    public.streams.position    as position
+    public.streams.version  as stream_version,
+    public.streams.position as position
   FROM public.streams
   WHERE public.streams.id_internal = _stream_id_internal;
-  
+
   RETURN NEXT stream_info;
-  
+
   OPEN messages FOR
   SELECT
     public.streams.id_original AS stream_id,
@@ -92,32 +165,22 @@ BEGIN
     (
       CASE WHEN _forwards
         THEN
-          CASE WHEN _stream_id IS NULL
-            THEN
-              public.messages.position >= _position
-          ELSE
-            public.messages.stream_version >= _version AND id_internal = _stream_id_internal
-          END
+          public.messages.stream_version >= _version AND id_internal = _stream_id_internal
       ELSE
-        CASE WHEN _stream_id IS NULL
-          THEN
-            public.messages.position <= _position
-        ELSE
-          public.messages.stream_version <= _version AND id_internal = _stream_id_internal
-        END
+        public.messages.stream_version <= _version AND id_internal = _stream_id_internal
       END
     )
-  ORDER BY 
+  ORDER BY
     (
       CASE WHEN _forwards
         THEN
           public.messages.stream_version
-        ELSE
-          -public.messages.stream_version
-        END
+      ELSE
+        -public.messages.stream_version
+      END
     )
   LIMIT _count;
-  
+
   RETURN NEXT messages;
 END;
 $F$
@@ -146,8 +209,8 @@ BEGIN
   SELECT '$$' || stream_id
   INTO metadata_stream_id;
 
-  IF expected_version = -2
-  THEN /* ExpectedVersion.Any */
+  IF expected_version = -2 /* ExpectedVersion.Any */
+  THEN
 
     INSERT INTO public.streams (id, id_original)
       SELECT
@@ -155,13 +218,31 @@ BEGIN
         stream_id_original
     ON CONFLICT DO NOTHING;
 
-    SELECT
-      version,
-      position,
-      id_internal
-    INTO current_version, current_position, _stream_id_internal
-    FROM public.streams
-    WHERE public.streams.id = stream_id;
+  ELSIF expected_version = -1 /* ExpectedVersion.NoStream */
+    THEN
+
+      INSERT INTO public.streams (id, id_original)
+        SELECT
+          stream_id,
+          stream_id_original;
+
+  END IF;
+
+  SELECT
+    version,
+    position,
+    id_internal
+  INTO current_version, current_position, _stream_id_internal
+  FROM public.streams
+  WHERE public.streams.id = stream_id;
+
+  IF expected_version >= 0 AND (_stream_id_internal IS NULL OR current_version != expected_version)
+  THEN
+    RAISE EXCEPTION 'WrongExpectedVersion';
+  END IF;
+
+  IF cardinality(new_stream_messages) > 0
+  THEN
 
     FOREACH current_message IN ARRAY new_stream_messages
     LOOP
@@ -197,24 +278,30 @@ BEGIN
     UPDATE public.streams
     SET "version" = current_version, "position" = current_position
     WHERE id_internal = _stream_id_internal;
+    SELECT id_internal
+    INTO metadata_stream_id_internal
+    FROM public.streams
+    WHERE id = metadata_stream_id;
+
+    RETURN QUERY
+    SELECT
+      current_version,
+      current_position,
+      public.messages.json_data
+    FROM public.messages
+    WHERE public.messages.stream_id_internal = metadata_stream_id_internal
+          OR metadata_stream_id_internal IS NULL
+    ORDER BY position DESC
+    LIMIT 1;
+
+  ELSE
+    RETURN QUERY
+    SELECT
+      -1,
+      -1,
+      CAST(NULL AS VARCHAR);
 
   END IF;
-
-  SELECT id_internal
-  INTO metadata_stream_id_internal
-  FROM public.streams
-  WHERE id = metadata_stream_id;
-
-  RETURN QUERY
-  SELECT
-    current_version,
-    current_position,
-    public.messages.json_data
-  FROM public.messages
-  WHERE public.messages.stream_id_internal = metadata_stream_id_internal
-        OR metadata_stream_id_internal IS NULL
-  ORDER BY position DESC
-  LIMIT 1;
 
 END;
 

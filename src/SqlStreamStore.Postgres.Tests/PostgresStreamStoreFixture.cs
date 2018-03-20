@@ -1,8 +1,10 @@
 namespace SqlStreamStore
 {
     using System;
+    using System.Numerics;
     using System.Threading.Tasks;
     using Npgsql;
+    using Npgsql.Logging;
     using Xunit.Abstractions;
 
     public class PostgresStreamStoreFixture : StreamStoreAcceptanceTestFixture
@@ -109,9 +111,15 @@ namespace SqlStreamStore
                 Database = null
             }.ConnectionString;
 
+            static DatabaseManager()
+            {
+                NpgsqlLogManager.IsParameterLoggingEnabled = true;
+                NpgsqlLogManager.Provider = new XunitNpgsqlLogProvider();
+            }
+
             public DatabaseManager(ITestOutputHelper output, Guid databaseId, int tcpPort = 5432)
             {
-                _output = output;
+                XunitNpgsqlLogProvider.s_CurrentOutput = _output = output;
                 _databaseName = $"test_{databaseId:n}";
                 _tcpPort = tcpPort;
                 _postgresContainer = new DockerContainer(
@@ -125,24 +133,49 @@ namespace SqlStreamStore
 
             public async Task CreateDatabase()
             {
+                await _postgresContainer.TryStart().WithTimeout(60 * 1000);
+
+                using(var connection = new NpgsqlConnection(DefaultConnectionString))
+                {
+                    await connection.OpenAsync();
+
+                    if(!await DatabaseExists(connection))
+                    {
+                        await CreateDatabase(connection);
+                    }
+                }
+
+                _started = true;
+            }
+
+            private async Task<bool> DatabaseExists(NpgsqlConnection connection)
+            {
+                var commandText = $"SELECT 1 FROM pg_database WHERE datname = '{_databaseName}'";
+
+                try
+                {
+                    using(var command = new NpgsqlCommand(commandText, connection))
+                    {
+                        return await command.ExecuteScalarAsync() != null;
+                    }
+                }
+                catch(Exception ex)
+                {
+                    _output.WriteLine($@"Attempted to execute ""{commandText}"" but failed: {ex}");
+                    throw;
+                }
+            }
+
+            private async Task CreateDatabase(NpgsqlConnection connection)
+            {
                 var commandText = $"CREATE DATABASE {_databaseName}";
 
                 try
                 {
-
-                    await _postgresContainer.TryStart().WithTimeout(60 * 1000);
-
-                    using(var connection = new NpgsqlConnection(DefaultConnectionString))
+                    using(var command = new NpgsqlCommand(commandText, connection))
                     {
-                        await connection.OpenAsync();
-
-                        using(var command = new NpgsqlCommand(commandText, connection))
-                        {
-                            await command.ExecuteNonQueryAsync();
-                        }
+                        await command.ExecuteNonQueryAsync();
                     }
-
-                    _started = true;
                 }
                 catch(Exception ex)
                 {
@@ -182,6 +215,32 @@ namespace SqlStreamStore
                     _output.WriteLine($@"Attempted to execute ""{commandText}"" but failed: {ex}");
                 }
             }
+        }
+        
+        private class XunitNpgsqlLogger : NpgsqlLogger
+        {
+            private readonly ITestOutputHelper _output;
+            private readonly string _name;
+
+            public XunitNpgsqlLogger(ITestOutputHelper output, string name)
+            {
+                _output = output;
+                _name = name;
+            }
+
+            public override bool IsEnabled(NpgsqlLogLevel level) => true;
+
+            public override void Log(NpgsqlLogLevel level, int connectorId, string msg, Exception exception = null)
+            {
+                _output.WriteLine($@"[{level:G}] [{_name}] (Connector Id: {connectorId}); {msg}; (Exception: {exception?.ToString() ?? "<none>"})");
+            }
+        }
+
+        private class XunitNpgsqlLogProvider : INpgsqlLoggingProvider
+        {
+            internal static ITestOutputHelper s_CurrentOutput;
+            
+            public NpgsqlLogger CreateLogger(string name) => new XunitNpgsqlLogger(s_CurrentOutput, name);
         }
     }
 }

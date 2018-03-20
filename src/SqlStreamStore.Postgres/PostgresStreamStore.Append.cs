@@ -25,8 +25,8 @@
 
                 connection.MapComposite<PostgresNewStreamMessage>($"{_settings.Schema}.new_stream_message");
 
-                using(var transaction = connection.BeginTransaction(IsolationLevel.ReadCommitted))
-                using(var command = new NpgsqlCommand($"{_settings.Schema}.append_to_stream", connection, transaction)
+                //using(var transaction = connection.BeginTransaction(IsolationLevel.ReadCommitted))
+                using(var command = new NpgsqlCommand($"{_settings.Schema}.append_to_stream", connection)//, transaction)
                 {
                     CommandType = CommandType.StoredProcedure,
                     Parameters =
@@ -65,7 +65,7 @@
 
                     var result = new AppendResult(reader.GetInt32(0), reader.GetInt64(1));
 
-                    await transaction.CommitAsync(cancellationToken);
+                    //await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
 
                     return result;
                 }

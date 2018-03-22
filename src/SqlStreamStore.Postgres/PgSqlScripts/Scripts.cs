@@ -8,6 +8,7 @@
     internal class Scripts
     {
         private readonly string _schema;
+
         private readonly ConcurrentDictionary<string, string> _scripts
             = new ConcurrentDictionary<string, string>();
 
@@ -20,48 +21,37 @@
             _schema = schema;
         }
 
-        internal string AppendStreamExpectedVersionAny => GetScript(nameof(AppendStreamExpectedVersionAny));
+        public string DropAll => GetScript(nameof(DropAll));
 
-        internal string AppendStreamExpectedVersion => GetScript(nameof(AppendStreamExpectedVersion));
+        public string Tables => GetScript(nameof(Tables));
 
-        internal string AppendStreamExpectedVersionNoStream => GetScript(nameof(AppendStreamExpectedVersionNoStream));
+        public string ReadAll => GetScript(nameof(ReadAll));
 
-        internal string DeleteStreamAnyVersion => GetScript(nameof(DeleteStreamAnyVersion));
+        public string Read => GetScript(nameof(Read));
 
-        internal string DeleteStreamMessage => GetScript(nameof(DeleteStreamMessage));
+        public string ReadJsonData => GetScript(nameof(ReadJsonData));
 
-        internal string DeleteStreamExpectedVersion => GetScript(nameof(DeleteStreamExpectedVersion));
+        public string AppendToStream => GetScript(nameof(AppendToStream));
 
-        internal string DropAll => GetScript(nameof(DropAll));
-
-        internal string GetStreamMessageCount => GetScript(nameof(GetStreamMessageCount));
-
-        internal string GetStreamMessageBeforeCreatedCount => GetScript(nameof(GetStreamMessageBeforeCreatedCount));
-
-        internal string CreateSchema => GetScript(nameof(CreateSchema));
-
-        internal string ReadAllForward => GetScript(nameof(ReadAllForward));
-
-        internal string ReadHeadPosition => GetScript(nameof(ReadHeadPosition));
-
-        internal string ReadAllBackward => GetScript(nameof(ReadAllBackward));
-
-        internal string ReadStreamForward => GetScript(nameof(ReadStreamForward));
-
-        internal string ReadStreamBackward => GetScript(nameof(ReadStreamBackward));
-
-        internal string SetStreamMetadata => GetScript(nameof(SetStreamMetadata));
+        public string CreateSchema => string.Join(
+            Environment.NewLine,
+            Tables,
+            Read,
+            ReadAll,
+            ReadJsonData,
+            AppendToStream);
 
         private string GetScript(string name) => _scripts.GetOrAdd(name,
             key =>
             {
-                using (var stream = s_assembly.GetManifestResourceStream(typeof(Scripts), $"{key}.sql"))
+                using(var stream = s_assembly.GetManifestResourceStream(typeof(Scripts), $"{key}.sql"))
                 {
-                    if (stream == null)
+                    if(stream == null)
                     {
                         throw new Exception($"Embedded resource, {name}, not found. BUG!");
                     }
-                    using (StreamReader reader = new StreamReader(stream))
+
+                    using(StreamReader reader = new StreamReader(stream))
                     {
                         return reader
                             .ReadToEnd()

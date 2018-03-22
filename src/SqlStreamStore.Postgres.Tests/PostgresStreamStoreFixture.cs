@@ -1,7 +1,6 @@
 namespace SqlStreamStore
 {
     using System;
-    using System.Numerics;
     using System.Threading.Tasks;
     using Npgsql;
     using Npgsql.Logging;

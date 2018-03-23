@@ -22,7 +22,7 @@ namespace SqlStreamStore
             _databaseManager = new DatabaseManager(testOutputHelper, _databaseId);
         }
 
-        public override long MinPosition => 1;
+        public override long MinPosition => 0;
 
         public override async Task<IStreamStore> GetStreamStore()
         {

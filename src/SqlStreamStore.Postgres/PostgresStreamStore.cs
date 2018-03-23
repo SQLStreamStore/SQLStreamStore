@@ -8,17 +8,18 @@
     using NpgsqlTypes;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.PgSqlScripts;
-    using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
 
     public partial class PostgresStreamStore : StreamStoreBase
     {
         private readonly PostgresStreamStoreSettings _settings;
         private readonly Func<NpgsqlConnection> _createConnection;
-        private readonly Scripts _scripts;
+        private readonly Schema _schema;
+        private readonly Lazy<IStreamStoreNotifier> _streamStoreNotifier;
 
         public PostgresStreamStore(PostgresStreamStoreSettings settings)
-            : base(settings.MetadataMaxAgeCacheExpire,
+            : base(
+                settings.MetadataMaxAgeCacheExpire,
                 settings.MetadataMaxAgeCacheMaxSize,
                 settings.GetUtcNow,
                 settings.LogName)
@@ -30,7 +31,16 @@
 
                 return connection;
             };
-            _scripts = new Scripts(_settings.Schema);
+            _streamStoreNotifier = new Lazy<IStreamStoreNotifier>(() =>
+            {
+                if(settings.CreateStreamStoreNotifier == null)
+                {
+                    throw new InvalidOperationException(
+                        "Cannot create notifier because supplied createStreamStoreNotifier was null");
+                }
+                return settings.CreateStreamStoreNotifier.Invoke(this);
+            });
+            _schema = new Schema(_settings.Schema);
         }
 
         public async Task CreateSchema(CancellationToken cancellationToken = default(CancellationToken))
@@ -50,7 +60,7 @@
                         await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
                     }
 
-                    using(var command = new NpgsqlCommand(_scripts.CreateSchema, connection, transaction))
+                    using(var command = new NpgsqlCommand(_schema.Definition, connection, transaction))
                     {
                         await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
                     }
@@ -60,29 +70,6 @@
             }
         }
 
-        protected override IStreamSubscription SubscribeToStreamInternal(
-            string streamId,
-            int? startVersion,
-            StreamMessageReceived streamMessageReceived,
-            SubscriptionDropped subscriptionDropped,
-            HasCaughtUp hasCaughtUp,
-            bool prefetchJsonData,
-            string name)
-        {
-            throw new NotImplementedException();
-        }
-
-        protected override IAllStreamSubscription SubscribeToAllInternal(
-            long? fromPosition,
-            AllStreamMessageReceived streamMessageReceived,
-            AllSubscriptionDropped subscriptionDropped,
-            HasCaughtUp hasCaughtUp,
-            bool prefetchJsonData,
-            string name)
-        {
-            throw new NotImplementedException();
-        }
-
         protected override Task<int> GetStreamMessageCount(
             string streamId,
             CancellationToken cancellationToken = new CancellationToken())
@@ -90,36 +77,44 @@
             throw new NotImplementedException();
         }
 
-        public Task<int> GetmessageCount(
+        public async Task<int> GetMessageCount(
             string streamId,
-            DateTime TODO_WHAT_IS_THIS_FOR,
+            DateTime createdBefore,
             CancellationToken cancellationToken = new CancellationToken())
         {
-            throw new NotImplementedException();
-        }
+            GuardAgainstDisposed();
 
-        protected override Task DeleteStreamInternal(
-            string streamId,
-            int expectedVersion,
-            CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            var streamIdInfo = new StreamIdInfo(streamId);
 
-        protected override Task DeleteEventInternal(string streamId, Guid eventId, CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
-        }
+            using(var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-        protected override Task<SetStreamMetadataResult> SetStreamMetadataInternal(
-            string streamId,
-            int expectedStreamMetadataVersion,
-            int? maxAge,
-            int? maxCount,
-            string metadataJson,
-            CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
+                using(var command = new NpgsqlCommand(_schema.ReadStreamMessageBeforeCreatedCount, connection)
+                {
+                    CommandType = CommandType.StoredProcedure,
+                    Parameters =
+                    {
+                        new NpgsqlParameter
+                        {
+                            NpgsqlDbType = NpgsqlDbType.Char,
+                            Size = 42,
+                            NpgsqlValue = streamIdInfo.PostgresqlStreamId.Id
+                        },
+                        new NpgsqlParameter
+                        {
+                            NpgsqlDbType = NpgsqlDbType.Timestamp,
+                            NpgsqlValue = createdBefore
+                        }
+                    }
+                })
+                {
+
+                    var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+
+                    return (int) result;
+                }
+            }
         }
 
         public async Task DropAll(CancellationToken cancellationToken = default(CancellationToken))
@@ -128,7 +123,7 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using(var command = new NpgsqlCommand(_scripts.DropAll, connection))
+                using(var command = new NpgsqlCommand(_schema.DropAll, connection))
                 {
                     await command
                         .ExecuteNonQueryAsync(cancellationToken)
@@ -143,7 +138,7 @@
                 using(var connection = _createConnection())
                 {
                     await connection.OpenAsync(cancellationToken);
-                    using(var command = new NpgsqlCommand($"{_settings.Schema}.read_json_data", connection)
+                    using(var command = new NpgsqlCommand(_schema.ReadJsonData, connection)
                     {
                         CommandType = CommandType.StoredProcedure,
                         Parameters =
@@ -169,29 +164,5 @@
                     }
                 }
             };
-
-
-        private class PostgresStreamMessageWithJson
-        {
-            public long Position { get; set; }
-            public int StreamVersion { get; set; }
-            public Guid MessageId { get; set; }
-            public string StreamId { get; set; }
-            public DateTime CreatedUtc { get; set; }
-            public string JsonData { get; set; }
-            public string JsonMetadata { get; set; }
-            public string Type { get; set; }
-
-            public static explicit operator StreamMessage(PostgresStreamMessageWithJson message)
-                => new StreamMessage(
-                    message.StreamId,
-                    message.MessageId,
-                    message.StreamVersion,
-                    message.Position,
-                    message.CreatedUtc,
-                    message.Type,
-                    message.JsonMetadata,
-                    message.JsonData);
-        }
     }
 }

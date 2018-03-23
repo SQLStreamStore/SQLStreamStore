@@ -23,23 +23,33 @@
 
         public string DropAll => GetScript(nameof(DropAll));
 
-        public string Tables => GetScript(nameof(Tables));
+        private string Tables => GetScript(nameof(Tables));
 
-        public string ReadAll => GetScript(nameof(ReadAll));
+        private string AppendToStream => GetScript(nameof(AppendToStream));
 
-        public string Read => GetScript(nameof(Read));
+        private string DeleteStream => GetScript(nameof(DeleteStream));
+        private string DeleteStreamMessage => GetScript(nameof(DeleteStreamMessage));
 
-        public string ReadJsonData => GetScript(nameof(ReadJsonData));
+        private string ReadAll => GetScript(nameof(ReadAll));
+        private string Read => GetScript(nameof(Read));
+        private string ReadJsonData => GetScript(nameof(ReadJsonData));
+        private string ReadHeadPosition => GetScript(nameof(ReadHeadPosition));
+        private string ReadStreamMessageCount => GetScript(nameof(ReadStreamMessageCount));
+        private string ReadStreamMessageBeforeCreatedCount => GetScript(nameof(ReadStreamMessageBeforeCreatedCount));
 
-        public string AppendToStream => GetScript(nameof(AppendToStream));
 
         public string CreateSchema => string.Join(
             Environment.NewLine,
             Tables,
+            AppendToStream,
+            DeleteStream,
+            DeleteStreamMessage,
             Read,
             ReadAll,
             ReadJsonData,
-            AppendToStream);
+            ReadHeadPosition,
+            ReadStreamMessageCount,
+            ReadStreamMessageBeforeCreatedCount);
 
         private string GetScript(string name) => _scripts.GetOrAdd(name,
             key =>

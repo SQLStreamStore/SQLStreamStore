@@ -64,7 +64,7 @@
                         ExpectedVersion.Any,
                         CreateNewStreamMessages(4, 5, 6));
 
-                    var streamCount = await store.GetmessageCount(streamId, new DateTime(2016, 1, 1, 0, 1, 0));
+                    var streamCount = await store.GetMessageCount(streamId, new DateTime(2016, 1, 1, 0, 1, 0));
 
                     streamCount.ShouldBe(3); // The first 3
                 }

@@ -10,6 +10,7 @@
     using Npgsql;
     using NpgsqlTypes;
     using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Streams;
 
     partial class PostgresStreamStore
@@ -62,7 +63,7 @@
 
             var refcursorSql = new StringBuilder();
 
-            using(var command = new NpgsqlCommand($"{_settings.Schema}.read", transaction.Connection, transaction)
+            using(var command = new NpgsqlCommand(_schema.Read, transaction.Connection, transaction)
             {
                 CommandType = CommandType.StoredProcedure,
                 Parameters =
@@ -100,7 +101,7 @@
             {
                 while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                 {
-                    refcursorSql.AppendLine($@"FETCH ALL IN ""{reader.GetString(0)}"";");
+                    refcursorSql.AppendLine(Schema.FetchAll(reader.GetString(0)));
                 }
             }
 
@@ -135,7 +136,7 @@
 
                 while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                 {
-                    messages.Add(ReadStreamMessage(reader, prefetch));
+                    messages.Add(ReadStreamMessage(streamId, reader, prefetch));
                 }
 
                 var isEnd = true;
@@ -176,7 +177,8 @@
 
                 using(var transaction = connection.BeginTransaction())
                 {
-                    return await ReadStreamInternal(streamIdInfo.PostgresqlStreamId,
+                    return await ReadStreamInternal(
+                        streamIdInfo.PostgresqlStreamId,
                         start,
                         count,
                         ReadDirection.Forward,
@@ -217,23 +219,50 @@
             }
         }
 
-        private StreamMessage ReadStreamMessage(IDataRecord reader, bool prefetch)
-            => prefetch
-                ? new StreamMessage(
+        private StreamMessage ReadStreamMessage(PostgresqlStreamId streamId, IDataRecord reader, bool prefetch)
+        {
+            var streamVersion = reader.GetInt32(2);
+            
+            if(prefetch)
+            {
+                return new StreamMessage(
                     reader.GetString(0),
                     reader.GetGuid(1),
-                    reader.GetInt32(2),
+                    streamVersion,
                     reader.GetInt64(3),
                     reader.GetDateTime(4),
                     reader.GetString(5),
                     reader.GetString(6),
-                    reader.GetString(7))
-                : default(StreamMessage);
+                    reader.GetString(7));
+            }
 
-        protected override Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken)
-        {
-            throw new NotImplementedException();
+            return new StreamMessage(
+                reader.GetString(0),
+                reader.GetGuid(1),
+                streamVersion,
+                reader.GetInt64(3),
+                reader.GetDateTime(4),
+                reader.GetString(5),
+                reader.GetString(6),
+                ct => GetJsonData(streamId, streamVersion)(ct));
         }
 
+        protected override async Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken)
+        {
+            using(var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                using(var command = new NpgsqlCommand(_schema.ReadAllHeadPosition, connection)
+                {
+                    CommandType = CommandType.StoredProcedure
+                })
+                {
+                    var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+
+                    return (long?) result ?? Position.Start;
+                }
+            }
+        }
     }
 }

@@ -25,7 +25,7 @@
             using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-                using(var command = new NpgsqlCommand($"{_settings.Schema}.read_all", connection)
+                using(var command = new NpgsqlCommand(_schema.ReadAll, connection)
                 {
                     CommandType = CommandType.StoredProcedure,
                     Parameters =
@@ -75,36 +75,9 @@
                         }
                         else
                         {
-                            var streamId = reader.GetString(0);
-                            var eventId = reader.GetGuid(1);
-                            var streamVersion = reader.GetInt32(2);
-                            ordinal = reader.GetInt64(3);
-                            var created = reader.GetDateTime(4);
-                            var type = reader.GetString(5);
-                            var jsonMetadata = reader.GetString(6);
-
-                            Func<CancellationToken, Task<string>> getJsonData;
-                            if(prefetch)
-                            {
-                                var jsonData = reader.GetString(7);
-                                getJsonData = _ => Task.FromResult(jsonData);
-                            }
-                            else
-                            {
-                                var streamIdInfo = new StreamIdInfo(streamId);
-                                getJsonData = GetJsonData(streamIdInfo.PostgresqlStreamId, streamVersion);
-                            }
-
-                            var message = new StreamMessage(streamId,
-                                eventId,
-                                streamVersion,
-                                ordinal,
-                                created,
-                                type,
-                                jsonMetadata,
-                                getJsonData);
-
-                            messages.Add(message);
+                            messages.Add(
+                                ReadStreamMessage(
+                                    new StreamIdInfo(reader.GetString(0)).PostgresqlStreamId, reader, prefetch));
                         }
                     }
 
@@ -142,7 +115,7 @@
             using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-                using(var command = new NpgsqlCommand($"{_settings.Schema}.read_all", connection)
+                using(var command = new NpgsqlCommand(_schema.ReadAll, connection)
                 {
                     CommandType = CommandType.StoredProcedure,
                     Parameters =
@@ -189,38 +162,11 @@
                     long lastOrdinal = 0;
                     while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                     {
-                        var streamId = reader.GetString(0);
-                        var eventId = reader.GetGuid(1);
-                        var streamVersion = reader.GetInt32(2);
-                        ordinal = reader.GetInt64(3);
-                        var created = reader.GetDateTime(4);
-                        var type = reader.GetString(5);
-                        var jsonMetadata = reader.GetString(6);
+                        messages.Add(
+                            ReadStreamMessage(
+                                new StreamIdInfo(reader.GetString(0)).PostgresqlStreamId, reader, prefetch));
 
-                        Func<CancellationToken, Task<string>> getJsonData;
-                        if(prefetch)
-                        {
-                            var jsonData = reader.GetString(7);
-                            getJsonData = _ => Task.FromResult(jsonData);
-                        }
-                        else
-                        {
-                            var streamIdInfo = new StreamIdInfo(streamId);
-                            getJsonData = GetJsonData(streamIdInfo.PostgresqlStreamId, streamVersion);
-                        }
-
-                        var message = new StreamMessage(
-                            streamId,
-                            eventId,
-                            streamVersion,
-                            ordinal,
-                            created,
-                            type,
-                            jsonMetadata,
-                            getJsonData);
-
-                        messages.Add(message);
-                        lastOrdinal = ordinal;
+                        lastOrdinal = reader.GetInt64(3);
                     }
 
                     bool isEnd = true;

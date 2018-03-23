@@ -2,7 +2,7 @@ CREATE SEQUENCE IF NOT EXISTS public.streams_seq
   START 1;
 
 CREATE TABLE IF NOT EXISTS public.streams (
-  id          CHAR(44)      NOT NULL,
+  id          CHAR(42)      NOT NULL,
   id_original VARCHAR(1000) NOT NULL,
   id_internal INT           NOT NULL DEFAULT nextval('public.streams_seq') PRIMARY KEY,
   version     INT           NOT NULL DEFAULT (-1),
@@ -11,6 +11,9 @@ CREATE TABLE IF NOT EXISTS public.streams (
 
 ALTER SEQUENCE public.streams_seq
 OWNED BY public.streams.id_internal;
+
+CREATE UNIQUE INDEX IF NOT EXISTS streams_by_id
+  ON public.streams (id);
 
 CREATE SEQUENCE IF NOT EXISTS public.messages_seq
   START 0
@@ -30,7 +33,18 @@ CREATE TABLE IF NOT EXISTS public.messages (
 ALTER SEQUENCE public.messages_seq
 OWNED BY public.messages.position;
 
-DROP TYPE IF EXISTS public.new_stream_message;
+CREATE UNIQUE INDEX IF NOT EXISTS messages_by_position
+  ON public.messages (position);
+
+CREATE UNIQUE INDEX IF NOT EXISTS messages_by_stream_id_internal_and_message_id
+  ON public.messages (stream_id_internal, message_id);
+
+CREATE UNIQUE INDEX IF NOT EXISTS messages_by_stream_id_internal_and_stream_version
+  ON public.messages (stream_id_internal, stream_version);
+
+CREATE INDEX IF NOT EXISTS messages_by_stream_id_internal_and_created_utc
+  ON public.messages (stream_id_internal, created_utc);
+
 CREATE TYPE public.new_stream_message AS (
   message_id    UUID,
   "type"        VARCHAR(128),

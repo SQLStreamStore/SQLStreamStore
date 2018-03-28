@@ -157,10 +157,10 @@
                         }
                     })
                     {
-                        var jsonData = (string) await command
+                        var jsonData = await command
                             .ExecuteScalarAsync(cancellationToken)
                             .NotOnCapturedContext();
-                        return jsonData;
+                        return jsonData == DBNull.Value ? null : (string)jsonData;
                     }
                 }
             };

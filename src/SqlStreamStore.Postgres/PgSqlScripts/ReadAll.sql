@@ -47,6 +47,15 @@ BEGIN
         public.messages.position <= _position
       END
     )
+  ORDER BY
+    (
+      CASE WHEN _forwards
+        THEN
+          public.messages.position
+      ELSE
+        -public.messages.position
+      END
+    )
   LIMIT _count;
 END;
 $F$

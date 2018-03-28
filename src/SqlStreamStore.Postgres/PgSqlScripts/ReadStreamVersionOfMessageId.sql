@@ -12,10 +12,12 @@ BEGIN
   FROM public.streams
   WHERE public.streams.id = _stream_id;
 
-  SELECT public.streams.stream_version
-  FROM public.messages
-  WHERE public.messages.stream_id_internal = _stream_id_internal
-        AND public.messages.message_id = _message_id;
+  RETURN (
+    SELECT public.streams.stream_version
+    FROM public.messages
+    WHERE public.messages.stream_id_internal = _stream_id_internal
+          AND public.messages.message_id = _message_id
+  );
 END;
 $F$
 LANGUAGE 'plpgsql';

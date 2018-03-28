@@ -1,6 +1,6 @@
 CREATE OR REPLACE FUNCTION public.read_stream_message_before_created_count(
   _stream_id CHAR(42),
-  _created TIMESTAMP
+  _created   TIMESTAMP
 )
   RETURNS INT
 AS $F$
@@ -11,11 +11,12 @@ BEGIN
   INTO _stream_id_internal
   FROM public.streams
   WHERE public.streams.id = _stream_id;
-
-  SELECT count(*)
-  FROM public.messages
-  WHERE public.messages.stream_id_internal = _stream_id_internal
-  AND public.messages.created < _created;
+  RETURN (
+    SELECT count(*)
+    FROM public.messages
+    WHERE public.messages.stream_id_internal = _stream_id_internal
+          AND public.messages.created < _created
+  );
 END;
 $F$
 LANGUAGE 'plpgsql';

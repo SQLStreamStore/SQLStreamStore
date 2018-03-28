@@ -10,10 +10,11 @@ BEGIN
   INTO _stream_id_internal
   FROM public.streams
   WHERE public.streams.id = _stream_id;
-
-  SELECT count(*)
-  FROM public.messages
-  WHERE public.messages.stream_id_internal = _stream_id_internal;
+  RETURN (
+    SELECT count(*)
+    FROM public.messages
+    WHERE public.messages.stream_id_internal = _stream_id_internal
+  );
 END;
 $F$
 LANGUAGE 'plpgsql';

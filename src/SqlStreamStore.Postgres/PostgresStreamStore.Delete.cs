@@ -86,9 +86,32 @@
             }
         }
 
-        protected override Task DeleteEventInternal(string streamId, Guid eventId, CancellationToken cancellationToken)
+        protected override async Task DeleteEventInternal(
+            string streamId,
+            Guid eventId,
+            CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var streamIdInfo = new StreamIdInfo(streamId);
+
+            using(var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                using(var transaction = connection.BeginTransaction())
+                using(var command = BuildCommand(
+                    _schema.DeleteStreamMessage,
+                    transaction,
+                    Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
+                    Parameters.MessageId(eventId),
+                    Parameters.DeletedStreamId,
+                    Parameters.DeletedStreamIdOriginal,
+                    Parameters.CreatedUtc(_settings.GetUtcNow()),
+                    Parameters.DeletedMessage(streamIdInfo.PostgresqlStreamId, eventId)))
+                {
+                    await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                    await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                }
+            }
         }
     }
 }

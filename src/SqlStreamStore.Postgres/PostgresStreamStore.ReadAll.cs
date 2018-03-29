@@ -2,12 +2,10 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Data;
     using System.Threading;
     using System.Threading.Tasks;
-    using Npgsql;
-    using NpgsqlTypes;
     using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Streams;
 
     partial class PostgresStreamStore
@@ -25,33 +23,14 @@
             using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-                using(var command = new NpgsqlCommand(_schema.ReadAll, connection)
-                {
-                    CommandType = CommandType.StoredProcedure,
-                    Parameters =
-                    {
-                        new NpgsqlParameter
-                        {
-                            NpgsqlDbType = NpgsqlDbType.Integer,
-                            NpgsqlValue = maxCount + 1
-                        },
-                        new NpgsqlParameter
-                        {
-                            NpgsqlDbType = NpgsqlDbType.Bigint,
-                            NpgsqlValue = fromPositionExclusive
-                        },
-                        new NpgsqlParameter
-                        {
-                            NpgsqlDbType = NpgsqlDbType.Boolean,
-                            NpgsqlValue = true
-                        },
-                        new NpgsqlParameter
-                        {
-                            NpgsqlDbType = NpgsqlDbType.Boolean,
-                            NpgsqlValue = prefetch
-                        }
-                    }
-                })
+                using(var transaction = connection.BeginTransaction())
+                using(var command = BuildCommand(
+                    _schema.ReadAll,
+                    transaction,
+                    Parameters.Count(maxCount + 1),
+                    Parameters.Position(fromPositionExclusive),
+                    Parameters.ReadDirection(ReadDirection.Forward),
+                    Parameters.Prefetch(prefetch)))
                 using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
                 {
                     if(!reader.HasRows)
@@ -75,9 +54,8 @@
                         }
                         else
                         {
-                            messages.Add(
-                                ReadStreamMessage(
-                                    new StreamIdInfo(reader.GetString(0)).PostgresqlStreamId, reader, prefetch));
+                            var streamIdInfo = new StreamIdInfo(reader.GetString(0));
+                            messages.Add(ReadStreamMessage(reader, streamIdInfo.PostgresqlStreamId, prefetch));
                         }
                     }
 
@@ -115,33 +93,14 @@
             using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-                using(var command = new NpgsqlCommand(_schema.ReadAll, connection)
-                {
-                    CommandType = CommandType.StoredProcedure,
-                    Parameters =
-                    {
-                        new NpgsqlParameter
-                        {
-                            NpgsqlDbType = NpgsqlDbType.Integer,
-                            NpgsqlValue = maxCount + 1
-                        },
-                        new NpgsqlParameter
-                        {
-                            NpgsqlDbType = NpgsqlDbType.Bigint,
-                            NpgsqlValue = ordinal
-                        },
-                        new NpgsqlParameter
-                        {
-                            NpgsqlDbType = NpgsqlDbType.Boolean,
-                            NpgsqlValue = false
-                        },
-                        new NpgsqlParameter
-                        {
-                            NpgsqlDbType = NpgsqlDbType.Boolean,
-                            NpgsqlValue = prefetch
-                        }
-                    }
-                })
+                using(var transaction = connection.BeginTransaction())
+                using(var command = BuildCommand(
+                    _schema.ReadAll,
+                    transaction,
+                    Parameters.Count(maxCount + 1),
+                    Parameters.Position(fromPositionExclusive),
+                    Parameters.ReadDirection(ReadDirection.Backward),
+                    Parameters.Prefetch(prefetch)))
                 using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
                 {
                     if(!reader.HasRows)
@@ -162,9 +121,8 @@
                     long lastOrdinal = 0;
                     while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                     {
-                        messages.Add(
-                            ReadStreamMessage(
-                                new StreamIdInfo(reader.GetString(0)).PostgresqlStreamId, reader, prefetch));
+                        var streamIdInfo = new StreamIdInfo(reader.GetString(0));
+                        messages.Add(ReadStreamMessage(reader, streamIdInfo.PostgresqlStreamId, prefetch));
 
                         lastOrdinal = reader.GetInt64(3);
                     }

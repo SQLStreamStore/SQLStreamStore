@@ -1,12 +1,11 @@
 ﻿namespace SqlStreamStore
 {
     using System;
-    using System.Data;
     using System.Threading;
     using System.Threading.Tasks;
     using Npgsql;
-    using NpgsqlTypes;
     using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Streams;
 
     public partial class PostgresStreamStore
@@ -24,12 +23,12 @@
 
                 using(var transaction = connection.BeginTransaction())
                 {
-                    if (await DeleteStreamInternal(
+                    if(await DeleteStreamInternal(
                         streamIdInfo.PostgresqlStreamId,
                         expectedVersion,
                         transaction,
-                        cancellationToken)) {
-
+                        cancellationToken))
+                    {
                         var streamDeletedEvent = Deleted.CreateStreamDeletedMessage(streamId);
 
                         await AppendToStreamInternal(
@@ -41,7 +40,7 @@
                     }
 
                     await DeleteStreamInternal(
-                        streamIdInfo.MetadataPosgresqlStreamId,
+                        streamIdInfo.PostgresqlStreamId,
                         expectedVersion,
                         transaction,
                         cancellationToken);
@@ -52,35 +51,22 @@
         }
 
         private async Task<bool> DeleteStreamInternal(
-            PostgresqlStreamId postgresqlStreamId,
+            PostgresqlStreamId streamId,
             int expectedVersion,
             NpgsqlTransaction transaction,
             CancellationToken cancellationToken)
         {
-            using(var command = new NpgsqlCommand(_schema.DeleteStream, transaction.Connection, transaction)
-            {
-                CommandType = CommandType.StoredProcedure,
-                Parameters =
-                {
-                    new NpgsqlParameter
-                    {
-                        NpgsqlDbType = NpgsqlDbType.Char,
-                        Size = 42,
-                        NpgsqlValue = postgresqlStreamId.Id
-                    },
-                    new NpgsqlParameter
-                    {
-                        NpgsqlDbType = NpgsqlDbType.Integer,
-                        NpgsqlValue = expectedVersion
-                    }
-                }
-            })
+            using(var command = BuildCommand(
+                _schema.DeleteStream,
+                transaction,
+                Parameters.StreamId(streamId),
+                Parameters.ExpectedVersion(expectedVersion)))
             {
                 try
                 {
-                    var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext(); 
-                    
-                    return (int)result > 0;
+                    var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+
+                    return (int) result > 0;
                 }
                 catch(NpgsqlException ex)
                 {
@@ -90,7 +76,7 @@
                     {
                         throw new WrongExpectedVersionException(
                             ErrorMessages.DeleteStreamFailedWrongExpectedVersion(
-                                postgresqlStreamId.IdOriginal,
+                                streamId.IdOriginal,
                                 expectedVersion),
                             ex);
                     }

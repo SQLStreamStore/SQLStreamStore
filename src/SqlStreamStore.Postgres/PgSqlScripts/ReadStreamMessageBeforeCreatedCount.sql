@@ -1,6 +1,6 @@
 CREATE OR REPLACE FUNCTION public.read_stream_message_before_created_count(
-  _stream_id CHAR(42),
-  _created   TIMESTAMP
+  _stream_id   CHAR(42),
+  _created_utc TIMESTAMP
 )
   RETURNS INT
 AS $F$
@@ -15,7 +15,7 @@ BEGIN
     SELECT count(*)
     FROM public.messages
     WHERE public.messages.stream_id_internal = _stream_id_internal
-          AND public.messages.created < _created
+          AND public.messages.created < _created_utc
   );
 END;
 $F$

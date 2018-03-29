@@ -5,7 +5,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Npgsql;
-    using NpgsqlTypes;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Streams;
@@ -48,39 +47,14 @@
         {
             transaction.Connection.MapComposite<PostgresNewStreamMessage>(_schema.NewStreamMessage);
 
-            using(var command = new NpgsqlCommand(_schema.AppendToStream, transaction.Connection, transaction)
-            {
-                CommandType = CommandType.StoredProcedure,
-                Parameters =
-                {
-                    new NpgsqlParameter
-                    {
-                        NpgsqlDbType = NpgsqlDbType.Char,
-                        Size = 42,
-                        NpgsqlValue = streamId.Id
-                    },
-                    new NpgsqlParameter
-                    {
-                        NpgsqlDbType = NpgsqlDbType.Varchar,
-                        Size = 1000,
-                        NpgsqlValue = streamId.IdOriginal
-                    },
-                    new NpgsqlParameter
-                    {
-                        NpgsqlDbType = NpgsqlDbType.Integer,
-                        NpgsqlValue = expectedVersion
-                    },
-                    new NpgsqlParameter
-                    {
-                        NpgsqlValue = _settings.GetUtcNow(),
-                        NpgsqlDbType = NpgsqlDbType.Timestamp
-                    },
-                    new NpgsqlParameter
-                    {
-                        NpgsqlValue = Array.ConvertAll(messages, PostgresNewStreamMessage.FromNewStreamMessage)
-                    }
-                }
-            })
+            using(var command = BuildCommand(
+                _schema.AppendToStream,
+                transaction,
+                Parameters.StreamId(streamId),
+                Parameters.StreamIdOriginal(streamId),
+                Parameters.ExpectedVersion(expectedVersion),
+                Parameters.CreatedUtc(_settings.GetUtcNow()),
+                Parameters.NewStreamMessages(messages)))
             {
                 try
                 {
@@ -96,7 +70,7 @@
                                                    Schema.MessagesByStreamIdInternalAndMessageId))
                 {
                     await transaction.RollbackAsync(cancellationToken).NotOnCapturedContext();
-                    
+
                     var page = await ReadStreamInternal(
                         streamId,
                         expectedVersion,
@@ -147,19 +121,20 @@
                 }
                 catch(NpgsqlException ex) when(ex.Message.Contains("WrongExpectedVersion"))
                 {
-                    var page = await ReadStreamInternal(
-                        streamId,
-                        expectedVersion + 1,
-                        // when reading for already written Messages, it's from the one after the expected
-                        messages.Length,
-                        ReadDirection.Forward,
-                        false,
-                        null,
-                        transaction,
-                        cancellationToken);
-                    
+                    var page =
+                        await
+                            ReadStreamInternal( // when reading for already written Messages, it's from the one after the expected
+                                streamId,
+                                expectedVersion + 1,
+                                messages.Length,
+                                ReadDirection.Forward,
+                                false,
+                                null,
+                                transaction,
+                                cancellationToken);
+
                     ThrowIfWrongExpectedVersion(streamId, expectedVersion, messages, page, ex);
-                    
+
                     return new AppendResult(page.LastStreamVersion, page.LastStreamPosition);
                 }
                 catch(NpgsqlException ex) when(ex.IsUniqueConstraintViolation())
@@ -202,49 +177,16 @@
             NpgsqlTransaction transaction,
             CancellationToken cancellationToken)
         {
-            using(var command = new NpgsqlCommand(
+            using(var command = BuildCommand(
                 _schema.ReadStreamVersionOfMessageId,
-                transaction.Connection,
-                transaction)
-            {
-                CommandType = CommandType.StoredProcedure,
-                Parameters =
-                {
-                    new NpgsqlParameter
-                    {
-                        NpgsqlDbType = NpgsqlDbType.Char,
-                        Size = 42,
-                        NpgsqlValue = streamId.Id
-                    },
-                    new NpgsqlParameter
-                    {
-                        NpgsqlDbType = NpgsqlDbType.Uuid,
-                        Value = messageId
-                    }
-                }
-            })
+                transaction,
+                Parameters.StreamId(streamId),
+                Parameters.MessageId(messageId)))
             {
                 var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
 
                 return (int) result;
             }
-        }
-
-        private class PostgresNewStreamMessage
-        {
-            public Guid MessageId { get; set; }
-            public string JsonData { get; set; }
-            public string JsonMetadata { get; set; }
-            public string Type { get; set; }
-
-            public static PostgresNewStreamMessage FromNewStreamMessage(NewStreamMessage message)
-                => new PostgresNewStreamMessage
-                {
-                    MessageId = message.MessageId,
-                    Type = message.Type,
-                    JsonData = message.JsonData,
-                    JsonMetadata = message.JsonMetadata
-                };
         }
     }
 }

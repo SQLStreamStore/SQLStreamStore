@@ -5,7 +5,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Npgsql;
-    using NpgsqlTypes;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Subscriptions;
@@ -38,6 +37,7 @@
                     throw new InvalidOperationException(
                         "Cannot create notifier because supplied createStreamStoreNotifier was null");
                 }
+
                 return settings.CreateStreamStoreNotifier.Invoke(this);
             });
             _schema = new Schema(_settings.Schema);
@@ -48,8 +48,6 @@
             using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
-                //connection.MapComposite<PostgresNewStreamMessage>($"{_settings.Schema}.new_stream_message");
 
                 using(var transaction = connection.BeginTransaction())
                 {
@@ -90,26 +88,13 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using(var command = new NpgsqlCommand(_schema.ReadStreamMessageBeforeCreatedCount, connection)
+                using(var transaction = connection.BeginTransaction())
+                using(var command = BuildCommand(
+                    _schema.ReadStreamMessageBeforeCreatedCount,
+                    transaction,
+                    Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
+                    Parameters.CreatedUtc(createdBefore)))
                 {
-                    CommandType = CommandType.StoredProcedure,
-                    Parameters =
-                    {
-                        new NpgsqlParameter
-                        {
-                            NpgsqlDbType = NpgsqlDbType.Char,
-                            Size = 42,
-                            NpgsqlValue = streamIdInfo.PostgresqlStreamId.Id
-                        },
-                        new NpgsqlParameter
-                        {
-                            NpgsqlDbType = NpgsqlDbType.Timestamp,
-                            NpgsqlValue = createdBefore
-                        }
-                    }
-                })
-                {
-
                     var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
 
                     return (int) result;
@@ -138,31 +123,36 @@
                 using(var connection = _createConnection())
                 {
                     await connection.OpenAsync(cancellationToken);
-                    using(var command = new NpgsqlCommand(_schema.ReadJsonData, connection)
+                    using(var transaction = connection.BeginTransaction())
+                    using(var command = BuildCommand(
+                        _schema.ReadJsonData,
+                        transaction,
+                        Parameters.StreamId(streamId),
+                        Parameters.Version(version)))
                     {
-                        CommandType = CommandType.StoredProcedure,
-                        Parameters =
-                        {
-                            new NpgsqlParameter
-                            {
-                                NpgsqlDbType = NpgsqlDbType.Varchar,
-                                Size = 42,
-                                NpgsqlValue = streamId.Id
-                            },
-                            new NpgsqlParameter
-                            {
-                                NpgsqlDbType = NpgsqlDbType.Integer,
-                                Value = version
-                            }
-                        }
-                    })
-                    {
-                        var jsonData = await command
-                            .ExecuteScalarAsync(cancellationToken)
-                            .NotOnCapturedContext();
-                        return jsonData == DBNull.Value ? null : (string)jsonData;
+                        var jsonData = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+
+                        return jsonData == DBNull.Value ? null : (string) jsonData;
                     }
                 }
             };
+
+        private NpgsqlCommand BuildCommand(
+            string procedure,
+            NpgsqlTransaction transaction,
+            params NpgsqlParameter[] parameters)
+        {
+            var command = new NpgsqlCommand(procedure, transaction.Connection, transaction)
+            {
+                CommandType = CommandType.StoredProcedure
+            };
+
+            foreach(var parameter in parameters)
+            {
+                command.Parameters.Add(parameter);
+            }
+
+            return command;
+        }
     }
 }

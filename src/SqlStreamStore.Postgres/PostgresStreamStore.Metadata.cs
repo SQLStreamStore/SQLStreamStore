@@ -59,7 +59,7 @@
         {
             AppendResult result;
             var streamIdInfo = new StreamIdInfo(streamId);
-            
+
             using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
@@ -73,11 +73,11 @@
                         MaxCount = maxCount,
                         MetaJson = metadataJson
                     });
-                    
+
                     var metadataMessage = new NewStreamMessage(Guid.NewGuid(), "$stream-metadata", json);
 
                     result = await AppendToStreamInternal(
-                        streamIdInfo.PostgresqlStreamId,
+                        streamIdInfo.MetadataPosgresqlStreamId,
                         expectedStreamMetadataVersion,
                         new[] { metadataMessage },
                         transaction,
@@ -85,7 +85,7 @@
 
                     await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
                 }
-                
+
                 return new SetStreamMetadataResult(result.CurrentVersion);
             }
         }

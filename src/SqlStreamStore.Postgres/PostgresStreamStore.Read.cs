@@ -8,7 +8,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Npgsql;
-    using NpgsqlTypes;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Streams;
@@ -63,39 +62,14 @@
 
             var refcursorSql = new StringBuilder();
 
-            using(var command = new NpgsqlCommand(_schema.Read, transaction.Connection, transaction)
-            {
-                CommandType = CommandType.StoredProcedure,
-                Parameters =
-                {
-                    new NpgsqlParameter
-                    {
-                        NpgsqlValue = streamId.Id,
-                        Size = 42,
-                        NpgsqlDbType = NpgsqlDbType.Char
-                    },
-                    new NpgsqlParameter
-                    {
-                        NpgsqlValue = count + 1,
-                        NpgsqlDbType = NpgsqlDbType.Integer
-                    },
-                    new NpgsqlParameter
-                    {
-                        NpgsqlDbType = NpgsqlDbType.Integer,
-                        NpgsqlValue = streamVersion
-                    },
-                    new NpgsqlParameter
-                    {
-                        NpgsqlDbType = NpgsqlDbType.Boolean,
-                        Value = direction == ReadDirection.Forward
-                    },
-                    new NpgsqlParameter
-                    {
-                        NpgsqlDbType = NpgsqlDbType.Boolean,
-                        Value = prefetch
-                    }
-                }
-            })
+            using(var command = BuildCommand(
+                _schema.Read,
+                transaction,
+                Parameters.StreamId(streamId),
+                Parameters.Count(count + 1),
+                Parameters.Version(streamVersion),
+                Parameters.ReadDirection(direction),
+                Parameters.Prefetch(prefetch)))
             using(var reader = await command.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
                 .NotOnCapturedContext())
             {
@@ -136,7 +110,7 @@
 
                 while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                 {
-                    messages.Add(ReadStreamMessage(streamId, reader, prefetch));
+                    messages.Add(ReadStreamMessage(reader, streamId, prefetch));
                 }
 
                 var isEnd = true;
@@ -177,8 +151,7 @@
 
                 using(var transaction = connection.BeginTransaction())
                 {
-                    return await ReadStreamInternal(
-                        streamIdInfo.PostgresqlStreamId,
+                    return await ReadStreamInternal(streamIdInfo.PostgresqlStreamId,
                         start,
                         count,
                         ReadDirection.Forward,
@@ -206,8 +179,7 @@
 
                 using(var transaction = connection.BeginTransaction())
                 {
-                    return await ReadStreamInternal(
-                        streamIdInfo.PostgresqlStreamId,
+                    return await ReadStreamInternal(streamIdInfo.PostgresqlStreamId,
                         fromVersionInclusive,
                         count,
                         ReadDirection.Backward,
@@ -219,10 +191,10 @@
             }
         }
 
-        private StreamMessage ReadStreamMessage(PostgresqlStreamId streamId, IDataRecord reader, bool prefetch)
+        private StreamMessage ReadStreamMessage(IDataRecord reader, PostgresqlStreamId streamId, bool prefetch)
         {
             var streamVersion = reader.GetInt32(2);
-            
+
             if(prefetch)
             {
                 return new StreamMessage(
@@ -253,14 +225,12 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using(var command = new NpgsqlCommand(_schema.ReadAllHeadPosition, connection)
-                {
-                    CommandType = CommandType.StoredProcedure
-                })
+                using(var transaction = connection.BeginTransaction())
+                using(var command = BuildCommand(_schema.ReadAllHeadPosition, transaction))
                 {
                     var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
 
-                    return (long?) result ?? Position.Start;
+                    return result == DBNull.Value ? Position.End : (long) result;
                 }
             }
         }

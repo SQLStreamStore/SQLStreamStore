@@ -21,6 +21,13 @@
             NpgsqlValue = value.IdOriginal
         };
 
+        public static NpgsqlParameter MetadataStreamId(PostgresqlStreamId value) => new NpgsqlParameter
+        {
+            NpgsqlDbType = NpgsqlDbType.Char,
+            Size = 42,
+            NpgsqlValue = value.Id
+        };
+
         public static NpgsqlParameter DeletedStreamId => new NpgsqlParameter
         {
             NpgsqlDbType = NpgsqlDbType.Char,

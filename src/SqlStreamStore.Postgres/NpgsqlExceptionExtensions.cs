@@ -4,6 +4,9 @@
 
     internal static class NpgsqlExceptionExtensions
     {
+        public static bool IsWrongExpectedVersion(this NpgsqlException exception)
+            => exception.Message.EndsWith("WrongExpectedVersion");
+        
         public static bool IsUniqueConstraintViolation(this NpgsqlException exception, string indexName)
             => exception.IsUniqueConstraintViolation() && exception.Message.Contains(indexName);
 

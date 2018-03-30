@@ -52,6 +52,7 @@
                 transaction,
                 Parameters.StreamId(streamId),
                 Parameters.StreamIdOriginal(streamId),
+                Parameters.MetadataStreamId(new StreamIdInfo(streamId.IdOriginal).MetadataPosgresqlStreamId), // YUCK!
                 Parameters.ExpectedVersion(expectedVersion),
                 Parameters.CreatedUtc(_settings.GetUtcNow()),
                 Parameters.NewStreamMessages(messages)))
@@ -65,108 +66,13 @@
                         return new AppendResult(reader.GetInt32(0), reader.GetInt64(1));
                     }
                 }
-                catch(NpgsqlException ex) when(expectedVersion == ExpectedVersion.Any
-                                               && ex.IsUniqueConstraintViolation(
-                                                   Schema.MessagesByStreamIdInternalAndMessageId))
+                catch(NpgsqlException ex) when(ex.IsWrongExpectedVersion())
                 {
                     await transaction.RollbackAsync(cancellationToken).NotOnCapturedContext();
-
-                    var page = await ReadStreamInternal(
-                        streamId,
-                        expectedVersion,
-                        messages.Length,
-                        ReadDirection.Forward,
-                        false,
-                        null,
-                        transaction,
-                        cancellationToken).NotOnCapturedContext();
-
-                    ThrowIfWrongExpectedVersion(streamId, ExpectedVersion.Any, messages, page, ex);
-
-                    return new AppendResult(page.LastStreamVersion, page.LastStreamPosition);
-                }
-                catch(NpgsqlException ex) when(expectedVersion == ExpectedVersion.Any
-                                               && ex.IsUniqueConstraintViolation())
-                {
-                    throw new WrongExpectedVersionException(
-                        ErrorMessages.AppendFailedWrongExpectedVersion(streamId.IdOriginal, ExpectedVersion.Any),
-                        ex);
-                }
-                catch(NpgsqlException ex) when(expectedVersion == ExpectedVersion.NoStream
-                                               && ex.IsUniqueConstraintViolation(Schema.StreamsById))
-                {
-                    await transaction.RollbackAsync(cancellationToken).NotOnCapturedContext();
-
-                    var page = await ReadStreamInternal(
-                            streamId,
-                            StreamVersion.Start,
-                            messages.Length,
-                            ReadDirection.Forward,
-                            false,
-                            null,
-                            transaction,
-                            cancellationToken)
-                        .NotOnCapturedContext();
-
-                    ThrowIfWrongExpectedVersion(streamId, ExpectedVersion.NoStream, messages, page, ex);
-
-                    return new AppendResult(page.LastStreamVersion, page.LastStreamPosition);
-                }
-                catch(NpgsqlException ex) when(expectedVersion == ExpectedVersion.NoStream
-                                               && ex.IsUniqueConstraintViolation())
-                {
-                    throw new WrongExpectedVersionException(
-                        ErrorMessages.AppendFailedWrongExpectedVersion(streamId.IdOriginal, ExpectedVersion.Any),
-                        ex);
-                }
-                catch(NpgsqlException ex) when(ex.Message.Contains("WrongExpectedVersion"))
-                {
-                    var page =
-                        await
-                            ReadStreamInternal( // when reading for already written Messages, it's from the one after the expected
-                                streamId,
-                                expectedVersion + 1,
-                                messages.Length,
-                                ReadDirection.Forward,
-                                false,
-                                null,
-                                transaction,
-                                cancellationToken);
-
-                    ThrowIfWrongExpectedVersion(streamId, expectedVersion, messages, page, ex);
-
-                    return new AppendResult(page.LastStreamVersion, page.LastStreamPosition);
-                }
-                catch(NpgsqlException ex) when(ex.IsUniqueConstraintViolation())
-                {
+                    
                     throw new WrongExpectedVersionException(
                         ErrorMessages.AppendFailedWrongExpectedVersion(streamId.IdOriginal, expectedVersion),
                         ex);
-                }
-            }
-        }
-
-        private static void ThrowIfWrongExpectedVersion(
-            PostgresqlStreamId streamId,
-            int expectedVersion,
-            NewStreamMessage[] messages,
-            ReadStreamPage page,
-            NpgsqlException inner)
-        {
-            if(messages.Length > page.Messages.Length)
-            {
-                throw new WrongExpectedVersionException(
-                    ErrorMessages.AppendFailedWrongExpectedVersion(streamId.IdOriginal, expectedVersion),
-                    inner);
-            }
-
-            for(int i = 0; i < Math.Min(messages.Length, page.Messages.Length); i++)
-            {
-                if(messages[i].MessageId != page.Messages[i].MessageId)
-                {
-                    throw new WrongExpectedVersionException(
-                        ErrorMessages.AppendFailedWrongExpectedVersion(streamId.IdOriginal, expectedVersion),
-                        inner);
                 }
             }
         }

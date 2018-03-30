@@ -110,8 +110,8 @@ BEGIN
     RETURN QUERY
     SELECT
       -1,
-      -1,
-      CAST(NULL AS VARCHAR);
+      -1::BIGINT,
+      NULL ::VARCHAR;
 
   END IF;
 

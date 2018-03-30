@@ -9,24 +9,24 @@ CREATE OR REPLACE FUNCTION public.read(
 AS $F$
 DECLARE
   _stream_id_internal INT;
-  stream_info         REFCURSOR;
-  messages            REFCURSOR;
+  _stream_info         REFCURSOR;
+  _messages            REFCURSOR;
 BEGIN
   SELECT public.streams.id_internal
   INTO _stream_id_internal
   FROM public.streams
   WHERE public.streams.id = _stream_id;
 
-  OPEN stream_info FOR
+  OPEN _stream_info FOR
   SELECT
     public.streams.version  as stream_version,
     public.streams.position as position
   FROM public.streams
   WHERE public.streams.id_internal = _stream_id_internal;
 
-  RETURN NEXT stream_info;
+  RETURN NEXT _stream_info;
 
-  OPEN messages FOR
+  OPEN _messages FOR
   SELECT
     public.streams.id_original AS stream_id,
     public.messages.message_id,
@@ -67,7 +67,7 @@ BEGIN
     )
   LIMIT _count;
 
-  RETURN NEXT messages;
+  RETURN NEXT _messages;
 END;
 $F$
 LANGUAGE 'plpgsql';

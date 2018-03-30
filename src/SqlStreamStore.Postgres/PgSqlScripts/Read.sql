@@ -9,8 +9,8 @@ CREATE OR REPLACE FUNCTION public.read(
 AS $F$
 DECLARE
   _stream_id_internal INT;
-  _stream_info         REFCURSOR;
-  _messages            REFCURSOR;
+  _stream_info        REFCURSOR := 'stream_info';
+  _messages           REFCURSOR := 'messages';
 BEGIN
   SELECT public.streams.id_internal
   INTO _stream_id_internal

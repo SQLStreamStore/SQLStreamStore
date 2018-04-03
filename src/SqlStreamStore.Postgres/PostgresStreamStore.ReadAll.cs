@@ -98,7 +98,7 @@
                     _schema.ReadAll,
                     transaction,
                     Parameters.Count(maxCount + 1),
-                    Parameters.Position(fromPositionExclusive),
+                    Parameters.Position(ordinal),
                     Parameters.ReadDirection(ReadDirection.Backward),
                     Parameters.Prefetch(prefetch)))
                 using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())

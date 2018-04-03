@@ -40,8 +40,8 @@
                     }
 
                     await DeleteStreamInternal(
-                        streamIdInfo.PostgresqlStreamId,
-                        expectedVersion,
+                        streamIdInfo.MetadataPosgresqlStreamId,
+                        ExpectedVersion.Any,
                         transaction,
                         cancellationToken);
 
@@ -105,6 +105,7 @@
                     Parameters.MessageId(eventId),
                     Parameters.DeletedStreamId,
                     Parameters.DeletedStreamIdOriginal,
+                    Parameters.MetadataStreamId(streamIdInfo.MetadataPosgresqlStreamId),
                     Parameters.CreatedUtc(_settings.GetUtcNow()),
                     Parameters.DeletedMessage(streamIdInfo.PostgresqlStreamId, eventId)))
                 {

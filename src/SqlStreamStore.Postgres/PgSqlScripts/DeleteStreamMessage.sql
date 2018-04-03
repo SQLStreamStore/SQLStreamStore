@@ -3,6 +3,7 @@ CREATE OR REPLACE FUNCTION public.delete_stream_message(
   _message_id                 UUID,
   _deleted_stream_id          CHAR(42),
   _deleted_stream_id_original VARCHAR(1000),
+  _metadata_stream_id         CHAR(42),
   _created_utc                TIMESTAMP,
   _deleted_message            public.new_stream_message []
 )
@@ -35,6 +36,7 @@ BEGIN
     PERFORM public.append_to_stream(
         _deleted_stream_id,
         _deleted_stream_id_original,
+        _metadata_stream_id,
         -2,
         _created_utc,
         _deleted_message);

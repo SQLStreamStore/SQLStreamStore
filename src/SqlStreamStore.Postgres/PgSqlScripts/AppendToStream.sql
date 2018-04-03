@@ -111,29 +111,25 @@ BEGIN
 
   IF cardinality(_new_stream_messages) > 0
   THEN
-
-    FOREACH _current_message IN ARRAY _new_stream_messages
-    LOOP
-      INSERT INTO public.messages (
-        message_id,
-        stream_id_internal,
-        stream_version,
-        created_utc,
-        type,
-        json_data,
-        json_metadata
-      ) VALUES (
-        _current_message.message_id,
+    INSERT INTO public.messages (
+      message_id,
+      stream_id_internal,
+      stream_version,
+      created_utc,
+      type,
+      json_data,
+      json_metadata
+    )
+      SELECT
+        m.message_id,
         _stream_id_internal,
-        _current_version + 1,
+        _current_version + (row_number()
+        over ()) :: int,
         _created_utc,
-        _current_message.type,
-        _current_message.json_data,
-        _current_message.json_metadata);
-      SELECT _current_version + 1
-      INTO _current_version;
-    END LOOP;
-
+        m.type,
+        m.json_data,
+        m.json_metadata
+      FROM unnest(_new_stream_messages) m;
     SELECT
       COALESCE(public.messages.position, -1),
       COALESCE(public.messages.stream_version, -1)

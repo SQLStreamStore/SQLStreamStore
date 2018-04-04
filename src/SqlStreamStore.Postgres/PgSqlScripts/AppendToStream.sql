@@ -96,9 +96,21 @@ BEGIN
   END IF;
 
   SELECT
-    version,
-    position,
-    id_internal
+    (
+      CASE _expected_version
+      WHEN -2
+        THEN coalesce(
+            public.read_stream_version_of_message_id(
+                public.streams.id_internal,
+                _new_stream_messages [1].message_id) - 1,
+            public.streams.version
+        )
+      ELSE
+        public.streams.version
+      END
+    ),
+    public.streams.position,
+    public.streams.id_internal
   INTO _current_version, _current_position, _stream_id_internal
   FROM public.streams
   WHERE public.streams.id = _stream_id;
@@ -132,17 +144,13 @@ BEGIN
     ON CONFLICT DO NOTHING;
     GET DIAGNOSTICS _success = ROW_COUNT;
 
-    IF (_success = 0)
+    IF (_success <> cardinality(_new_stream_messages))
     THEN
       IF (_expected_version = -2) /* ExpectedVersion.Any */
       THEN
-        _current_version = public.read_stream_version_of_message_id(
-            _stream_id_internal,
-            _new_stream_messages [1].message_id);
-
         _message_id_cursor = (
           SELECT *
-          FROM public.read(_stream_id, cardinality(_new_stream_messages), _current_version, true, false)
+          FROM public.read(_stream_id, cardinality(_new_stream_messages), _current_version + 1, true, false)
           OFFSET 1
         );
 
@@ -164,12 +172,17 @@ BEGIN
           RAISE EXCEPTION 'WrongExpectedVersion';
         ELSE
           SELECT
-            version,
-            position,
-            id_internal
-          INTO _current_version, _current_position, _stream_id_internal
-          FROM public.streams
-          WHERE public.streams.id = _stream_id;
+            public.messages.position,
+            public.messages.stream_version
+          INTO _current_position, _current_version
+          FROM public.messages
+          WHERE public.messages.stream_id_internal = _stream_id_internal
+          ORDER BY public.messages.position DESC
+          LIMIT 1;
+
+          UPDATE public.streams
+          SET "version" = _current_version, "position" = _current_position
+          WHERE id_internal = _stream_id_internal;
 
           RETURN QUERY
           SELECT
@@ -204,13 +217,13 @@ BEGIN
           FETCH FROM _message_id_cursor
           INTO _message_id_record;
         END LOOP;
-        
+
         IF (cardinality(_new_stream_messages) > cardinality(_message_ids))
-          THEN
-            RAISE EXCEPTION 'WrongExpectedVersion'
-            USING HINT = 'Wrong message count';
+        THEN
+          RAISE EXCEPTION 'WrongExpectedVersion'
+          USING HINT = 'Wrong message count';
         END IF;
-        
+
         IF _message_ids <> (
           SELECT ARRAY(
               SELECT n.message_id

@@ -67,7 +67,11 @@ namespace SqlStreamStore
                 GetUtcNow = () => GetUtcNow()
             };
 
-            return new PostgresStreamStore(settings);
+            var store = new PostgresStreamStore(settings);
+
+            await store.CreateSchema();
+
+            return store;
         }
 
         public override void Dispose()

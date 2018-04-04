@@ -15,7 +15,7 @@ BEGIN
     SELECT count(*)
     FROM public.messages
     WHERE public.messages.stream_id_internal = _stream_id_internal
-          AND public.messages.created < _created_utc
+          AND public.messages.created_utc < _created_utc
   );
 END;
 $F$

@@ -105,8 +105,10 @@ BEGIN
                 _new_stream_messages [1].message_id) - 1,
             public.streams.version
         )
+      WHEN -1
+        THEN -1
       ELSE
-        public.streams.version
+        _expected_version
       END
     ),
     public.streams.position,

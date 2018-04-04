@@ -200,11 +200,9 @@ BEGIN
         THEN
           RAISE EXCEPTION 'WhyAreYouHere'; /* there is no way to get here? */
       ELSE
-        _current_version = _expected_version + 1;
-
         _message_id_cursor = (
           SELECT *
-          FROM public.read(_stream_id, cardinality(_new_stream_messages), _current_version, true, false)
+          FROM public.read(_stream_id, cardinality(_new_stream_messages), _expected_version + 1 - _success, true, false)
           OFFSET 1
         );
 

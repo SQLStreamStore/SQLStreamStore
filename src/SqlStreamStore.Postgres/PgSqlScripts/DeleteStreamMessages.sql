@@ -1,11 +1,10 @@
-CREATE OR REPLACE FUNCTION public.delete_stream_message(
+CREATE OR REPLACE FUNCTION public.delete_stream_messages(
   _stream_id                  CHAR(42),
-  _message_id                 UUID,
+  _message_ids                UUID [],
   _deleted_stream_id          CHAR(42),
   _deleted_stream_id_original VARCHAR(1000),
-  _metadata_stream_id         CHAR(42),
   _created_utc                TIMESTAMP,
-  _deleted_message            public.new_stream_message []
+  _deleted_messages           public.new_stream_message []
 )
   RETURNS VOID
 AS $F$
@@ -23,8 +22,7 @@ BEGIN
   (
     DELETE FROM public.messages
     WHERE public.messages.stream_id_internal = _stream_id_internal
-          AND public.messages.message_id = _message_id
-                                           IS TRUE
+          AND public.messages.message_id = ANY (_message_ids)
     RETURNING *
   )
   SELECT count(*)
@@ -36,10 +34,10 @@ BEGIN
     PERFORM public.append_to_stream(
         _deleted_stream_id,
         _deleted_stream_id_original,
-        _metadata_stream_id,
+        NULL :: CHAR(42),
         -2,
         _created_utc,
-        _deleted_message);
+        _deleted_messages);
   END IF;
 END;
 

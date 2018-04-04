@@ -29,13 +29,13 @@
                         transaction,
                         cancellationToken))
                     {
-                        var streamDeletedEvent = Deleted.CreateStreamDeletedMessage(
-                            streamIdInfo.PostgresqlStreamId.IdOriginal);
-
                         await AppendToStreamInternal(
                             PostgresqlStreamId.Deleted,
                             ExpectedVersion.Any,
-                            new[] { streamDeletedEvent },
+                            new[]
+                            {
+                                Deleted.CreateStreamDeletedMessage(streamIdInfo.PostgresqlStreamId.IdOriginal)
+                            },
                             transaction,
                             cancellationToken);
                     }
@@ -46,13 +46,13 @@
                         transaction,
                         cancellationToken))
                     {
-                        var streamDeletedEvent = Deleted.CreateStreamDeletedMessage(
-                            streamIdInfo.MetadataPosgresqlStreamId.IdOriginal);
-
                         await AppendToStreamInternal(
                             PostgresqlStreamId.Deleted,
                             ExpectedVersion.Any,
-                            new[] { streamDeletedEvent },
+                            new[]
+                            {
+                                Deleted.CreateStreamDeletedMessage(streamIdInfo.MetadataPosgresqlStreamId.IdOriginal)
+                            },
                             transaction,
                             cancellationToken);
                     }
@@ -80,20 +80,15 @@
 
                     return (int) result > 0;
                 }
-                catch(NpgsqlException ex)
+                catch(PostgresException ex) when(ex.IsWrongExpectedVersion())
                 {
                     await transaction.RollbackAsync(cancellationToken).NotOnCapturedContext();
 
-                    if(ex.Message.Contains("WrongExpectedVersion"))
-                    {
-                        throw new WrongExpectedVersionException(
-                            ErrorMessages.DeleteStreamFailedWrongExpectedVersion(
-                                streamId.IdOriginal,
-                                expectedVersion),
-                            ex);
-                    }
-
-                    throw;
+                    throw new WrongExpectedVersionException(
+                        ErrorMessages.DeleteStreamFailedWrongExpectedVersion(
+                            streamId.IdOriginal,
+                            expectedVersion),
+                        ex);
                 }
             }
         }
@@ -110,20 +105,31 @@
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
                 using(var transaction = connection.BeginTransaction())
-                using(var command = BuildCommand(
-                    _schema.DeleteStreamMessage,
-                    transaction,
-                    Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
-                    Parameters.MessageId(eventId),
-                    Parameters.DeletedStreamId,
-                    Parameters.DeletedStreamIdOriginal,
-                    Parameters.MetadataStreamId(streamIdInfo.MetadataPosgresqlStreamId),
-                    Parameters.CreatedUtc(_settings.GetUtcNow()),
-                    Parameters.DeletedMessage(streamIdInfo.PostgresqlStreamId, eventId)))
                 {
-                    await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                    await DeleteEventsInternal(streamIdInfo, new[] { eventId }, transaction, cancellationToken);
+
                     await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
                 }
+            }
+        }
+
+        private async Task DeleteEventsInternal(
+            StreamIdInfo streamIdInfo,
+            Guid[] eventIds,
+            NpgsqlTransaction transaction,
+            CancellationToken cancellationToken)
+        {
+            using(var command = BuildCommand(
+                _schema.DeleteStreamMessages,
+                transaction,
+                Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
+                Parameters.MessageIds(eventIds),
+                Parameters.DeletedStreamId,
+                Parameters.DeletedStreamIdOriginal,
+                Parameters.CreatedUtc(_settings.GetUtcNow()),
+                Parameters.DeletedMessages(streamIdInfo.PostgresqlStreamId, eventIds)))
+            {
+                await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
             }
         }
     }

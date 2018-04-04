@@ -42,14 +42,15 @@
             NpgsqlValue = PostgresqlStreamId.Deleted.IdOriginal
         };
 
-        public static NpgsqlParameter DeletedMessage(PostgresqlStreamId streamId, Guid messageId) => new NpgsqlParameter
-        {
-            NpgsqlValue = new[]
+        public static NpgsqlParameter DeletedMessages(PostgresqlStreamId streamId, params Guid[] messageIds) =>
+            new NpgsqlParameter
             {
-                PostgresNewStreamMessage.FromNewStreamMessage(
-                    Deleted.CreateMessageDeletedMessage(streamId.IdOriginal, messageId))
-            }
-        };
+                NpgsqlValue = Array.ConvertAll(
+                    messageIds,
+                    messageId => PostgresNewStreamMessage.FromNewStreamMessage(
+                        Deleted.CreateMessageDeletedMessage(streamId.IdOriginal, messageId))
+                )
+            };
 
         public static NpgsqlParameter ExpectedVersion(int value) => new NpgsqlParameter
         {
@@ -98,10 +99,21 @@
             Value = value
         };
 
+        public static NpgsqlParameter MessageIds(Guid[] value) => new NpgsqlParameter
+        {
+            Value = value
+        };
+
         public static NpgsqlParameter Position(long value) => new NpgsqlParameter
         {
             NpgsqlDbType = NpgsqlDbType.Bigint,
             NpgsqlValue = value
+        };
+
+        public static NpgsqlParameter OptionalMaxAge(int? value) => new NpgsqlParameter
+        {
+            NpgsqlDbType = NpgsqlDbType.Integer,
+            NpgsqlValue = value.HasValue ? (object)value.Value : DBNull.Value
         };
     }
 }

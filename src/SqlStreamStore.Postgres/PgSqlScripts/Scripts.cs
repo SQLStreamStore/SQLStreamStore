@@ -28,7 +28,7 @@
         private string AppendToStream => GetScript(nameof(AppendToStream));
 
         private string DeleteStream => GetScript(nameof(DeleteStream));
-        private string DeleteStreamMessage => GetScript(nameof(DeleteStreamMessage));
+        private string DeleteStreamMessages => GetScript(nameof(DeleteStreamMessages));
 
         private string ReadAll => GetScript(nameof(ReadAll));
         private string Read => GetScript(nameof(Read));
@@ -37,20 +37,22 @@
         private string ReadStreamMessageCount => GetScript(nameof(ReadStreamMessageCount));
         private string ReadStreamMessageBeforeCreatedCount => GetScript(nameof(ReadStreamMessageBeforeCreatedCount));
         private string ReadStreamVersionOfMessageId => GetScript(nameof(ReadStreamVersionOfMessageId));
+        private string Scavenge => GetScript(nameof(Scavenge));
 
         public string CreateSchema => string.Join(
             Environment.NewLine,
             Tables,
             AppendToStream,
             DeleteStream,
-            DeleteStreamMessage,
+            DeleteStreamMessages,
             Read,
             ReadAll,
             ReadJsonData,
             ReadHeadPosition,
             ReadStreamMessageCount,
             ReadStreamMessageBeforeCreatedCount,
-            ReadStreamVersionOfMessageId);
+            ReadStreamVersionOfMessageId,
+            Scavenge);
 
         private string GetScript(string name) => _scripts.GetOrAdd(name,
             key =>

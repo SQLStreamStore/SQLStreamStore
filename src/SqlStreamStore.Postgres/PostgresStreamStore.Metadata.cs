@@ -3,6 +3,7 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Npgsql;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Streams;
     using StreamStoreStore.Json;
@@ -19,34 +20,41 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                ReadStreamPage page;
                 using(var transaction = connection.BeginTransaction())
                 {
-                    page = await ReadStreamInternal(
-                        streamIdInfo.MetadataPosgresqlStreamId,
-                        StreamVersion.End,
-                        1,
-                        ReadDirection.Backward,
-                        true,
-                        null,
-                        transaction,
-                        cancellationToken);
+                    return await GetStreamMetadataInternal(streamIdInfo, transaction, cancellationToken);
                 }
-
-                if(page.Status == PageReadStatus.StreamNotFound)
-                {
-                    return new StreamMetadataResult(streamId, -1);
-                }
-
-                var metadataMessage = await page.Messages[0].GetJsonDataAs<MetadataMessage>(cancellationToken);
-
-                return new StreamMetadataResult(
-                    streamId,
-                    page.LastStreamVersion,
-                    metadataMessage.MaxAge,
-                    metadataMessage.MaxCount,
-                    metadataMessage.MetaJson);
             }
+        }
+
+        private async Task<StreamMetadataResult> GetStreamMetadataInternal(
+            StreamIdInfo streamIdInfo,
+            NpgsqlTransaction transaction,
+            CancellationToken cancellationToken)
+        {
+            var page = await ReadStreamInternal(
+                streamIdInfo.MetadataPosgresqlStreamId,
+                StreamVersion.End,
+                1,
+                ReadDirection.Backward,
+                true,
+                null,
+                transaction,
+                cancellationToken);
+
+            if(page.Status == PageReadStatus.StreamNotFound)
+            {
+                return new StreamMetadataResult(streamIdInfo.PostgresqlStreamId.IdOriginal, -1);
+            }
+
+            var metadataMessage = await page.Messages[0].GetJsonDataAs<MetadataMessage>(cancellationToken);
+
+            return new StreamMetadataResult(
+                streamIdInfo.PostgresqlStreamId.IdOriginal,
+                page.LastStreamVersion,
+                metadataMessage.MaxAge,
+                metadataMessage.MaxCount,
+                metadataMessage.MetaJson);
         }
 
         protected override async Task<SetStreamMetadataResult> SetStreamMetadataInternal(
@@ -58,6 +66,15 @@
             CancellationToken cancellationToken)
         {
             AppendResult result;
+
+            var metadata = new MetadataMessage
+            {
+                StreamId = streamId,
+                MaxAge = maxAge,
+                MaxCount = maxCount,
+                MetaJson = metadataJson
+            };
+
             var streamIdInfo = new StreamIdInfo(streamId);
 
             using(var connection = _createConnection())
@@ -66,28 +83,22 @@
 
                 using(var transaction = connection.BeginTransaction())
                 {
-                    var json = SimpleJson.SerializeObject(new MetadataMessage
-                    {
-                        StreamId = streamId,
-                        MaxAge = maxAge,
-                        MaxCount = maxCount,
-                        MetaJson = metadataJson
-                    });
+                    var json = SimpleJson.SerializeObject(metadata);
 
                     var metadataMessage = new NewStreamMessage(Guid.NewGuid(), "$stream-metadata", json);
 
-                    result = await AppendToStreamInternal(
+                    (result, _) = await AppendToStreamInternal(
                         streamIdInfo.MetadataPosgresqlStreamId,
                         expectedStreamMetadataVersion,
                         new[] { metadataMessage },
                         transaction,
                         cancellationToken);
-
+                                        
                     await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
                 }
-
-                return new SetStreamMetadataResult(result.CurrentVersion);
             }
+
+            return new SetStreamMetadataResult(result.CurrentVersion);
         }
     }
 }

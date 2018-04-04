@@ -15,8 +15,7 @@ DECLARE
   _current_position            BIGINT;
   _stream_id_internal          INT;
   _metadata_stream_id_internal INT;
-  _current_message             public.new_stream_message;
-  _stream_created              INT;
+  _success                     INT;
   _message_id_record           RECORD;
   _message_id_cursor           REFCURSOR;
   _message_ids                 UUID [] = '{}' :: UUID [];
@@ -45,9 +44,9 @@ BEGIN
           _stream_id_original
       ON CONFLICT DO NOTHING;
 
-      GET DIAGNOSTICS _stream_created = ROW_COUNT;
+      GET DIAGNOSTICS _success = ROW_COUNT;
 
-      IF _stream_created = 0 AND cardinality(_new_stream_messages) > 0
+      IF _success = 0 AND cardinality(_new_stream_messages) > 0
       THEN
         _message_id_cursor = (
           SELECT *
@@ -104,7 +103,7 @@ BEGIN
   FROM public.streams
   WHERE public.streams.id = _stream_id;
 
-  IF _expected_version >= 0 AND (_stream_id_internal IS NULL OR _current_version != _expected_version)
+  IF (_expected_version >= 0 AND _stream_id_internal IS NULL)
   THEN
     RAISE EXCEPTION 'WrongExpectedVersion';
   END IF;
@@ -129,7 +128,121 @@ BEGIN
         m.type,
         m.json_data,
         m.json_metadata
-      FROM unnest(_new_stream_messages) m;
+      FROM unnest(_new_stream_messages) m
+    ON CONFLICT DO NOTHING;
+    GET DIAGNOSTICS _success = ROW_COUNT;
+
+    IF (_success = 0)
+    THEN
+      IF (_expected_version = -2) /* ExpectedVersion.Any */
+      THEN
+        _current_version = public.read_stream_version_of_message_id(
+            _stream_id_internal,
+            _new_stream_messages [1].message_id);
+
+        _message_id_cursor = (
+          SELECT *
+          FROM public.read(_stream_id, cardinality(_new_stream_messages), _current_version, true, false)
+          OFFSET 1
+        );
+
+        FETCH FROM _message_id_cursor
+        INTO _message_id_record;
+
+        WHILE FOUND LOOP
+          _message_ids = array_append(_message_ids, _message_id_record.message_id);
+
+          FETCH FROM _message_id_cursor
+          INTO _message_id_record;
+        END LOOP;
+        IF _message_ids <> (
+          SELECT ARRAY(
+              SELECT n.message_id
+              FROM UNNEST(_new_stream_messages) n
+          ))
+        THEN
+          RAISE EXCEPTION 'WrongExpectedVersion';
+        ELSE
+          SELECT
+            version,
+            position,
+            id_internal
+          INTO _current_version, _current_position, _stream_id_internal
+          FROM public.streams
+          WHERE public.streams.id = _stream_id;
+
+          RETURN QUERY
+          SELECT
+            _current_version,
+            _current_position,
+            public.messages.json_data
+          FROM public.messages
+          WHERE public.messages.stream_id_internal = _metadata_stream_id_internal
+                OR _metadata_stream_id_internal IS NULL
+          ORDER BY position DESC
+          LIMIT 1;
+          RETURN;
+        END IF;
+      ELSEIF _expected_version = -1 /* ExpectedVersion.NoStream */
+        THEN
+          RAISE EXCEPTION 'WhyAreYouHere'; /* there is no way to get here? */
+      ELSE
+        _current_version = _expected_version + 1;
+
+        _message_id_cursor = (
+          SELECT *
+          FROM public.read(_stream_id, cardinality(_new_stream_messages), _current_version, true, false)
+          OFFSET 1
+        );
+
+        FETCH FROM _message_id_cursor
+        INTO _message_id_record;
+
+        WHILE FOUND LOOP
+          _message_ids = array_append(_message_ids, _message_id_record.message_id);
+
+          FETCH FROM _message_id_cursor
+          INTO _message_id_record;
+        END LOOP;
+        
+        IF (cardinality(_new_stream_messages) > cardinality(_message_ids))
+          THEN
+            RAISE EXCEPTION 'WrongExpectedVersion'
+            USING HINT = 'Wrong message count';
+        END IF;
+        
+        IF _message_ids <> (
+          SELECT ARRAY(
+              SELECT n.message_id
+              FROM UNNEST(_new_stream_messages) n
+          ))
+        THEN
+          RAISE EXCEPTION 'WrongExpectedVersion'
+          USING HINT = 'Message Ids did not match ' || array_to_string(_message_ids, ',');
+        ELSE
+          SELECT
+            version,
+            position,
+            id_internal
+          INTO _current_version, _current_position, _stream_id_internal
+          FROM public.streams
+          WHERE public.streams.id = _stream_id;
+
+          RETURN QUERY
+          SELECT
+            _current_version,
+            _current_position,
+            public.messages.json_data
+          FROM public.messages
+          WHERE public.messages.stream_id_internal = _metadata_stream_id_internal
+                OR _metadata_stream_id_internal IS NULL
+          ORDER BY position DESC
+          LIMIT 1;
+          RETURN;
+        END IF;
+      END IF;
+    END IF;
+
     SELECT
       COALESCE(public.messages.position, -1),
       COALESCE(public.messages.stream_version, -1)

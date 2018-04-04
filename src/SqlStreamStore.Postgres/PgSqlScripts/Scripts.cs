@@ -36,7 +36,7 @@
         private string ReadHeadPosition => GetScript(nameof(ReadHeadPosition));
         private string ReadStreamMessageCount => GetScript(nameof(ReadStreamMessageCount));
         private string ReadStreamMessageBeforeCreatedCount => GetScript(nameof(ReadStreamMessageBeforeCreatedCount));
-
+        private string ReadStreamVersionOfMessageId => GetScript(nameof(ReadStreamVersionOfMessageId));
 
         public string CreateSchema => string.Join(
             Environment.NewLine,
@@ -49,7 +49,8 @@
             ReadJsonData,
             ReadHeadPosition,
             ReadStreamMessageCount,
-            ReadStreamMessageBeforeCreatedCount);
+            ReadStreamMessageBeforeCreatedCount,
+            ReadStreamVersionOfMessageId);
 
         private string GetScript(string name) => _scripts.GetOrAdd(name,
             key =>

@@ -1,6 +1,5 @@
 ﻿namespace SqlStreamStore
 {
-    using System;
     using System.Data;
     using System.Threading;
     using System.Threading.Tasks;
@@ -66,7 +65,7 @@
                         return new AppendResult(reader.GetInt32(0), reader.GetInt64(1));
                     }
                 }
-                catch(NpgsqlException ex) when(ex.IsWrongExpectedVersion())
+                catch(PostgresException ex) when(ex.IsWrongExpectedVersion())
                 {
                     await transaction.RollbackAsync(cancellationToken).NotOnCapturedContext();
                     
@@ -74,24 +73,6 @@
                         ErrorMessages.AppendFailedWrongExpectedVersion(streamId.IdOriginal, expectedVersion),
                         ex);
                 }
-            }
-        }
-
-        private async Task<int> GetStreamVersionOfMessageId(
-            PostgresqlStreamId streamId,
-            Guid messageId,
-            NpgsqlTransaction transaction,
-            CancellationToken cancellationToken)
-        {
-            using(var command = BuildCommand(
-                _schema.ReadStreamVersionOfMessageId,
-                transaction,
-                Parameters.StreamId(streamId),
-                Parameters.MessageId(messageId)))
-            {
-                var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
-
-                return (int) result;
             }
         }
     }

@@ -4,12 +4,7 @@
 
     internal static class NpgsqlExceptionExtensions
     {
-        public static bool IsWrongExpectedVersion(this NpgsqlException exception)
-            => exception.Message.EndsWith("WrongExpectedVersion");
-        
-        public static bool IsUniqueConstraintViolation(this NpgsqlException exception, string indexName)
-            => exception.IsUniqueConstraintViolation() && exception.Message.Contains(indexName);
-
-        public static bool IsUniqueConstraintViolation(this NpgsqlException exception) => exception.ErrorCode == 23505;
+        public static bool IsWrongExpectedVersion(this PostgresException exception)
+            => exception.MessageText.Equals("WrongExpectedVersion");
     }
 }

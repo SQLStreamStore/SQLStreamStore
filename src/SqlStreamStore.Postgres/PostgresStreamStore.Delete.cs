@@ -29,7 +29,8 @@
                         transaction,
                         cancellationToken))
                     {
-                        var streamDeletedEvent = Deleted.CreateStreamDeletedMessage(streamId);
+                        var streamDeletedEvent = Deleted.CreateStreamDeletedMessage(
+                            streamIdInfo.PostgresqlStreamId.IdOriginal);
 
                         await AppendToStreamInternal(
                             PostgresqlStreamId.Deleted,
@@ -39,11 +40,22 @@
                             cancellationToken);
                     }
 
-                    await DeleteStreamInternal(
+                    if(await DeleteStreamInternal(
                         streamIdInfo.MetadataPosgresqlStreamId,
                         ExpectedVersion.Any,
                         transaction,
-                        cancellationToken);
+                        cancellationToken))
+                    {
+                        var streamDeletedEvent = Deleted.CreateStreamDeletedMessage(
+                            streamIdInfo.MetadataPosgresqlStreamId.IdOriginal);
+
+                        await AppendToStreamInternal(
+                            PostgresqlStreamId.Deleted,
+                            ExpectedVersion.Any,
+                            new[] { streamDeletedEvent },
+                            transaction,
+                            cancellationToken);
+                    }
 
                     await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
                 }

@@ -12,13 +12,13 @@ namespace SqlStreamStore
         private readonly string _schema;
         private readonly Guid _databaseId;
         private readonly DatabaseManager _databaseManager;
-        
+
         public PostgresStreamStoreFixture(string schema, ITestOutputHelper testOutputHelper)
         {
             _schema = schema;
 
             _databaseId = Guid.NewGuid();
-            
+
             _databaseManager = new DatabaseManager(testOutputHelper, _databaseId);
         }
 
@@ -44,7 +44,7 @@ namespace SqlStreamStore
         public async Task<IStreamStore> GetStreamStore(string schema)
         {
             await CreateDatabase();
-            
+
             var settings = new PostgresStreamStoreSettings(ConnectionString)
             {
                 Schema = schema,
@@ -108,7 +108,7 @@ namespace SqlStreamStore
                 Username = "postgres",
                 Host = "localhost"
             };
-            
+
             private string DefaultConnectionString => new NpgsqlConnectionStringBuilder(ConnectionString)
             {
                 Database = null
@@ -116,8 +116,10 @@ namespace SqlStreamStore
 
             static DatabaseManager()
             {
+#if DEBUG
                 NpgsqlLogManager.IsParameterLoggingEnabled = true;
                 NpgsqlLogManager.Provider = new XunitNpgsqlLogProvider();
+#endif
             }
 
             public DatabaseManager(ITestOutputHelper output, Guid databaseId, int tcpPort = 5432)
@@ -202,7 +204,10 @@ namespace SqlStreamStore
                     {
                         connection.Open();
 
-                        using(var command = new NpgsqlCommand($"SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity  WHERE pg_stat_activity.datname = '{_databaseName}' AND pid <> pg_backend_pid()", connection))
+                        using(var command =
+                            new NpgsqlCommand(
+                                $"SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity  WHERE pg_stat_activity.datname = '{_databaseName}' AND pid <> pg_backend_pid()",
+                                connection))
                         {
                             command.ExecuteNonQuery();
                         }
@@ -219,7 +224,7 @@ namespace SqlStreamStore
                 }
             }
         }
-        
+
         private class XunitNpgsqlLogger : NpgsqlLogger
         {
             private readonly ITestOutputHelper _output;
@@ -235,14 +240,17 @@ namespace SqlStreamStore
 
             public override void Log(NpgsqlLogLevel level, int connectorId, string msg, Exception exception = null)
             {
-                _output.WriteLine($@"[{level:G}] [{_name}] (Connector Id: {connectorId}); {msg}; (Exception: {exception?.ToString() ?? "<none>"})");
+                _output.WriteLine(
+                    $@"[{level:G}] [{_name}] (Connector Id: {connectorId}); {msg}; (Exception: {
+                            exception?.ToString() ?? "<none>"
+                        })");
             }
         }
 
         private class XunitNpgsqlLogProvider : INpgsqlLoggingProvider
         {
             internal static ITestOutputHelper s_CurrentOutput;
-            
+
             public NpgsqlLogger CreateLogger(string name) => new XunitNpgsqlLogger(s_CurrentOutput, name);
         }
     }

@@ -67,7 +67,7 @@ BEGIN
         IF _message_ids <> (
           SELECT ARRAY(
               SELECT n.message_id
-              FROM UNNEST(_new_stream_messages) n
+              FROM unnest(_new_stream_messages) n
           ))
         THEN
           RAISE EXCEPTION 'WrongExpectedVersion';
@@ -150,7 +150,7 @@ BEGIN
       THEN
         _message_id_cursor = (
           SELECT *
-          FROM public.read(_stream_id, cardinality(_new_stream_messages), _current_version + 1, true, false)
+          FROM public.read(_stream_id, cardinality(_new_stream_messages), _current_version + 1 - _success, true, false)
           OFFSET 1
         );
 
@@ -166,7 +166,7 @@ BEGIN
         IF _message_ids <> (
           SELECT ARRAY(
               SELECT n.message_id
-              FROM UNNEST(_new_stream_messages) n
+              FROM unnest(_new_stream_messages) n
           ))
         THEN
           RAISE EXCEPTION 'WrongExpectedVersion';
@@ -227,7 +227,7 @@ BEGIN
         IF _message_ids <> (
           SELECT ARRAY(
               SELECT n.message_id
-              FROM UNNEST(_new_stream_messages) n
+              FROM unnest(_new_stream_messages) n
           ))
         THEN
           RAISE EXCEPTION 'WrongExpectedVersion'

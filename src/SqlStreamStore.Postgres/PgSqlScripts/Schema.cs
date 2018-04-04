@@ -11,8 +11,9 @@
         public string NewStreamMessage => $"{_schema}.new_stream_message";
         
         public string AppendToStream => $"{_schema}.append_to_stream";
+        public string Scavenge => $"{_schema}.scavenge";
         public string DeleteStream => $"{_schema}.delete_stream";
-        public string DeleteStreamMessage => $"{_schema}.delete_stream_message";
+        public string DeleteStreamMessages => $"{_schema}.delete_stream_messages";
         public string Read => $"{_schema}.read";
         public string ReadAll => $"{_schema}.read_all";
         public string ReadAllHeadPosition => $"{_schema}.read_head_position";

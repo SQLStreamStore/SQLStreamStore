@@ -7,6 +7,7 @@
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Streams;
+    using StreamStoreStore.Json;
 
     partial class PostgresStreamStore
     {
@@ -16,6 +17,8 @@
             NewStreamMessage[] messages,
             CancellationToken cancellationToken)
         {
+            AppendResult result;
+            MetadataMessage metadata;
             var streamIdInfo = new StreamIdInfo(streamId);
 
             using(var connection = _createConnection())
@@ -23,21 +26,23 @@
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                 using(var transaction = connection.BeginTransaction(IsolationLevel.ReadCommitted))
                 {
-                    var result = await AppendToStreamInternal(
+                    (result, metadata) = await AppendToStreamInternal(
                         streamIdInfo.PostgresqlStreamId,
                         expectedVersion,
                         messages,
                         transaction,
                         cancellationToken);
-
+                    
                     await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
-
-                    return result;
                 }
             }
+            
+            await TryScavenge(streamIdInfo, metadata?.MaxCount, cancellationToken).NotOnCapturedContext();
+                    
+            return result;
         }
 
-        private async Task<AppendResult> AppendToStreamInternal(
+        private async Task<(AppendResult, MetadataMessage)> AppendToStreamInternal(
             PostgresqlStreamId streamId,
             int expectedVersion,
             NewStreamMessage[] messages,
@@ -62,7 +67,11 @@
                     {
                         await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
 
-                        return new AppendResult(reader.GetInt32(0), reader.GetInt64(1));
+                        var jsonData = reader.GetValue(2) as string;
+
+                        var metadata = SimpleJson.DeserializeObject<MetadataMessage>(jsonData);
+                        
+                        return (new AppendResult(reader.GetInt32(0), reader.GetInt64(1)), metadata);
                     }
                 }
                 catch(PostgresException ex) when(ex.IsWrongExpectedVersion())

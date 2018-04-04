@@ -11,20 +11,24 @@ CREATE OR REPLACE FUNCTION public.append_to_stream(
     json_data        VARCHAR
   ) AS $F$
 DECLARE
-  _current_version             INT;
-  _current_position            BIGINT;
-  _stream_id_internal          INT;
-  _metadata_stream_id_internal INT;
-  _success                     INT;
-  _message_id_record           RECORD;
-  _message_id_cursor           REFCURSOR;
-  _message_ids                 UUID [] = '{}' :: UUID [];
+  _current_version    INT;
+  _current_position   BIGINT;
+  _stream_id_internal INT;
+  _stream_metadata    VARCHAR;
+  _success            INT;
+  _message_id_record  RECORD;
+  _message_id_cursor  REFCURSOR;
+  _message_ids        UUID [] = '{}' :: UUID [];
 BEGIN
 
-  SELECT id_internal
-  INTO _metadata_stream_id_internal
-  FROM public.streams
-  WHERE id = _metadata_stream_id;
+  SELECT public.messages.json_data
+  INTO _stream_metadata
+  FROM public.messages
+    JOIN public.streams
+      ON public.streams.id_internal = public.messages.stream_id_internal
+  WHERE public.streams.id = _metadata_stream_id
+  ORDER BY public.messages.position DESC
+  LIMIT 1;
 
   IF _expected_version = -2 /* ExpectedVersion.Any */
   THEN
@@ -84,12 +88,7 @@ BEGIN
           SELECT
             _current_version,
             _current_position,
-            public.messages.json_data
-          FROM public.messages
-          WHERE public.messages.stream_id_internal = _metadata_stream_id_internal
-                OR _metadata_stream_id_internal IS NULL
-          ORDER BY position DESC
-          LIMIT 1;
+            _stream_metadata;
           RETURN;
         END IF;
       END IF;
@@ -190,12 +189,7 @@ BEGIN
           SELECT
             _current_version,
             _current_position,
-            public.messages.json_data
-          FROM public.messages
-          WHERE public.messages.stream_id_internal = _metadata_stream_id_internal
-                OR _metadata_stream_id_internal IS NULL
-          ORDER BY position DESC
-          LIMIT 1;
+            _stream_metadata;
           RETURN;
         END IF;
       ELSEIF _expected_version = -1 /* ExpectedVersion.NoStream */
@@ -245,12 +239,7 @@ BEGIN
           SELECT
             _current_version,
             _current_position,
-            public.messages.json_data
-          FROM public.messages
-          WHERE public.messages.stream_id_internal = _metadata_stream_id_internal
-                OR _metadata_stream_id_internal IS NULL
-          ORDER BY position DESC
-          LIMIT 1;
+            _stream_metadata;
           RETURN;
         END IF;
       END IF;
@@ -273,12 +262,7 @@ BEGIN
     SELECT
       _current_version,
       _current_position,
-      public.messages.json_data
-    FROM public.messages
-    WHERE public.messages.stream_id_internal = _metadata_stream_id_internal
-          OR _metadata_stream_id_internal IS NULL
-    ORDER BY position DESC
-    LIMIT 1;
+      _stream_metadata;
 
   ELSE
     RETURN QUERY

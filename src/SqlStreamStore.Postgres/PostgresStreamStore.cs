@@ -1,12 +1,14 @@
 ﻿namespace SqlStreamStore
 {
     using System;
+    using System.Collections.Generic;
     using System.Data;
     using System.Threading;
     using System.Threading.Tasks;
     using Npgsql;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.PgSqlScripts;
+    using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
 
     public partial class PostgresStreamStore : StreamStoreBase
@@ -153,6 +155,52 @@
             }
 
             return command;
+        }
+
+        private async Task<int> TryScavenge(
+            StreamIdInfo streamIdInfo,
+            int? maxCount,
+            CancellationToken cancellationToken)
+        {
+            if(streamIdInfo.PostgresqlStreamId == PostgresqlStreamId.Deleted)
+            {
+                return -1;
+            }
+            
+            using(var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                using(var transaction = connection.BeginTransaction())
+                {
+                    var deletedMessageIds = new List<Guid>();
+                    using(var command = BuildCommand(
+                        _schema.Scavenge,
+                        transaction,
+                        Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
+                        Parameters.OptionalMaxAge(maxCount)))
+                    using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
+                    {
+                        while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                        {
+                            deletedMessageIds.Add(reader.GetGuid(0));
+                        }
+                    }
+
+                    if(deletedMessageIds.Count > 0)
+                    {
+                        await DeleteEventsInternal(
+                            streamIdInfo,
+                            deletedMessageIds.ToArray(),
+                            transaction,
+                            cancellationToken).NotOnCapturedContext();
+                    }
+
+                    await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+
+                    return deletedMessageIds.Count;
+                }
+            }
         }
     }
 }

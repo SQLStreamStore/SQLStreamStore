@@ -8,7 +8,6 @@
     using Npgsql;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.PgSqlScripts;
-    using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
 
     public partial class PostgresStreamStore : StreamStoreBase

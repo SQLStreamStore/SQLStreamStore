@@ -127,6 +127,7 @@ BEGIN
     THEN
       IF (_expected_version = -2) /* ExpectedVersion.Any */
       THEN
+
         PERFORM public.enforce_idempotent_append(
             _stream_id,
             _current_version + 1 - _success,
@@ -134,25 +135,6 @@ BEGIN
             _new_stream_messages
         );
 
-        SELECT
-          public.messages.position,
-          public.messages.stream_version
-        INTO _current_position, _current_version
-        FROM public.messages
-        WHERE public.messages.stream_id_internal = _stream_id_internal
-        ORDER BY public.messages.position DESC
-        LIMIT 1;
-
-        UPDATE public.streams
-        SET "version" = _current_version, "position" = _current_position
-        WHERE id_internal = _stream_id_internal;
-
-        RETURN QUERY
-        SELECT
-          _current_version,
-          _current_position,
-          _stream_metadata;
-        RETURN;
       ELSEIF _expected_version = -1 /* ExpectedVersion.NoStream */
         THEN
           RAISE EXCEPTION 'WhyAreYouHere'; /* there is no way to get here? */

@@ -25,12 +25,7 @@
                 settings.LogName)
         {
             _settings = settings;
-            _createConnection = () =>
-            {
-                var connection = new NpgsqlConnection(settings.ConnectionString);
-
-                return connection;
-            };
+            _createConnection = () => new NpgsqlConnection(settings.ConnectionString);
             _streamStoreNotifier = new Lazy<IStreamStoreNotifier>(() =>
             {
                 if(settings.CreateStreamStoreNotifier == null)
@@ -142,6 +137,9 @@
             CancellationToken cancellationToken)
         {
             await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+            
+            connection.ReloadTypes();
+            connection.TypeMapper.MapComposite<PostgresNewStreamMessage>(_schema.NewStreamMessage);
 
             return connection.BeginTransaction(isolationLevel);
         }

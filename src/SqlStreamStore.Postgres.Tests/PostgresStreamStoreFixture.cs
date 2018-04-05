@@ -112,7 +112,9 @@ namespace SqlStreamStore
                     : null,
                 Port = _tcpPort,
                 Username = "postgres",
-                Host = "localhost"
+                Host = "localhost",
+                Pooling = true,
+                MaxPoolSize = 1024
             };
 
             private string DefaultConnectionString => new NpgsqlConnectionStringBuilder(ConnectionString)

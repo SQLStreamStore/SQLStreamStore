@@ -146,20 +146,16 @@
             var streamIdInfo = new StreamIdInfo(streamId);
 
             using(var connection = _createConnection())
+            using(var transaction = await BeginTransaction(connection, cancellationToken))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
-                using(var transaction = connection.BeginTransaction())
-                {
-                    return await ReadStreamInternal(streamIdInfo.PostgresqlStreamId,
-                        start,
-                        count,
-                        ReadDirection.Forward,
-                        prefetch,
-                        readNext,
-                        transaction,
-                        cancellationToken);
-                }
+                return await ReadStreamInternal(streamIdInfo.PostgresqlStreamId,
+                    start,
+                    count,
+                    ReadDirection.Forward,
+                    prefetch,
+                    readNext,
+                    transaction,
+                    cancellationToken);
             }
         }
 
@@ -174,20 +170,16 @@
             var streamIdInfo = new StreamIdInfo(streamId);
 
             using(var connection = _createConnection())
+            using(var transaction = await BeginTransaction(connection, cancellationToken))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
-                using(var transaction = connection.BeginTransaction())
-                {
-                    return await ReadStreamInternal(streamIdInfo.PostgresqlStreamId,
-                        fromVersionInclusive,
-                        count,
-                        ReadDirection.Backward,
-                        prefetch,
-                        readNext,
-                        transaction,
-                        cancellationToken);
-                }
+                return await ReadStreamInternal(streamIdInfo.PostgresqlStreamId,
+                    fromVersionInclusive,
+                    count,
+                    ReadDirection.Backward,
+                    prefetch,
+                    readNext,
+                    transaction,
+                    cancellationToken);
             }
         }
 
@@ -222,16 +214,12 @@
         protected override async Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken)
         {
             using(var connection = _createConnection())
+            using(var transaction = await BeginTransaction(connection, cancellationToken))
+            using(var command = BuildCommand(_schema.ReadAllHeadPosition, transaction))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
 
-                using(var transaction = connection.BeginTransaction())
-                using(var command = BuildCommand(_schema.ReadAllHeadPosition, transaction))
-                {
-                    var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
-
-                    return result == DBNull.Value ? Position.End : (long) result;
-                }
+                return result == DBNull.Value ? Position.End : (long) result;
             }
         }
     }

@@ -18,47 +18,43 @@
             var streamIdInfo = new StreamIdInfo(streamId);
 
             using(var connection = _createConnection())
+            using(var transaction = await BeginTransaction(connection, cancellationToken))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
-                using(var transaction = connection.BeginTransaction())
+                if(await DeleteStreamInternal(
+                    streamIdInfo.PostgresqlStreamId,
+                    expectedVersion,
+                    transaction,
+                    cancellationToken))
                 {
-                    if(await DeleteStreamInternal(
-                        streamIdInfo.PostgresqlStreamId,
-                        expectedVersion,
-                        transaction,
-                        cancellationToken))
-                    {
-                        await AppendToStreamInternal(
-                            PostgresqlStreamId.Deleted,
-                            ExpectedVersion.Any,
-                            new[]
-                            {
-                                Deleted.CreateStreamDeletedMessage(streamIdInfo.PostgresqlStreamId.IdOriginal)
-                            },
-                            transaction,
-                            cancellationToken);
-                    }
-
-                    if(await DeleteStreamInternal(
-                        streamIdInfo.MetadataPosgresqlStreamId,
+                    await AppendToStreamInternal(
+                        PostgresqlStreamId.Deleted,
                         ExpectedVersion.Any,
+                        new[]
+                        {
+                            Deleted.CreateStreamDeletedMessage(streamIdInfo.PostgresqlStreamId.IdOriginal)
+                        },
                         transaction,
-                        cancellationToken))
-                    {
-                        await AppendToStreamInternal(
-                            PostgresqlStreamId.Deleted,
-                            ExpectedVersion.Any,
-                            new[]
-                            {
-                                Deleted.CreateStreamDeletedMessage(streamIdInfo.MetadataPosgresqlStreamId.IdOriginal)
-                            },
-                            transaction,
-                            cancellationToken);
-                    }
-
-                    await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                        cancellationToken);
                 }
+
+                if(await DeleteStreamInternal(
+                    streamIdInfo.MetadataPosgresqlStreamId,
+                    ExpectedVersion.Any,
+                    transaction,
+                    cancellationToken))
+                {
+                    await AppendToStreamInternal(
+                        PostgresqlStreamId.Deleted,
+                        ExpectedVersion.Any,
+                        new[]
+                        {
+                            Deleted.CreateStreamDeletedMessage(streamIdInfo.MetadataPosgresqlStreamId.IdOriginal)
+                        },
+                        transaction,
+                        cancellationToken);
+                }
+
+                await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
             }
         }
 
@@ -101,15 +97,11 @@
             var streamIdInfo = new StreamIdInfo(streamId);
 
             using(var connection = _createConnection())
+            using(var transaction = await BeginTransaction(connection, cancellationToken))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await DeleteEventsInternal(streamIdInfo, new[] { eventId }, transaction, cancellationToken);
 
-                using(var transaction = connection.BeginTransaction())
-                {
-                    await DeleteEventsInternal(streamIdInfo, new[] { eventId }, transaction, cancellationToken);
-
-                    await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
-                }
+                await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
             }
         }
 

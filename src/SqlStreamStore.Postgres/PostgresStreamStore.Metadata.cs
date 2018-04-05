@@ -17,13 +17,9 @@
             var streamIdInfo = new StreamIdInfo(streamId);
 
             using(var connection = _createConnection())
+            using(var transaction = await BeginTransaction(connection, cancellationToken))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
-                using(var transaction = connection.BeginTransaction())
-                {
-                    return await GetStreamMetadataInternal(streamIdInfo, transaction, cancellationToken);
-                }
+                return await GetStreamMetadataInternal(streamIdInfo, transaction, cancellationToken);
             }
         }
 
@@ -78,24 +74,20 @@
             var streamIdInfo = new StreamIdInfo(streamId);
 
             using(var connection = _createConnection())
+            using(var transaction = await BeginTransaction(connection, cancellationToken))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                var json = SimpleJson.SerializeObject(metadata);
 
-                using(var transaction = connection.BeginTransaction())
-                {
-                    var json = SimpleJson.SerializeObject(metadata);
+                var metadataMessage = new NewStreamMessage(Guid.NewGuid(), "$stream-metadata", json);
 
-                    var metadataMessage = new NewStreamMessage(Guid.NewGuid(), "$stream-metadata", json);
+                (result, _) = await AppendToStreamInternal(
+                    streamIdInfo.MetadataPosgresqlStreamId,
+                    expectedStreamMetadataVersion,
+                    new[] { metadataMessage },
+                    transaction,
+                    cancellationToken);
 
-                    (result, _) = await AppendToStreamInternal(
-                        streamIdInfo.MetadataPosgresqlStreamId,
-                        expectedStreamMetadataVersion,
-                        new[] { metadataMessage },
-                        transaction,
-                        cancellationToken);
-                                        
-                    await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
-                }
+                await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
             }
 
             return new SetStreamMetadataResult(result.CurrentVersion);

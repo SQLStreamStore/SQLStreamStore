@@ -45,8 +45,6 @@
             NpgsqlTransaction transaction,
             CancellationToken cancellationToken)
         {
-            transaction.Connection.MapComposite<PostgresNewStreamMessage>(_schema.NewStreamMessage);
-
             using(var command = BuildCommand(
                 _schema.AppendToStream,
                 transaction,

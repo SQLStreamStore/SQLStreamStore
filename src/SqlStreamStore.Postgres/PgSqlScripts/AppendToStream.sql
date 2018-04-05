@@ -16,9 +16,6 @@ DECLARE
   _stream_id_internal INT;
   _stream_metadata    VARCHAR;
   _success            INT;
-  _message_id_record  RECORD;
-  _message_id_cursor  REFCURSOR;
-  _message_ids        UUID [] = '{}' :: UUID [];
 BEGIN
 
   SELECT public.messages.json_data
@@ -52,45 +49,26 @@ BEGIN
 
       IF _success = 0 AND cardinality(_new_stream_messages) > 0
       THEN
-        _message_id_cursor = (
-          SELECT *
-          FROM public.read(_stream_id, cardinality(_new_stream_messages), 0, true, false)
-          OFFSET 1
+        PERFORM public.enforce_idempotent_append(
+            _stream_id,
+            0,
+            false,
+            _new_stream_messages
         );
+        SELECT
+          version,
+          position,
+          id_internal
+        INTO _current_version, _current_position, _stream_id_internal
+        FROM public.streams
+        WHERE public.streams.id = _stream_id;
 
-        FETCH FROM _message_id_cursor
-        INTO _message_id_record;
-
-        WHILE FOUND LOOP
-          _message_ids = array_append(_message_ids, _message_id_record.message_id);
-
-          FETCH FROM _message_id_cursor
-          INTO _message_id_record;
-        END LOOP;
-
-        IF _message_ids <> (
-          SELECT ARRAY(
-              SELECT n.message_id
-              FROM unnest(_new_stream_messages) n
-          ))
-        THEN
-          RAISE EXCEPTION 'WrongExpectedVersion';
-        ELSE
-          SELECT
-            version,
-            position,
-            id_internal
-          INTO _current_version, _current_position, _stream_id_internal
-          FROM public.streams
-          WHERE public.streams.id = _stream_id;
-
-          RETURN QUERY
-          SELECT
-            _current_version,
-            _current_position,
-            _stream_metadata;
-          RETURN;
-        END IF;
+        RETURN QUERY
+        SELECT
+          _current_version,
+          _current_position,
+          _stream_metadata;
+        RETURN;
       END IF;
   END IF;
 
@@ -149,99 +127,56 @@ BEGIN
     THEN
       IF (_expected_version = -2) /* ExpectedVersion.Any */
       THEN
-        _message_id_cursor = (
-          SELECT *
-          FROM public.read(_stream_id, cardinality(_new_stream_messages), _current_version + 1 - _success, true, false)
-          OFFSET 1
+        PERFORM public.enforce_idempotent_append(
+            _stream_id,
+            _current_version + 1 - _success,
+            false,
+            _new_stream_messages
         );
 
-        FETCH FROM _message_id_cursor
-        INTO _message_id_record;
+        SELECT
+          public.messages.position,
+          public.messages.stream_version
+        INTO _current_position, _current_version
+        FROM public.messages
+        WHERE public.messages.stream_id_internal = _stream_id_internal
+        ORDER BY public.messages.position DESC
+        LIMIT 1;
 
-        WHILE FOUND LOOP
-          _message_ids = array_append(_message_ids, _message_id_record.message_id);
+        UPDATE public.streams
+        SET "version" = _current_version, "position" = _current_position
+        WHERE id_internal = _stream_id_internal;
 
-          FETCH FROM _message_id_cursor
-          INTO _message_id_record;
-        END LOOP;
-        IF _message_ids <> (
-          SELECT ARRAY(
-              SELECT n.message_id
-              FROM unnest(_new_stream_messages) n
-          ))
-        THEN
-          RAISE EXCEPTION 'WrongExpectedVersion';
-        ELSE
-          SELECT
-            public.messages.position,
-            public.messages.stream_version
-          INTO _current_position, _current_version
-          FROM public.messages
-          WHERE public.messages.stream_id_internal = _stream_id_internal
-          ORDER BY public.messages.position DESC
-          LIMIT 1;
-
-          UPDATE public.streams
-          SET "version" = _current_version, "position" = _current_position
-          WHERE id_internal = _stream_id_internal;
-
-          RETURN QUERY
-          SELECT
-            _current_version,
-            _current_position,
-            _stream_metadata;
-          RETURN;
-        END IF;
+        RETURN QUERY
+        SELECT
+          _current_version,
+          _current_position,
+          _stream_metadata;
+        RETURN;
       ELSEIF _expected_version = -1 /* ExpectedVersion.NoStream */
         THEN
           RAISE EXCEPTION 'WhyAreYouHere'; /* there is no way to get here? */
       ELSE
-        _message_id_cursor = (
-          SELECT *
-          FROM public.read(_stream_id, cardinality(_new_stream_messages), _expected_version + 1 - _success, true, false)
-          OFFSET 1
+        PERFORM public.enforce_idempotent_append(
+            _stream_id,
+            _expected_version + 1 - _success,
+            true,
+            _new_stream_messages
         );
+        SELECT
+          version,
+          position,
+          id_internal
+        INTO _current_version, _current_position, _stream_id_internal
+        FROM public.streams
+        WHERE public.streams.id = _stream_id;
 
-        FETCH FROM _message_id_cursor
-        INTO _message_id_record;
-
-        WHILE FOUND LOOP
-          _message_ids = array_append(_message_ids, _message_id_record.message_id);
-
-          FETCH FROM _message_id_cursor
-          INTO _message_id_record;
-        END LOOP;
-
-        IF (cardinality(_new_stream_messages) > cardinality(_message_ids))
-        THEN
-          RAISE EXCEPTION 'WrongExpectedVersion'
-          USING HINT = 'Wrong message count';
-        END IF;
-
-        IF _message_ids <> (
-          SELECT ARRAY(
-              SELECT n.message_id
-              FROM unnest(_new_stream_messages) n
-          ))
-        THEN
-          RAISE EXCEPTION 'WrongExpectedVersion'
-          USING HINT = 'Message Ids did not match ' || array_to_string(_message_ids, ',');
-        ELSE
-          SELECT
-            version,
-            position,
-            id_internal
-          INTO _current_version, _current_position, _stream_id_internal
-          FROM public.streams
-          WHERE public.streams.id = _stream_id;
-
-          RETURN QUERY
-          SELECT
-            _current_version,
-            _current_position,
-            _stream_metadata;
-          RETURN;
-        END IF;
+        RETURN QUERY
+        SELECT
+          _current_version,
+          _current_position,
+          _stream_metadata;
+        RETURN;
       END IF;
     END IF;
 

@@ -30,6 +30,8 @@
         private string DeleteStream => GetScript(nameof(DeleteStream));
         private string DeleteStreamMessages => GetScript(nameof(DeleteStreamMessages));
 
+        private string EnforceIdempotentAppend => GetScript(nameof(EnforceIdempotentAppend));
+
         private string ReadAll => GetScript(nameof(ReadAll));
         private string Read => GetScript(nameof(Read));
         private string ReadJsonData => GetScript(nameof(ReadJsonData));
@@ -43,6 +45,7 @@
             Environment.NewLine,
             Tables,
             AppendToStream,
+            EnforceIdempotentAppend,
             DeleteStream,
             DeleteStreamMessages,
             Read,

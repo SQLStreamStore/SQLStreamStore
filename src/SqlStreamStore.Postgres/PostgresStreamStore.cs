@@ -86,20 +86,16 @@
             var streamIdInfo = new StreamIdInfo(streamId);
 
             using(var connection = _createConnection())
+            using(var transaction = await BeginTransaction(connection, cancellationToken))
+            using(var command = BuildCommand(
+                _schema.ReadStreamMessageBeforeCreatedCount,
+                transaction,
+                Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
+                Parameters.CreatedUtc(createdBefore)))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
 
-                using(var transaction = connection.BeginTransaction())
-                using(var command = BuildCommand(
-                    _schema.ReadStreamMessageBeforeCreatedCount,
-                    transaction,
-                    Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
-                    Parameters.CreatedUtc(createdBefore)))
-                {
-                    var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
-
-                    return (int) result;
-                }
+                return (int) result;
             }
         }
 
@@ -122,21 +118,33 @@
             => async cancellationToken =>
             {
                 using(var connection = _createConnection())
+                using(var transaction = await BeginTransaction(connection, cancellationToken))
+                using(var command = BuildCommand(
+                    _schema.ReadJsonData,
+                    transaction,
+                    Parameters.StreamId(streamId),
+                    Parameters.Version(version)))
                 {
-                    await connection.OpenAsync(cancellationToken);
-                    using(var transaction = connection.BeginTransaction())
-                    using(var command = BuildCommand(
-                        _schema.ReadJsonData,
-                        transaction,
-                        Parameters.StreamId(streamId),
-                        Parameters.Version(version)))
-                    {
-                        var jsonData = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                    var jsonData = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
 
-                        return jsonData == DBNull.Value ? null : (string) jsonData;
-                    }
+                    return jsonData == DBNull.Value ? null : (string) jsonData;
                 }
             };
+
+        private Task<NpgsqlTransaction> BeginTransaction(
+            NpgsqlConnection connection,
+            CancellationToken cancellationToken)
+            => BeginTransaction(connection, IsolationLevel.ReadCommitted, cancellationToken);
+
+        private async Task<NpgsqlTransaction> BeginTransaction(
+            NpgsqlConnection connection,
+            IsolationLevel isolationLevel,
+            CancellationToken cancellationToken)
+        {
+            await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+            return connection.BeginTransaction(isolationLevel);
+        }
 
         private NpgsqlCommand BuildCommand(
             string procedure,
@@ -165,40 +173,36 @@
             {
                 return -1;
             }
-            
+
             using(var connection = _createConnection())
+            using(var transaction = await BeginTransaction(connection, cancellationToken))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
-                using(var transaction = connection.BeginTransaction())
+                var deletedMessageIds = new List<Guid>();
+                using(var command = BuildCommand(
+                    _schema.Scavenge,
+                    transaction,
+                    Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
+                    Parameters.OptionalMaxAge(maxCount)))
+                using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
                 {
-                    var deletedMessageIds = new List<Guid>();
-                    using(var command = BuildCommand(
-                        _schema.Scavenge,
-                        transaction,
-                        Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
-                        Parameters.OptionalMaxAge(maxCount)))
-                    using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
+                    while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                     {
-                        while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
-                        {
-                            deletedMessageIds.Add(reader.GetGuid(0));
-                        }
+                        deletedMessageIds.Add(reader.GetGuid(0));
                     }
-
-                    if(deletedMessageIds.Count > 0)
-                    {
-                        await DeleteEventsInternal(
-                            streamIdInfo,
-                            deletedMessageIds.ToArray(),
-                            transaction,
-                            cancellationToken).NotOnCapturedContext();
-                    }
-
-                    await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
-
-                    return deletedMessageIds.Count;
                 }
+
+                if(deletedMessageIds.Count > 0)
+                {
+                    await DeleteEventsInternal(
+                        streamIdInfo,
+                        deletedMessageIds.ToArray(),
+                        transaction,
+                        cancellationToken).NotOnCapturedContext();
+                }
+
+                await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+
+                return deletedMessageIds.Count;
             }
         }
     }

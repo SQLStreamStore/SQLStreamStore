@@ -1,6 +1,5 @@
 ﻿namespace SqlStreamStore
 {
-    using System.Data;
     using System.Threading;
     using System.Threading.Tasks;
     using Npgsql;
@@ -22,23 +21,20 @@
             var streamIdInfo = new StreamIdInfo(streamId);
 
             using(var connection = _createConnection())
+            using(var transaction = await BeginTransaction(connection, cancellationToken))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-                using(var transaction = connection.BeginTransaction(IsolationLevel.ReadCommitted))
-                {
-                    (result, metadata) = await AppendToStreamInternal(
-                        streamIdInfo.PostgresqlStreamId,
-                        expectedVersion,
-                        messages,
-                        transaction,
-                        cancellationToken);
-                    
-                    await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
-                }
+                (result, metadata) = await AppendToStreamInternal(
+                    streamIdInfo.PostgresqlStreamId,
+                    expectedVersion,
+                    messages,
+                    transaction,
+                    cancellationToken);
+
+                await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
             }
-            
+
             await TryScavenge(streamIdInfo, metadata?.MaxCount, cancellationToken).NotOnCapturedContext();
-                    
+
             return result;
         }
 
@@ -70,14 +66,14 @@
                         var jsonData = reader.GetValue(2) as string;
 
                         var metadata = SimpleJson.DeserializeObject<MetadataMessage>(jsonData);
-                        
+
                         return (new AppendResult(reader.GetInt32(0), reader.GetInt64(1)), metadata);
                     }
                 }
                 catch(PostgresException ex) when(ex.IsWrongExpectedVersion())
                 {
                     await transaction.RollbackAsync(cancellationToken).NotOnCapturedContext();
-                    
+
                     throw new WrongExpectedVersionException(
                         ErrorMessages.AppendFailedWrongExpectedVersion(streamId.IdOriginal, expectedVersion),
                         ex);

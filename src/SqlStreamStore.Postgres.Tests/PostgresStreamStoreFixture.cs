@@ -1,9 +1,11 @@
 namespace SqlStreamStore
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Npgsql;
     using Npgsql.Logging;
+    using SqlStreamStore.Infrastructure;
     using Xunit.Abstractions;
 
     public class PostgresStreamStoreFixture : StreamStoreAcceptanceTestFixture
@@ -130,6 +132,7 @@ namespace SqlStreamStore
                 _postgresContainer = new DockerContainer(
                     s_image,
                     s_tag,
+                    HealthCheck,
                     ports: tcpPort)
                 {
                     ContainerName = "sql-stream-store-tests-postgres"
@@ -187,6 +190,25 @@ namespace SqlStreamStore
                     _output.WriteLine($@"Attempted to execute ""{commandText}"" but failed: {ex}");
                     throw;
                 }
+            }
+
+            private async Task<bool> HealthCheck(CancellationToken cancellationToken)
+            {
+                try
+                {
+                    using(var connection = new NpgsqlConnection(DefaultConnectionString))
+                    {
+                        await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                    }
+
+                    return true;
+                }
+                catch(Exception ex)
+                {
+                    _output.WriteLine(ex.Message);
+                }
+
+                return false;
             }
 
             public void Dispose()

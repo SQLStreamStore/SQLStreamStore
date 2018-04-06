@@ -62,7 +62,7 @@
                                 messageNumbers[j] = Interlocked.Increment(ref count);
                             }
 
-                            var newmessages = StreamStoreAcceptanceTests
+                            var newmessages = MessageFactory
                                 .CreateNewStreamMessages(jsonData, messageNumbers);
 
                             var info = $"{streamNumber} - {newmessages[0].MessageId}," +

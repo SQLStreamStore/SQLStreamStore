@@ -47,7 +47,7 @@
 
                 await streamStore.AppendToStream(streamId,
                     ExpectedVersion.Any,
-                    StreamStoreAcceptanceTests.CreateNewStreamMessages(jsonData, messageNumbers),
+                    MessageFactory.CreateNewStreamMessages(jsonData, messageNumbers),
                     cancellationToken: ct);
 
                 Console.Write($"\r> {messageNumbers[numberOfMessagesPerAmend - 1]}");

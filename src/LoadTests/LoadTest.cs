@@ -29,6 +29,13 @@
                         Console.WriteLine(fixture.ConnectionString);
                         streamStore = fixture.GetStreamStore().Result;
                     })
+                .Add("Postgres (Docker)",
+                    () =>
+                    {
+                        var fixture = new PostgresStreamStoreFixture("dbo");
+                        Console.WriteLine(fixture.ConnectionString);
+                        streamStore = fixture.GetPostgresStreamStore().Result;
+                    })
                 .Display();
 
             return streamStore;

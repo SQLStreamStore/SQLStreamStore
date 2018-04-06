@@ -6,7 +6,6 @@ namespace LoadTests
     using System.Threading;
     using System.Threading.Tasks;
     using EasyConsole;
-    using SqlStreamStore;
     using SqlStreamStore.Streams;
 
     public class StreamSubscription : LoadTest
@@ -54,7 +53,7 @@ namespace LoadTests
             {
                 for(int i = 0; i < numberOfStreams; i++)
                 {
-                    var newStreamMessages = StreamStoreAcceptanceTests.CreateNewStreamMessages(jsonData, eventNumber);
+                    var newStreamMessages = MessageFactory.CreateNewStreamMessages(jsonData, eventNumber);
                     await streamStore.AppendToStream($"stream-{i}", ExpectedVersion.Any, newStreamMessages, ct);
                     eventNumber++;
                 }

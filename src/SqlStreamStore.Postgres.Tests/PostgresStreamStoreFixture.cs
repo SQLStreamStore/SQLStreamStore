@@ -10,10 +10,14 @@ namespace SqlStreamStore
 
     public class PostgresStreamStoreFixture : StreamStoreAcceptanceTestFixture
     {
-        private string ConnectionString => _databaseManager.ConnectionString;
+        public string ConnectionString => _databaseManager.ConnectionString;
         private readonly string _schema;
         private readonly Guid _databaseId;
         private readonly DatabaseManager _databaseManager;
+
+        public PostgresStreamStoreFixture(string schema)
+            : this(schema, new ConsoleTestoutputHelper())
+        { }
 
         public PostgresStreamStoreFixture(string schema, ITestOutputHelper testOutputHelper)
         {
@@ -245,6 +249,12 @@ namespace SqlStreamStore
                     _output.WriteLine($@"Attempted to execute ""{commandText}"" but failed: {ex}");
                 }
             }
+        }
+
+        private class ConsoleTestoutputHelper : ITestOutputHelper
+        {
+            public void WriteLine(string message) => Console.Write(message);
+            public void WriteLine(string format, params object[] args) => Console.WriteLine(format, args);
         }
 
         private class XunitNpgsqlLogger : NpgsqlLogger

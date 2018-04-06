@@ -22,9 +22,16 @@
             Output.WriteLine(" - The more parallel tasks, the more chance of contention of writes to a stream.");
             Output.WriteLine("");
 
-            var streamStore = GetStore();
+            var (streamStore, dispose) = GetStore();
 
-            await Append(streamStore, ct);
+            try
+            {
+                await Append(streamStore, ct);
+            }
+            finally
+            {
+                dispose();
+            }
         }
 
         public async Task<int> Append(IStreamStore streamStore, CancellationToken ct)

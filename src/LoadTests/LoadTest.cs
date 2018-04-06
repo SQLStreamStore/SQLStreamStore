@@ -15,9 +15,10 @@
 
         protected abstract Task RunAsync(CancellationToken cancellationToken);
 
-        protected IStreamStore GetStore()
+        protected (IStreamStore, Action) GetStore()
         {
             IStreamStore streamStore = null;
+            IDisposable disposable = null;
 
             Output.WriteLine(ConsoleColor.Yellow, "Store type:");
             new Menu()
@@ -28,6 +29,7 @@
                         var fixture = new MsSqlStreamStoreV3Fixture("dbo");
                         Console.WriteLine(fixture.ConnectionString);
                         streamStore = fixture.GetStreamStore().Result;
+                        disposable = fixture;
                     })
                 .Add("Postgres (Docker)",
                     () =>
@@ -35,10 +37,17 @@
                         var fixture = new PostgresStreamStoreFixture("dbo");
                         Console.WriteLine(fixture.ConnectionString);
                         streamStore = fixture.GetPostgresStreamStore().Result;
+                        disposable = fixture;
                     })
                 .Display();
 
-            return streamStore;
+            return (
+                streamStore,
+                () =>
+                {
+                    streamStore.Dispose();
+                    disposable?.Dispose();
+                });
         }
     }
 }

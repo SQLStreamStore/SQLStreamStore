@@ -18,42 +18,50 @@
             Output.WriteLine(ConsoleColor.Green, "Appends events to streams and reads them all back in a single task.");
             Output.WriteLine("");
 
-            var streamStore = GetStore();
+            var (streamStore, dispose) = GetStore();
 
-            var numberOfStreams = Input.ReadInt("Number of streams: ", 1, 100000000);
-            int messageJsonDataSize = Input.ReadInt("Size of Json (kb): ", 1, 1024);
-            int numberOfMessagesPerAmend = Input.ReadInt("Number of messages per stream append: ", 1, 1000);
-
-            int readPageSize = Input.ReadInt("Read page size: ", 1, 10000);
-
-            string jsonData = new string('a', messageJsonDataSize * 1024);
-
-
-            var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(ct);
-            for(int i = 0; i < 10; i++)
-                Task.Run(() => RunRead(linkedToken.Token, streamStore, readPageSize), linkedToken.Token);
-
-            var list = new List<Task>();
-            for(int i = 0; i < 10; i++)
+            try
             {
-                var t = Task.Run(() =>
-                        RunWrites(ct,
-                            numberOfMessagesPerAmend,
-                            numberOfStreams,
-                            i * numberOfStreams,
-                            jsonData,
-                            streamStore),
-                    ct);
-                list.Add(t);
+                var numberOfStreams = Input.ReadInt("Number of streams: ", 1, 100000000);
+                int messageJsonDataSize = Input.ReadInt("Size of Json (kb): ", 1, 1024);
+                int numberOfMessagesPerAmend = Input.ReadInt("Number of messages per stream append: ", 1, 1000);
+
+                int readPageSize = Input.ReadInt("Read page size: ", 1, 10000);
+
+                string jsonData = new string('a', messageJsonDataSize * 1024);
+
+
+                var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(ct);
+                for(int i = 0; i < 10; i++)
+                    Task.Run(() => RunRead(linkedToken.Token, streamStore, readPageSize), linkedToken.Token);
+
+                var list = new List<Task>();
+                for(int i = 0; i < 10; i++)
+                {
+                    var t = Task.Run(() =>
+                            RunWrites(ct,
+                                numberOfMessagesPerAmend,
+                                numberOfStreams,
+                                i * numberOfStreams,
+                                jsonData,
+                                streamStore),
+                        ct);
+                    list.Add(t);
+                }
+
+                await Task.WhenAll(list);
+
+                Output.WriteLine("Writes finished");
+                linkedToken.Cancel();
+
+                await WriteActualGaps(ct, streamStore);
+
+                Output.WriteLine("Done");
             }
-            await Task.WhenAll(list);
-
-            Output.WriteLine("Writes finished");
-            linkedToken.Cancel();
-
-            await WriteActualGaps(ct, streamStore);
-
-            Output.WriteLine("Done");
+            finally
+            {
+                dispose();
+            }
         }
 
         private static async Task WriteActualGaps(CancellationToken ct, IStreamStore streamStore)

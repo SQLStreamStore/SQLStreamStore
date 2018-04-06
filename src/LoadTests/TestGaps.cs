@@ -158,7 +158,7 @@
                         messageNumbers[j] = count++;
                     }
 
-                    var newmessages = StreamStoreAcceptanceTests
+                    var newmessages = MessageFactory
                         .CreateNewStreamMessages(jsonData, messageNumbers);
 
                     await streamStore.AppendToStream(

@@ -138,7 +138,7 @@ namespace SqlStreamStore
 
             public async Task CreateDatabase()
             {
-                await _postgresContainer.TryStart().WithTimeout(60 * 1000);
+                await _postgresContainer.TryStart().WithTimeout(60 * 1000 * 3);
 
                 using(var connection = new NpgsqlConnection(DefaultConnectionString))
                 {

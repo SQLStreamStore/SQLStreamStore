@@ -4,9 +4,11 @@ namespace SqlStreamStore
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
+    using System.Threading;
     using System.Threading.Tasks;
     using Docker.DotNet;
     using Docker.DotNet.Models;
+    using SqlStreamStore.Infrastructure;
 
     internal class DockerContainer
     {
@@ -15,9 +17,14 @@ namespace SqlStreamStore
 
         private static readonly Uri s_DockerUri = new Uri(Environment.OSVersion.IsWindows() ? WindowsPipe : UnixPipe);
 
+        private static readonly DockerClientConfiguration s_dockerClientConfiguration =
+            new DockerClientConfiguration(s_DockerUri);
+
         private readonly int[] _ports;
         private readonly string _image;
         private readonly string _tag;
+        private readonly IDockerClient _dockerClient;
+
         private string ImageWithTag => $"{_image}:{_tag}";
 
         public string ContainerName { get; set; } = Guid.NewGuid().ToString("n");
@@ -28,93 +35,116 @@ namespace SqlStreamStore
             string tag,
             params int[] ports)
         {
+            _dockerClient = s_dockerClientConfiguration.CreateClient();
             _ports = ports;
             _image = image;
             _tag = tag;
         }
 
-        public async Task TryStart()
+        public async Task TryStart(CancellationToken cancellationToken = default(CancellationToken))
         {
-            var config = new DockerClientConfiguration(s_DockerUri);
-
-            var client = config.CreateClient();
-
-            var images = await client.Images.ListImagesAsync(new ImagesListParameters
+            var images = await _dockerClient.Images.ListImagesAsync(new ImagesListParameters
             {
                 MatchName = ImageWithTag
-            });
+            }, cancellationToken).NotOnCapturedContext();
 
             if(images.Count == 0)
             {
                 // No image found. Pulling latest ..
-                await client.Images.CreateImageAsync(new ImagesCreateParameters
+                await _dockerClient.Images.CreateImageAsync(new ImagesCreateParameters
                     {
                         FromImage = _image,
                         Tag = _tag
                     },
                     null,
-                    IgnoreProgress.Forever);
+                    IgnoreProgress.Forever,
+                    cancellationToken).NotOnCapturedContext();
             }
 
-            var containers = await client.Containers.ListContainersAsync(new ContainersListParameters { All = true });
+            var containerId = await FindContainer(cancellationToken).NotOnCapturedContext()
+                              ?? await CreateContainer(cancellationToken).NotOnCapturedContext();
 
-            if(containers.Any(container => container.Image == ImageWithTag && container.Names.Any(name => name == $"/{ContainerName}")))
-            {
-                return;
-            }
-
-            await CreateContainer(client);
+            await StartContainer(containerId, cancellationToken);
         }
 
-        private async Task CreateContainer(IDockerClient client)
+        private async Task<string> FindContainer(CancellationToken cancellationToken)
+        {
+            var containers = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters
+                {
+                    All = true,
+                    Filters = new Dictionary<string, IDictionary<string, bool>>
+                    {
+                        ["name"] = new Dictionary<string, bool>
+                        {
+                            [ContainerName] = true
+                        }
+                    }
+                },
+                cancellationToken).NotOnCapturedContext();
+
+            return containers.Select(x => x.ID).FirstOrDefault();
+        }
+
+        private async Task<string> CreateContainer(CancellationToken cancellationToken)
+        {
+            var createContainerParameters = new CreateContainerParameters
+            {
+                Image = ImageWithTag,
+                Name = ContainerName,
+                Tty = true,
+                Env = Env,
+                HostConfig = new HostConfig
+                {
+                    PortBindings = _ports.ToDictionary(
+                        port => $"{port}/tcp",
+                        port => (IList<PortBinding>) new List<PortBinding>
+                        {
+                            new PortBinding
+                            {
+                                HostPort = port.ToString()
+                            }
+                        })
+                }
+            };
+
+            var container = await _dockerClient.Containers.CreateContainerAsync(
+                createContainerParameters,
+                cancellationToken).NotOnCapturedContext();
+
+            return container.ID;
+        }
+
+        private async Task StartContainer(string containerId, CancellationToken cancellationToken)
         {
             try
             {
-                var createContainerParameters = new CreateContainerParameters
-                {
-                    Image = ImageWithTag,
-                    Name = ContainerName,
-                    Tty = true,
-                    Env = Env,
-                    HostConfig = new HostConfig
-                    {
-                        PortBindings = _ports.ToDictionary(
-                            port => $"{port}/tcp",
-                            port => (IList<PortBinding>) new List<PortBinding>
-                            {
-                                new PortBinding
-                                {
-                                    HostPort = port.ToString()
-                                }
-                            })
-                    }
-                };
-
-                var container = await client.Containers.CreateContainerAsync(createContainerParameters);
-
                 // Starting the container ...
-                var started =
-                    await client.Containers.StartContainerAsync(ContainerName, new ContainerStartParameters());
+                var started = await _dockerClient.Containers.StartContainerAsync(
+                    ContainerName,
+                    new ContainerStartParameters(),
+                    cancellationToken).NotOnCapturedContext();
 
                 if(started)
                 {
                     for(;;)
                     {
-                        var result = await client.Containers.ListContainersAsync(new ContainersListParameters
-                        {
-                            All = true,
-                            Filters = new Dictionary<string, IDictionary<string, bool>>
+                        var result = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters
                             {
-                                ["id"] = new Dictionary<string, bool>
+                                All = true,
+                                Filters = new Dictionary<string, IDictionary<string, bool>>
                                 {
-                                    [container.ID] = true
-                                },
-                                ["health"] = new Dictionary<string, bool>
-                                {
-                                    ["healthy"] = true
+                                    ["id"] = new Dictionary<string, bool>
+                                    {
+                                        [containerId] = true
+                                    },
+                                    ["health"] = new Dictionary<string, bool>
+                                    {
+                                        ["healthy"] = true
+                                    }
                                 }
-                            }
-                        });
+                            },
+                            cancellationToken).NotOnCapturedContext();
+
                         if(result.Any())
                         {
                             return;

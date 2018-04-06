@@ -257,3 +257,4 @@ tools/**
 
 #DotNetCore
 .dotnet
+/src/LoadTests/LoadTests.txt

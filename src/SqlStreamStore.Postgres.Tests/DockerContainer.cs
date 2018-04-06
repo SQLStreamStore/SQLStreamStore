@@ -3,7 +3,6 @@ namespace SqlStreamStore
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
     using Docker.DotNet;
@@ -23,6 +22,7 @@ namespace SqlStreamStore
         private readonly int[] _ports;
         private readonly string _image;
         private readonly string _tag;
+        private readonly Func<CancellationToken, Task<bool>> _healthCheck;
         private readonly IDockerClient _dockerClient;
 
         private string ImageWithTag => $"{_image}:{_tag}";
@@ -33,20 +33,23 @@ namespace SqlStreamStore
         public DockerContainer(
             string image,
             string tag,
+            Func<CancellationToken, Task<bool>> healthCheck,
             params int[] ports)
         {
             _dockerClient = s_dockerClientConfiguration.CreateClient();
             _ports = ports;
             _image = image;
             _tag = tag;
+            _healthCheck = healthCheck;
         }
 
         public async Task TryStart(CancellationToken cancellationToken = default(CancellationToken))
         {
             var images = await _dockerClient.Images.ListImagesAsync(new ImagesListParameters
-            {
-                MatchName = ImageWithTag
-            }, cancellationToken).NotOnCapturedContext();
+                {
+                    MatchName = ImageWithTag
+                },
+                cancellationToken).NotOnCapturedContext();
 
             if(images.Count == 0)
             {
@@ -64,7 +67,7 @@ namespace SqlStreamStore
             var containerId = await FindContainer(cancellationToken).NotOnCapturedContext()
                               ?? await CreateContainer(cancellationToken).NotOnCapturedContext();
 
-            await StartContainer(containerId, cancellationToken);
+            await StartContainer(cancellationToken);
         }
 
         private async Task<string> FindContainer(CancellationToken cancellationToken)
@@ -114,47 +117,21 @@ namespace SqlStreamStore
             return container.ID;
         }
 
-        private async Task StartContainer(string containerId, CancellationToken cancellationToken)
+        private async Task StartContainer(CancellationToken cancellationToken)
         {
-            try
+            // Starting the container ...
+            var started = await _dockerClient.Containers.StartContainerAsync(
+                ContainerName,
+                new ContainerStartParameters(),
+                cancellationToken).NotOnCapturedContext();
+
+            if(started)
             {
-                // Starting the container ...
-                var started = await _dockerClient.Containers.StartContainerAsync(
-                    ContainerName,
-                    new ContainerStartParameters(),
-                    cancellationToken).NotOnCapturedContext();
-
-                if(started)
+                while(!await _healthCheck(cancellationToken).NotOnCapturedContext())
                 {
-                    for(;;)
-                    {
-                        var result = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters
-                            {
-                                All = true,
-                                Filters = new Dictionary<string, IDictionary<string, bool>>
-                                {
-                                    ["id"] = new Dictionary<string, bool>
-                                    {
-                                        [containerId] = true
-                                    },
-                                    ["health"] = new Dictionary<string, bool>
-                                    {
-                                        ["healthy"] = true
-                                    }
-                                }
-                            },
-                            cancellationToken).NotOnCapturedContext();
-
-                        if(result.Any())
-                        {
-                            return;
-                        }
-                    }
+                    await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken).NotOnCapturedContext();
                 }
             }
-            catch(DockerApiException ex)
-                when(ex.StatusCode == HttpStatusCode.BadRequest)
-            { }
         }
 
         private class IgnoreProgress : IProgress<JSONMessage>

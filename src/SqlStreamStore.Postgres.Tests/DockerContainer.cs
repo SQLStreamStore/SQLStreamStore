@@ -67,7 +67,7 @@ namespace SqlStreamStore
             var containerId = await FindContainer(cancellationToken).NotOnCapturedContext()
                               ?? await CreateContainer(cancellationToken).NotOnCapturedContext();
 
-            await StartContainer(cancellationToken);
+            await StartContainer(containerId, cancellationToken);
         }
 
         private async Task<string> FindContainer(CancellationToken cancellationToken)
@@ -117,11 +117,11 @@ namespace SqlStreamStore
             return container.ID;
         }
 
-        private async Task StartContainer(CancellationToken cancellationToken)
+        private async Task StartContainer(string containerId, CancellationToken cancellationToken)
         {
             // Starting the container ...
             var started = await _dockerClient.Containers.StartContainerAsync(
-                ContainerName,
+                containerId,
                 new ContainerStartParameters(),
                 cancellationToken).NotOnCapturedContext();
 

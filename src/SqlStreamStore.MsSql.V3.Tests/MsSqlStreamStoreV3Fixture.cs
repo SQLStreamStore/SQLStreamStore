@@ -30,6 +30,8 @@ namespace SqlStreamStore
 
         public override long MinPosition => 0;
 
+        public override int MaxSubscriptionCount => 500;
+
         public override async Task<IStreamStore> GetStreamStore()
         {
             await CreateDatabase();

@@ -92,9 +92,9 @@ namespace SqlStreamStore
             private static readonly string s_tag = Environment.OSVersion.IsWindows() ? WindowsDockerTag : UnixDockerTag;
             private static readonly string s_image = Environment.OSVersion.IsWindows() ? WindowsImage : UnixImage;
             private const string WindowsImage = "postgres";
-            private const string WindowsDockerTag = "9.6.1-alpine";
+            private const string WindowsDockerTag = "9.6.6-alpine";
             private const string UnixImage = "postgres";
-            private const string UnixDockerTag = "9.6.1-alpine";
+            private const string UnixDockerTag = "9.6.6-alpine";
 
             private readonly ITestOutputHelper _output;
             private readonly int _tcpPort;

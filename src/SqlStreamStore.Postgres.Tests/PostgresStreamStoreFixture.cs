@@ -273,12 +273,13 @@ namespace SqlStreamStore
             public override bool IsEnabled(NpgsqlLogLevel level) => true;
 
             public override void Log(NpgsqlLogLevel level, int connectorId, string msg, Exception exception = null)
-            {
-                _output.WriteLine(
-                    $@"[{level:G}] [{_name}] (Connector Id: {connectorId}); {msg}; (Exception: {
-                            exception?.ToString() ?? "<none>"
-                        })");
-            }
+                => _output.WriteLine(
+                    $@"[{level:G}] [{_name}] (Connector Id: {connectorId}); {msg}; {
+                            FormatOptionalException(exception)
+                        }");
+
+            private static string FormatOptionalException(Exception exception)
+                => exception == null ? string.Empty : $"(Exception: {exception})";
         }
 
         private class XunitNpgsqlLogProvider : INpgsqlLoggingProvider

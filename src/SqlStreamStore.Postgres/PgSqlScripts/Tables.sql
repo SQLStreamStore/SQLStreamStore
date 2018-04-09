@@ -4,9 +4,10 @@ CREATE SEQUENCE IF NOT EXISTS public.streams_seq
 CREATE TABLE IF NOT EXISTS public.streams (
   id          CHAR(42)      NOT NULL,
   id_original VARCHAR(1000) NOT NULL,
-  id_internal INT           NOT NULL DEFAULT nextval('public.streams_seq') PRIMARY KEY,
+  id_internal INT           NOT NULL DEFAULT nextval('public.streams_seq'),
   version     INT           NOT NULL DEFAULT (-1),
-  position    BIGINT        NOT NULL DEFAULT (-1)
+  position    BIGINT        NOT NULL DEFAULT (-1),
+  CONSTRAINT pk_streams PRIMARY KEY (id_internal)
 );
 
 ALTER SEQUENCE public.streams_seq
@@ -22,12 +23,14 @@ CREATE SEQUENCE IF NOT EXISTS public.messages_seq
 CREATE TABLE IF NOT EXISTS public.messages (
   stream_id_internal INT          NOT NULL,
   stream_version     INT          NOT NULL,
-  "position"         BIGINT       NOT NULL default nextval('public.messages_seq') PRIMARY KEY,
+  "position"         BIGINT       NOT NULL DEFAULT nextval('public.messages_seq'),
   message_id         UUID         NOT NULL,
   created_utc        TIMESTAMP    NOT NULL,
   type               VARCHAR(128) NOT NULL,
   json_data          VARCHAR      NOT NULL,
-  json_metadata      VARCHAR
+  json_metadata      VARCHAR,
+  CONSTRAINT pk_messages PRIMARY KEY (position),
+  CONSTRAINT fk_messages_stream FOREIGN KEY (stream_id_internal) REFERENCES public.streams (id_internal)
 );
 
 ALTER SEQUENCE public.messages_seq

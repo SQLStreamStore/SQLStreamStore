@@ -14,5 +14,6 @@ namespace SqlStreamStore
         {}
 
         public abstract long MinPosition { get; }
+        public abstract int MaxSubscriptionCount { get; }
     }
 }

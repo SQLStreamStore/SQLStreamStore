@@ -30,6 +30,8 @@ namespace SqlStreamStore
 
         public override long MinPosition => 0;
 
+        public override int MaxSubscriptionCount => 90;
+
         public override async Task<IStreamStore> GetStreamStore()
         {
             await CreateDatabase();
@@ -141,7 +143,8 @@ namespace SqlStreamStore
                     HealthCheck,
                     ports: tcpPort)
                 {
-                    ContainerName = "sql-stream-store-tests-postgres"
+                    ContainerName = "sql-stream-store-tests-postgres",
+                 //   Env = new[] { @"PGOPTIONS=-N 1024" }
                 };
             }
 

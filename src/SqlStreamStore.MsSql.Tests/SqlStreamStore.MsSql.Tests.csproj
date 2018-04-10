@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.0</TargetFrameworks>
     <AssemblyName>SqlStreamStore.MsSql.Tests</AssemblyName>
@@ -8,20 +7,17 @@
     <RootNamespace>SqlStreamStore</RootNamespace>
     <NoWarn>1701;1702;1705;1591</NoWarn>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" />
   </ItemGroup>
-
   <ItemGroup>
     <None Remove="SqlStreamStore.MsSql.Tests.v3.ncrunchproject" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\SqlStreamStore.MsSql\SqlStreamStore.MsSql.csproj" />
   </ItemGroup>
-
   <ItemGroup>
+    <PackageReference Include="Docker.DotNet" Version="3.125.0" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.3.0" />
     <PackageReference Include="Shouldly" Version="2.8.3" />
     <PackageReference Include="Serilog" Version="2.5.0" />
@@ -34,5 +30,4 @@
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.0-beta5-build3769" />
     <DotNetCliToolReference Include="Microsoft.DotNet.Watcher.Tools" Version="2.0.0" />
   </ItemGroup>
-
 </Project>

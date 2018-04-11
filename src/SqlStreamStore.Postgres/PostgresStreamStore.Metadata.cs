@@ -90,6 +90,8 @@
                 await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
             }
 
+            await TryScavenge(streamIdInfo, metadata.MaxCount, cancellationToken).NotOnCapturedContext();
+
             return new SetStreamMetadataResult(result.CurrentVersion);
         }
     }

@@ -95,14 +95,16 @@
                     await store.DeleteStream(streamId);
 
                     var allMessagesPage = await store.ReadAllForwards(Position.Start, 10);
-                    allMessagesPage.Messages.Length.ShouldBe(2);
-                    allMessagesPage.Messages[0].Type.ShouldBe(Deleted.StreamDeletedMessageType);
-                    (await allMessagesPage.Messages[0].GetJsonDataAs<Deleted.StreamDeleted>())
-                        .StreamId.ShouldBe(streamId);
+                    var streamDeletedMessages = allMessagesPage.Messages
+                        .Where(m => m.Type == Deleted.StreamDeletedMessageType)
+                        .ToArray();
+                    streamDeletedMessages.Length.ShouldBe(2);
 
-                    allMessagesPage.Messages[1].Type.ShouldBe(Deleted.StreamDeletedMessageType);
-                    (await allMessagesPage.Messages[1].GetJsonDataAs<Deleted.StreamDeleted>())
-                        .StreamId.ShouldBe($"$${streamId}");
+                    var streamDeleted1 = await streamDeletedMessages[0].GetJsonDataAs<Deleted.StreamDeleted>();
+                    streamDeleted1.StreamId.ShouldBe(streamId);
+
+                    var streamDeleted2 = await streamDeletedMessages[1].GetJsonDataAs<Deleted.StreamDeleted>();
+                    streamDeleted2.StreamId.ShouldBe($"$${streamId}");
                 }
             }
         }

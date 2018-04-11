@@ -1,4 +1,4 @@
-#addin "Cake.FileHelpers"
+#addin "nuget:?package=Cake.FileHelpers&version=2.0.0"
 
 var target          = Argument("target", "Default");
 var configuration   = Argument("configuration", "Release");
@@ -36,16 +36,11 @@ Task("RunTests")
     .IsDependentOn("Build")
     .Does(() =>
 {
-    var testProjects = new string[] { "SqlStreamStore.Tests", "SqlStreamStore.MsSql.Tests" };
-
-
-    var processes = testProjects.Select(TestAssembly).ToArray();
-
-    foreach (var process in processes) {
-        using (process) {
+    Parallel.ForEach(Projects, project => {
+        using (var process = TestAssembly($"{project}.Tests")) {
             process.WaitForExit();
         }
-    }
+    });
 });
 
 Task("DotNetPack")
@@ -54,16 +49,15 @@ Task("DotNetPack")
 {
     var versionSuffix = "build" + buildNumber.ToString().PadLeft(5, '0');
 
-    var dotNetCorePackSettings   = new DotNetCorePackSettings
+    var dotNetCorePackSettings = new DotNetCorePackSettings
     {
         OutputDirectory = artifactsDir,
 		NoBuild = true,
 		Configuration = configuration,
         VersionSuffix = versionSuffix
     };
-    
-	DotNetCorePack("./src/SqlStreamStore", dotNetCorePackSettings);
-	DotNetCorePack("./src/SqlStreamStore.MsSql", dotNetCorePackSettings);
+
+    Parallel.ForEach(Projects, project => DotNetCorePack($"./src/{project}", dotNetCorePackSettings));
 });
 
 Task("Default")
@@ -79,3 +73,5 @@ IProcess TestAssembly(string name)
             Arguments = $"xunit -quiet -parallel all -configuration {configuration} -nobuild",
             WorkingDirectory = sourceDir + Directory(name)
         });
+
+string[] Projects => new[] {"SqlStreamStore", "SqlStreamStore.MsSql", "SqlStreamStore.Postgres"};

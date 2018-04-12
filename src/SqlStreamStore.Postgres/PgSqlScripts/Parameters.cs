@@ -7,38 +7,41 @@
 
     internal static class Parameters
     {
+        private const int StreamIdSize = 42;
+        private const int OriginalStreamIdSize = 1000;
+
         public static NpgsqlParameter StreamId(PostgresqlStreamId value) => new NpgsqlParameter
         {
             NpgsqlDbType = NpgsqlDbType.Char,
-            Size = 42,
+            Size = StreamIdSize,
             NpgsqlValue = value.Id
         };
 
         public static NpgsqlParameter StreamIdOriginal(PostgresqlStreamId value) => new NpgsqlParameter
         {
             NpgsqlDbType = NpgsqlDbType.Varchar,
-            Size = 1000,
+            Size = OriginalStreamIdSize,
             NpgsqlValue = value.IdOriginal
         };
 
         public static NpgsqlParameter MetadataStreamId(PostgresqlStreamId value) => new NpgsqlParameter
         {
             NpgsqlDbType = NpgsqlDbType.Char,
-            Size = 42,
+            Size = StreamIdSize,
             NpgsqlValue = value.Id
         };
 
         public static NpgsqlParameter DeletedStreamId => new NpgsqlParameter
         {
             NpgsqlDbType = NpgsqlDbType.Char,
-            Size = 42,
+            Size = StreamIdSize,
             NpgsqlValue = PostgresqlStreamId.Deleted.Id
         };
 
         public static NpgsqlParameter DeletedStreamIdOriginal => new NpgsqlParameter
         {
             NpgsqlDbType = NpgsqlDbType.Varchar,
-            Size = 1000,
+            Size = OriginalStreamIdSize,
             NpgsqlValue = PostgresqlStreamId.Deleted.IdOriginal
         };
 
@@ -93,12 +96,6 @@
             NpgsqlValue = value
         };
 
-        public static NpgsqlParameter MessageId(Guid value) => new NpgsqlParameter
-        {
-            NpgsqlDbType = NpgsqlDbType.Uuid,
-            Value = value
-        };
-
         public static NpgsqlParameter MessageIds(Guid[] value) => new NpgsqlParameter
         {
             Value = value
@@ -113,7 +110,7 @@
         public static NpgsqlParameter OptionalMaxAge(int? value) => new NpgsqlParameter
         {
             NpgsqlDbType = NpgsqlDbType.Integer,
-            NpgsqlValue = value.HasValue ? (object)value.Value : DBNull.Value
+            NpgsqlValue = value.HasValue ? (object) value.Value : DBNull.Value
         };
     }
 }

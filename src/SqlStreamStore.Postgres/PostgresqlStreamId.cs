@@ -30,11 +30,15 @@
             IdOriginal = idOriginal;
         }
 
-        public static readonly PostgresqlStreamId Deleted 
+        public static readonly PostgresqlStreamId Deleted
             = new PostgresqlStreamId(Streams.Deleted.DeletedStreamId);
 
-        public bool Equals(PostgresqlStreamId other) => string.Equals(Id, other.Id) && string.Equals(IdOriginal, other.IdOriginal);
+        public static bool operator ==(PostgresqlStreamId left, PostgresqlStreamId right) => left.Equals(right);
+        public static bool operator !=(PostgresqlStreamId left, PostgresqlStreamId right) => !left.Equals(right);
+        public bool Equals(PostgresqlStreamId other) 
+            => string.Equals(Id, other.Id) && string.Equals(IdOriginal, other.IdOriginal);
         public override bool Equals(object obj) => obj is PostgresqlStreamId other && Equals(other);
+
         public override int GetHashCode()
         {
             unchecked
@@ -42,7 +46,5 @@
                 return (Id.GetHashCode() * 397) ^ IdOriginal.GetHashCode();
             }
         }
-        public static bool operator ==(PostgresqlStreamId left, PostgresqlStreamId right) => left.Equals(right);
-        public static bool operator !=(PostgresqlStreamId left, PostgresqlStreamId right) => !left.Equals(right);
     }
 }

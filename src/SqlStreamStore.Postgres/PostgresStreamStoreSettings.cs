@@ -23,13 +23,14 @@
 
         public string Schema
         {
-            get { return _schema; }
+            get => _schema;
             set
             {
-                if (string.IsNullOrWhiteSpace(value))
+                if(string.IsNullOrWhiteSpace(value))
                 {
                     Ensure.That(value, nameof(Schema)).IsNotNullOrWhiteSpace();
                 }
+
                 _schema = value;
             }
         }
@@ -40,14 +41,6 @@
 
         public GetUtcNow GetUtcNow { get; set; }
 
-        public string LogName { get; set; } = "PostgresStreamStore";
-
-        public JsonBSupport JsonB { get; set; } = JsonBSupport.AutoDetect;
-    }
-
-    public enum JsonBSupport
-    {
-        AutoDetect,
-        Disable
+        public string LogName { get; set; } = nameof(PostgresStreamStore);
     }
 }

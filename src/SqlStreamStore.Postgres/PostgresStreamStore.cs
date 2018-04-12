@@ -137,7 +137,7 @@
             CancellationToken cancellationToken)
         {
             await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-            
+
             connection.ReloadTypes();
             connection.TypeMapper.MapComposite<PostgresNewStreamMessage>(_schema.NewStreamMessage);
 

@@ -7,14 +7,14 @@
 
     internal class Scripts
     {
+        private static readonly Assembly s_assembly = typeof(Scripts)
+            .GetTypeInfo()
+            .Assembly;
+
         private readonly string _schema;
 
         private readonly ConcurrentDictionary<string, string> _scripts
             = new ConcurrentDictionary<string, string>();
-
-        private static readonly Assembly s_assembly = typeof(Scripts)
-            .GetTypeInfo()
-            .Assembly;
 
         public Scripts(string schema)
         {

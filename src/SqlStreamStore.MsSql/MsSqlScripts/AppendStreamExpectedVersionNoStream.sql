@@ -21,7 +21,7 @@ BEGIN TRANSACTION CreateStream;
 
         SET @latestStreamPosition = ISNULL(SCOPE_IDENTITY(), -1)
 
-        SELECT @latestStreamVersion = MAX(StreamVersion) + @latestStreamVersion + 1
+        SELECT @latestStreamVersion = MAX(StreamVersion)
         FROM @newMessages
 
         SET @latestStreamVersion = ISNULL(@latestStreamVersion, -1)

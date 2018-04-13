@@ -34,7 +34,6 @@ BEGIN
     PERFORM public.append_to_stream(
         _deleted_stream_id,
         _deleted_stream_id_original,
-        NULL :: CHAR(42),
         -2,
         _created_utc,
         _deleted_messages);

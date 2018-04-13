@@ -7,6 +7,8 @@ CREATE TABLE IF NOT EXISTS public.streams (
   id_internal INT           NOT NULL DEFAULT nextval('public.streams_seq'),
   version     INT           NOT NULL DEFAULT (-1),
   position    BIGINT        NOT NULL DEFAULT (-1),
+  max_age     INT           NULL,
+  max_count   INT           NULL,
   CONSTRAINT pk_streams PRIMARY KEY (id_internal)
 );
 

@@ -4,6 +4,7 @@
     using Npgsql;
     using NpgsqlTypes;
     using SqlStreamStore.Streams;
+    using StreamStoreStore.Json;
 
     internal static class Parameters
     {
@@ -29,6 +30,13 @@
             NpgsqlDbType = NpgsqlDbType.Char,
             Size = StreamIdSize,
             NpgsqlValue = value.Id
+        };
+
+        public static NpgsqlParameter MetadataStreamIdOriginal(PostgresqlStreamId value) => new NpgsqlParameter
+        {
+            NpgsqlDbType = NpgsqlDbType.Char,
+            Size = StreamIdSize,
+            NpgsqlValue = value.IdOriginal
         };
 
         public static NpgsqlParameter DeletedStreamId => new NpgsqlParameter
@@ -72,6 +80,15 @@
             NpgsqlValue = Array.ConvertAll(value, PostgresNewStreamMessage.FromNewStreamMessage)
         };
 
+        public static NpgsqlParameter MetadataStreamMessage(MetadataMessage value) => new NpgsqlParameter
+        {
+            NpgsqlValue = PostgresNewStreamMessage.FromNewStreamMessage(
+                new NewStreamMessage(
+                    Guid.NewGuid(),
+                    "$stream-metadata",
+                    SimpleJson.SerializeObject(value)))
+        };
+
         public static NpgsqlParameter Count(int value) => new NpgsqlParameter
         {
             NpgsqlDbType = NpgsqlDbType.Integer,
@@ -108,6 +125,12 @@
         };
 
         public static NpgsqlParameter OptionalMaxAge(int? value) => new NpgsqlParameter
+        {
+            NpgsqlDbType = NpgsqlDbType.Integer,
+            NpgsqlValue = value.HasValue ? (object) value.Value : DBNull.Value
+        };
+
+        public static NpgsqlParameter OptionalMaxCount(int? value) => new NpgsqlParameter
         {
             NpgsqlDbType = NpgsqlDbType.Integer,
             NpgsqlValue = value.HasValue ? (object) value.Value : DBNull.Value

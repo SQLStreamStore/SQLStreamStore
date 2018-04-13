@@ -1,31 +1,29 @@
 CREATE OR REPLACE FUNCTION public.append_to_stream(
   _stream_id           CHAR(42),
   _stream_id_original  VARCHAR(1000),
-  _metadata_stream_id  CHAR(42),
   _expected_version    INT,
   _created_utc         TIMESTAMP,
   _new_stream_messages public.new_stream_message [])
   RETURNS TABLE(
     current_version  INT,
     current_position BIGINT,
-    json_data        VARCHAR
+    max_age          INT,
+    max_count        INT
   ) AS $F$
 DECLARE
   _current_version    INT;
   _current_position   BIGINT;
   _stream_id_internal INT;
-  _stream_metadata    VARCHAR;
+  _max_age            INT;
+  _max_count          INT;
   _success            INT;
 BEGIN
-
-  SELECT public.messages.json_data
-  INTO _stream_metadata
-  FROM public.messages
-    JOIN public.streams
-      ON public.streams.id_internal = public.messages.stream_id_internal
-  WHERE public.streams.id = _metadata_stream_id
-  ORDER BY public.messages.position DESC
-  LIMIT 1;
+  SELECT
+    public.streams.max_age,
+    public.streams.max_count
+  FROM public.streams
+  WHERE public.streams.id = _stream_id
+  INTO _max_age, _max_count;
 
   IF _expected_version = -2 /* ExpectedVersion.Any */
   THEN
@@ -67,7 +65,8 @@ BEGIN
         SELECT
           _current_version,
           _current_position,
-          _stream_metadata;
+          _max_age,
+          _max_count;
         RETURN;
       END IF;
   END IF;
@@ -157,7 +156,8 @@ BEGIN
         SELECT
           _current_version,
           _current_position,
-          _stream_metadata;
+          _max_age,
+          _max_count;
         RETURN;
       END IF;
     END IF;
@@ -179,14 +179,16 @@ BEGIN
     SELECT
       _current_version,
       _current_position,
-      _stream_metadata;
+      _max_age,
+      _max_count;
 
   ELSE
     RETURN QUERY
     SELECT
       -1,
       -1 :: BIGINT,
-      NULL :: VARCHAR;
+      NULL :: INT,
+      NULL :: INT;
 
   END IF;
 

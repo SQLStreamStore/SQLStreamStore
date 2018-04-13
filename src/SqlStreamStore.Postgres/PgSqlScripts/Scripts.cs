@@ -36,10 +36,10 @@
         private string Read => GetScript(nameof(Read));
         private string ReadJsonData => GetScript(nameof(ReadJsonData));
         private string ReadHeadPosition => GetScript(nameof(ReadHeadPosition));
-        private string ReadStreamMessageCount => GetScript(nameof(ReadStreamMessageCount));
         private string ReadStreamMessageBeforeCreatedCount => GetScript(nameof(ReadStreamMessageBeforeCreatedCount));
         private string ReadStreamVersionOfMessageId => GetScript(nameof(ReadStreamVersionOfMessageId));
         private string Scavenge => GetScript(nameof(Scavenge));
+        private string SetStreamMetadata => GetScript(nameof(SetStreamMetadata));
 
         public string CreateSchema => string.Join(
             Environment.NewLine,
@@ -52,10 +52,10 @@
             ReadAll,
             ReadJsonData,
             ReadHeadPosition,
-            ReadStreamMessageCount,
             ReadStreamMessageBeforeCreatedCount,
             ReadStreamVersionOfMessageId,
-            Scavenge);
+            Scavenge,
+            SetStreamMetadata);
 
         private string GetScript(string name) => _scripts.GetOrAdd(name,
             key =>

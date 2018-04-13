@@ -144,7 +144,7 @@
             return connection.BeginTransaction(isolationLevel);
         }
 
-        private NpgsqlCommand BuildCommand(
+        private static NpgsqlCommand BuildCommand(
             string procedure,
             NpgsqlTransaction transaction,
             params NpgsqlParameter[] parameters)

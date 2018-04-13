@@ -6,7 +6,6 @@
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Streams;
-    using StreamStoreStore.Json;
 
     partial class PostgresStreamStore
     {
@@ -17,13 +16,14 @@
             CancellationToken cancellationToken)
         {
             AppendResult result;
-            MetadataMessage metadata;
+            int? maxAge;
+            int? maxCount;
             var streamIdInfo = new StreamIdInfo(streamId);
 
             using(var connection = _createConnection())
             using(var transaction = await BeginTransaction(connection, cancellationToken))
             {
-                (result, metadata) = await AppendToStreamInternal(
+                (result, maxAge, maxCount) = await AppendToStreamInternal(
                     streamIdInfo.PostgresqlStreamId,
                     expectedVersion,
                     messages,
@@ -33,12 +33,12 @@
                 await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
             }
 
-            await TryScavenge(streamIdInfo, metadata?.MaxCount, cancellationToken).NotOnCapturedContext();
+            await TryScavenge(streamIdInfo, maxCount, cancellationToken).NotOnCapturedContext();
 
             return result;
         }
 
-        private async Task<(AppendResult, MetadataMessage)> AppendToStreamInternal(
+        private async Task<(AppendResult result, int? maxAge, int? maxCount)> AppendToStreamInternal(
             PostgresqlStreamId streamId,
             int expectedVersion,
             NewStreamMessage[] messages,
@@ -50,7 +50,6 @@
                 transaction,
                 Parameters.StreamId(streamId),
                 Parameters.StreamIdOriginal(streamId),
-                Parameters.MetadataStreamId(new StreamIdInfo(streamId.IdOriginal).MetadataPosgresqlStreamId), // YUCK!
                 Parameters.ExpectedVersion(expectedVersion),
                 Parameters.CreatedUtc(_settings.GetUtcNow()),
                 Parameters.NewStreamMessages(messages)))
@@ -61,11 +60,10 @@
                     {
                         await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
 
-                        var jsonData = reader.GetValue(2) as string;
-
-                        var metadata = SimpleJson.DeserializeObject<MetadataMessage>(jsonData);
-
-                        return (new AppendResult(reader.GetInt32(0), reader.GetInt64(1)), metadata);
+                        return (
+                            new AppendResult(reader.GetInt32(0), reader.GetInt64(1)),
+                            reader.GetFieldValue<int?>(2),
+                            reader.GetFieldValue<int?>(3));
                     }
                 }
                 catch(PostgresException ex) when(ex.IsWrongExpectedVersion())

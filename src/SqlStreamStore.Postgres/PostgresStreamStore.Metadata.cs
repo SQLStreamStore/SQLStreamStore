@@ -1,12 +1,11 @@
 ﻿namespace SqlStreamStore
 {
-    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Npgsql;
     using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Streams;
-    using StreamStoreStore.Json;
 
     partial class PostgresStreamStore
     {
@@ -61,7 +60,7 @@
             string metadataJson,
             CancellationToken cancellationToken)
         {
-            AppendResult result;
+            int currentVersion;
 
             var metadata = new MetadataMessage
             {
@@ -75,24 +74,26 @@
 
             using(var connection = _createConnection())
             using(var transaction = await BeginTransaction(connection, cancellationToken))
+            using (var command = BuildCommand(
+                _schema.SetStreamMetadata, 
+                transaction, 
+                Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
+                Parameters.MetadataStreamId(streamIdInfo.MetadataPosgresqlStreamId),
+                Parameters.MetadataStreamIdOriginal(streamIdInfo.MetadataPosgresqlStreamId),
+                Parameters.OptionalMaxAge(metadata.MaxAge),
+                Parameters.OptionalMaxCount(metadata.MaxCount),
+                Parameters.ExpectedVersion(expectedStreamMetadataVersion),
+                Parameters.CreatedUtc(_settings.GetUtcNow()),
+                Parameters.MetadataStreamMessage(metadata)))
             {
-                var json = SimpleJson.SerializeObject(metadata);
-
-                var metadataMessage = new NewStreamMessage(Guid.NewGuid(), "$stream-metadata", json);
-
-                (result, _) = await AppendToStreamInternal(
-                    streamIdInfo.MetadataPosgresqlStreamId,
-                    expectedStreamMetadataVersion,
-                    new[] { metadataMessage },
-                    transaction,
-                    cancellationToken);
-
+                currentVersion = (int) await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                
                 await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
             }
 
             await TryScavenge(streamIdInfo, metadata.MaxCount, cancellationToken).NotOnCapturedContext();
 
-            return new SetStreamMetadataResult(result.CurrentVersion);
+            return new SetStreamMetadataResult(currentVersion);
         }
     }
 }

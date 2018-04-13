@@ -12,6 +12,7 @@
 
         public string AppendToStream => $"{_schema}.append_to_stream";
         public string Scavenge => $"{_schema}.scavenge";
+        public string SetStreamMetadata => $"{_schema}.set_stream_metadata";
         public string DeleteStream => $"{_schema}.delete_stream";
         public string DeleteStreamMessages => $"{_schema}.delete_stream_messages";
         public string Read => $"{_schema}.read";

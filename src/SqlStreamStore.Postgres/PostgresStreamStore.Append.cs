@@ -16,40 +16,16 @@
             CancellationToken cancellationToken)
         {
             AppendResult result;
-            int? maxAge;
             int? maxCount;
             var streamIdInfo = new StreamIdInfo(streamId);
 
             using(var connection = _createConnection())
             using(var transaction = await BeginTransaction(connection, cancellationToken))
-            {
-                (result, maxAge, maxCount) = await AppendToStreamInternal(
-                    streamIdInfo.PostgresqlStreamId,
-                    expectedVersion,
-                    messages,
-                    transaction,
-                    cancellationToken);
-
-                await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
-            }
-
-            await TryScavenge(streamIdInfo, maxCount, cancellationToken).NotOnCapturedContext();
-
-            return result;
-        }
-
-        private async Task<(AppendResult result, int? maxAge, int? maxCount)> AppendToStreamInternal(
-            PostgresqlStreamId streamId,
-            int expectedVersion,
-            NewStreamMessage[] messages,
-            NpgsqlTransaction transaction,
-            CancellationToken cancellationToken)
-        {
             using(var command = BuildCommand(
                 _schema.AppendToStream,
                 transaction,
-                Parameters.StreamId(streamId),
-                Parameters.StreamIdOriginal(streamId),
+                Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
+                Parameters.StreamIdOriginal(streamIdInfo.PostgresqlStreamId),
                 Parameters.ExpectedVersion(expectedVersion),
                 Parameters.CreatedUtc(_settings.GetUtcNow()),
                 Parameters.NewStreamMessages(messages)))
@@ -60,21 +36,27 @@
                     {
                         await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
 
-                        return (
-                            new AppendResult(reader.GetInt32(0), reader.GetInt64(1)),
-                            reader.GetFieldValue<int?>(2),
-                            reader.GetFieldValue<int?>(3));
+                        result = new AppendResult(reader.GetInt32(0), reader.GetInt64(1));
+                        maxCount = reader.GetFieldValue<int?>(3);
                     }
+
+                    await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
                 }
                 catch(PostgresException ex) when(ex.IsWrongExpectedVersion())
                 {
                     await transaction.RollbackAsync(cancellationToken).NotOnCapturedContext();
 
                     throw new WrongExpectedVersionException(
-                        ErrorMessages.AppendFailedWrongExpectedVersion(streamId.IdOriginal, expectedVersion),
+                        ErrorMessages.AppendFailedWrongExpectedVersion(
+                            streamIdInfo.PostgresqlStreamId.IdOriginal,
+                            expectedVersion),
                         ex);
                 }
             }
+
+            await TryScavenge(streamIdInfo, maxCount, cancellationToken).NotOnCapturedContext();
+
+            return result;
         }
     }
 }

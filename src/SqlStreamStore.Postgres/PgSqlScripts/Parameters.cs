@@ -63,6 +63,13 @@
                 )
             };
 
+        public static NpgsqlParameter DeletedStreamMessage(PostgresqlStreamId streamId) =>
+            new NpgsqlParameter
+            {
+                NpgsqlValue = PostgresNewStreamMessage.FromNewStreamMessage(
+                    Deleted.CreateStreamDeletedMessage(streamId.IdOriginal))
+            };
+
         public static NpgsqlParameter ExpectedVersion(int value) => new NpgsqlParameter
         {
             NpgsqlDbType = NpgsqlDbType.Integer,

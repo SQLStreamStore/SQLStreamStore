@@ -20,45 +20,23 @@
             using(var connection = _createConnection())
             using(var transaction = await BeginTransaction(connection, cancellationToken))
             {
-                if(await DeleteStreamInternal(
+                await DeleteStreamInternal(
                     streamIdInfo.PostgresqlStreamId,
                     expectedVersion,
                     transaction,
-                    cancellationToken))
-                {
-                    await AppendToStreamInternal(
-                        PostgresqlStreamId.Deleted,
-                        ExpectedVersion.Any,
-                        new[]
-                        {
-                            Deleted.CreateStreamDeletedMessage(streamIdInfo.PostgresqlStreamId.IdOriginal)
-                        },
-                        transaction,
-                        cancellationToken);
-                }
+                    cancellationToken);
 
-                if(await DeleteStreamInternal(
+                await DeleteStreamInternal(
                     streamIdInfo.MetadataPosgresqlStreamId,
                     ExpectedVersion.Any,
                     transaction,
-                    cancellationToken))
-                {
-                    await AppendToStreamInternal(
-                        PostgresqlStreamId.Deleted,
-                        ExpectedVersion.Any,
-                        new[]
-                        {
-                            Deleted.CreateStreamDeletedMessage(streamIdInfo.MetadataPosgresqlStreamId.IdOriginal)
-                        },
-                        transaction,
-                        cancellationToken);
-                }
+                    cancellationToken);
 
                 await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
             }
         }
 
-        private async Task<bool> DeleteStreamInternal(
+        private async Task DeleteStreamInternal(
             PostgresqlStreamId streamId,
             int expectedVersion,
             NpgsqlTransaction transaction,
@@ -68,13 +46,15 @@
                 _schema.DeleteStream,
                 transaction,
                 Parameters.StreamId(streamId),
-                Parameters.ExpectedVersion(expectedVersion)))
+                Parameters.ExpectedVersion(expectedVersion),
+                Parameters.CreatedUtc(_settings.GetUtcNow()),
+                Parameters.DeletedStreamId,
+                Parameters.DeletedStreamIdOriginal,
+                Parameters.DeletedStreamMessage(streamId)))
             {
                 try
                 {
-                    var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
-
-                    return (int) result > 0;
+                    await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
                 }
                 catch(PostgresException ex) when(ex.IsWrongExpectedVersion())
                 {

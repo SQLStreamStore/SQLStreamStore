@@ -59,6 +59,10 @@ BEGIN
         _created_utc,
         ARRAY [_deleted_stream_message]
     );
+    INSERT INTO public.deleted_streams (id)
+    VALUES (_stream_id)
+    ON CONFLICT DO NOTHING;
+
   END IF;
 END;
 

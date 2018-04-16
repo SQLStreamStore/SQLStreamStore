@@ -74,10 +74,11 @@
 
             using(var connection = _createConnection())
             using(var transaction = await BeginTransaction(connection, cancellationToken))
-            using (var command = BuildCommand(
-                _schema.SetStreamMetadata, 
-                transaction, 
+            using(var command = BuildCommand(
+                _schema.SetStreamMetadata,
+                transaction,
                 Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
+                Parameters.StreamIdOriginal(streamIdInfo.PostgresqlStreamId),
                 Parameters.MetadataStreamId(streamIdInfo.MetadataPosgresqlStreamId),
                 Parameters.MetadataStreamIdOriginal(streamIdInfo.MetadataPosgresqlStreamId),
                 Parameters.OptionalMaxAge(metadata.MaxAge),
@@ -87,7 +88,7 @@
                 Parameters.MetadataStreamMessage(metadata)))
             {
                 currentVersion = (int) await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
-                
+
                 await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
             }
 

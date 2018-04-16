@@ -18,6 +18,9 @@ DECLARE
   _max_count          INT;
   _success            INT;
 BEGIN
+  DELETE FROM public.deleted_streams
+  WHERE id = _stream_id;
+  
   SELECT
     public.streams.max_age,
     public.streams.max_count

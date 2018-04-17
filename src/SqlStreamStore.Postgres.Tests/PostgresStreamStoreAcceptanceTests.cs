@@ -89,5 +89,17 @@
                 }
             }
         }
+        [Theory, InlineData("dbo"), InlineData("myschema")]
+        public async Task Can_call_initialize_repeatably(string schema)
+        {
+            using(var fixture = new PostgresStreamStoreFixture(schema))
+            {
+                using(var store = await fixture.GetPostgresStreamStore())
+                {
+                    await store.CreateSchema();
+                    await store.CreateSchema();
+                }
+            }
+        }
     }
 }

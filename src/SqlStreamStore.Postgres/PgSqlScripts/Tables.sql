@@ -51,13 +51,19 @@ CREATE INDEX IF NOT EXISTS messages_by_stream_id_internal_and_created_utc
   ON public.messages (stream_id_internal, created_utc);
 
 CREATE TABLE IF NOT EXISTS public.deleted_streams (
-  id          CHAR(42)      NOT NULL,
-  CONSTRAINT pk_deleted_streams  PRIMARY KEY(id)
+  id CHAR(42) NOT NULL,
+  CONSTRAINT pk_deleted_streams PRIMARY KEY (id)
 );
 
-CREATE TYPE public.new_stream_message AS (
-  message_id    UUID,
-  "type"        VARCHAR(128),
-  json_data     VARCHAR,
-  json_metadata VARCHAR
-);
+DO $F$
+BEGIN
+  CREATE TYPE public.new_stream_message AS (
+    message_id    UUID,
+    "type"        VARCHAR(128),
+    json_data     VARCHAR,
+    json_metadata VARCHAR
+  );
+  EXCEPTION
+  WHEN duplicate_object
+    THEN null;
+END $F$;

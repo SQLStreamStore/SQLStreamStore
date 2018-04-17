@@ -7,6 +7,7 @@
     using System.Threading.Tasks;
     using Npgsql;
     using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.Logging;
     using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Subscriptions;
 
@@ -162,7 +163,7 @@
             return command;
         }
 
-        private async Task<int> TryScavenge(
+        internal async Task<int> TryScavenge(
             StreamIdInfo streamIdInfo,
             int? maxCount,
             CancellationToken cancellationToken)
@@ -172,36 +173,49 @@
                 return -1;
             }
 
-            using(var connection = _createConnection())
-            using(var transaction = await BeginTransaction(connection, cancellationToken))
+            try
             {
-                var deletedMessageIds = new List<Guid>();
-                using(var command = BuildCommand(
-                    _schema.Scavenge,
-                    transaction,
-                    Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
-                    Parameters.OptionalMaxAge(maxCount)))
-                using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
+                using(var connection = _createConnection())
+                using(var transaction = await BeginTransaction(connection, cancellationToken))
                 {
-                    while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
-                    {
-                        deletedMessageIds.Add(reader.GetGuid(0));
-                    }
-                }
-
-                if(deletedMessageIds.Count > 0)
-                {
-                    await DeleteEventsInternal(
-                        streamIdInfo,
-                        deletedMessageIds.ToArray(),
+                    var deletedMessageIds = new List<Guid>();
+                    using(var command = BuildCommand(
+                        _schema.Scavenge,
                         transaction,
-                        cancellationToken).NotOnCapturedContext();
+                        Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
+                        Parameters.OptionalMaxAge(maxCount)))
+                    using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
+                    {
+                        while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                        {
+                            deletedMessageIds.Add(reader.GetGuid(0));
+                        }
+                    }
+
+                    if(deletedMessageIds.Count > 0)
+                    {
+                        await DeleteEventsInternal(
+                            streamIdInfo,
+                            deletedMessageIds.ToArray(),
+                            transaction,
+                            cancellationToken).NotOnCapturedContext();
+                    }
+
+                    await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+
+                    return deletedMessageIds.Count;
                 }
-
-                await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
-
-                return deletedMessageIds.Count;
             }
+            catch(Exception ex)
+            {
+                if(Logger.IsWarnEnabled())
+                {
+                    Logger.WarnException(
+                        $"Scavenge attempt failed on stream {streamIdInfo.PostgresqlStreamId.IdOriginal}. Another attempt will be made when this stream is written to.", ex);
+                }
+            }
+
+            return -1;
         }
     }
 }

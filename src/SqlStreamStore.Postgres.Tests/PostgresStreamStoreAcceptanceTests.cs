@@ -1,6 +1,7 @@
 ﻿namespace SqlStreamStore
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
     using Shouldly;
     using SqlStreamStore.Streams;
@@ -67,6 +68,24 @@
                     var streamCount = await store.GetMessageCount(streamId, new DateTime(2016, 1, 1, 0, 1, 0));
 
                     streamCount.ShouldBe(3); // The first 3
+                }
+            }
+        }
+
+        [Fact]
+        public async Task when_try_scavenge_fails_returns_negative_one()
+        {
+            using(var fixture = new PostgresStreamStoreFixture("dbo", TestOutputHelper))
+            {
+                using(var store = await fixture.GetPostgresStreamStore())
+                {
+                    var cts = new CancellationTokenSource();
+                    
+                    cts.Cancel();
+
+                    var result = await store.TryScavenge(new StreamIdInfo("stream-1"), 10, cts.Token);
+                    
+                    result.ShouldBe(-1);
                 }
             }
         }

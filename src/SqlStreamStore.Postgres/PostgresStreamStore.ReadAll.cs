@@ -22,7 +22,7 @@
 
             using(var connection = _createConnection())
             using(var transaction = await BeginTransaction(connection, cancellationToken))
-            using(var command = BuildCommand(
+            using(var command = BuildFunctionCommand(
                 _schema.ReadAll,
                 transaction,
                 Parameters.Count(maxCount + 1),
@@ -89,7 +89,7 @@
 
             using(var connection = _createConnection())
             using(var transaction = await BeginTransaction(connection, cancellationToken))
-            using(var command = BuildCommand(
+            using(var command = BuildFunctionCommand(
                 _schema.ReadAll,
                 transaction,
                 Parameters.Count(maxCount + 1),

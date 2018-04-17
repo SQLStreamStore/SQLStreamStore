@@ -1,9 +1,13 @@
 ﻿namespace SqlStreamStore
 {
     using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using Npgsql;
     using Shouldly;
+    using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Streams;
     using Xunit;
     using Xunit.Abstractions;
@@ -27,11 +31,11 @@
                     using(var barStore = await fixture.GetStreamStore("bar"))
                     {
                         await dboStore.AppendToStream("stream-1",
-                                ExpectedVersion.NoStream,
-                                CreateNewStreamMessages(1, 2));
+                            ExpectedVersion.NoStream,
+                            CreateNewStreamMessages(1, 2));
                         await barStore.AppendToStream("stream-1",
-                                ExpectedVersion.NoStream,
-                                CreateNewStreamMessages(1, 2));
+                            ExpectedVersion.NoStream,
+                            CreateNewStreamMessages(1, 2));
 
                         var dboHeadPosition = await dboStore.ReadHeadPosition();
                         var fooHeadPosition = await dboStore.ReadHeadPosition();
@@ -46,9 +50,9 @@
         [Fact]
         public async Task Can_get_stream_message_count_with_created_before_date()
         {
-            using (var fixture = new PostgresStreamStoreFixture("dbo", TestOutputHelper))
+            using(var fixture = new PostgresStreamStoreFixture("dbo", TestOutputHelper))
             {
-                using (var store = await fixture.GetPostgresStreamStore())
+                using(var store = await fixture.GetPostgresStreamStore())
                 {
                     fixture.GetUtcNow = () => new DateTime(2016, 1, 1, 0, 0, 0);
 
@@ -80,25 +84,70 @@
                 using(var store = await fixture.GetPostgresStreamStore())
                 {
                     var cts = new CancellationTokenSource();
-                    
+
                     cts.Cancel();
 
                     var result = await store.TryScavenge(new StreamIdInfo("stream-1"), 10, cts.Token);
-                    
+
                     result.ShouldBe(-1);
                 }
             }
         }
+
         [Theory, InlineData("dbo"), InlineData("myschema")]
         public async Task Can_call_initialize_repeatably(string schema)
         {
             using(var fixture = new PostgresStreamStoreFixture(schema))
             {
-                using(var store = await fixture.GetPostgresStreamStore())
+                using(var store = await fixture.GetUninitializedPostgresStreamStore())
                 {
                     await store.CreateSchema();
                     await store.CreateSchema();
                 }
+            }
+        }
+
+        [Fact]
+        public async Task Can_drop_all()
+        {
+            var streamStoreObjects = new List<string>();
+
+            string ReadInformationSchema((string name, string table) _)
+                => $"SELECT {_.name}_name FROM information_schema.{_.table} WHERE {_.name}_schema = 'dbo'";
+
+            using(var fixture = new PostgresStreamStoreFixture("dbo"))
+            {
+                using(var store = await fixture.GetPostgresStreamStore())
+                {
+                    await store.DropAll();
+                }
+
+                var commandText = string.Join(
+                    $"{Environment.NewLine}UNION{Environment.NewLine}",
+                    new[]
+                    {
+                        ("table", "tables"),
+                        ("sequence", "sequences"),
+                        ("constraint", "table_constraints"),
+                        ("user_defined_type", "user_defined_types"),
+                        ("routine", "routines")
+                    }.Select(ReadInformationSchema));
+
+                using(var connection = new NpgsqlConnection(fixture.ConnectionString))
+                {
+                    await connection.OpenAsync().NotOnCapturedContext();
+
+                    using(var command = new NpgsqlCommand(commandText, connection))
+                    using(var reader = await command.ExecuteReaderAsync().NotOnCapturedContext())
+                    {
+                        while(await reader.ReadAsync().NotOnCapturedContext())
+                        {
+                            streamStoreObjects.Add(reader.GetString(0));
+                        }
+                    }
+                }
+
+                streamStoreObjects.ShouldBeEmpty();
             }
         }
     }

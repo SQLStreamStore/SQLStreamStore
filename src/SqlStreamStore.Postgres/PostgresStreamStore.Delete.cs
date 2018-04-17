@@ -42,7 +42,7 @@
             NpgsqlTransaction transaction,
             CancellationToken cancellationToken)
         {
-            using(var command = BuildCommand(
+            using(var command = BuildFunctionCommand(
                 _schema.DeleteStream,
                 transaction,
                 Parameters.StreamId(streamId),
@@ -91,7 +91,7 @@
             NpgsqlTransaction transaction,
             CancellationToken cancellationToken)
         {
-            using(var command = BuildCommand(
+            using(var command = BuildFunctionCommand(
                 _schema.DeleteStreamMessages,
                 transaction,
                 Parameters.StreamId(streamIdInfo.PostgresqlStreamId),

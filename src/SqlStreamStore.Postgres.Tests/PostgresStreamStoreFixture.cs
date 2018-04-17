@@ -67,6 +67,15 @@ namespace SqlStreamStore
 
         public async Task<PostgresStreamStore> GetPostgresStreamStore()
         {
+            var store = await GetUninitializedPostgresStreamStore();
+
+            await store.CreateSchema();
+
+            return store;
+        }
+
+        public async Task<PostgresStreamStore> GetUninitializedPostgresStreamStore()
+        {
             await CreateDatabase();
 
             var settings = new PostgresStreamStoreSettings(ConnectionString)
@@ -75,11 +84,7 @@ namespace SqlStreamStore
                 GetUtcNow = () => GetUtcNow()
             };
 
-            var store = new PostgresStreamStore(settings);
-
-            await store.CreateSchema();
-
-            return store;
+            return new PostgresStreamStore(settings);
         }
 
         public override void Dispose()

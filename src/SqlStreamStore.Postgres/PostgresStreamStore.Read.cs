@@ -62,7 +62,7 @@
 
             var refcursorSql = new StringBuilder();
 
-            using(var command = BuildCommand(
+            using(var command = BuildFunctionCommand(
                 _schema.Read,
                 transaction,
                 Parameters.StreamId(streamId),
@@ -215,7 +215,7 @@
         {
             using(var connection = _createConnection())
             using(var transaction = await BeginTransaction(connection, cancellationToken))
-            using(var command = BuildCommand(_schema.ReadAllHeadPosition, transaction))
+            using(var command = BuildFunctionCommand(_schema.ReadAllHeadPosition, transaction))
             {
                 var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
 

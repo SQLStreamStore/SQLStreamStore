@@ -74,7 +74,7 @@
 
             using(var connection = _createConnection())
             using(var transaction = await BeginTransaction(connection, cancellationToken))
-            using(var command = BuildCommand(
+            using(var command = BuildFunctionCommand(
                 _schema.SetStreamMetadata,
                 transaction,
                 Parameters.StreamId(streamIdInfo.PostgresqlStreamId),

@@ -43,25 +43,19 @@
         public async Task CreateSchema(CancellationToken cancellationToken = default(CancellationToken))
         {
             using(var connection = _createConnection())
+            using(var transaction = await BeginTransaction(connection, false, cancellationToken))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
-                using(var transaction = connection.BeginTransaction())
+                using(var command = BuildCommand($"CREATE SCHEMA IF NOT EXISTS {_settings.Schema}", transaction))
                 {
-                    using(var command = new NpgsqlCommand($"CREATE SCHEMA IF NOT EXISTS {_settings.Schema}",
-                        connection,
-                        transaction))
-                    {
-                        await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
-                    }
-
-                    using(var command = new NpgsqlCommand(_schema.Definition, connection, transaction))
-                    {
-                        await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
-                    }
-
-                    await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                    await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
                 }
+
+                using(var command = BuildCommand(_schema.Definition, transaction))
+                {
+                    await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                }
+
+                await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
             }
         }
 
@@ -69,7 +63,7 @@
             string streamId,
             CancellationToken cancellationToken = new CancellationToken())
         {
-            throw new NotImplementedException();
+            throw new NotSupportedException();
         }
 
         public async Task<int> GetMessageCount(
@@ -82,8 +76,8 @@
             var streamIdInfo = new StreamIdInfo(streamId);
 
             using(var connection = _createConnection())
-            using(var transaction = await BeginTransaction(connection, cancellationToken))
-            using(var command = BuildCommand(
+            using(var transaction = await BeginTransaction(connection, false, cancellationToken))
+            using(var command = BuildFunctionCommand(
                 _schema.ReadStreamMessageBeforeCreatedCount,
                 transaction,
                 Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
@@ -98,15 +92,14 @@
         public async Task DropAll(CancellationToken cancellationToken = default(CancellationToken))
         {
             using(var connection = _createConnection())
+            using(var transaction = await BeginTransaction(connection, false, cancellationToken))
+            using(var command = BuildCommand(_schema.DropAll, transaction))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await command
+                    .ExecuteNonQueryAsync(cancellationToken)
+                    .NotOnCapturedContext();
 
-                using(var command = new NpgsqlCommand(_schema.DropAll, connection))
-                {
-                    await command
-                        .ExecuteNonQueryAsync(cancellationToken)
-                        .NotOnCapturedContext();
-                }
+                await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
             }
         }
 
@@ -115,7 +108,7 @@
             {
                 using(var connection = _createConnection())
                 using(var transaction = await BeginTransaction(connection, cancellationToken))
-                using(var command = BuildCommand(
+                using(var command = BuildFunctionCommand(
                     _schema.ReadJsonData,
                     transaction,
                     Parameters.StreamId(streamId),
@@ -132,25 +125,41 @@
             CancellationToken cancellationToken)
             => BeginTransaction(connection, IsolationLevel.ReadCommitted, cancellationToken);
 
+        private Task<NpgsqlTransaction> BeginTransaction(
+            NpgsqlConnection connection,
+            bool mapCompositeTypes,
+            CancellationToken cancellationToken)
+            => BeginTransaction(connection, IsolationLevel.ReadCommitted, mapCompositeTypes, cancellationToken);
+
+        private Task<NpgsqlTransaction> BeginTransaction(
+            NpgsqlConnection connection,
+            IsolationLevel isolationLevel,
+            CancellationToken cancellationToken)
+            => BeginTransaction(connection, isolationLevel, true, cancellationToken);
+
         private async Task<NpgsqlTransaction> BeginTransaction(
             NpgsqlConnection connection,
             IsolationLevel isolationLevel,
+            bool mapCompositeTypes,
             CancellationToken cancellationToken)
         {
             await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-            connection.ReloadTypes();
-            connection.TypeMapper.MapComposite<PostgresNewStreamMessage>(_schema.NewStreamMessage);
+            if(mapCompositeTypes)
+            {
+                connection.ReloadTypes();
+                connection.TypeMapper.MapComposite<PostgresNewStreamMessage>(_schema.NewStreamMessage);
+            }
 
             return connection.BeginTransaction(isolationLevel);
         }
 
-        private static NpgsqlCommand BuildCommand(
-            string procedure,
+        private static NpgsqlCommand BuildFunctionCommand(
+            string function,
             NpgsqlTransaction transaction,
             params NpgsqlParameter[] parameters)
         {
-            var command = new NpgsqlCommand(procedure, transaction.Connection, transaction)
+            var command = new NpgsqlCommand(function, transaction.Connection, transaction)
             {
                 CommandType = CommandType.StoredProcedure
             };
@@ -162,6 +171,10 @@
 
             return command;
         }
+
+        private static NpgsqlCommand BuildCommand(
+            string commandText,
+            NpgsqlTransaction transaction) => new NpgsqlCommand(commandText, transaction.Connection, transaction);
 
         internal async Task<int> TryScavenge(
             StreamIdInfo streamIdInfo,
@@ -179,7 +192,7 @@
                 using(var transaction = await BeginTransaction(connection, cancellationToken))
                 {
                     var deletedMessageIds = new List<Guid>();
-                    using(var command = BuildCommand(
+                    using(var command = BuildFunctionCommand(
                         _schema.Scavenge,
                         transaction,
                         Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
@@ -211,7 +224,8 @@
                 if(Logger.IsWarnEnabled())
                 {
                     Logger.WarnException(
-                        $"Scavenge attempt failed on stream {streamIdInfo.PostgresqlStreamId.IdOriginal}. Another attempt will be made when this stream is written to.", ex);
+                        $"Scavenge attempt failed on stream {streamIdInfo.PostgresqlStreamId.IdOriginal}. Another attempt will be made when this stream is written to.",
+                        ex);
                 }
             }
 

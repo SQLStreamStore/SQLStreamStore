@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION public.read_json_data(
-  _stream_id      VARCHAR(42),
+  _stream_id      CHAR(42),
   _stream_version INT
 )
   RETURNS VARCHAR

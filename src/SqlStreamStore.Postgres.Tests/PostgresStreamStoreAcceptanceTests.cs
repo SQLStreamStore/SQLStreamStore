@@ -97,7 +97,7 @@
         [Theory, InlineData("dbo"), InlineData("myschema")]
         public async Task Can_call_initialize_repeatably(string schema)
         {
-            using(var fixture = new PostgresStreamStoreFixture(schema))
+            using(var fixture = new PostgresStreamStoreFixture(schema, TestOutputHelper))
             {
                 using(var store = await fixture.GetUninitializedPostgresStreamStore())
                 {
@@ -115,7 +115,7 @@
             string ReadInformationSchema((string name, string table) _)
                 => $"SELECT {_.name}_name FROM information_schema.{_.table} WHERE {_.name}_schema = 'dbo'";
 
-            using(var fixture = new PostgresStreamStoreFixture("dbo"))
+            using(var fixture = new PostgresStreamStoreFixture("dbo", TestOutputHelper))
             {
                 using(var store = await fixture.GetPostgresStreamStore())
                 {

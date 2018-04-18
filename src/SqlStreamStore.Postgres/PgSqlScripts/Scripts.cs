@@ -36,6 +36,7 @@
         private string Read => GetScript(nameof(Read));
         private string ReadJsonData => GetScript(nameof(ReadJsonData));
         private string ReadHeadPosition => GetScript(nameof(ReadHeadPosition));
+        private string ReadSchemaVersion => GetScript(nameof(ReadSchemaVersion));
         private string ReadStreamMessageBeforeCreatedCount => GetScript(nameof(ReadStreamMessageBeforeCreatedCount));
         private string ReadStreamVersionOfMessageId => GetScript(nameof(ReadStreamVersionOfMessageId));
         private string Scavenge => GetScript(nameof(Scavenge));
@@ -52,6 +53,7 @@
             ReadAll,
             ReadJsonData,
             ReadHeadPosition,
+            ReadSchemaVersion,
             ReadStreamMessageBeforeCreatedCount,
             ReadStreamVersionOfMessageId,
             Scavenge,

@@ -45,6 +45,7 @@
                         Console.Write("Enter the connection string: ");
                         var connectionString = Console.ReadLine();
                         var fixture = new PostgresStreamStoreFixture("dbo", connectionString);
+                        Console.WriteLine(fixture.ConnectionString);
                         streamStore = fixture.GetPostgresStreamStore().Result;
                         disposable = fixture;
                     })

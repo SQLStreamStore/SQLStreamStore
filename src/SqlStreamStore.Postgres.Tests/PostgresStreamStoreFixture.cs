@@ -89,19 +89,16 @@ namespace SqlStreamStore
 
         public override void Dispose()
         {
-            _databaseManager.Dispose();
+            _databaseManager?.Dispose();
         }
 
         private Task CreateDatabase() => _databaseManager.CreateDatabase();
 
         private class DatabaseManager : IDisposable
         {
-            private static readonly string s_tag = Environment.OSVersion.IsWindows() ? WindowsDockerTag : UnixDockerTag;
-            private static readonly string s_image = Environment.OSVersion.IsWindows() ? WindowsImage : UnixImage;
-            private const string WindowsImage = "postgres";
-            private const string WindowsDockerTag = "9.6.6-alpine";
-            private const string UnixImage = "postgres";
-            private const string UnixDockerTag = "9.6.6-alpine";
+            private const string DockerImage = "postgres";
+            private const string DockerTag = "9.6.6-alpine";
+            private const string ContainerName = "sql-stream-store-tests-postgres";
 
             private readonly ITestOutputHelper _output;
             private readonly int _tcpPort;
@@ -143,12 +140,12 @@ namespace SqlStreamStore
                 _databaseName = $"test_{databaseId:n}";
                 _tcpPort = tcpPort;
                 _postgresContainer = new DockerContainer(
-                    s_image,
-                    s_tag,
+                    DockerImage,
+                    DockerTag,
                     HealthCheck,
                     ports: tcpPort)
                 {
-                    ContainerName = "sql-stream-store-tests-postgres",
+                    ContainerName = ContainerName,
                  //   Env = new[] { @"PGOPTIONS=-N 1024" }
                 };
             }

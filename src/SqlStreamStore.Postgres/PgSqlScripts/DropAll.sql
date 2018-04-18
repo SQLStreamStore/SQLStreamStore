@@ -39,6 +39,7 @@ DROP FUNCTION IF EXISTS public.read_all(
   BOOLEAN,
   BOOLEAN
 ) CASCADE;
+DROP FUNCTION IF EXISTS public.read_schema_version() CASCADE;
 DROP FUNCTION IF EXISTS public.read_head_position() CASCADE;
 DROP FUNCTION IF EXISTS public.read_json_data(
   CHAR(42),

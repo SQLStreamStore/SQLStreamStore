@@ -150,5 +150,20 @@
                 streamStoreObjects.ShouldBeEmpty();
             }
         }
+
+        [Fact]
+        public async Task Can_check_schema()
+        {
+            using(var fixture = new PostgresStreamStoreFixture("dbo", TestOutputHelper))
+            {
+                using(var store = await fixture.GetPostgresStreamStore())
+                {
+                    var result = await store.CheckSchema();
+
+                    result.ShouldBe(new CheckSchemaResult(1, 1));
+                    result.IsMatch.ShouldBeTrue();
+                }
+            }
+        }
     }
 }

@@ -12,6 +12,8 @@ CREATE TABLE IF NOT EXISTS public.streams (
   CONSTRAINT pk_streams PRIMARY KEY (id_internal)
 );
 
+COMMENT ON TABLE public.streams IS '{ "version": 1 }';
+
 ALTER SEQUENCE public.streams_seq
 OWNED BY public.streams.id_internal;
 

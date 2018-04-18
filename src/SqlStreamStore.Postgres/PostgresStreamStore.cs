@@ -17,6 +17,7 @@
         private readonly Func<NpgsqlConnection> _createConnection;
         private readonly Schema _schema;
         private readonly Lazy<IStreamStoreNotifier> _streamStoreNotifier;
+        public const int CurrentVersion = 1;
 
         public PostgresStreamStore(PostgresStreamStoreSettings settings)
             : base(
@@ -91,6 +92,8 @@
 
         public async Task DropAll(CancellationToken cancellationToken = default(CancellationToken))
         {
+            GuardAgainstDisposed();
+
             using(var connection = _createConnection())
             using(var transaction = await BeginTransaction(connection, false, cancellationToken))
             using(var command = BuildCommand(_schema.DropAll, transaction))
@@ -100,6 +103,19 @@
                     .NotOnCapturedContext();
 
                 await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+            }
+        }
+
+        public async Task<CheckSchemaResult> CheckSchema(
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            using(var connection = _createConnection())
+            using(var transaction = await BeginTransaction(connection, false, cancellationToken))
+            using(var command = BuildFunctionCommand(_schema.ReadSchemaVersion, transaction))
+            {
+                var result = (int) await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+
+                return new CheckSchemaResult(result, CurrentVersion);
             }
         }
 

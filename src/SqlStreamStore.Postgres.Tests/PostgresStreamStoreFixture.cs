@@ -296,7 +296,10 @@ namespace SqlStreamStore
             public ServerDatabaseManager(ITestOutputHelper output, string databaseName, string connectionString)
                 : base(output, databaseName)
             {
-                ConnectionString = connectionString;
+                ConnectionString = new NpgsqlConnectionStringBuilder(connectionString)
+                {
+                    Database = DatabaseName
+                }.ConnectionString;
             }
         }
 

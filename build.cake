@@ -74,4 +74,4 @@ IProcess TestAssembly(string name)
             WorkingDirectory = sourceDir + Directory(name)
         });
 
-string[] Projects => new[] {"SqlStreamStore", "SqlStreamStore.MsSql", "SqlStreamStore.Postgres"};
+string[] Projects => new[] {"SqlStreamStore", "SqlStreamStore.MsSql"};

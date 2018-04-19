@@ -70,8 +70,16 @@ IProcess TestAssembly(string name)
     => StartAndReturnProcess(
         "dotnet",
         new ProcessSettings {
-            Arguments = $"xunit -quiet -parallel all -configuration {configuration} -nobuild",
+            Arguments = XUnitArguments(name),
             WorkingDirectory = sourceDir + Directory(name)
         });
+
+string XUnitArguments(string name) {
+    var args = $"xunit -quiet -parallel all -configuration {configuration} -nobuild";
+    if (BuildSystem.IsRunningOnTeamCity) {
+        args += $" -xml {artifactsDir + File($"{name}.xml")}";
+    }
+    return args;
+}
 
 string[] Projects => new[] {"SqlStreamStore", "SqlStreamStore.MsSql"};

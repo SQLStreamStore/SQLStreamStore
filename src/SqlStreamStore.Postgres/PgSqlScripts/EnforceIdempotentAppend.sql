@@ -1,8 +1,8 @@
-CREATE OR REPLACE FUNCTION public.enforce_idempotent_append(
+CREATE OR REPLACE FUNCTION __schema__.enforce_idempotent_append(
   _stream_id           CHAR(42),
   _start               INT,
   _check_length        BOOLEAN,
-  _new_stream_messages public.new_stream_message [])
+  _new_stream_messages __schema__.new_stream_message [])
   RETURNS VOID AS $F$
 DECLARE
   _message_id_record RECORD;
@@ -11,7 +11,7 @@ DECLARE
 BEGIN
   _message_id_cursor = (
     SELECT *
-    FROM public.read(_stream_id, cardinality(_new_stream_messages), _start, true, false)
+    FROM __schema__.read(_stream_id, cardinality(_new_stream_messages), _start, true, false)
     OFFSET 1
   );
 

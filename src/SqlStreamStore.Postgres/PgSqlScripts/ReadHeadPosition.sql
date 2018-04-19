@@ -1,10 +1,10 @@
-CREATE OR REPLACE FUNCTION public.read_head_position()
+CREATE OR REPLACE FUNCTION __schema__.read_head_position()
   RETURNS BIGINT
 AS $F$
 BEGIN
   RETURN (
-    SELECT max(public.messages.position)
-    FROM public.messages
+    SELECT max(__schema__.messages.position)
+    FROM __schema__.messages
   );
 END;
 $F$

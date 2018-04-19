@@ -73,7 +73,7 @@
                     {
                         return reader
                             .ReadToEnd()
-                            .Replace("public.", _schema + ".");
+                            .Replace("__schema__", _schema);
                     }
                 }
             });

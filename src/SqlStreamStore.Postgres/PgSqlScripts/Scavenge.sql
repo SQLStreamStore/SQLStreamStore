@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION public.scavenge(
+CREATE OR REPLACE FUNCTION __schema__.scavenge(
   _stream_id CHAR(42),
   _max_count INT
 )
@@ -9,16 +9,16 @@ DECLARE
   _stream_id_internal INT;
   _message_ids        UUID [];
 BEGIN
-  SELECT public.streams.id_internal
+  SELECT __schema__.streams.id_internal
   INTO _stream_id_internal
-  FROM public.streams
-  WHERE public.streams.id = _stream_id;
+  FROM __schema__.streams
+  WHERE __schema__.streams.id = _stream_id;
 
   _message_ids = ARRAY(
-      SELECT public.messages.message_id
-      FROM public.messages
-      WHERE public.messages.stream_id_internal = _stream_id_internal
-      ORDER BY public.messages.stream_version
+      SELECT __schema__.messages.message_id
+      FROM __schema__.messages
+      WHERE __schema__.messages.stream_id_internal = _stream_id_internal
+      ORDER BY __schema__.messages.stream_version
       LIMIT coalesce(_max_count, 0)
   );
 

@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION public.read(
+CREATE OR REPLACE FUNCTION __schema__.read(
   _stream_id CHAR(42),
   _count     INT,
   _version   INT,
@@ -12,57 +12,57 @@ DECLARE
   _stream_info        REFCURSOR := 'stream_info';
   _messages           REFCURSOR := 'messages';
 BEGIN
-  SELECT public.streams.id_internal
+  SELECT __schema__.streams.id_internal
   INTO _stream_id_internal
-  FROM public.streams
-  WHERE public.streams.id = _stream_id;
+  FROM __schema__.streams
+  WHERE __schema__.streams.id = _stream_id;
 
   OPEN _stream_info FOR
   SELECT
-    public.streams.version  as stream_version,
-    public.streams.position as position
-  FROM public.streams
-  WHERE public.streams.id_internal = _stream_id_internal;
+    __schema__.streams.version  as stream_version,
+    __schema__.streams.position as position
+  FROM __schema__.streams
+  WHERE __schema__.streams.id_internal = _stream_id_internal;
 
   RETURN NEXT _stream_info;
 
   OPEN _messages FOR
   SELECT
-    public.streams.id_original AS stream_id,
-    public.messages.message_id,
-    public.messages.stream_version,
-    public.messages.position,
-    public.messages.created_utc,
-    public.messages.type,
-    public.messages.json_metadata,
+    __schema__.streams.id_original AS stream_id,
+    __schema__.messages.message_id,
+    __schema__.messages.stream_version,
+    __schema__.messages.position,
+    __schema__.messages.created_utc,
+    __schema__.messages.type,
+    __schema__.messages.json_metadata,
     (
       CASE _prefetch
       WHEN TRUE
         THEN
-          public.messages.json_data
+          __schema__.messages.json_data
       ELSE
         NULL
       END
     )
-  FROM public.messages
-    INNER JOIN public.streams
-      ON public.messages.stream_id_internal = public.streams.id_internal
+  FROM __schema__.messages
+    INNER JOIN __schema__.streams
+      ON __schema__.messages.stream_id_internal = __schema__.streams.id_internal
   WHERE
     (
       CASE WHEN _forwards
         THEN
-          public.messages.stream_version >= _version AND id_internal = _stream_id_internal
+          __schema__.messages.stream_version >= _version AND id_internal = _stream_id_internal
       ELSE
-        public.messages.stream_version <= _version AND id_internal = _stream_id_internal
+        __schema__.messages.stream_version <= _version AND id_internal = _stream_id_internal
       END
     )
   ORDER BY
     (
       CASE WHEN _forwards
         THEN
-          public.messages.stream_version
+          __schema__.messages.stream_version
       ELSE
-        -public.messages.stream_version
+        -__schema__.messages.stream_version
       END
     )
   LIMIT _count;

@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION public.read_all(
+CREATE OR REPLACE FUNCTION __schema__.read_all(
   _count    INT,
   _position BIGINT,
   _forwards BOOLEAN,
@@ -19,41 +19,41 @@ BEGIN
 
   RETURN QUERY
   SELECT
-    public.streams.id_original,
-    public.messages.message_id,
-    public.messages.stream_version,
-    public.messages.position,
-    public.messages.created_utc,
-    public.messages.type,
-    public.messages.json_metadata,
+    __schema__.streams.id_original,
+    __schema__.messages.message_id,
+    __schema__.messages.stream_version,
+    __schema__.messages.position,
+    __schema__.messages.created_utc,
+    __schema__.messages.type,
+    __schema__.messages.json_metadata,
     (
       CASE _prefetch
       WHEN TRUE
         THEN
-          public.messages.json_data
+          __schema__.messages.json_data
       ELSE
         NULL
       END
     )
-  FROM public.messages
-    INNER JOIN public.streams
-      ON public.messages.stream_id_internal = public.streams.id_internal
+  FROM __schema__.messages
+    INNER JOIN __schema__.streams
+      ON __schema__.messages.stream_id_internal = __schema__.streams.id_internal
   WHERE
     (
       CASE WHEN _forwards
         THEN
-          public.messages.position >= _position
+          __schema__.messages.position >= _position
       ELSE
-        public.messages.position <= _position
+        __schema__.messages.position <= _position
       END
     )
   ORDER BY
     (
       CASE WHEN _forwards
         THEN
-          public.messages.position
+          __schema__.messages.position
       ELSE
-        -public.messages.position
+        -__schema__.messages.position
       END
     )
   LIMIT _count;

@@ -1,9 +1,9 @@
-CREATE OR REPLACE FUNCTION public.append_to_stream(
+CREATE OR REPLACE FUNCTION __schema__.append_to_stream(
   _stream_id           CHAR(42),
   _stream_id_original  VARCHAR(1000),
   _expected_version    INT,
   _created_utc         TIMESTAMP,
-  _new_stream_messages public.new_stream_message [])
+  _new_stream_messages __schema__.new_stream_message [])
   RETURNS TABLE(
     current_version  INT,
     current_position BIGINT,
@@ -18,20 +18,20 @@ DECLARE
   _max_count          INT;
   _success            INT;
 BEGIN
-  DELETE FROM public.deleted_streams
+  DELETE FROM __schema__.deleted_streams
   WHERE id = _stream_id;
   
   SELECT
-    public.streams.max_age,
-    public.streams.max_count
-  FROM public.streams
-  WHERE public.streams.id = _stream_id
+    __schema__.streams.max_age,
+    __schema__.streams.max_count
+  FROM __schema__.streams
+  WHERE __schema__.streams.id = _stream_id
   INTO _max_age, _max_count;
 
   IF _expected_version = -2 /* ExpectedVersion.Any */
   THEN
 
-    INSERT INTO public.streams (id, id_original)
+    INSERT INTO __schema__.streams (id, id_original)
       SELECT
         _stream_id,
         _stream_id_original
@@ -40,7 +40,7 @@ BEGIN
   ELSIF _expected_version = -1 /* ExpectedVersion.NoStream */
     THEN
 
-      INSERT INTO public.streams (id, id_original)
+      INSERT INTO __schema__.streams (id, id_original)
         SELECT
           _stream_id,
           _stream_id_original
@@ -50,7 +50,7 @@ BEGIN
 
       IF _success = 0 AND cardinality(_new_stream_messages) > 0
       THEN
-        PERFORM public.enforce_idempotent_append(
+        PERFORM __schema__.enforce_idempotent_append(
             _stream_id,
             0,
             false,
@@ -61,8 +61,8 @@ BEGIN
           position,
           id_internal
         INTO _current_version, _current_position, _stream_id_internal
-        FROM public.streams
-        WHERE public.streams.id = _stream_id;
+        FROM __schema__.streams
+        WHERE __schema__.streams.id = _stream_id;
 
         RETURN QUERY
         SELECT
@@ -79,10 +79,10 @@ BEGIN
       CASE _expected_version
       WHEN -2
         THEN coalesce(
-            public.read_stream_version_of_message_id(
-                public.streams.id_internal,
+            __schema__.read_stream_version_of_message_id(
+                __schema__.streams.id_internal,
                 _new_stream_messages [1].message_id) - 1,
-            public.streams.version
+            __schema__.streams.version
         )
       WHEN -1
         THEN -1
@@ -90,11 +90,11 @@ BEGIN
         _expected_version
       END
     ),
-    public.streams.position,
-    public.streams.id_internal
+    __schema__.streams.position,
+    __schema__.streams.id_internal
   INTO _current_version, _current_position, _stream_id_internal
-  FROM public.streams
-  WHERE public.streams.id = _stream_id;
+  FROM __schema__.streams
+  WHERE __schema__.streams.id = _stream_id;
 
   IF (_expected_version >= 0 AND _stream_id_internal IS NULL)
   THEN
@@ -103,7 +103,7 @@ BEGIN
 
   IF cardinality(_new_stream_messages) > 0
   THEN
-    INSERT INTO public.messages (
+    INSERT INTO __schema__.messages (
       message_id,
       stream_id_internal,
       stream_version,
@@ -130,7 +130,7 @@ BEGIN
       IF (_expected_version = -2) /* ExpectedVersion.Any */
       THEN
 
-        PERFORM public.enforce_idempotent_append(
+        PERFORM __schema__.enforce_idempotent_append(
             _stream_id,
             _current_version + 1 - _success,
             false,
@@ -141,7 +141,7 @@ BEGIN
         THEN
           RAISE EXCEPTION 'WhyAreYouHere'; /* there is no way to get here? */
       ELSE
-        PERFORM public.enforce_idempotent_append(
+        PERFORM __schema__.enforce_idempotent_append(
             _stream_id,
             _expected_version + 1 - _success,
             true,
@@ -152,8 +152,8 @@ BEGIN
           position,
           id_internal
         INTO _current_version, _current_position, _stream_id_internal
-        FROM public.streams
-        WHERE public.streams.id = _stream_id;
+        FROM __schema__.streams
+        WHERE __schema__.streams.id = _stream_id;
 
         RETURN QUERY
         SELECT
@@ -166,15 +166,15 @@ BEGIN
     END IF;
 
     SELECT
-      COALESCE(public.messages.position, -1),
-      COALESCE(public.messages.stream_version, -1)
+      COALESCE(__schema__.messages.position, -1),
+      COALESCE(__schema__.messages.stream_version, -1)
     INTO _current_position, _current_version
-    FROM public.messages
-    WHERE public.messages.stream_id_internal = _stream_id_internal
-    ORDER BY public.messages.position DESC
+    FROM __schema__.messages
+    WHERE __schema__.messages.stream_id_internal = _stream_id_internal
+    ORDER BY __schema__.messages.position DESC
     LIMIT 1;
 
-    UPDATE public.streams
+    UPDATE __schema__.streams
     SET "version" = _current_version, "position" = _current_position
     WHERE id_internal = _stream_id_internal;
 

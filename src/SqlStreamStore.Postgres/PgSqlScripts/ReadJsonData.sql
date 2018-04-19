@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION public.read_json_data(
+CREATE OR REPLACE FUNCTION __schema__.read_json_data(
   _stream_id      CHAR(42),
   _stream_version INT
 )
@@ -6,12 +6,12 @@ CREATE OR REPLACE FUNCTION public.read_json_data(
 AS $F$
 BEGIN
   RETURN (
-    SELECT public.messages.json_data
-    FROM public.messages
-      JOIN public.streams
-        ON public.messages.stream_id_internal = public.streams.id_internal
-    WHERE public.messages.stream_version = _stream_version
-          AND public.streams.id = _stream_id
+    SELECT __schema__.messages.json_data
+    FROM __schema__.messages
+      JOIN __schema__.streams
+        ON __schema__.messages.stream_id_internal = __schema__.streams.id_internal
+    WHERE __schema__.messages.stream_version = _stream_version
+          AND __schema__.streams.id = _stream_id
     LIMIT 1
   );
 END;

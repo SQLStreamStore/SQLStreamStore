@@ -17,28 +17,34 @@ Task("RestorePackages")
     .IsDependentOn("Clean")
     .Does(() =>
 {
-	DotNetCoreRestore(solution);
+    DotNetCoreRestore(solution);
 });
 
 Task("Build")
     .IsDependentOn("RestorePackages")
     .Does(() =>
 {
-	var settings = new DotNetCoreBuildSettings
-	{
-		Configuration = configuration
-	};
+    var settings = new DotNetCoreBuildSettings
+    {
+        Configuration = configuration
+    };
 
-	DotNetCoreBuild(solution, settings);
+    DotNetCoreBuild(solution, settings);
 });
 
 Task("RunTests")
     .IsDependentOn("Build")
     .Does(() =>
 {
-    Parallel.ForEach(Projects, project => {
-        using (var process = TestAssembly($"{project}.Tests")) {
-            process.WaitForExit();
+    const int TenMinutes = 10 * 60 * 60 * 1000;
+    Parallel.ForEach(Projects, project => 
+    {
+        using (var process = TestAssembly($"{project}.Tests")) 
+        {
+            process.WaitForExit(TenMinutes);
+
+            Console.Out.WriteLine(string.Join(Environment.NewLine, process.GetStandardOutput()));
+            Console.Error.WriteLine(string.Join(Environment.NewLine, process.GetStandardError()));
         }
     });
 });
@@ -52,8 +58,8 @@ Task("DotNetPack")
     var dotNetCorePackSettings = new DotNetCorePackSettings
     {
         OutputDirectory = artifactsDir,
-		NoBuild = true,
-		Configuration = configuration,
+        NoBuild = true,
+        Configuration = configuration,
         VersionSuffix = versionSuffix
     };
 
@@ -70,16 +76,17 @@ IProcess TestAssembly(string name)
     => StartAndReturnProcess(
         "dotnet",
         new ProcessSettings {
-            Arguments = XUnitArguments(name),
-            WorkingDirectory = sourceDir + Directory(name)
+            Arguments = $"xunit -quiet -parallel all -configuration {configuration} -nobuild",
+            WorkingDirectory = sourceDir + Directory(name),
+            RedirectStandardError = true,
+            RedirectStandardOutput = true
         });
 
 string XUnitArguments(string name) {
     var args = $"xunit -parallel all -configuration {configuration} -nobuild";
     if (BuildSystem.IsRunningOnTeamCity) {
-        args += $" -xml {MakeAbsolute(artifactsDir)}/{File($"{name}.xml")}";
+        args += $" -xml {artifactsDir + File($"{name}.xml")}";
     }
-Information(args);
     return args;
 }
 

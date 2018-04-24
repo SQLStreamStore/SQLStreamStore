@@ -77,8 +77,9 @@ IProcess TestAssembly(string name)
 string XUnitArguments(string name) {
     var args = $"xunit -parallel all -configuration {configuration} -nobuild";
     if (BuildSystem.IsRunningOnTeamCity) {
-        args += $" -xml {artifactsDir + File($"{name}.xml")}";
+        args += $" -xml {MakeAbsolute(artifactsDir)}/{File($"{name}.xml")}";
     }
+Information(args);
     return args;
 }
 

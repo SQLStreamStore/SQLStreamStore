@@ -13,23 +13,29 @@ BEGIN TRANSACTION CreateStream;
 
         SET @streamIdInternal = SCOPE_IDENTITY();
 
-        INSERT INTO dbo.Messages
-            (StreamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata)
-            SELECT @streamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata
-            FROM @newMessages
-            ORDER BY StreamVersion;
+        IF @hasMessages = 1
+            BEGIN
+                INSERT INTO dbo.Messages
+                    (StreamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata)
+                    SELECT @streamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata
+                    FROM @newMessages
+                    ORDER BY StreamVersion;
 
-        SET @latestStreamPosition = ISNULL(SCOPE_IDENTITY(), -1)
+                SET @latestStreamPosition = SCOPE_IDENTITY()
 
-        SELECT @latestStreamVersion = MAX(StreamVersion)
-        FROM @newMessages
+                SELECT @latestStreamVersion = MAX(StreamVersion)
+                FROM @newMessages
 
-        SET @latestStreamVersion = ISNULL(@latestStreamVersion, -1)
-
-        UPDATE dbo.Streams
-            SET dbo.Streams.[Version] = @latestStreamVersion,
-                dbo.Streams.[Position] = @latestStreamPosition
-            WHERE dbo.Streams.IdInternal = @streamIdInternal
+                UPDATE dbo.Streams
+                    SET dbo.Streams.[Version] = @latestStreamVersion,
+                        dbo.Streams.[Position] = @latestStreamPosition
+                    WHERE dbo.Streams.IdInternal = @streamIdInternal
+            END
+        ELSE
+            BEGIN
+                SET @latestStreamPosition = -1
+                SET @latestStreamVersion = -1
+            END
 
     END;
 

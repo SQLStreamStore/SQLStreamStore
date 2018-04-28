@@ -139,12 +139,14 @@
                     var sqlDataRecords = CreateSqlDataRecords(messages);
                     var eventsParam = CreateNewMessagesSqlParameter(sqlDataRecords);
                     command.Parameters.Add(eventsParam);
+                    command.Parameters.AddWithValue("hasMessages", true);
                 }
                 else
                 {
                     // Must use a null value for the table-valued param if there are no records
                     var eventsParam = CreateNewMessagesSqlParameter(null);
                     command.Parameters.Add(eventsParam);
+                    command.Parameters.AddWithValue("hasMessages", false);
                 }
 
                 try
@@ -241,12 +243,14 @@
                     var sqlDataRecords = CreateSqlDataRecords(messages);
                     var eventsParam = CreateNewMessagesSqlParameter(sqlDataRecords);
                     command.Parameters.Add(eventsParam);
+                    command.Parameters.AddWithValue("hasMessages", true);
                 }
                 else
                 {
                     // Must use a null value for the table-valued param if there are no records
                     var eventsParam = CreateNewMessagesSqlParameter(null);
                     command.Parameters.Add(eventsParam);
+                    command.Parameters.AddWithValue("hasMessages", false);
                 }
 
                 try

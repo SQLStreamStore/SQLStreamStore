@@ -1,6 +1,7 @@
 namespace SqlStreamStore
 {
     using System;
+    using System.Data.SqlClient;
     using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Subscriptions;
@@ -29,7 +30,7 @@ namespace SqlStreamStore
         public string ConnectionString { get; }
 
         /// <summary>
-        ///     Allows overrding of the stream store notifier. The default implementation
+        ///     Allows overriding of the stream store notifier. The default implementation
         ///     creates <see cref="PollingStreamStoreNotifier"/>
         /// </summary>
         public CreateStreamStoreNotifier CreateStreamStoreNotifier { get; set; } =
@@ -78,5 +79,11 @@ namespace SqlStreamStore
         ///     The log name used for the any log messages.
         /// </summary>
         public string LogName { get; set; } = "MsSqlStreamStore";
+
+        /// <summary>
+        ///     Allows overriding the way a <see cref="SqlConnection"/> is created given a connection string.
+        ///     The default implementation simply passes the connection string into the <see cref="SqlConnection"/> constructor.
+        /// </summary>
+        public Func<string, SqlConnection> ConnectionFactory { get; set; } = connectionString => new SqlConnection(connectionString);
     }
 }

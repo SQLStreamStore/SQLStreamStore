@@ -34,7 +34,7 @@
         {
             Ensure.That(settings, nameof(settings)).IsNotNull();
 
-            _createConnection = () => new SqlConnection(settings.ConnectionString);
+            _createConnection = () => settings.ConnectionFactory(settings.ConnectionString);
             _streamStoreNotifier = new Lazy<IStreamStoreNotifier>(() =>
                 {
                     if(settings.CreateStreamStoreNotifier == null)

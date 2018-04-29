@@ -16,7 +16,7 @@ used in Event Sourced based applications.
 
  - Designed to only ever support RDMBS\SQL implementations.
  - Subscriptions are eventually consistent.
- - API is influenced by (but not compatible with) [EventStore](https://geteventstore.com/).
+ - API is influenced by (but not compatible with) [EventStore](https://eventstore.org/).
  - Async only.
  - JSON only event and metadata payloads (usually just a `string` / `varchar` / etc).
  - No support for `System.Transaction` enforcing the concept of the stream as the consistency and transaction boundary.
@@ -27,7 +27,7 @@ Coming soon.
 
 # Help & Support
 
-Ask questions in the `#sql-stream-store` channel in the [ddd-cqrs-es slack](https://ddd-cqrs-es.slack.com) workspace. ([Join here](https://ddd-cqrs-es.herokuapp.com/)). 
+Ask questions in the `#sql-stream-store` channel in the [ddd-cqrs-es slack](https://ddd-cqrs-es.slack.com) workspace. ([Join here](https://ddd-cqrs-es.herokuapp.com/)).
 
 # Licences
 

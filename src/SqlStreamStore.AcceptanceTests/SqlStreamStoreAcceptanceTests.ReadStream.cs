@@ -56,7 +56,7 @@
             }
         }
 
-        [Theory, Trait("Category", "ReadStream")]
+        /*[Theory, Trait("Category", "ReadStream")]
         [MemberData(nameof(GetReadStreamForwardsTheories))]
         public async Task Can_read_streams_forwards_without_prefetch(ReadStreamTheory theory)
         {
@@ -99,9 +99,9 @@
                     }
                 }
             }
-        }
+        }*/
 
-        [Fact, Trait("Category", "ReadStream")]
+        /*[Fact, Trait("Category", "ReadStream")]
         public async Task Can_read_whole_stream_forwards_without_prefetch()
         {
             using (var fixture = GetFixture())
@@ -120,7 +120,7 @@
                     }
                 }
             }
-        }
+        }*/
 
         [Fact, Trait("Category", "ReadStream")]
         public async Task Can_read_next_page_past_end_of_stream()
@@ -201,7 +201,7 @@
             }
         }
 
-        [Theory, Trait("Category", "ReadStream")]
+        /*[Theory, Trait("Category", "ReadStream")]
         [MemberData(nameof(GetReadStreamBackwardsTheories))]
         public async Task Can_read_streams_backwards_without_prefetch(ReadStreamTheory theory)
         {
@@ -244,9 +244,9 @@
                     }
                 }
             }
-        }
+        }*/
 
-        [Fact, Trait("Category", "ReadStream")]
+        /*[Fact, Trait("Category", "ReadStream")]
         public async Task Can_read_stream_backwards_without_prefetch()
         {
             using (var fixture = GetFixture())
@@ -265,7 +265,7 @@
                     }
                 }
             }
-        }
+        }*/
 
         [Theory, Trait("Category", "ReadStream")]
         [InlineData(true), InlineData(false)]

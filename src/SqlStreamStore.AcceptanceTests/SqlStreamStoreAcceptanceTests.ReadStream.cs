@@ -1,5 +1,6 @@
 ﻿namespace SqlStreamStore
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
@@ -376,6 +377,25 @@
                         await store.ReadStreamBackwards("stream-1", StreamVersion.Start, 1);
 
                     streamMessagesPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
+                }
+            }
+        }
+
+        [Theory, InlineData(0), InlineData(1)]
+        public async Task Can_read_stream_backwards_starting_past_end_of_stream(int fromVersionInclusive)
+        {
+            using(var fixture = GetFixture())
+            {
+                using(var store = await fixture.GetStreamStore())
+                {
+                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, Array.Empty<NewStreamMessage>());
+
+                    var streamMessagesPage =
+                        await store.ReadStreamBackwards("stream-1", fromVersionInclusive, 1);
+
+                    streamMessagesPage.Status.ShouldBe(PageReadStatus.Success);
+                    streamMessagesPage.Messages.Length.ShouldBe(0);
+                    streamMessagesPage.IsEnd.ShouldBeTrue();
                 }
             }
         }

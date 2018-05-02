@@ -2,6 +2,7 @@ namespace SqlStreamStore.Infrastructure
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using SqlStreamStore.Logging;
@@ -70,20 +71,55 @@ namespace SqlStreamStore.Infrastructure
             // Check for gap between last page and this.
             if (page.Messages[0].Position != fromPositionInclusive)
             {
-                page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken);
+                page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken, new[] { fromPositionInclusive });
             }
 
-            // check for gap in messages collection
-            for(int i = 0; i < page.Messages.Length - 1; i++)
+            var missingMessagePositions = new HashSet<long>();
+
+            do
             {
-                if(page.Messages[i].Position + 1 != page.Messages[i + 1].Position)
+                missingMessagePositions = FindShortTermMissingPositions(page.Messages, missingMessagePositions);
+
+                if (!missingMessagePositions.Any())
                 {
-                    page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken);
-                    break;
+                    return await FilterExpired(page, ReadNext, cancellationToken).NotOnCapturedContext();
+                }
+
+                page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken, missingMessagePositions);
+
+            } while (true);
+        }
+
+        /// <summary>
+        /// There are two general reasons for seeing a gap between two contiguous message positions:
+        ///     1. An id was assigned by the DB when adding a message, but the TX adding the message was rolled back
+        ///     2. A message has an id assigned, but has not yet been committed to the DB
+        ///
+        /// In the first case, after our delay, we can expect the gap to still exist.  This is (very likely) legitimate
+        /// This code, when paired with the do/while loop reloads the page until there are no 'fresh' gaps.  Fresh gaps could be because of the second case, but older gaps (i.e. those that persist between reloads are likely the first, legitimate case)
+        /// </summary>
+        /// <param name="messages">The page of messages that could contain positional gaps</param>
+        /// <param name="previouslyMissingPositions">A set of positions that did not exist in the last batch of messages.  If any of these are still missing, assume they will never bee created</param>
+        /// <returns>A set of positions that are missing from the sequence of messages, but were not found last time</returns>
+        private HashSet<long> FindShortTermMissingPositions(StreamMessage[] messages, HashSet<long> previouslyMissingPositions)
+        {
+            var currentMissingPositions = new HashSet<long>();
+
+            for (var i = 0; i < messages.Length - 1; i++)
+            {
+                var expectedNextPosition = messages[i].Position + 1;
+                var actualNextPosition = messages[i + 1].Position;
+
+                if (expectedNextPosition != actualNextPosition)
+                {
+                    var range = expectedNextPosition.RangeTo(actualNextPosition - 1);
+                    currentMissingPositions.UnionWith(range);
                 }
             }
 
-            return await FilterExpired(page, ReadNext, cancellationToken).NotOnCapturedContext();
+            currentMissingPositions.ExceptWith(previouslyMissingPositions);
+
+            return currentMissingPositions;
         }
 
         public async Task<ReadAllPage> ReadAllBackwards(
@@ -309,9 +345,12 @@ namespace SqlStreamStore.Infrastructure
             int maxCount,
             bool prefetch,
             ReadNextAllPage readNext,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken,
+            IEnumerable<long> missingPositions)
         {
-            Logger.InfoFormat($"ReadAllForwards: gap detected in position, reloading after {DefaultReloadInterval}ms");
+            var missingPositionsText = string.Join(", ", missingPositions);
+            Logger.InfoFormat($"ReadAllForwards: gap detected in positions [{missingPositionsText}], reloading after {DefaultReloadInterval}ms");
+
             await Task.Delay(DefaultReloadInterval, cancellationToken);
             var reloadedPage = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, prefetch, readNext, cancellationToken)
                 .NotOnCapturedContext();

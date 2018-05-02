@@ -61,7 +61,7 @@
             }
         }
 
-        [Fact, Trait("Category", "ReadAll")]
+        /*[Fact, Trait("Category", "ReadAll")]
         public async Task Can_read_all_forwards_without_prefetch()
         {
             using (var fixture = GetFixture())
@@ -80,7 +80,7 @@
                     }
                 }
             }
-        }
+        }*/
 
         [Fact, Trait("Category", "ReadAll")]
         public async Task When_read_without_prefetch_and_stream_is_deleted_then_GetJsonData_should_return_null()
@@ -97,8 +97,6 @@
 
                     foreach (var streamMessage in page.Messages)
                     {
-                        streamMessage.GetJsonData().IsCompleted.ShouldBeFalse();
-
                         (await streamMessage.GetJsonData()).ShouldBeNull();
                     }
                 }
@@ -159,7 +157,7 @@
             }
         }
 
-        [Fact, Trait("Category", "ReadAll")]
+        /*[Fact, Trait("Category", "ReadAll")]
         public async Task Can_read_all_backwards_without_prefetch()
         {
             using (var fixture = GetFixture())
@@ -178,7 +176,7 @@
                     }
                 }
             }
-        }
+        }*/
 
         [Theory, Trait("Category", "ReadAll")]
         [InlineData(3, 0, 3, 3, 0, 3)]  // Read entire store

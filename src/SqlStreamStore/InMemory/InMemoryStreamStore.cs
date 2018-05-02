@@ -589,7 +589,7 @@ namespace SqlStreamStore
 
                 var messages = new List<StreamMessage>();
                 var i = fromVersionInclusive == StreamVersion.End ? stream.Messages.Count - 1 : fromVersionInclusive;
-                while (i >= 0 && count > 0)
+                while (i < stream.Messages.Count && i >= 0 && count > 0)
                 {
                     var inMemorymessage = stream.Messages[i];
                     StreamMessage message;

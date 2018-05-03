@@ -3,6 +3,7 @@
     using System;
     using System.Net.Http;
     using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.Subscriptions;
 
     public class HttpClientSqlStreamStoreSettings
     {
@@ -15,6 +16,9 @@
         ///     The Http Message Handler. Override this for testing.
         /// </summary>
         public HttpMessageHandler HttpMessageHandler { get; set; } = new HttpClientHandler();
+
+        public CreateStreamStoreNotifier CreateStreamStoreNotifier { get; set; } =
+            store => new PollingStreamStoreNotifier(store);
 
         /// <summary>
         ///     To help with perf, the max age of messages in a stream
@@ -41,7 +45,7 @@
         /// <summary>
         ///     The log name used for the any log messages.
         /// </summary>
-        public string LogName { get; set; } = "MsSqlStreamStore";
+        public string LogName { get; set; } = nameof(HttpClientSqlStreamStore);
 
     }
 }

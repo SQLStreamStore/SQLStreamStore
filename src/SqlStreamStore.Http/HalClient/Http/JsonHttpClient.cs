@@ -4,7 +4,6 @@ namespace SqlStreamStore.HalClient.Http
     using System.IO;
     using System.Net.Http;
     using System.Net.Http.Headers;
-    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.IO;
@@ -14,24 +13,29 @@ namespace SqlStreamStore.HalClient.Http
     internal sealed class JsonHttpClient : IJsonHttpClient
     {
         private static readonly RecyclableMemoryStreamManager s_streamManager = new RecyclableMemoryStreamManager();
-        
+
         public JsonHttpClient(HttpClient client, JsonSerializer serializer)
         {
             HttpClient = client;
             Serializer = serializer;
-            AcceptJson();
         }
 
         public HttpClient HttpClient { get; }
         public JsonSerializer Serializer { get; }
 
-        public Task<HttpResponseMessage> GetAsync(string uri, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<HttpResponseMessage> GetAsync(
+            string uri,
+            CancellationToken cancellationToken = default(CancellationToken))
             => HttpClient.GetAsync(uri, cancellationToken);
 
-        public Task<HttpResponseMessage> HeadAsync(string uri, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<HttpResponseMessage> HeadAsync(
+            string uri,
+            CancellationToken cancellationToken = default(CancellationToken))
             => HttpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, uri), cancellationToken);
 
-        public Task<HttpResponseMessage> OptionsAsync(string uri, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<HttpResponseMessage> OptionsAsync(
+            string uri,
+            CancellationToken cancellationToken = default(CancellationToken))
             => HttpClient.SendAsync(new HttpRequestMessage(HttpMethod.Options, uri), cancellationToken);
 
         public async Task<HttpResponseMessage> PostAsync<T>(
@@ -60,21 +64,34 @@ namespace SqlStreamStore.HalClient.Http
                     }
                 };
 
-                foreach(var header in headers)
-                {
-                    request.Headers.Add(header.Key, header.Value);
-                }
+                CopyHeaders(headers, request);
 
                 return await HttpClient.SendAsync(request, cancellationToken);
             }
         }
 
-        public Task<HttpResponseMessage> DeleteAsync(string uri, CancellationToken cancellationToken = default(CancellationToken))
-            => HttpClient.DeleteAsync(uri, cancellationToken);
-
-        private void AcceptJson()
+        public Task<HttpResponseMessage> DeleteAsync(
+            string uri,
+            IDictionary<string, string[]> headers,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            HttpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/hal+json"));
+            var request = new HttpRequestMessage(HttpMethod.Delete, uri);
+
+            CopyHeaders(headers, request);
+
+            return HttpClient.SendAsync(request, cancellationToken);
+        }
+
+        private static void CopyHeaders(IDictionary<string, string[]> headers, HttpRequestMessage request)
+        {
+            if(headers == null)
+            {
+                return;
+            }
+            foreach(var header in headers)
+            {
+                request.Headers.Add(header.Key, header.Value);
+            }
         }
     }
 }

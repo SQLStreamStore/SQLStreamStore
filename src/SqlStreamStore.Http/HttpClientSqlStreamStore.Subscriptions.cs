@@ -13,9 +13,16 @@ namespace SqlStreamStore
             HasCaughtUp hasCaughtUp = null,
             bool prefetchJsonData = true,
             string name = null)
-        {
-            throw new System.NotImplementedException();
-        }
+            => new StreamSubscription(
+                streamId,
+                continueAfterVersion,
+                this,
+                _streamStoreNotifier.Value,
+                streamMessageReceived,
+                subscriptionDropped,
+                hasCaughtUp,
+                prefetchJsonData,
+                name);
 
         public IAllStreamSubscription SubscribeToAll(
             long? continueAfterPosition,
@@ -24,8 +31,14 @@ namespace SqlStreamStore
             HasCaughtUp hasCaughtUp = null,
             bool prefetchJsonData = true,
             string name = null)
-        {
-            throw new System.NotImplementedException();
-        }
+            => new AllStreamSubscription(
+                continueAfterPosition,
+                this,
+                _streamStoreNotifier.Value,
+                streamMessageReceived,
+                subscriptionDropped,
+                hasCaughtUp,
+                prefetchJsonData,
+                name);
     }
 }

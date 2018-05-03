@@ -1,7 +1,6 @@
 ﻿namespace SqlStreamStore.HalClient.Serialization
 {
     using System.Collections.Generic;
-    using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
     using Newtonsoft.Json;
@@ -12,11 +11,13 @@
     {
         public static async Task<IResource> ReadResource(
             JsonReader reader,
-            JsonSerializer serializer,
             CancellationToken cancellationToken = default(CancellationToken))
         {
-            await reader.ReadAsync(cancellationToken);
-            
+            if(reader.TokenType == JsonToken.None)
+            {
+                await ReadNextToken(reader, cancellationToken);
+            }
+
             await SkipComments(reader, cancellationToken);
             AssertNextTokenIsStartObject(reader);
 
@@ -39,11 +40,18 @@
                                 resource.Embedded = await ReadEmbedded(reader, cancellationToken);
                                 break;
                             default:
-                                resource[propertyName] = await JToken.LoadAsync(reader, cancellationToken);
+                                var value = await JToken.LoadAsync(reader, cancellationToken);
+
+                                resource[propertyName] = value.Type == JTokenType.Null
+                                    ? null
+                                    : value;
+
                                 break;
                         }
+
                         continue;
                     case JsonToken.EndObject:
+                        await reader.ReadAsync(cancellationToken);
                         return resource;
                     case JsonToken.Comment:
                         continue;
@@ -52,7 +60,7 @@
                 }
             }
 
-            throw new JsonSerializationException("Unexpected end of tokens.");
+            return resource;
         }
 
         private static async Task<IList<ILink>> ReadLinks(
@@ -103,7 +111,9 @@
             }
         }
 
-        private static async Task<IList<IResource>> ReadEmbedded(JsonReader reader, CancellationToken cancellationToken)
+        private static async Task<IList<IResource>> ReadEmbedded(
+            JsonReader reader,
+            CancellationToken cancellationToken)
         {
             await SkipComments(reader, cancellationToken);
             AssertNextTokenIsStartObject(reader);
@@ -122,6 +132,7 @@
                     case JsonToken.Comment:
                         continue;
                     case JsonToken.EndObject:
+                        await reader.ReadAsync(cancellationToken);
                         return embedded;
                     default:
                         throw new JsonSerializationException($"Unexpected token encountered:{reader.TokenType}");
@@ -131,7 +142,7 @@
             throw new JsonSerializationException("Unexpected end of tokens.");
         }
 
-        private static async Task<Resource[]> ReadEmbedded(
+        private static async Task<IResource[]> ReadEmbedded(
             JsonReader reader,
             string rel,
             CancellationToken cancellationToken)
@@ -139,14 +150,29 @@
             switch(reader.TokenType)
             {
                 case JsonToken.StartObject:
-                    var resource = (await JObject.LoadAsync(reader, cancellationToken)).ToObject<Resource>();
+                {
+                    var resource = await ReadResource(reader, cancellationToken);
                     resource.Rel = rel;
                     return new[] { resource };
+                }
                 case JsonToken.StartArray:
-                    var resources = (await JArray.LoadAsync(reader, cancellationToken)).ToObject<Resource[]>();
-                    foreach(var r in resources)
-                        r.Rel = rel;
-                    return resources;
+                {
+                    var resources = new List<IResource>();
+
+                    await ReadNextToken(reader, cancellationToken);
+
+                    while(reader.TokenType != JsonToken.EndArray)
+                    {
+                        var resource = await ReadResource(reader, cancellationToken);
+                        resource.Rel = rel;
+
+                        resources.Add(resource);
+                    }
+
+                    await ReadNextToken(reader, cancellationToken);
+
+                    return resources.ToArray();
+                }
                 default:
                     throw new JsonSerializationException($"Unexpected token encountered:{reader.TokenType}");
             }
@@ -168,7 +194,7 @@
         private static void AssertNextTokenIsStartObject(JsonReader reader)
         {
             if(reader.TokenType != JsonToken.StartObject)
-                throw new JsonSerializationException($"Unexpected token encountered:{reader.TokenType}");
+                throw new JsonSerializationException($"Unexpected token encounturd:{reader.TokenType}");
         }
     }
 }

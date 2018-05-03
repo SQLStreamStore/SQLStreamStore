@@ -1,6 +1,7 @@
 ﻿namespace SqlStreamStore.HalClient
 {
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
 
     /// <summary>
@@ -9,20 +10,16 @@
     internal static class HalClientRootExtensions
     {
         /// <summary>
-        /// Makes a HTTP GET request to the default URI and stores the returned resource.
-        /// </summary>
-        /// <returns>A new instance of <see cref="IHalClient"/> with updated resources.</returns>
-        public static Task<IHalClient> RootAsync(this IHalClientBase client) =>
-            client.ExecuteAsync(string.Empty, uri => client.Client.GetAsync(uri));
-        
-        /// <summary>
         /// Makes a HTTP GET request to the given URL and stores the returned resource.
         /// </summary>
         /// <param name="client">The instance of the client used for the request.</param>
         /// <param name="href">The URI to request.</param>
         /// <returns>A new instance of <see cref="IHalClient"/> with updated resources.</returns>
-        public static Task<IHalClient> RootAsync(this IHalClientBase client, string href) =>
-            client.ExecuteAsync(href, uri => client.Client.GetAsync(uri));
+        public static Task<IHalClient> RootAsync(
+            this IHalClient client,
+            string href,
+            CancellationToken cancellationToken = default(CancellationToken)) =>
+            client.ExecuteAsync(href, uri => client.Client.GetAsync(uri, cancellationToken));
 
         /// <summary>
         /// Determines whether the most recently navigated resource contains the given link relation.

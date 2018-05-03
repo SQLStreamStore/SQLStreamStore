@@ -53,6 +53,6 @@ namespace SqlStreamStore.HalClient.Http
         /// </summary>
         /// <param name="uri">The Uri the request is sent to.</param>
         /// <returns>Returns <see cref="T:System.Threading.Tasks.Task`1"/>.The task object representing the asynchronous operation.</returns>
-        Task<HttpResponseMessage> DeleteAsync(string uri, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpResponseMessage> DeleteAsync(string uri, IDictionary<string, string[]> headers, CancellationToken cancellationToken = default(CancellationToken));
     }
 }

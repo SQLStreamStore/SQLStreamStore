@@ -1,6 +1,7 @@
 namespace SqlStreamStore
 {
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using SqlStreamStore.HalClient;
@@ -26,7 +27,7 @@ namespace SqlStreamStore
                     }
                 }
             });
-
+            
             client = await client.Post(
                 "streamStore:appendToStream",
                 messages,
@@ -40,7 +41,9 @@ namespace SqlStreamStore
 
             ThrowOnError(client);
 
-            return default(AppendResult);
+            var resource = client.Current.First();
+
+            return resource.Data<HalAppendResult>();
         }
     }
 }

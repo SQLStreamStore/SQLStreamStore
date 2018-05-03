@@ -1,28 +1,12 @@
 namespace SqlStreamStore
 {
+    using System;
+    using System.Collections.Generic;
     using SqlStreamStore.Streams;
-
-    internal static class Constants
-    {
-        internal static class Direction
-        {
-            public const int Forwards = 1;
-            public const int Backwards = -1;
-        }
-        internal static class Headers
-        {
-            public const string HeadPosition = "SSS-HeadPosition";
-            public const string ExpectedVersion = "SSS-ExpectedVersion";
-
-        }
-    }
 
     internal static class LinkFormatter
     {
         public static string AllHead => "/stream";
-
-        public static string Stream(StreamId streamId)
-            => $"/streams/{streamId}";
 
         public static string ReadAllForwards(long fromPositionInclusive, int maxCount, bool prefetchJsonData)
             => ReadAll(
@@ -38,9 +22,52 @@ namespace SqlStreamStore
                 prefetchJsonData,
                 Constants.Direction.Backwards);
 
+        public static string Stream(StreamId streamId)
+            => $"/streams/{streamId}";
+
+        public static string StreamByMessageId(StreamId streamId, Guid messageId)
+            => $"{Stream(streamId)}/{messageId}";
+
+        public static string ReadStreamForwards(
+            StreamId streamId,
+            int fromVersionInclusive,
+            int maxCount,
+            bool prefetchJsonData)
+            => ReadStream(streamId, fromVersionInclusive, maxCount, prefetchJsonData, Constants.Direction.Forwards);
+
+        public static string ReadStreamBackwards(
+            StreamId streamId,
+            int fromVersionInclusive,
+            int maxCount,
+            bool prefetchJsonData)
+            => ReadStream(streamId, fromVersionInclusive, maxCount, prefetchJsonData, Constants.Direction.Backwards);
+
         private static string ReadAll(long fromPositionInclusive, int maxCount, bool prefetchJsonData, int direction)
-            =>
-                $"{AllHead}?d={(direction == Constants.Direction.Forwards ? "f" : "b")}"
-                + $"&m={maxCount}&p={fromPositionInclusive}{(prefetchJsonData ? "&e=1" : string.Empty)}";
+            => $"{AllHead}?{GetStreamQueryString(fromPositionInclusive, maxCount, prefetchJsonData, direction)}";
+
+        private static string ReadStream(
+            StreamId streamId,
+            int fromVersionInclusive,
+            int maxCount,
+            bool prefetchJsonData,
+            int direction) =>
+            $"{Stream(streamId)}?{GetStreamQueryString(fromVersionInclusive, maxCount, prefetchJsonData, direction)}";
+
+        private static string GetStreamQueryString(long positionOrVersion, int maxCount, bool prefetchJsonData, int direction)
+        {
+            var queryString = new Dictionary<string, string>
+            {
+                ["d"] = direction == Constants.Direction.Forwards ? "f" : "b",
+                ["p"] = $"{positionOrVersion}",
+                ["m"] = $"{maxCount}"
+            };
+
+            if(prefetchJsonData)
+            {
+                queryString["e"] = "1";
+            }
+            
+            return queryString.ToUrlFormEncoded();
+        }
     }
 }

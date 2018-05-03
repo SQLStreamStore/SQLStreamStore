@@ -1,6 +1,8 @@
 namespace SqlStreamStore
 {
     using System;
+    using System.Threading;
+    using System.Threading.Tasks;
     using SqlStreamStore.Streams;
 
     internal class HttpStreamMessage
@@ -12,16 +14,17 @@ namespace SqlStreamStore
         public int StreamVersion { get; set; }
         public string Type { get; set; }
         public string Payload { get; set; }
-        
-        public static implicit operator StreamMessage(HttpStreamMessage message)
+        public string Metadata { get; set; }
+
+        public StreamMessage ToStreamMessage(Func<CancellationToken, Task<string>> getPayload)
             => new StreamMessage(
-                message.StreamId,
-                message.MessageId,
-                message.StreamVersion,
-                message.Position,
-                message.CreatedUtc.DateTime,
-                message.Type,
-                null,
-                message.Payload);
+                StreamId,
+                MessageId,
+                StreamVersion,
+                Position,
+                CreatedUtc.DateTime,
+                Type,
+                Metadata,
+                getPayload);
     }
 }

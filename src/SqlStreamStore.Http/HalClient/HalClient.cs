@@ -35,30 +35,11 @@
         }
 
         /// <summary>
-        /// Creates an instance of the <see cref="HoneyBear.HalClient"/> class.
-        /// Uses a default instance of <see cref="System.Net.Http.HttpClient"/>.
-        /// </summary>
-        public HalClient(JsonSerializer serializer) 
-            : this(new HttpClient(), serializer)
-        {
-
-        }
-
-        /// <summary>
-        /// Creates an instance of the <see cref="HoneyBear.HalClient"/> class.
-        /// </summary>
-        /// <param name="client">The implementation of <see cref="IJsonHttpClient"/> to use.</param>
-        public HalClient(IJsonHttpClient client)
-        {
-            Client = client;
-        }
-
-        /// <summary>
         /// Creates a copy of the specified client with given resources.
         /// </summary>
         /// <param name="client">The client to copy.</param>
         /// <param name="current">The new resources.</param>
-        public HalClient(IHalClientBase client, IEnumerable<IResource> current)
+        public HalClient(IHalClient client, IEnumerable<IResource> current)
         {
             Client = client.Client;
             Current = current;
@@ -70,7 +51,7 @@
         /// </summary>
         /// <param name="client">The client to copy.</param>
         /// <param name="current">The new resources.</param>
-        public HalClient(IHalClientBase client, IEnumerable<IResource> current, HttpStatusCode statusCode)
+        public HalClient(IHalClient client, IEnumerable<IResource> current, HttpStatusCode statusCode)
         {
             Client = client.Client;
             Current = current;

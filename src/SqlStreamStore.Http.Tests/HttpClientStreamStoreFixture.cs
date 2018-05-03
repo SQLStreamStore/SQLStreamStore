@@ -50,6 +50,5 @@ namespace SqlStreamStore
             _messageHandler?.Dispose();
             _innerStreamStore?.Dispose();
         }
-        
     }
 }

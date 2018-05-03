@@ -1,5 +1,6 @@
 ﻿namespace SqlStreamStore.HalClient.Models
 {
+    using System;
     using System.Collections.Generic;
 
     /// <summary>
@@ -16,6 +17,10 @@
         /// The list of embedded resources.
         /// </summary>
         IList<IResource> Embedded { get; }
+        
+        Uri BaseAddress { get; }
+
+        IResource WithBaseAddress(Uri baseAddress);
     }
 
     /// <summary>

@@ -40,7 +40,7 @@ namespace SqlStreamStore
                 Schema = schema,
                 GetUtcNow = () => GetUtcNow()
             };
-            var store = new MsSqlStreamStore(settings);
+            var store = new MsSqlStreamStoreV3(settings);
             await store.CreateSchema();
 
             return store;

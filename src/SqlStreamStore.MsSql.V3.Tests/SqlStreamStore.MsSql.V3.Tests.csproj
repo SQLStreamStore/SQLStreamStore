@@ -1,8 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.0</TargetFrameworks>
-    <AssemblyName>SqlStreamStore.MsSql.V2.Tests</AssemblyName>
-    <PackageId>SqlStreamStore.MsSql.V2.Tests</PackageId>
+    <AssemblyName>SqlStreamStore.MsSql.V3.Tests</AssemblyName>
+    <PackageId>SqlStreamStore.MsSql.V3.Tests</PackageId>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <RootNamespace>SqlStreamStore</RootNamespace>
     <NoWarn>1701;1702;1705;1591</NoWarn>

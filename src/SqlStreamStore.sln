@@ -16,7 +16,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.Postgres.Tes
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "LoadTests", "LoadTests\LoadTests.csproj", "{E5960CFD-409F-416D-9830-F288C002ABF0}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.MsSql.V2.Tests", "SqlStreamStore.MsSql.V2.Tests\SqlStreamStore.MsSql.V2.Tests.csproj", "{72E62889-6F5F-4A89-9AC8-23B8499BB78F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.MsSql.V2.Tests", "SqlStreamStore.MsSql.V3.Tests\SqlStreamStore.MsSql.V3.Tests.csproj", "{72E62889-6F5F-4A89-9AC8-23B8499BB78F}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

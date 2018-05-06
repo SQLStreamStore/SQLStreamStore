@@ -34,6 +34,12 @@ namespace SqlStreamStore.Infrastructure
                 metadataMaxAgeCacheMaxSize, GetUtcNow);
         }
 
+        protected ReadonlyStreamStoreBase(GetUtcNow getUtcNow, string logName)
+        {
+            GetUtcNow = getUtcNow ?? SystemClock.GetUtcNow;
+            Logger = LogProvider.GetLogger(logName);
+        }
+
         public async Task<ReadAllPage> ReadAllForwards(
             long fromPositionInclusive,
             int maxCount,
@@ -327,7 +333,10 @@ namespace SqlStreamStore.Infrastructure
             {
                 return page;
             }
-            var maxAge = await _metadataMaxAgeCache.GetMaxAge(page.StreamId, cancellationToken);
+
+            int? maxAge = _metadataMaxAgeCache == null 
+                ? null 
+                : await _metadataMaxAgeCache.GetMaxAge(page.StreamId, cancellationToken);
             if (!maxAge.HasValue)
             {
                 return page;

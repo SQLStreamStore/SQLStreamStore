@@ -31,6 +31,15 @@ namespace SqlStreamStore.Infrastructure
             : base(metadataMaxAgeCacheExpiry, metadataMaxAgeCacheMaxSize, getUtcNow, logName)
         {}
 
+        /// <summary>
+        ///     Initialized an new instance of a <see cref="StreamStoreBase"/>
+        /// </summary>
+        /// <param name="getUtcNow"></param>
+        /// <param name="logName"></param>
+        protected StreamStoreBase(GetUtcNow getUtcNow, string logName)
+            : base(getUtcNow, logName)
+        {}
+
         /// <inheritdoc />
         public Task<AppendResult> AppendToStream(StreamId streamId, int expectedVersion, NewStreamMessage[] messages, CancellationToken cancellationToken = default)
         {

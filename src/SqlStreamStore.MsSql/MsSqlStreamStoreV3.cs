@@ -9,11 +9,12 @@
     using Microsoft.SqlServer.Server;
     using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Infrastructure;
-    using SqlStreamStore.ScriptsV2;
+    using SqlStreamStore.ScriptsV3;
     using SqlStreamStore.Subscriptions;
 
     /// <summary>
-    ///     Represents a Micrsoft SQL Server stream store implementation.
+    ///     Represents a Micrsoft SQL Server stream store implementation that
+    ///     uses V3 of the store schema.
     /// </summary>
     public sealed partial class MsSqlStreamStoreV3 : StreamStoreBase
     {
@@ -22,15 +23,14 @@
         private readonly Scripts _scripts;
         private readonly SqlMetaData[] _appendToStreamSqlMetadata;
         public const int FirstSchemaVersion = 1;
-        public const int CurrentSchemaVersion = 2;
+        public const int CurrentSchemaVersion = 3;
 
         /// <summary>
         ///     Initializes a new instance of <see cref="MsSqlStreamStore"/>
         /// </summary>
         /// <param name="settings">A settings class to configur this instance.</param>
         public MsSqlStreamStoreV3(MsSqlStreamStoreSettings settings)
-            :base(settings.MetadataMaxAgeCacheExpire, settings.MetadataMaxAgeCacheMaxSize,
-                 settings.GetUtcNow, settings.LogName)
+            :base(settings.GetUtcNow, settings.LogName)
         {
             Ensure.That(settings, nameof(settings)).IsNotNull();
 
@@ -104,7 +104,7 @@
             }
         }
 
-        internal async Task CreateSchema_v1_ForTests(CancellationToken cancellationToken = default(CancellationToken))
+        internal async Task CreateSchema_v2_ForTests(CancellationToken cancellationToken = default(CancellationToken))
         {
             GuardAgainstDisposed();
 
@@ -130,7 +130,7 @@
                     }
                 }
 
-                using (var command = new SqlCommand(_scripts.CreateSchema_v1, connection))
+                using (var command = new SqlCommand(_scripts.CreateSchema_v2, connection))
                 {
                     await command.ExecuteNonQueryAsync(cancellationToken)
                         .NotOnCapturedContext();

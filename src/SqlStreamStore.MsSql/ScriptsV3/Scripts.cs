@@ -36,7 +36,7 @@
 
         internal string CreateSchema => GetScript(nameof(CreateSchema));
 
-        internal string CreateSchema_v1 => GetScript(nameof(CreateSchema_v1));
+        internal string CreateSchema_v2 => GetScript(nameof(CreateSchema_v2));
 
         internal string GetSchemaVersion => GetScript(nameof(GetSchemaVersion));
 

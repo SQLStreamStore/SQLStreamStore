@@ -55,17 +55,19 @@ namespace SqlStreamStore
                         else
                         {
                             var streamId = reader.GetString(0);
-                            var streamVersion = reader.GetInt32(1);
-                            ordinal = reader.GetInt64(2);
-                            var eventId = reader.GetGuid(3);
-                            var created = reader.GetDateTime(4);
-                            var type = reader.GetString(5);
-                            var jsonMetadata = reader.GetString(6);
+                            var maxAge = reader.GetInt32(1);
+                            var maxCount2 = reader.GetInt32(1);
+                            var streamVersion = reader.GetInt32(3);
+                            ordinal = reader.GetInt64(4);
+                            var eventId = reader.GetGuid(5);
+                            var created = reader.GetDateTime(6);
+                            var type = reader.GetString(7);
+                            var jsonMetadata = reader.GetString(8);
 
                             Func<CancellationToken, Task<string>> getJsonData;
                             if(prefetch)
                             {
-                                var jsonData = reader.GetString(7);
+                                var jsonData = reader.GetString(9);
                                 getJsonData = _ => Task.FromResult(jsonData);
                             }
                             else
@@ -149,17 +151,19 @@ namespace SqlStreamStore
                     while (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                     {
                         var streamId = reader.GetString(0);
-                        var streamVersion = reader.GetInt32(1);
-                        ordinal = reader.GetInt64(2);
-                        var eventId = reader.GetGuid(3);
-                        var created = reader.GetDateTime(4);
-                        var type = reader.GetString(5);
-                        var jsonMetadata = reader.GetString(6);
+                        var maxAge = reader.GetInt32(1);
+                        var maxCount2 = reader.GetInt32(2);
+                        var streamVersion = reader.GetInt32(3);
+                        ordinal = reader.GetInt64(4);
+                        var eventId = reader.GetGuid(5);
+                        var created = reader.GetDateTime(6);
+                        var type = reader.GetString(7);
+                        var jsonMetadata = reader.GetString(8);
 
                         Func<CancellationToken, Task<string>> getJsonData;
                         if (prefetch)
                         {
-                            var jsonData = reader.GetString(7);
+                            var jsonData = reader.GetString(9);
                             getJsonData = _ => Task.FromResult(jsonData);
                         }
                         else

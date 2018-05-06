@@ -1,6 +1,8 @@
 /* SQL Server 2008+ */
      SELECT TOP(@count)
             dbo.Streams.IdOriginal As StreamId,
+            dbo.Streams.MaxAge as MaxAge,
+            dbo.Streams.MaxCount as MaxCount,
             dbo.Messages.StreamVersion,
             dbo.Messages.Position,
             dbo.Messages.Id AS EventId,

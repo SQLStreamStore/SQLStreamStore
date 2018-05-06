@@ -381,7 +381,9 @@ namespace SqlStreamStore.Infrastructure
                     valid.Add(streamMessage);
                     continue;
                 }
-                var maxAge = await _metadataMaxAgeCache.GetMaxAge(streamMessage.StreamId, cancellationToken);
+                int? maxAge = _metadataMaxAgeCache == null
+                    ? null
+                    : await _metadataMaxAgeCache.GetMaxAge(streamMessage.StreamId, cancellationToken);
                 if (!maxAge.HasValue)
                 {
                     valid.Add(streamMessage);

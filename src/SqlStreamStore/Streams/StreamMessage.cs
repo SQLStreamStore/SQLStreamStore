@@ -5,7 +5,7 @@
     using System.Threading.Tasks;
 
     /// <summary>
-    ///     Represents t
+    ///     Represents a message in a stream.
     /// </summary>
     public struct StreamMessage
     {

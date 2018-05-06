@@ -67,7 +67,7 @@
             return _scripts.GetOrAdd(name,
                 key =>
                 {
-                    using (Stream stream = typeof(Scripts).GetTypeInfo().Assembly.GetManifestResourceStream("SqlStreamStore.ScriptsV3" + key + ".sql"))
+                    using (Stream stream = typeof(Scripts).GetTypeInfo().Assembly.GetManifestResourceStream("SqlStreamStore.ScriptsV3." + key + ".sql"))
                     {
                         if (stream == null)
                         {

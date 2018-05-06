@@ -15,7 +15,7 @@
     /// <summary>
     ///     Represents a Micrsoft SQL Server stream store implementation.
     /// </summary>
-    public sealed partial class MsSqlStreamStore : StreamStoreBase
+    public sealed partial class MsSqlStreamStoreV3 : StreamStoreBase
     {
         private readonly Func<SqlConnection> _createConnection;
         private readonly Lazy<IStreamStoreNotifier> _streamStoreNotifier;
@@ -28,7 +28,7 @@
         ///     Initializes a new instance of <see cref="MsSqlStreamStore"/>
         /// </summary>
         /// <param name="settings">A settings class to configur this instance.</param>
-        public MsSqlStreamStore(MsSqlStreamStoreSettings settings)
+        public MsSqlStreamStoreV3(MsSqlStreamStoreSettings settings)
             :base(settings.MetadataMaxAgeCacheExpire, settings.MetadataMaxAgeCacheMaxSize,
                  settings.GetUtcNow, settings.LogName)
         {
@@ -70,7 +70,7 @@
         /// </summary>
         /// <param name="cancellationToken">The cancellation instruction.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task CreateSchema(CancellationToken cancellationToken = default)
+        public async Task CreateSchema(CancellationToken cancellationToken = default(CancellationToken))
         {
             GuardAgainstDisposed();
 
@@ -104,7 +104,7 @@
             }
         }
 
-        internal async Task CreateSchema_v1_ForTests(CancellationToken cancellationToken = default)
+        internal async Task CreateSchema_v1_ForTests(CancellationToken cancellationToken = default(CancellationToken))
         {
             GuardAgainstDisposed();
 
@@ -144,7 +144,7 @@
         /// <param name="cancellationToken"></param>
         /// <returns>A <see cref="CheckSchemaResult"/> representing the result of the operation.</returns>
         public async Task<CheckSchemaResult> CheckSchema(
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             GuardAgainstDisposed();
 
@@ -179,7 +179,7 @@
         /// </summary>
         /// <param name="cancellationToken">The cancellation instruction.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task DropAll(CancellationToken cancellationToken = default)
+        public async Task DropAll(CancellationToken cancellationToken = default(CancellationToken))
         {
             GuardAgainstDisposed();
 
@@ -199,7 +199,7 @@
         /// <inheritdoc />
         protected override async Task<int> GetStreamMessageCount(
             string streamId,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             GuardAgainstDisposed();
 
@@ -224,7 +224,7 @@
         public async Task<int> GetmessageCount(
             string streamId,
             DateTime createdBefore,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             GuardAgainstDisposed();
 

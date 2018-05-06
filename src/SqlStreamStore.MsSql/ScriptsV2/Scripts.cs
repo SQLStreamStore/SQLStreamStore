@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore.MsSqlScripts
+﻿namespace SqlStreamStore.ScriptsV2
 {
     using System;
     using System.Collections.Concurrent;
@@ -67,7 +67,7 @@
             return _scripts.GetOrAdd(name,
                 key =>
                 {
-                    using (Stream stream = typeof(Scripts).GetTypeInfo().Assembly.GetManifestResourceStream("SqlStreamStore.MsSqlScripts." + key + ".sql"))
+                    using (Stream stream = typeof(Scripts).GetTypeInfo().Assembly.GetManifestResourceStream("SqlStreamStore.ScriptsV2." + key + ".sql"))
                     {
                         if (stream == null)
                         {

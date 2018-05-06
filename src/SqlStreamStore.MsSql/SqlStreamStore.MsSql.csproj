@@ -11,7 +11,8 @@
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="MsSqlScripts\*.sql" />
+    <EmbeddedResource Include="ScriptsV2\*.sql" />
+    <EmbeddedResource Include="ScriptsV3\*.sql" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />

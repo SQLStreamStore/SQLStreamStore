@@ -67,8 +67,7 @@ namespace SqlStreamStore.Infrastructure
 
             if (Logger.IsDebugEnabled())
             {
-                Logger.DebugFormat("DeleteStream {streamId} with expected version {expectedVersion} and " +
-                                   "{messageCount} messages." , streamId, expectedVersion);
+                Logger.DebugFormat("DeleteStream {streamId} with expected version {expectedVersion}.", streamId, expectedVersion);
             }
 
             return DeleteStreamInternal(streamId, expectedVersion, cancellationToken);

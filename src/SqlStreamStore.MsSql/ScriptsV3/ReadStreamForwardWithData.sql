@@ -2,7 +2,7 @@
 
     DECLARE @streamIdInternal AS INT
     DECLARE @lastStreamVersion AS INT
-	DECLARE @lastStreamPosition AS BIGINT
+    DECLARE @lastStreamPosition AS BIGINT
 
      SELECT @streamIdInternal = dbo.Streams.IdInternal, @lastStreamVersion = dbo.Streams.[Version], @lastStreamPosition = dbo.Streams.[Position]
        FROM dbo.Streams

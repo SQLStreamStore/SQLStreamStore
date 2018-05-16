@@ -1,5 +1,6 @@
      SELECT TOP(@count)
             dbo.Streams.IdOriginal As StreamId,
+            dbo.Streams.MaxAge,
             dbo.Messages.StreamVersion,
             dbo.Messages.Position,
             dbo.Messages.Id AS EventId,

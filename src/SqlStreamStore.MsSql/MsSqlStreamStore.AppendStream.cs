@@ -134,7 +134,7 @@
                 command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
                 command.Parameters.AddWithValue("streamIdOriginal", sqlStreamId.IdOriginal);
 
-                if (messages.Any())
+                if (messages.Length != 0)
                 {
                     var sqlDataRecords = CreateSqlDataRecords(messages);
                     var eventsParam = CreateNewMessagesSqlParameter(sqlDataRecords);

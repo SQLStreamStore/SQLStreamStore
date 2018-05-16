@@ -16,6 +16,7 @@ BEGIN TRANSACTION AppendStream;
 
     DECLARE @latestStreamVersion AS INT;
     DECLARE @latestStreamPosition AS BIGINT;
+    DECLARE @headPosition AS BIGINT;
 
     SELECT @streamIdInternal = dbo.Streams.IdInternal, @latestStreamVersion = dbo.Streams.[Version], @latestStreamPosition = dbo.Streams.[Position]
     FROM dbo.Streams WITH (UPDLOCK, ROWLOCK)
@@ -23,17 +24,20 @@ BEGIN TRANSACTION AppendStream;
 
     IF @hasMessages = 1
         BEGIN
+
+            SELECT @headPosition = ISNULL(MAX(Position), -1) FROM dbo.Messages
+
             INSERT INTO dbo.Messages
-                (StreamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata)
-                SELECT @streamIdInternal, StreamVersion + @latestStreamVersion + 1, Id, Created, [Type], JsonData, JsonMetadata
+                (Position, StreamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata)
+                SELECT @headPosition + StreamVersion + 1, @streamIdInternal, StreamVersion + @latestStreamVersion + 1, Id, Created, [Type], JsonData, JsonMetadata
                 FROM @newMessages
                 ORDER BY StreamVersion
 
-            SET @latestStreamPosition = SCOPE_IDENTITY()
+            SELECT @latestStreamPosition = MAX(StreamVersion) + @headPosition + 1
+            FROM @newMessages
 
             SELECT @latestStreamVersion = MAX(StreamVersion) + @latestStreamVersion + 1
             FROM @newMessages
-            SET @latestStreamVersion = @latestStreamVersion
 
             UPDATE dbo.Streams
                 SET dbo.Streams.[Version] = @latestStreamVersion,

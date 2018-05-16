@@ -3,6 +3,7 @@ BEGIN TRANSACTION CreateStream;
     DECLARE @streamIdInternal AS INT;
     DECLARE @latestStreamVersion AS INT;
     DECLARE @latestStreamPosition AS BIGINT;
+    DECLARE @headPosition AS BIGINT;
 
     BEGIN
 
@@ -15,13 +16,17 @@ BEGIN TRANSACTION CreateStream;
 
         IF @hasMessages = 1
             BEGIN
+                
+                SELECT @headPosition = ISNULL(MAX(Position), -1) FROM dbo.Messages
+
                 INSERT INTO dbo.Messages
-                    (StreamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata)
-                    SELECT @streamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata
+                    (Position, StreamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata)
+                    SELECT @headPosition + StreamVersion + 1, @streamIdInternal, StreamVersion, Id, Created, [Type], JsonData, JsonMetadata
                     FROM @newMessages
                     ORDER BY StreamVersion;
 
-                SET @latestStreamPosition = SCOPE_IDENTITY()
+                SELECT @latestStreamPosition = MAX(StreamVersion) + @headPosition + 1
+                FROM @newMessages
 
                 SELECT @latestStreamVersion = MAX(StreamVersion)
                 FROM @newMessages

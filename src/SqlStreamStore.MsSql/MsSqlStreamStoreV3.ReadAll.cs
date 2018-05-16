@@ -34,7 +34,7 @@ namespace SqlStreamStore
                         .ExecuteReaderAsync(cancellationToken)
                         .NotOnCapturedContext();
 
-                    List<StreamMessage> messages = new List<StreamMessage>();
+                    List<(StreamMessage, int)> messages = new List<(StreamMessage, int)>();
                     if (!reader.HasRows)
                     {
                         return new ReadAllPage(
@@ -43,29 +43,30 @@ namespace SqlStreamStore
                             true,
                             ReadDirection.Forward,
                             readNext,
-                            messages.ToArray());
+                            Array.Empty<StreamMessage>());
                     }
 
                     while (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                     {
                         if(messages.Count == maxCount)
                         {
-                            messages.Add(default(StreamMessage));
+                            messages.Add((default(StreamMessage), 0));
                         }
                         else
                         {
                             var streamId = reader.GetString(0);
-                            var streamVersion = reader.GetInt32(1);
-                            position = reader.GetInt64(2);
-                            var eventId = reader.GetGuid(3);
-                            var created = reader.GetDateTime(4);
-                            var type = reader.GetString(5);
-                            var jsonMetadata = reader.GetString(6);
+                            var maxAge = reader.GetInt32(1);
+                            var streamVersion = reader.GetInt32(2);
+                            position = reader.GetInt64(3);
+                            var eventId = reader.GetGuid(4);
+                            var created = reader.GetDateTime(5);
+                            var type = reader.GetString(6);
+                            var jsonMetadata = reader.GetString(7);
 
                             Func<CancellationToken, Task<string>> getJsonData;
                             if(prefetch)
                             {
-                                var jsonData = reader.GetString(7);
+                                var jsonData = reader.GetString(8);
                                 getJsonData = _ => Task.FromResult(jsonData);
                             }
                             else
@@ -83,9 +84,11 @@ namespace SqlStreamStore
                                 jsonMetadata,
                                 getJsonData);
 
-                            messages.Add(message);
+                            messages.Add((message, maxAge));
                         }
                     }
+
+                    var filteredMessages = FilterExpired(messages);
 
                     bool isEnd = true;
 
@@ -95,7 +98,7 @@ namespace SqlStreamStore
                         messages.RemoveAt(maxCount);
                     }
 
-                    var nextPosition = messages[messages.Count - 1].Position + 1;
+                    var nextPosition = filteredMessages[messages.Count - 1].Position + 1;
 
                     return new ReadAllPage(
                         fromPositionExlusive,
@@ -103,7 +106,7 @@ namespace SqlStreamStore
                         isEnd,
                         ReadDirection.Forward,
                         readNext,
-                        messages.ToArray());
+                        filteredMessages.ToArray());
                 }
             }
         }
@@ -149,17 +152,18 @@ namespace SqlStreamStore
                     while (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                     {
                         var streamId = reader.GetString(0);
-                        var streamVersion = reader.GetInt32(1);
-                        position = reader.GetInt64(2);
-                        var messageId = reader.GetGuid(3);
-                        var created = reader.GetDateTime(4);
-                        var type = reader.GetString(5);
-                        var jsonMetadata = reader.GetString(6);
+                        var maxAge = reader.GetInt32(1);
+                        var streamVersion = reader.GetInt32(2);
+                        position = reader.GetInt64(3);
+                        var messageId = reader.GetGuid(4);
+                        var created = reader.GetDateTime(5);
+                        var type = reader.GetString(6);
+                        var jsonMetadata = reader.GetString(7);
 
                         Func<CancellationToken, Task<string>> getJsonData;
                         if (prefetch)
                         {
-                            var jsonData = reader.GetString(7);
+                            var jsonData = reader.GetString(8);
                             getJsonData = _ => Task.FromResult(jsonData);
                         }
                         else
@@ -175,7 +179,8 @@ namespace SqlStreamStore
                             position,
                             created,
                             type,
-                            jsonMetadata, getJsonData);
+                            jsonMetadata,
+                            getJsonData);
 
                         messages.Add(message);
                         lastPosition = position;

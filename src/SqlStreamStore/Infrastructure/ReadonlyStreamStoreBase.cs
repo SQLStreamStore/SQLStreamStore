@@ -407,6 +407,34 @@ namespace SqlStreamStore.Infrastructure
                 valid.ToArray());
         }
 
+        protected List<StreamMessage> FilterExpired(List<(StreamMessage StreamMessage, int MaxAge)> messages)
+        {
+            var valid = new List<StreamMessage>();
+            var currentUtc = GetUtcNow();
+            foreach (var item in messages)
+            {
+                if (item.StreamMessage.StreamId.StartsWith("$"))
+                {
+                    valid.Add(item.StreamMessage);
+                    continue;
+                }
+                if (item.MaxAge == 0)
+                {
+                    valid.Add(item.StreamMessage);
+                    continue;
+                }
+                if (item.StreamMessage.CreatedUtc.AddSeconds(item.MaxAge) > currentUtc)
+                {
+                    valid.Add(item.StreamMessage);
+                }
+                else
+                {
+                    PurgeExpiredMessage(item.StreamMessage);
+                }
+            }
+            return valid;
+        }
+
         ~ReadonlyStreamStoreBase()
         {
             Dispose(false);

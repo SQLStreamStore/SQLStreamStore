@@ -193,6 +193,7 @@
                         false,
                         null,
                         connection,
+                        transaction,
                         cancellationToken)
                         .NotOnCapturedContext();
 
@@ -288,6 +289,7 @@
                                 false,
                                 null,
                                 connection,
+                                transaction,
                                 cancellationToken)
                             .NotOnCapturedContext();
 
@@ -387,6 +389,7 @@
                                 false,
                                 null,
                                 connection,
+                                transaction,
                                 cancellationToken);
 
                             if(messages.Length > page.Messages.Length)

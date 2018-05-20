@@ -9,7 +9,7 @@
     <PackageId>SqlStreamStore.MsSql</PackageId>
     <RootNamespace>SqlStreamStore</RootNamespace>
     <NoWarn>1701;1702;1705;1591</NoWarn>
-    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.0</NetStandardImplicitPackageVersion>
+    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>

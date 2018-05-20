@@ -225,9 +225,10 @@ namespace SqlStreamStore
                     MetaJson = metadataJson
                 };
                 var json = SimpleJson.SerializeObject(metadataMessage);
-                var newmessage = new NewStreamMessage(Guid.NewGuid(), "$stream-metadata", json);
+                var messageId = MetadataMessageIdGenerator.Create(json);
+                var newStreamMessage = new NewStreamMessage(messageId, "$stream-metadata", json);
 
-                var result = AppendToStreamInternal(metaStreamId, expectedStreamMetadataVersion, new[] { newmessage });
+                var result = AppendToStreamInternal(metaStreamId, expectedStreamMetadataVersion, new[] { newStreamMessage });
 
                 await CheckStreamMaxCount(streamId, metadataMessage.MaxCount, cancellationToken);
 

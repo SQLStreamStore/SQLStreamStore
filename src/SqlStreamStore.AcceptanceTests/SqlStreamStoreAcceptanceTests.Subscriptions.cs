@@ -138,7 +138,7 @@
                     List<StreamMessage> receivedMessages = new List<StreamMessage>();
                     using(store.SubscribeToAll(
                         Position.None,
-                        (_, message) =>
+                        (_, message, __) =>
                         {
                             _testOutputHelper.WriteLine($"Received message {message.StreamId} " +
                                                         $"{message.StreamVersion} {message.Position}");
@@ -173,7 +173,7 @@
                     var done = new TaskCompletionSource<IAllStreamSubscription>();
                     using (var subscription = store.SubscribeToAll(
                         Position.None,
-                        (sub, _) =>
+                        (sub, _, __) =>
                         {
                             done.SetResult(sub);
                             return Task.CompletedTask;
@@ -202,7 +202,7 @@
                     List<StreamMessage> receivedMessages = new List<StreamMessage>();
                     using (store.SubscribeToAll(
                         Position.None,
-                        (_, message) =>
+                        (_, message, __) =>
                         {
                             _testOutputHelper.WriteLine($"Received message {message.StreamId} {message.StreamVersion} {message.Position}");
                             receivedMessages.Add(message);
@@ -295,7 +295,7 @@
                     List<StreamMessage> receivedMessages = new List<StreamMessage>();
                     using(var subscription = store.SubscribeToAll(
                         Position.End,
-                        (_, message) =>
+                        (_, message, __) =>
                         {
                             _testOutputHelper.WriteLine($"StreamId={message.StreamId} Version={message.StreamVersion} "
                                                         + $"Position={message.Position}");
@@ -331,7 +331,7 @@
                     List<StreamMessage> receivedMessages = new List<StreamMessage>();
                     using (var subscription = store.SubscribeToAll(
                         Position.End,
-                        (_, message) =>
+                        (_, message, __) =>
                         {
                             receivedMessages.Add(message);
                             if (message.StreamId == streamId1 && message.StreamVersion == 9)
@@ -414,7 +414,7 @@
                     var subscriptions = Enumerable.Range(0, subscriptionCount)
                         .Select(index => store.SubscribeToAll(
                             Position.None,
-                            (_, message) =>
+                            (_, message, __) =>
                             {
                                 if(message.StreamVersion == 1)
                                 {
@@ -498,7 +498,7 @@
                     List<StreamMessage> receivedMessages = new List<StreamMessage>();
                     using (var subscription = store.SubscribeToAll(
                         Position.None,
-                        (_, message) =>
+                        (_, message, __) =>
                         {
                             _testOutputHelper.WriteLine($"Received message {message.StreamId} " +
                                                         $"{message.StreamVersion} {message.Position}");
@@ -669,7 +669,7 @@
                 using (var store = await fixture.GetStreamStore())
                 {
                     var eventReceivedException = new TaskCompletionSource<SubscriptionDroppedReason>();
-                    Task MessageReceived(IAllStreamSubscription _, StreamMessage __) => throw new Exception();
+                    Task MessageReceived(IAllStreamSubscription _, StreamMessage __, CancellationToken ___) => throw new Exception();
                     void SubscriptionDropped(IAllStreamSubscription _, SubscriptionDroppedReason reason, Exception __) => eventReceivedException.SetResult(reason);
                     var streamId = "stream-1";
 
@@ -701,7 +701,7 @@
                     var tcs = new TaskCompletionSource<SubscriptionDroppedReason>();
                     var subscription = store.SubscribeToAll(
                         Position.End,
-                        (_, __) => Task.CompletedTask,
+                        (_, __, ___) => Task.CompletedTask,
                         (_, reason, __) =>
                         {
                             tcs.SetResult(reason);
@@ -724,7 +724,7 @@
                     var tcs = new TaskCompletionSource<IAllStreamSubscription>();
                     var subscription = store.SubscribeToAll(
                         Position.End,
-                        (_, __) => Task.CompletedTask,
+                        (_, __, ___) => Task.CompletedTask,
                         (sub, _, __) =>
                         {
                             tcs.SetResult(sub);
@@ -749,7 +749,7 @@
                     var handler = new AsyncAutoResetEvent();
                     var subscription = store.SubscribeToAll(
                         Position.End,
-                        async (_, __) =>
+                        async (_, __, ___) =>
                         {
                             handler.Set();
                             await handler.WaitAsync().WithTimeout(); // block "handling" while a dispose occurs
@@ -782,7 +782,7 @@
                     var streamId = "stream-1";
                     var subscription = store.SubscribeToAll(
                         Position.Start,
-                        (_, __) => Task.CompletedTask);
+                        (_, __, ___) => Task.CompletedTask);
                     await AppendMessages(store, streamId, 2);
                     subscription.Dispose();
                     subscription.Dispose();
@@ -802,7 +802,7 @@
                     var caughtUp = new TaskCompletionSource<bool>();
                     var subscription = store.SubscribeToAll(
                         Position.None,
-                        (_, __) => Task.CompletedTask,
+                        (_, __, ___) => Task.CompletedTask,
                         hasCaughtUp: b =>
                         {
                             if(b)
@@ -818,7 +818,7 @@
         }
 
         [Fact, Trait("Category", "Subscriptions")]
-        public async Task When_caughtup_to_all_then_then_should_notify_only_once()
+        public async Task When_caughtup_to_all_then_then_should_notify_only_twice()
         {
             using (var fixture = GetFixture())
             {
@@ -830,15 +830,15 @@
                     var numberOfCaughtUps = 0;
                     var subscription = store.SubscribeToAll(
                         Position.None,
-                        (_, __) => Task.CompletedTask,
+                        (_, __, ___) => Task.CompletedTask,
                         hasCaughtUp: b =>
                         {
                             if(b)
                             {
-                                if(++numberOfCaughtUps > 1)
+                                if(++numberOfCaughtUps > 2)
                                 {
                                     caughtUp.SetException(
-                                        new Exception("Should not raise hasCaughtUp more than once."));
+                                        new Exception("Should not raise hasCaughtUp more than twice."));
                                 }
                             }
                         });
@@ -894,7 +894,7 @@
 
                     var subscription = store.SubscribeToAll(
                         Position.None,
-                        (_, __) => Task.CompletedTask,
+                        (_, __, ___) => Task.CompletedTask,
                         hasCaughtUp: b =>
                         {
                             if (b)
@@ -982,7 +982,7 @@
                 var subscriptionDropped = new TaskCompletionSource<SubscriptionDroppedReason>();
                 var subscription = store.SubscribeToAll(
                     Position.None,
-                    (_, __) => Task.CompletedTask,
+                    (_, __, ___) => Task.CompletedTask,
                     subscriptionDropped: (streamSubscription, reason, exception) =>
                     {
                         subscriptionDropped.SetResult(reason);
@@ -1037,7 +1037,53 @@
             }
         }
 
-        private static async Task AppendMessages(IStreamStore streamStore, string streamId, int numberOfEvents)
+        [Fact, Trait("Category", "Subscriptions")]
+        public async Task When_subsribe_to_all_with_empty_store_should_raise_has_caughtup()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    bool hasCaughtUp;
+                    var tcs = new TaskCompletionSource<bool>();
+                    using (store.SubscribeToAll(
+                        null,
+                        (_, message, ct) => Task.CompletedTask,
+                        hasCaughtUp: b => tcs.SetResult(b)))
+                    {
+                        hasCaughtUp = await tcs.Task.WithTimeout(5000);
+                    }
+                    hasCaughtUp.ShouldBeTrue();
+                }
+            }
+        }
+
+        [Fact, Trait("Category", "Subscriptions")]
+        public async Task When_subscribe_to_stream_with_empty_store_should_raise_has_caughtup()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    bool hasCaughtUp;
+                    var tcs = new TaskCompletionSource<bool>();
+                    using (store.SubscribeToStream(
+                        "stream-1",
+                        null,
+                        (_, message, ct) => Task.CompletedTask,
+                        hasCaughtUp: b => tcs.SetResult(b)))
+                    {
+                        hasCaughtUp = await tcs.Task.WithTimeout(5000);
+                    }
+                    hasCaughtUp.ShouldBeTrue();
+                }
+            }
+        }
+
+        private static async Task AppendMessages(
+            IStreamStore streamStore,
+            string streamId,
+            int numberOfEvents)
         {
             for(int i = 0; i < numberOfEvents; i++)
             {

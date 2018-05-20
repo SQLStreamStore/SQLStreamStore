@@ -118,7 +118,9 @@
 
                     await Push(page);
 
-                    if ((!lastHasCaughtUp.HasValue || lastHasCaughtUp.Value != page.IsEnd) && page.Messages.Length > 0)
+                    if ((!lastHasCaughtUp.HasValue && page.IsEnd) ||
+                       ((!lastHasCaughtUp.HasValue || lastHasCaughtUp.Value != page.IsEnd)
+                       && page.Messages.Length > 0))
                     {
                         // Only raise if the state changes and there were messages read
                         lastHasCaughtUp = page.IsEnd;
@@ -215,7 +217,7 @@
                 LastPosition = message.Position;
                 try
                 {
-                    await _streamMessageReceived(this, message).NotOnCapturedContext();
+                    await _streamMessageReceived(this, message, _disposed.Token).NotOnCapturedContext();
                 }
                 catch (Exception ex)
                 {

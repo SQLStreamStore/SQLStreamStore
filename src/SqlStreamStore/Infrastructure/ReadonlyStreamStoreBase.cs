@@ -208,7 +208,11 @@ namespace SqlStreamStore.Infrastructure
            string streamId,
            CancellationToken cancellationToken = default)
         {
-            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
+            if (streamId == null) throw new ArgumentNullException(nameof(streamId));
+            if (streamId.StartsWith("$") && streamId != Deleted.DeletedStreamId)
+            {
+                throw new ArgumentException("Must not start with '$'", nameof(streamId));
+            }
 
             if (Logger.IsDebugEnabled())
             {

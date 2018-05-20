@@ -12,9 +12,6 @@
     <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="SqlStreamStore.MsSql.Tests.v3.ncrunchproject" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\SqlStreamStore.MsSql\SqlStreamStore.MsSql.csproj" />
   </ItemGroup>
   <ItemGroup>

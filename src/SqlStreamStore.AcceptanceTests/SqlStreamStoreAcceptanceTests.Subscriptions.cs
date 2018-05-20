@@ -1037,7 +1037,30 @@
             }
         }
 
-        private static async Task AppendMessages(IStreamStore streamStore, string streamId, int numberOfEvents)
+        [Fact, Trait("Category", "Subscriptions")]
+        public async Task When_subsribe_to_empty_store()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    bool hasCaughtUp = false;
+                    using (store.SubscribeToAll(
+                        null,
+                        (_, message, ct) => Task.CompletedTask,
+                        hasCaughtUp: b => hasCaughtUp = b))
+                    {
+                        await Task.Delay(2000);
+                    }
+                    hasCaughtUp.ShouldBeTrue();
+                }
+            }
+        }
+
+        private static async Task AppendMessages(
+            IStreamStore streamStore,
+            string streamId,
+            int numberOfEvents)
         {
             for(int i = 0; i < numberOfEvents; i++)
             {

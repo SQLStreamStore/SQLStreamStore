@@ -124,7 +124,7 @@ namespace SqlStreamStore
         {
             SqlConnection CreateConnection();
             SqlConnectionStringBuilder CreateConnectionStringBuilder();
-            Task CreateDatabase(CancellationToken cancellationToken = default(CancellationToken));
+            Task CreateDatabase(CancellationToken cancellationToken = default);
         }
 
         private class LocalSqlServerDatabase : ISqlServerDatabase
@@ -146,7 +146,7 @@ namespace SqlStreamStore
                 return new SqlConnectionStringBuilder(_connectionString);
             }
 
-            public async Task CreateDatabase(CancellationToken cancellationToken = default(CancellationToken))
+            public async Task CreateDatabase(CancellationToken cancellationToken = default)
             {
                 using(var connection = CreateConnection())
                 {
@@ -193,7 +193,7 @@ namespace SqlStreamStore
             public SqlConnectionStringBuilder CreateConnectionStringBuilder()
                 => new SqlConnectionStringBuilder($"server=localhost,{Port};User Id=sa;Password={_password};Initial Catalog=master");
 
-            public async Task CreateDatabase(CancellationToken cancellationToken = default(CancellationToken))
+            public async Task CreateDatabase(CancellationToken cancellationToken = default)
             {
                 await _sqlServerContainer.TryStart(cancellationToken).WithTimeout(3 * 60 * 1000);
 

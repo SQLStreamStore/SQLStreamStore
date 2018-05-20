@@ -71,7 +71,7 @@
         /// </summary>
         /// <param name="cancellationToken">A token to cancel the operations.</param>
         /// <returns>A task the represents the asyncronous operation.</returns>
-        public Task<ReadAllPage> ReadNext(CancellationToken cancellationToken = default(CancellationToken))
+        public Task<ReadAllPage> ReadNext(CancellationToken cancellationToken = default)
         {
             return _readNext(NextPosition, cancellationToken);
         }

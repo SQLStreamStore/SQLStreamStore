@@ -32,7 +32,7 @@ namespace SqlStreamStore.Infrastructure
         {}
 
         /// <inheritdoc />
-        public Task<AppendResult> AppendToStream(StreamId streamId, int expectedVersion, NewStreamMessage[] messages, CancellationToken cancellationToken = default(CancellationToken))
+        public Task<AppendResult> AppendToStream(StreamId streamId, int expectedVersion, NewStreamMessage[] messages, CancellationToken cancellationToken = default)
         {
             Ensure.That(streamId.Value, nameof(streamId)).DoesNotStartWith("$");
             Ensure.That(messages, nameof(messages)).IsNotNull();
@@ -61,7 +61,7 @@ namespace SqlStreamStore.Infrastructure
         public Task DeleteStream(
             StreamId streamId,
             int expectedVersion = ExpectedVersion.Any,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             Ensure.That(streamId.Value, nameof(streamId)).DoesNotStartWith("$");
 
@@ -77,7 +77,7 @@ namespace SqlStreamStore.Infrastructure
         public Task DeleteMessage(
             StreamId streamId,
             Guid messageId,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             Ensure.That(streamId.Value, nameof(streamId)).DoesNotStartWith("$");
 
@@ -96,7 +96,7 @@ namespace SqlStreamStore.Infrastructure
             int? maxAge = null,
             int? maxCount = null,
             string metadataJson = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             Ensure.That(streamId.Value, nameof(streamId)).DoesNotStartWith("$");
             Ensure.That(expectedStreamMetadataVersion, nameof(expectedStreamMetadataVersion)).IsGte(-2);
@@ -125,7 +125,7 @@ namespace SqlStreamStore.Infrastructure
         /// <returns>The number of messages in a stream.</returns>
         protected abstract Task<int> GetStreamMessageCount(
             string streamId,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         ///     Queues a task to purge expired message.

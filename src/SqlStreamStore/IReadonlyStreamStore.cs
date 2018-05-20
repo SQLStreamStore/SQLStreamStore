@@ -36,7 +36,7 @@
             long fromPositionInclusive,
             int maxCount,
             bool prefetchJsonData = true,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         ///     Reads messages from all streams backwards.
@@ -63,7 +63,7 @@
             long fromPositionInclusive,
             int maxCount,
             bool prefetchJsonData = true,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         ///     Reads messages from a stream forwards.
@@ -94,7 +94,7 @@
             int fromVersionInclusive,
             int maxCount,
             bool prefetchJsonData = true,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         ///     Reads messages from a stream backwards.
@@ -125,7 +125,7 @@
             int fromVersionInclusive,
             int maxCount,
             bool prefetchJsonData = true,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         ///     Subsribes to a stream.
@@ -212,7 +212,7 @@
         /// <returns>
         ///     The head positon.
         /// </returns>
-        Task<long> ReadHeadPosition(CancellationToken cancellationToken = default(CancellationToken));
+        Task<long> ReadHeadPosition(CancellationToken cancellationToken = default);
 
         /// <summary>
         ///     Gets the stream metadata.
@@ -228,7 +228,7 @@
         /// </returns>
         Task<StreamMetadataResult> GetStreamMetadata(
             string streamId,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken = default);
 
         event Action OnDispose;
     }

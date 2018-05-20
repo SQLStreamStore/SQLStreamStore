@@ -92,7 +92,7 @@
             _readNext = readNext ?? ((_, __) => throw new NotSupportedException());
         }
 
-        public Task<ReadStreamPage> ReadNext(CancellationToken cancellationToken = default(CancellationToken))
+        public Task<ReadStreamPage> ReadNext(CancellationToken cancellationToken = default)
         {
             return _readNext(NextStreamVersion, cancellationToken);
         }

@@ -33,7 +33,7 @@
             this IReadonlyStreamStore readonlyStreamStore,
             long fromPositionInclusive,
             int maxCount,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return readonlyStreamStore.ReadAllForwards(
                 fromPositionInclusive,
@@ -65,7 +65,7 @@
             this IReadonlyStreamStore readonlyStreamStore,
             long fromPositionInclusive,
             int maxCount,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return readonlyStreamStore.ReadAllBackwards(
                 fromPositionInclusive,
@@ -101,7 +101,7 @@
             string streamId,
             int fromVersionInclusive,
             int maxCount,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return readonlyStreamStore.ReadStreamForwards(
                 streamId,
@@ -138,7 +138,7 @@
             string streamId,
             int fromVersionInclusive,
             int maxCount,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return readonlyStreamStore.ReadStreamBackwards(
                 streamId,
@@ -190,7 +190,7 @@
             string streamId,
             int expectedVersion,
             NewStreamMessage message,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return store.AppendToStream(streamId, expectedVersion, new[] { message }, cancellationToken);
         }

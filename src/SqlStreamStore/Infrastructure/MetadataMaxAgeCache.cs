@@ -36,7 +36,7 @@ namespace SqlStreamStore.Infrastructure
 
         public async Task<int?> GetMaxAge(
             string streamId,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var utcNow = _getUtcNow();
             MaxAgeCacheItem cacheItem;

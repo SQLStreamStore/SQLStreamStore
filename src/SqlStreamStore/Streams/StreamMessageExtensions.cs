@@ -14,7 +14,7 @@
         /// <param name="cancellationToken">The cancellation instruction.</param>
         /// <returns>The deserialized object.</returns>
         public static async Task<T> GetJsonDataAs<T>(this StreamMessage streamMessage,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             return SimpleJson.DeserializeObject<T>(await streamMessage.GetJsonData(cancellationToken));
         }

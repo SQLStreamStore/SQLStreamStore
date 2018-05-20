@@ -49,7 +49,7 @@
             StreamId streamId,
             int expectedVersion,
             NewStreamMessage[] messages,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         ///     Hard deletes a stream and all of its messages. Deleting a stream will result in a '$stream-deleted'
@@ -71,7 +71,7 @@
         Task DeleteStream(
             StreamId streamId,
             int expectedVersion = ExpectedVersion.Any,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         ///     Hard deletes a message from the stream. Deleting a message will result in a '$message-deleted'
@@ -93,7 +93,7 @@
         Task DeleteMessage(
             StreamId streamId,
             Guid messageId,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken = default);
 
         /// <summary>
         ///     Sets the metadata for a stream.
@@ -119,6 +119,6 @@
             int? maxAge = null,
             int? maxCount = null,
             string metadataJson = null,
-            CancellationToken cancellationToken = default(CancellationToken));
+            CancellationToken cancellationToken = default);
     }
 }

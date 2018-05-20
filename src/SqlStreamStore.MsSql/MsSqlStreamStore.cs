@@ -70,7 +70,7 @@
         /// </summary>
         /// <param name="cancellationToken">The cancellation instruction.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task CreateSchema(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task CreateSchema(CancellationToken cancellationToken = default)
         {
             GuardAgainstDisposed();
 
@@ -104,7 +104,7 @@
             }
         }
 
-        internal async Task CreateSchema_v1_ForTests(CancellationToken cancellationToken = default(CancellationToken))
+        internal async Task CreateSchema_v1_ForTests(CancellationToken cancellationToken = default)
         {
             GuardAgainstDisposed();
 
@@ -144,7 +144,7 @@
         /// <param name="cancellationToken"></param>
         /// <returns>A <see cref="CheckSchemaResult"/> representing the result of the operation.</returns>
         public async Task<CheckSchemaResult> CheckSchema(
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             GuardAgainstDisposed();
 
@@ -179,7 +179,7 @@
         /// </summary>
         /// <param name="cancellationToken">The cancellation instruction.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task DropAll(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task DropAll(CancellationToken cancellationToken = default)
         {
             GuardAgainstDisposed();
 
@@ -199,7 +199,7 @@
         /// <inheritdoc />
         protected override async Task<int> GetStreamMessageCount(
             string streamId,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             GuardAgainstDisposed();
 
@@ -224,7 +224,7 @@
         public async Task<int> GetmessageCount(
             string streamId,
             DateTime createdBefore,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             GuardAgainstDisposed();
 

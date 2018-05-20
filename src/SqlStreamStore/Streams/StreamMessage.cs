@@ -66,7 +66,7 @@
         ///     The Json Data of the message. If the message has been subsequently deleted since this 
         ///     StreamMessage was created, then it will return null.
         /// </returns>
-        public Task<string> GetJsonData(CancellationToken cancellationToken = default(CancellationToken))
+        public Task<string> GetJsonData(CancellationToken cancellationToken = default)
         {
             return _getJsonData(cancellationToken);
         }

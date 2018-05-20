@@ -38,7 +38,7 @@ namespace SqlStreamStore.Infrastructure
             long fromPositionInclusive,
             int maxCount,
             bool prefetchJsonData,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             Ensure.That(fromPositionInclusive, nameof(fromPositionInclusive)).IsGte(0);
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
@@ -90,7 +90,7 @@ namespace SqlStreamStore.Infrastructure
             long fromPositionInclusive,
             int maxCount,
             bool prefetchJsonData,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             Ensure.That(fromPositionInclusive, nameof(fromPositionInclusive)).IsGte(-1);
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
@@ -114,7 +114,7 @@ namespace SqlStreamStore.Infrastructure
             int fromVersionInclusive,
             int maxCount,
             bool prefetchJsonData = true,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             Ensure.That(fromVersionInclusive, nameof(fromVersionInclusive)).IsGte(0);
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
@@ -139,7 +139,7 @@ namespace SqlStreamStore.Infrastructure
             int fromVersionInclusive,
             int maxCount,
             bool prefetchJsonData = true,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             Ensure.That(fromVersionInclusive, nameof(fromVersionInclusive)).IsGte(-1);
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
@@ -206,7 +206,7 @@ namespace SqlStreamStore.Infrastructure
 
         public Task<StreamMetadataResult> GetStreamMetadata(
            string streamId,
-           CancellationToken cancellationToken = default(CancellationToken))
+           CancellationToken cancellationToken = default)
         {
             Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace().DoesNotStartWith("$");
 

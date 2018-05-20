@@ -43,7 +43,7 @@
             _healthCheck = healthCheck;
         }
 
-        public async Task TryStart(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task TryStart(CancellationToken cancellationToken = default)
         {
             var images = await _dockerClient.Images.ListImagesAsync(new ImagesListParameters
                 {

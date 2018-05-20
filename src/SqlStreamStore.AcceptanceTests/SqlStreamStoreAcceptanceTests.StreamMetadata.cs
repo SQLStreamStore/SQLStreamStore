@@ -14,11 +14,11 @@
         [Fact, Trait("Category", "StreamMetadata")]
         public async Task When_get_non_existent_metadata_then_meta_stream_version_should_be_negative()
         {
-            using (var fixture = GetFixture())
+            using(var fixture = GetFixture())
             {
-                using (var store = await fixture.GetStreamStore())
+                using(var store = await fixture.GetStreamStore())
                 {
-                    string streamId = Guid.NewGuid().ToString();
+                    const string streamId = "stream-1";
 
                     var metadata = await store.GetStreamMetadata(streamId);
 
@@ -38,7 +38,7 @@
             {
                 using(var store = await fixture.GetStreamStore())
                 {
-                    var streamId = "stream-1";
+                    const string streamId = "stream-1";
                     await store
                         .SetStreamMetadata(streamId, maxAge: 2, maxCount: 3, metadataJson: "meta");
 
@@ -56,11 +56,11 @@
         [Fact, Trait("Category", "StreamMetadata")]
         public async Task Can_set_and_get_stream_metadata_after_stream_is_created()
         {
-            using (var fixture = GetFixture())
+            using(var fixture = GetFixture())
             {
-                using (var store = await fixture.GetStreamStore())
+                using(var store = await fixture.GetStreamStore())
                 {
-                    string streamId = "stream-1";
+                    const string streamId = "stream-1";
 
                     await store
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessageSequence(1, 4));
@@ -86,7 +86,7 @@
             {
                 using(var store = await fixture.GetStreamStore())
                 {
-                    string streamId = "059846C3-6701-45E9-A72A-20986539D4D3";
+                    const string streamId = "059846C3-6701-45E9-A72A-20986539D4D3";
                     await store
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
                     await store
@@ -110,12 +110,12 @@
         [Fact, Trait("Category", "StreamMetadata")]
         public async Task When_stream_has_max_count_and_append_exceeds_then_should_maintain_max_count()
         {
-            using (var fixture = GetFixture())
+            using(var fixture = GetFixture())
             {
-                using (var store = await fixture.GetStreamStore())
+                using(var store = await fixture.GetStreamStore())
                 {
-                    string streamId = "stream-1";
-                    int maxCount = 2;
+                    const string streamId = "stream-1";
+                    const int maxCount = 2;
                     await store
                         .SetStreamMetadata(streamId, maxCount: maxCount, metadataJson: "meta");
                     await store
@@ -131,12 +131,12 @@
         [Fact, Trait("Category", "StreamMetadata")]
         public async Task When_stream_max_count_is_set_then_stream_should_have_max_count()
         {
-            using (var fixture = GetFixture())
+            using(var fixture = GetFixture())
             {
-                using (var store = await fixture.GetStreamStore())
+                using(var store = await fixture.GetStreamStore())
                 {
-                    string streamId = "stream-1";
-                    int maxCount = 2;
+                    const string streamId = "stream-1";
+                    const int maxCount = 2;
 
                     await store
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3, 4));
@@ -153,11 +153,11 @@
         [Fact, Trait("Category", "StreamMetadata")]
         public async Task When_stream_has_expired_messages_and_read_forwards_then_should_not_get_expired_messages()
         {
-            using (var fixture = GetFixture())
+            using(var fixture = GetFixture())
             {
                 var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
                 fixture.GetUtcNow = () => currentUtc;
-                using (var store = await fixture.GetStreamStore())
+                using(var store = await fixture.GetStreamStore())
                 {
                     string streamId = "stream-1";
                     await store
@@ -178,13 +178,13 @@
         [Fact, Trait("Category", "StreamMetadata")]
         public async Task When_stream_has_expired_messages_and_read_backward_then_should_not_get_expired_messages()
         {
-            using (var fixture = GetFixture())
+            using(var fixture = GetFixture())
             {
                 var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
                 fixture.GetUtcNow = () => currentUtc;
-                using (var store = await fixture.GetStreamStore())
+                using(var store = await fixture.GetStreamStore())
                 {
-                    string streamId = "stream-1";
+                    const string streamId = "stream-1";
                     await store
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3, 4));
                     currentUtc += TimeSpan.FromSeconds(60);
@@ -201,16 +201,18 @@
         }
 
         [Fact, Trait("Category", "StreamMetadata")]
-        public async Task When_streams_have_expired_messages_and_read_all_forwards_then_should_not_get_expired_messages()
+        public async Task
+            When_streams_have_expired_messages_and_read_all_forwards_then_should_not_get_expired_messages()
         {
-            using (var fixture = GetFixture())
+            using(var fixture = GetFixture())
             {
                 var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
                 fixture.GetUtcNow = () => currentUtc;
-                using (var store = await fixture.GetStreamStore())
+                using(var store = await fixture.GetStreamStore())
                 {
                     // Arrange
-                    string streamId1 = "stream-1", streamId2 = "streamId-2";
+                    const string streamId1 = "stream-1";
+                    const string streamId2 = "streamId-2";
                     await store
                         .AppendToStream(streamId1, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2));
                     await store
@@ -232,23 +234,25 @@
                     var allMessagesPage = await store.ReadAllForwards(Position.Start, 20);
 
                     // Assert
-                    allMessagesPage.Messages.Where(message => message.StreamId == streamId1).Count().ShouldBe(2);
-                    allMessagesPage.Messages.Where(message => message.StreamId == streamId2).Count().ShouldBe(4);
+                    allMessagesPage.Messages.Count(message => message.StreamId == streamId1).ShouldBe(2);
+                    allMessagesPage.Messages.Count(message => message.StreamId == streamId2).ShouldBe(4);
                 }
             }
         }
 
         [Fact, Trait("Category", "StreamMetadata")]
-        public async Task When_streams_have_expired_messages_and_read_all_backwards_then_should_not_get_expired_messages()
+        public async Task
+            When_streams_have_expired_messages_and_read_all_backwards_then_should_not_get_expired_messages()
         {
-            using (var fixture = GetFixture())
+            using(var fixture = GetFixture())
             {
                 var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
                 fixture.GetUtcNow = () => currentUtc;
-                using (var store = await fixture.GetStreamStore())
+                using(var store = await fixture.GetStreamStore())
                 {
                     // Arrange
-                    string streamId1 = "stream-1", streamId2 = "streamId-2";
+                    const string streamId1 = "stream-1";
+                    const string streamId2 = "streamId-2";
                     await store
                         .AppendToStream(streamId1, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2));
                     await store
@@ -270,8 +274,8 @@
                     var allMessagesPage = await store.ReadAllBackwards(Position.End, 20);
 
                     // Assert
-                    allMessagesPage.Messages.Where(message => message.StreamId == streamId1).Count().ShouldBe(2);
-                    allMessagesPage.Messages.Where(message => message.StreamId == streamId2).Count().ShouldBe(4);
+                    allMessagesPage.Messages.Count(message => message.StreamId == streamId1).ShouldBe(2);
+                    allMessagesPage.Messages.Count(message => message.StreamId == streamId2).ShouldBe(4);
                 }
             }
         }

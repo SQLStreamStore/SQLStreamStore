@@ -98,7 +98,12 @@ namespace SqlStreamStore.Infrastructure
             string metadataJson = null,
             CancellationToken cancellationToken = default)
         {
-            Ensure.That(streamId.Value, nameof(streamId)).DoesNotStartWith("$");
+            if(streamId == null) throw new ArgumentNullException(nameof(streamId));
+            if(streamId.Value.StartsWith("$") && streamId.Value != Deleted.DeletedStreamId)
+            {
+                throw new ArgumentException("Must not start with '$'", nameof(streamId));
+            }
+
             Ensure.That(expectedStreamMetadataVersion, nameof(expectedStreamMetadataVersion)).IsGte(-2);
 
             if (Logger.IsDebugEnabled())

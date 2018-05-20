@@ -8,7 +8,6 @@
     using SqlStreamStore.Logging;
     using SqlStreamStore.Streams;
 
-
     /// <summary>
     ///     Represents a subscription to a stream.
     /// </summary>

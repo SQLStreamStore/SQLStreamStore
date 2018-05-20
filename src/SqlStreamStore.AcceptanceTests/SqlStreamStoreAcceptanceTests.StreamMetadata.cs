@@ -279,5 +279,26 @@
                 }
             }
         }
+
+
+        [Fact, Trait("Category", "StreamMetadata")]
+        public async Task When_set_metadata_with_same_data_then_should_handle_idempotently()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    const string streamId = "stream-1";
+                    await store
+                        .SetStreamMetadata(streamId, maxCount: 2, maxAge: 30, metadataJson: "meta");
+                    await store
+                        .SetStreamMetadata(streamId, maxCount: 2, maxAge: 30, metadataJson: "meta");
+
+                    var metadata = await store.GetStreamMetadata(streamId);
+
+                    metadata.MetadataStreamVersion.ShouldBe(0);
+                }
+            }
+        }
     }
 }

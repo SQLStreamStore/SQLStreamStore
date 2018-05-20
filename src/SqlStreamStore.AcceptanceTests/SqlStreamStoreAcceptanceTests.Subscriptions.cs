@@ -818,7 +818,7 @@
         }
 
         [Fact, Trait("Category", "Subscriptions")]
-        public async Task When_caughtup_to_all_then_then_should_notify_only_once()
+        public async Task When_caughtup_to_all_then_then_should_notify_only_twice()
         {
             using (var fixture = GetFixture())
             {
@@ -835,10 +835,10 @@
                         {
                             if(b)
                             {
-                                if(++numberOfCaughtUps > 1)
+                                if(++numberOfCaughtUps > 2)
                                 {
                                     caughtUp.SetException(
-                                        new Exception("Should not raise hasCaughtUp more than once."));
+                                        new Exception("Should not raise hasCaughtUp more than twice."));
                                 }
                             }
                         });
@@ -1038,19 +1038,42 @@
         }
 
         [Fact, Trait("Category", "Subscriptions")]
-        public async Task When_subsribe_to_empty_store()
+        public async Task When_subsribe_to_all_with_empty_store_should_raise_has_caughtup()
         {
             using (var fixture = GetFixture())
             {
                 using (var store = await fixture.GetStreamStore())
                 {
-                    bool hasCaughtUp = false;
+                    bool hasCaughtUp;
+                    var tcs = new TaskCompletionSource<bool>();
                     using (store.SubscribeToAll(
                         null,
                         (_, message, ct) => Task.CompletedTask,
-                        hasCaughtUp: b => hasCaughtUp = b))
+                        hasCaughtUp: b => tcs.SetResult(b)))
                     {
-                        await Task.Delay(2000);
+                        hasCaughtUp = await tcs.Task.WithTimeout(5000);
+                    }
+                    hasCaughtUp.ShouldBeTrue();
+                }
+            }
+        }
+
+        [Fact, Trait("Category", "Subscriptions")]
+        public async Task When_subscribe_to_stream_with_empty_store_should_raise_has_caughtup()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    bool hasCaughtUp;
+                    var tcs = new TaskCompletionSource<bool>();
+                    using (store.SubscribeToStream(
+                        "stream-1",
+                        null,
+                        (_, message, ct) => Task.CompletedTask,
+                        hasCaughtUp: b => tcs.SetResult(b)))
+                    {
+                        hasCaughtUp = await tcs.Task.WithTimeout(5000);
                     }
                     hasCaughtUp.ShouldBeTrue();
                 }

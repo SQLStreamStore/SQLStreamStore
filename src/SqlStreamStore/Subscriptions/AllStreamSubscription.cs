@@ -118,7 +118,9 @@
 
                     await Push(page);
 
-                    if ((!lastHasCaughtUp.HasValue || lastHasCaughtUp.Value != page.IsEnd) && page.Messages.Length > 0)
+                    if ((!lastHasCaughtUp.HasValue && page.IsEnd) ||
+                       ((!lastHasCaughtUp.HasValue || lastHasCaughtUp.Value != page.IsEnd)
+                       && page.Messages.Length > 0))
                     {
                         // Only raise if the state changes and there were messages read
                         lastHasCaughtUp = page.IsEnd;

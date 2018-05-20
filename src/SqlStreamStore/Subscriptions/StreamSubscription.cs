@@ -129,14 +129,10 @@
                 {
                     var page = await Pull();
 
-                    if (page.Status != PageReadStatus.Success)
-                    {
-                        break;
-                    }
-
                     await Push(page);
 
-                    if (!lastHasCaughtUp.HasValue || lastHasCaughtUp.Value != page.IsEnd)
+                    if ((!lastHasCaughtUp.HasValue && page.IsEnd) ||
+                        ((!lastHasCaughtUp.HasValue || lastHasCaughtUp.Value != page.IsEnd)))
                     {
                         // Only raise if the state changes
                         lastHasCaughtUp = page.IsEnd;

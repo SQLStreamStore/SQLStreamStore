@@ -1,6 +1,5 @@
 ﻿namespace SqlStreamStore
 {
-    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using SqlStreamStore.Streams;
@@ -27,6 +26,7 @@
                     true,
                     null,
                     connection,
+                    null,
                     cancellationToken);
             }
 
@@ -70,14 +70,15 @@
                         MetaJson = metadataJson
                     };
                     var json = SimpleJson.SerializeObject(metadataMessage);
-                    var newmessage = new NewStreamMessage(Guid.NewGuid(), "$stream-metadata", json);
+                    var messageId = MetadataMessageIdGenerator.Create(json);
+                    var message = new NewStreamMessage(messageId, "$stream-metadata", json);
 
                     result = await AppendToStreamInternal(
                         connection,
                         transaction,
                         streamIdInfo.MetadataSqlStreamId,
                         expectedStreamMetadataVersion,
-                        new[] { newmessage },
+                        new[] { message },
                         cancellationToken);
 
                     transaction.Commit();

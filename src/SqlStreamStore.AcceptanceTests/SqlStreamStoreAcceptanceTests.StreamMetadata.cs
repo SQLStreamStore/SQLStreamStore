@@ -300,5 +300,26 @@
                 }
             }
         }
+
+        [Fact]
+        public async Task Can_set_deleted_stream_metadata()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    const string streamId = Deleted.DeletedStreamId;
+                    await store
+                        .SetStreamMetadata(streamId, maxCount: 2, maxAge: 30);
+
+                    var metadata = await store.GetStreamMetadata(streamId);
+
+                    metadata.MetadataStreamVersion.ShouldBe(0);
+                    metadata.MaxAge.ShouldBe(30);
+                    metadata.MaxCount.ShouldBe(2);
+                    metadata.MetadataJson.ShouldBeNull();
+                }
+            }
+        }
     }
 }

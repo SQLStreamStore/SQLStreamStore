@@ -18,15 +18,21 @@
         /// <summary>
         ///     Create a GUID for metadata message Ids.
         /// </summary>
+        /// <param name="streamId">
+        ///     The stream ID.
+        /// </param>
+        /// <param name="expectedVersion">
+        ///     The expected version of the stream the message will be appended to.
+        /// </param>
         /// <param name="message">
         ///     The metadata message uses as input into the generation algorithim.
         /// </param>
         /// <returns>
         ///     A deterministically generated GUID.
         /// </returns>
-        public static Guid Create(string message)
+        public static Guid Create(string streamId, int expectedVersion, string message)
         {
-            return s_deterministicGuidGenerator.Create(message);
+            return s_deterministicGuidGenerator.Create(streamId, expectedVersion, message);
         }
     }
 }

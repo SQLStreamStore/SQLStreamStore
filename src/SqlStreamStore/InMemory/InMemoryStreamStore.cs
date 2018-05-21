@@ -225,7 +225,7 @@ namespace SqlStreamStore
                     MetaJson = metadataJson
                 };
                 var json = SimpleJson.SerializeObject(metadataMessage);
-                var messageId = MetadataMessageIdGenerator.Create(json);
+                var messageId = MetadataMessageIdGenerator.Create(metaStreamId, expectedStreamMetadataVersion, json);
                 var newStreamMessage = new NewStreamMessage(messageId, "$stream-metadata", json);
 
                 var result = AppendToStreamInternal(metaStreamId, expectedStreamMetadataVersion, new[] { newStreamMessage });

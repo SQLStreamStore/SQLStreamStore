@@ -1,10 +1,7 @@
 ﻿namespace SqlStreamStore.Infrastructure
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Security.Cryptography;
-    using System.Text;
 
     // Adapted from https://github.com/LogosBible/Logos.Utility/blob/master/src/Logos.Utility/GuidUtility.cs
     // MIT Licence
@@ -28,20 +25,6 @@
         {
             _namespaceBytes = guidNameSpace.ToByteArray();
             SwapByteOrder(_namespaceBytes);
-        }
-
-        /// <summary>
-        ///     Creates a deterministic GUID.
-        /// </summary>
-        /// <param name="source">
-        ///     A source to generate the GUID from.
-        /// </param>
-        /// <returns>
-        ///     A deterministically generated GUID.
-        /// </returns>
-        public Guid Create(string source)
-        {
-            return Create(Encoding.UTF8.GetBytes(source));
         }
 
         /// <summary>

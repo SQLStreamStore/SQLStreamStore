@@ -70,7 +70,7 @@
                         MetaJson = metadataJson
                     };
                     var json = SimpleJson.SerializeObject(metadataMessage);
-                    var messageId = MetadataMessageIdGenerator.Create(json);
+                    var messageId = MetadataMessageIdGenerator.Create(streamIdInfo.MetadataSqlStreamId.IdOriginal, expectedStreamMetadataVersion, json);
                     var message = new NewStreamMessage(messageId, "$stream-metadata", json);
 
                     result = await AppendToStreamInternal(

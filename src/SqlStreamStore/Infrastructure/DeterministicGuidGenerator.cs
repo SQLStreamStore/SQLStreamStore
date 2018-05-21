@@ -53,14 +53,13 @@
         /// <returns>
         ///     A deterministically generated GUID.
         /// </returns>
-        public Guid Create(IEnumerable<byte> source)
+        public Guid Create(byte[] source)
         {
             byte[] hash;
-            byte[] inputBuffer = source.ToArray();
             using (var algorithm = SHA1.Create())
             {
                 algorithm.TransformBlock(_namespaceBytes, 0, _namespaceBytes.Length, null, 0);
-                algorithm.TransformFinalBlock(inputBuffer, 0, inputBuffer.Length);
+                algorithm.TransformFinalBlock(source, 0, source.Length);
 
                 hash = algorithm.Hash;
             }

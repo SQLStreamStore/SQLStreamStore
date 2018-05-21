@@ -93,21 +93,29 @@ namespace SqlStreamStore.InMemory
 
         private void AppendToStreamExpectedVersionAny(int expectedVersion, NewStreamMessage[] newMessages)
         {
-            // idemponcy check - how many newMessages have already been written?
-            var newEventIds = new HashSet<Guid>(newMessages.Select(e => e.MessageId));
-            newEventIds.ExceptWith(_messagesById.Keys);
-
-            if(newEventIds.Count == 0)
+            if(newMessages?.Length > 0)
             {
-                // All Messages have already been written, we're idempotent
-                return;
-            }
+                // idemponcy check - have messages already been written?
+                if(_messagesById.TryGetValue(newMessages[0].MessageId, out var item))
+                {
+                    int i = _messages.IndexOf(item);
+                    if(i + newMessages.Length > _messages.Count)
+                    {
+                        throw new WrongExpectedVersionException(
+                            ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
+                    }
 
-            if(newEventIds.Count != newMessages.Length)
-            {
-                // Some of the Messages have already been written, bad request
-                throw new WrongExpectedVersionException(
-                    ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
+                    for(int n = 1; n < newMessages.Length; n++)
+                    {
+                        if(newMessages[n].MessageId != _messages[i + n].MessageId)
+                        {
+                            throw new WrongExpectedVersionException(
+                                ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
+                        }
+                    }
+
+                    return;
+                }
             }
 
             // None of the Messages were written previously...

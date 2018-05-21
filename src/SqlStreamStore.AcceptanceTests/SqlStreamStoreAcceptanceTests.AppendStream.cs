@@ -213,8 +213,7 @@
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task
-            When_append_stream_with_correct_expected_version_second_time_with_same_messages_then_should_not_throw()
+        public async Task When_append_stream_with_correct_expected_version_second_time_with_same_messages_then_should_not_throw()
         {
             using (var fixture = GetFixture())
             {
@@ -742,6 +741,28 @@
 
                     exception.ShouldBeOfType<WrongExpectedVersionException>(
                         ErrorMessages.AppendFailedWrongExpectedVersion(streamId, ExpectedVersion.Any));
+                }
+            }
+        }
+
+
+        [Fact, Trait("Category", "AppendStream")]
+        public async Task When_append_stream_second_time_with_expected_version_and_same_messages_then_should_then_should_have_expected_result()
+        {
+            // Idempotency
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    const string streamId = "stream-1";
+                    var result1 = await store
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+
+                    var result2 = await store
+                        .AppendToStream(streamId, 0, CreateNewStreamMessages(2));
+
+                    result2.CurrentVersion.ShouldBe(2);
+                    result2.CurrentPosition.ShouldBe(result1.CurrentPosition);
                 }
             }
         }

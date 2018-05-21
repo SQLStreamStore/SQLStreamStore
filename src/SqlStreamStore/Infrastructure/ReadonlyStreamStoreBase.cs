@@ -103,6 +103,14 @@ namespace SqlStreamStore.Infrastructure
         /// <returns>A set of positions that are missing from the sequence of messages, but were not found last time</returns>
         private HashSet<long> FindShortTermMissingPositions(StreamMessage[] messages, HashSet<long> previouslyMissingPositions)
         {
+            IEnumerable<long> Range(long fromInclusive, long endInclusive)
+            {
+                for (var x = fromInclusive; x <= endInclusive; x++)
+                {
+                    yield return x;
+                }
+            }
+
             var currentMissingPositions = new HashSet<long>();
 
             for (var i = 0; i < messages.Length - 1; i++)
@@ -112,7 +120,7 @@ namespace SqlStreamStore.Infrastructure
 
                 if (expectedNextPosition != actualNextPosition)
                 {
-                    var range = expectedNextPosition.RangeTo(actualNextPosition - 1);
+                    var range = Range(expectedNextPosition, actualNextPosition - 1);
                     currentMissingPositions.UnionWith(range);
                 }
             }

@@ -1,4 +1,4 @@
-#addin "nuget:?package=Cake.FileHelpers&version=2.0.0"
+#addin "nuget:?package=Cake.FileHelpers&version=3.0.0"
 
 var target          = Argument("target", "Default");
 var configuration   = Argument("configuration", "Release");
@@ -75,7 +75,7 @@ IProcess TestAssembly(string name)
         });
 
 string XUnitArguments(string name) {
-    var args = $"xunit -quiet -parallel all -configuration {configuration} -nobuild";
+    var args = $"xunit -parallel all -configuration {configuration} -nobuild";
     if (BuildSystem.IsRunningOnTeamCity) {
         args += $" -xml {artifactsDir + File($"{name}.xml")}";
     }

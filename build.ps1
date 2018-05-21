@@ -39,7 +39,7 @@ Param(
     [string[]]$ScriptArgs
 )
 
-$cakeVersion = "0.26.0"
+$cakeVersion = "0.27.2"
 $buildPath = "$PSScriptRoot/build"
 $proj = @"
 <Project Sdk="Microsoft.NET.Sdk">

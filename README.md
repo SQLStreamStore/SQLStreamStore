@@ -163,11 +163,73 @@ the messages are appended once. This is useful for retry / resume type of
 operations. When appending messages, the `MessageId` of `NewStreamMessage`,
 coupled with the `expectedVersion`, determines the idempotency policy applied.
 
- - `ExpectedVersion.Any` if the collection of messages have been previously written
+**With `ExpectedVersion.Any`**: If the collection of messages have been
+previously written in the same order they appear in the append request, no new
+messages are written. If the message ordering is different, or if there are
+additional new messages with the previous written ones, then a
+`WrongExpectedVersionException` is thrown. Examples:
+  
+    // using int instead of guid for message id to aid clarity
+    var m1 = new NewStreamMessage(1, "t", "data");
+    var m2 = new NewStreamMessage(2, "t", "data");
+    var m3 = new NewStreamMessage(3, "t", "data");
+    var m4 = new NewStreamMessage(4, "t", "data");
+
+    // Creates stream
+    store.AppendToStream(streamId, ExpectedVersion.Any, new [] { m1, m2, m3} );
+
+    // Idempotent appends
+    store.AppendToStream(streamId, ExpectedVersion.Any, new [] { m1, m2, m3} );
+    store.AppendToStream(streamId, ExpectedVersion.Any, new [] { m1, m2 );
+    store.AppendToStream(streamId, ExpectedVersion.Any, new [] { m2, m3} );
+    store.AppendToStream(streamId, ExpectedVersion.Any, new [] { m3} );
+
+    // Throws WrongExpectedVersionException
+    store.AppendToStream(streamId, ExpectedVersion.Any, new [] { m2, m1, m3} ); // out of order
+    store.AppendToStream(streamId, ExpectedVersion.Any, new [] { m3, m4} ); // partial previous write
+
+**With a specific expected`** If the collection of messages have been previously
+written in the same order they appear in the append request starting at the
+expected version no new messages are written.
+
+    // using int instead of guid for message id to aid clarity
+    var m1 = new NewStreamMessage(1, "t", "data");
+    var m2 = new NewStreamMessage(2, "t", "data");
+    var m3 = new NewStreamMessage(3, "t", "data");
+    var m4 = new NewStreamMessage(4, "t", "data");
+
+    // Creates stream
+    store.AppendToStream(streamId, ExpectedVersion.NoStream, new [] { m1, m2, m3} );
+
+    // Idempotent appends
+    store.AppendToStream(streamId, ExpectedVersion.NoStream, new [] { m1, m2, m3} );
+    store.AppendToStream(streamId, ExpectedVersion.NoStream, new [] { m1 );
+    store.AppendToStream(streamId, 0, new [] { m2 } );
+    store.AppendToStream(streamId, 1, new [] { m3 } );
+
+    // Throws WrongExpectedVersionException
+    store.AppendToStream(streamId, ExpectedVersion.NoStream, new [] { m2, m1, m3} ); // out of order
+    store.AppendToStream(streamId, 1, new [] { m3, m4} ); // partial previous writes
 
 ### 3.2.2 Deterministed Message ID Generation
 
+In order to leverage idempotent appends the message IDs should be them same on
+subsequent appends. SQLStreamStore ships with a helper class
+`DeterministicGuidGenerator` that can create GUIDs based on some the message.
+When creating a determinisitic generator you are required to supply a unique
+namespace that prevents other generators creating the same GUIDs with the same
+input. You typically hard code the namespace in your application and never
+change it.
 
+    var generator = new DeterministicGuidGenerator(Guid.Parse("C27B665E-AD32-4BBA-YOUR-OWN-VALUE"))
+
+Creating deterministic GUID:
+
+    var streamId = "stream-1";
+    var expectedVersion = 2; // This can be ExpectedVersion.Any or ExpectedVersion.NoStream
+    var messageId = generate.Create(streamId, expectedVersion, jsonData);
+
+You then use this `messageId` when creating a `NewStreamMessage`.
 
 ### 3.2. Reading messages
 

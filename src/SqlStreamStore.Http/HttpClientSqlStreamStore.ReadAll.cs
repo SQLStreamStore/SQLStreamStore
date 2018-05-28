@@ -46,7 +46,10 @@ namespace SqlStreamStore
             var pageInfo = resource.Data<HalReadAllPage>();
 
             var streamMessages = Convert(
-                resource.Embedded.Where(r => r.Rel == "streamStore:message").ToArray(),
+                resource.Embedded
+                    .Where(r => r.Rel == "streamStore:message")
+                    .Reverse()
+                    .ToArray(),
                 client,
                 prefetch);
 
@@ -70,7 +73,9 @@ namespace SqlStreamStore
             var pageInfo = resource.Data<HalReadAllPage>();
 
             var streamMessages = Convert(
-                resource.Embedded.Where(r => r.Rel == "streamStore:message").ToArray(),
+                resource.Embedded
+                    .Where(r => r.Rel == "streamStore:message")
+                    .ToArray(),
                 client,
                 prefetch);
 

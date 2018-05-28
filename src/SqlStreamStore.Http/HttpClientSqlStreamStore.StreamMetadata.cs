@@ -73,14 +73,20 @@ namespace SqlStreamStore
             {
                 ThrowOnError(client);
             }
-            
+
+            var metadata = new Dictionary<string, object>
+            {
+                ["maxAge"] = maxAge,
+                ["maxCount"] = maxCount
+            };
+
+            if(!string.IsNullOrEmpty(metadataJson))
+            {
+                metadata["metadataJson"] = TryParseMetadataJson(metadataJson);
+            }
+
             client = await client.Post("self",
-                new
-                {
-                    maxAge,
-                    maxCount,
-                    metadataJson = TryParseMetadataJson(metadataJson)
-                },
+                metadata,
                 null,
                 null,
                 new Dictionary<string, string[]>

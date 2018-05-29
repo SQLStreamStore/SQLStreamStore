@@ -120,7 +120,7 @@
             IHalClient client,
             IResource streamMessage,
             CancellationToken cancellationToken)
-            => (await client.GetAsync(streamMessage, "self", cancellationToken))
+            => (await client.GetAsync(streamMessage, Constants.Relations.Self, cancellationToken))
                 .Current.FirstOrDefault()?.Data<HttpStreamMessage>()?.Payload;
     }
 }

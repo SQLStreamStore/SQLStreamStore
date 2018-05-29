@@ -79,7 +79,7 @@ namespace SqlStreamStore
 
             var streamMessages = Convert(
                 resource.Embedded
-                    .Where(r => r.Rel == "streamStore:message")
+                    .Where(r => r.Rel == Constants.Relations.Message)
                     .Reverse()
                     .ToArray(),
                 client,
@@ -100,9 +100,9 @@ namespace SqlStreamStore
             return readStreamPage;
 
             async Task<ReadStreamPage> ReadNextStreamPage(int nextVersion, CancellationToken ct)
-                => resource.Links.Any(link => link.Rel == "next")
+                => resource.Links.Any(link => link.Rel == Constants.Relations.Next)
                     ? ReadStreamForwardsInternal(
-                        await client.GetAsync(resource, "next"),
+                        await client.GetAsync(resource, Constants.Relations.Next),
                         streamId,
                         pageInfo.LastStreamVersion,
                         maxCount,
@@ -145,7 +145,7 @@ namespace SqlStreamStore
 
             var streamMessages = Convert(
                 resource.Embedded
-                    .Where(r => r.Rel == "streamStore:message")
+                    .Where(r => r.Rel == Constants.Relations.Message)
                     .ToArray(),
                 client,
                 prefetchJsonData);
@@ -160,7 +160,7 @@ namespace SqlStreamStore
                 ReadDirection.Backward,
                 pageInfo.IsEnd,
                 async (nextVersion, token) => ReadStreamBackwardsInternal(
-                    await client.GetAsync(resource, "previous"),
+                    await client.GetAsync(resource, Constants.Relations.Previous),
                     streamId,
                     pageInfo.LastStreamVersion,
                     maxCount,

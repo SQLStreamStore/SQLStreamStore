@@ -23,13 +23,13 @@ namespace SqlStreamStore
                     new Link
                     {
                         Href = LinkFormatter.Stream(streamId),
-                        Rel = "streamStore:appendToStream"
+                        Rel = Constants.Relations.AppendToStream
                     }
                 }
             });
             
             client = await client.Post(
-                "streamStore:appendToStream",
+                Constants.Relations.AppendToStream,
                 messages,
                 null,
                 null,

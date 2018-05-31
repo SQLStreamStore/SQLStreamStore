@@ -11,52 +11,52 @@
         private const int StreamIdSize = 42;
         private const int OriginalStreamIdSize = 1000;
 
-        public static NpgsqlParameter StreamId(PostgresqlStreamId value) => new NpgsqlParameter
+        public static NpgsqlParameter StreamId(PostgresqlStreamId value) => new NpgsqlParameter<string>
         {
             NpgsqlDbType = NpgsqlDbType.Char,
             Size = StreamIdSize,
-            NpgsqlValue = value.Id
+            TypedValue = value.Id
         };
 
-        public static NpgsqlParameter StreamIdOriginal(PostgresqlStreamId value) => new NpgsqlParameter
+        public static NpgsqlParameter StreamIdOriginal(PostgresqlStreamId value) => new NpgsqlParameter<string>
         {
             NpgsqlDbType = NpgsqlDbType.Varchar,
             Size = OriginalStreamIdSize,
-            NpgsqlValue = value.IdOriginal
+            TypedValue = value.IdOriginal
         };
 
-        public static NpgsqlParameter MetadataStreamId(PostgresqlStreamId value) => new NpgsqlParameter
+        public static NpgsqlParameter MetadataStreamId(PostgresqlStreamId value) => new NpgsqlParameter<string>
         {
             NpgsqlDbType = NpgsqlDbType.Char,
             Size = StreamIdSize,
-            NpgsqlValue = value.Id
+            TypedValue = value.Id
         };
 
-        public static NpgsqlParameter MetadataStreamIdOriginal(PostgresqlStreamId value) => new NpgsqlParameter
+        public static NpgsqlParameter MetadataStreamIdOriginal(PostgresqlStreamId value) => new NpgsqlParameter<string>
         {
             NpgsqlDbType = NpgsqlDbType.Char,
             Size = StreamIdSize,
-            NpgsqlValue = value.IdOriginal
+            TypedValue = value.IdOriginal
         };
 
-        public static NpgsqlParameter DeletedStreamId => new NpgsqlParameter
+        public static NpgsqlParameter DeletedStreamId => new NpgsqlParameter<string>
         {
             NpgsqlDbType = NpgsqlDbType.Char,
             Size = StreamIdSize,
-            NpgsqlValue = PostgresqlStreamId.Deleted.Id
+            TypedValue = PostgresqlStreamId.Deleted.Id
         };
 
-        public static NpgsqlParameter DeletedStreamIdOriginal => new NpgsqlParameter
+        public static NpgsqlParameter DeletedStreamIdOriginal => new NpgsqlParameter<string>
         {
             NpgsqlDbType = NpgsqlDbType.Varchar,
             Size = OriginalStreamIdSize,
-            NpgsqlValue = PostgresqlStreamId.Deleted.IdOriginal
+            TypedValue = PostgresqlStreamId.Deleted.IdOriginal
         };
 
         public static NpgsqlParameter DeletedMessages(PostgresqlStreamId streamId, params Guid[] messageIds) =>
-            new NpgsqlParameter
+            new NpgsqlParameter<PostgresNewStreamMessage[]>
             {
-                NpgsqlValue = Array.ConvertAll(
+                TypedValue = Array.ConvertAll(
                     messageIds,
                     messageId => PostgresNewStreamMessage.FromNewStreamMessage(
                         Deleted.CreateMessageDeletedMessage(streamId.IdOriginal, messageId))
@@ -64,71 +64,73 @@
             };
 
         public static NpgsqlParameter DeletedStreamMessage(PostgresqlStreamId streamId) =>
-            new NpgsqlParameter
+            new NpgsqlParameter<PostgresNewStreamMessage>
             {
-                NpgsqlValue = PostgresNewStreamMessage.FromNewStreamMessage(
+                TypedValue = PostgresNewStreamMessage.FromNewStreamMessage(
                     Deleted.CreateStreamDeletedMessage(streamId.IdOriginal))
             };
 
-        public static NpgsqlParameter ExpectedVersion(int value) => new NpgsqlParameter
+        public static NpgsqlParameter ExpectedVersion(int value) => new NpgsqlParameter<int>
         {
             NpgsqlDbType = NpgsqlDbType.Integer,
-            NpgsqlValue = value
+            TypedValue = value
         };
 
-        public static NpgsqlParameter CreatedUtc(DateTime value) => new NpgsqlParameter
+        public static NpgsqlParameter CreatedUtc(DateTime value) => new NpgsqlParameter<DateTime>
         {
-            NpgsqlValue = value,
+            TypedValue = value,
             NpgsqlDbType = NpgsqlDbType.Timestamp
         };
 
-        public static NpgsqlParameter NewStreamMessages(NewStreamMessage[] value) => new NpgsqlParameter
-        {
-            NpgsqlValue = Array.ConvertAll(value, PostgresNewStreamMessage.FromNewStreamMessage)
-        };
+        public static NpgsqlParameter NewStreamMessages(NewStreamMessage[] value) =>
+            new NpgsqlParameter<PostgresNewStreamMessage[]>
+            {
+                TypedValue = Array.ConvertAll(value, PostgresNewStreamMessage.FromNewStreamMessage)
+            };
 
-        public static NpgsqlParameter MetadataStreamMessage(MetadataMessage value) => new NpgsqlParameter
-        {
-            NpgsqlValue = PostgresNewStreamMessage.FromNewStreamMessage(
-                new NewStreamMessage(
-                    Guid.NewGuid(),
-                    "$stream-metadata",
-                    SimpleJson.SerializeObject(value)))
-        };
+        public static NpgsqlParameter MetadataStreamMessage(MetadataMessage value)
+            => new NpgsqlParameter<PostgresNewStreamMessage>
+            {
+                TypedValue = PostgresNewStreamMessage.FromNewStreamMessage(
+                    new NewStreamMessage(
+                        Guid.NewGuid(),
+                        "$stream-metadata",
+                        SimpleJson.SerializeObject(value)))
+            };
 
-        public static NpgsqlParameter Count(int value) => new NpgsqlParameter
-        {
-            NpgsqlDbType = NpgsqlDbType.Integer,
-            NpgsqlValue = value
-        };
-
-        public static NpgsqlParameter Version(int value) => new NpgsqlParameter
+        public static NpgsqlParameter Count(int value) => new NpgsqlParameter<int>
         {
             NpgsqlDbType = NpgsqlDbType.Integer,
-            NpgsqlValue = value
+            TypedValue = value
         };
 
-        public static NpgsqlParameter ReadDirection(ReadDirection direction) => new NpgsqlParameter
+        public static NpgsqlParameter Version(int value) => new NpgsqlParameter<int>
+        {
+            NpgsqlDbType = NpgsqlDbType.Integer,
+            TypedValue = value
+        };
+
+        public static NpgsqlParameter ReadDirection(ReadDirection direction) => new NpgsqlParameter<bool>
         {
             NpgsqlDbType = NpgsqlDbType.Boolean,
-            NpgsqlValue = direction == Streams.ReadDirection.Forward
+            TypedValue = direction == Streams.ReadDirection.Forward
         };
 
-        public static NpgsqlParameter Prefetch(bool value) => new NpgsqlParameter
+        public static NpgsqlParameter Prefetch(bool value) => new NpgsqlParameter<bool>
         {
             NpgsqlDbType = NpgsqlDbType.Boolean,
-            NpgsqlValue = value
+            TypedValue = value
         };
 
-        public static NpgsqlParameter MessageIds(Guid[] value) => new NpgsqlParameter
+        public static NpgsqlParameter MessageIds(Guid[] value) => new NpgsqlParameter<Guid[]>
         {
             Value = value
         };
 
-        public static NpgsqlParameter Position(long value) => new NpgsqlParameter
+        public static NpgsqlParameter Position(long value) => new NpgsqlParameter<long>
         {
             NpgsqlDbType = NpgsqlDbType.Bigint,
-            NpgsqlValue = value
+            TypedValue = value
         };
 
         public static NpgsqlParameter OptionalMaxAge(int? value) => new NpgsqlParameter

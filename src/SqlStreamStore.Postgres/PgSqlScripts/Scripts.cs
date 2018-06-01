@@ -23,6 +23,8 @@
 
         public string DropAll => GetScript(nameof(DropAll));
 
+        public string EnableExplainAnalyze => GetScript(nameof(EnableExplainAnalyze));
+
         private string Tables => GetScript(nameof(Tables));
 
         private string AppendToStream => GetScript(nameof(AppendToStream));

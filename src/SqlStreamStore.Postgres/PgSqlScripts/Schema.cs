@@ -7,6 +7,7 @@
 
         public string Definition => _scripts.CreateSchema;
         public string DropAll => _scripts.DropAll;
+        public string EnableExplainAnalyze => _scripts.EnableExplainAnalyze;
 
         public string NewStreamMessage => $"{_schema}.new_stream_message";
 

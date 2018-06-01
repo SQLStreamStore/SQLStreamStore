@@ -26,14 +26,13 @@
             get => _schema;
             set
             {
-                if(string.IsNullOrWhiteSpace(value))
-                {
-                    Ensure.That(value, nameof(Schema)).IsNotNullOrWhiteSpace();
-                }
+                Ensure.That(value, nameof(Schema)).IsNotNullOrWhiteSpace();
 
                 _schema = value;
             }
         }
+
+        public bool ExplainAnalyze { get; set; }
 
         public TimeSpan MetadataMaxAgeCacheExpire { get; set; } = TimeSpan.FromMinutes(1);
 

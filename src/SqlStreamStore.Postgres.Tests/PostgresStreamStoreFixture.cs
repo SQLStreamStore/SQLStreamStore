@@ -46,7 +46,8 @@ namespace SqlStreamStore
             var settings = new PostgresStreamStoreSettings(ConnectionString)
             {
                 Schema = _schema,
-                GetUtcNow = () => GetUtcNow()
+                GetUtcNow = () => GetUtcNow(),
+                ExplainAnalyze = true
             };
 
             var store = new PostgresStreamStore(settings);
@@ -63,7 +64,8 @@ namespace SqlStreamStore
             var settings = new PostgresStreamStoreSettings(ConnectionString)
             {
                 Schema = schema,
-                GetUtcNow = () => GetUtcNow()
+                GetUtcNow = () => GetUtcNow(),
+                ExplainAnalyze = true
             };
             var store = new PostgresStreamStore(settings);
 
@@ -88,7 +90,8 @@ namespace SqlStreamStore
             var settings = new PostgresStreamStoreSettings(ConnectionString)
             {
                 Schema = _schema,
-                GetUtcNow = () => GetUtcNow()
+                GetUtcNow = () => GetUtcNow(),
+                ExplainAnalyze = true
             };
 
             return new PostgresStreamStore(settings);

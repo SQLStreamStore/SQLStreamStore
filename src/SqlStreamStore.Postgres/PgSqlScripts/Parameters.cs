@@ -3,6 +3,7 @@
     using System;
     using Npgsql;
     using NpgsqlTypes;
+    using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Streams;
     using StreamStoreStore.Json;
 
@@ -88,15 +89,21 @@
                 TypedValue = Array.ConvertAll(value, PostgresNewStreamMessage.FromNewStreamMessage)
             };
 
-        public static NpgsqlParameter MetadataStreamMessage(MetadataMessage value)
-            => new NpgsqlParameter<PostgresNewStreamMessage>
+        public static NpgsqlParameter MetadataStreamMessage(
+            PostgresqlStreamId streamId,
+            int expectedVersion,
+            MetadataMessage value)
+        {
+            var jsonData = SimpleJson.SerializeObject(value);
+            return new NpgsqlParameter<PostgresNewStreamMessage>
             {
                 TypedValue = PostgresNewStreamMessage.FromNewStreamMessage(
                     new NewStreamMessage(
-                        Guid.NewGuid(),
+                        MetadataMessageIdGenerator.Create(streamId.IdOriginal, expectedVersion, jsonData),
                         "$stream-metadata",
-                        SimpleJson.SerializeObject(value)))
+                        jsonData))
             };
+        }
 
         public static NpgsqlParameter Count(int value) => new NpgsqlParameter<int>
         {

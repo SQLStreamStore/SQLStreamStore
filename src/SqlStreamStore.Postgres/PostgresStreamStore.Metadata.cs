@@ -85,7 +85,10 @@
                 Parameters.OptionalMaxCount(metadata.MaxCount),
                 Parameters.ExpectedVersion(expectedStreamMetadataVersion),
                 Parameters.CreatedUtc(_settings.GetUtcNow()),
-                Parameters.MetadataStreamMessage(metadata)))
+                Parameters.MetadataStreamMessage(
+                    streamIdInfo.MetadataPosgresqlStreamId, 
+                    expectedStreamMetadataVersion, 
+                    metadata)))
             {
                 currentVersion = (int) await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
 

@@ -18,7 +18,6 @@
             CancellationToken cancellationToken)
         {
             maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;
-            var ordinal = fromPositionExclusive;
 
             using(var connection = _createConnection())
             using(var transaction = await BeginTransaction(connection, cancellationToken))
@@ -48,7 +47,7 @@
                 {
                     if(messages.Count == maxCount)
                     {
-                        messages.Add(default(StreamMessage));
+                        messages.Add(default);
                     }
                     else
                     {

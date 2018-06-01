@@ -41,7 +41,7 @@
             _schema = new Schema(_settings.Schema);
         }
 
-        public async Task CreateSchema(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task CreateSchema(CancellationToken cancellationToken = default)
         {
             using(var connection = _createConnection())
             using(var transaction = await BeginTransaction(connection, false, cancellationToken))
@@ -90,7 +90,7 @@
             }
         }
 
-        public async Task DropAll(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task DropAll(CancellationToken cancellationToken = default)
         {
             GuardAgainstDisposed();
 
@@ -106,8 +106,7 @@
             }
         }
 
-        public async Task<CheckSchemaResult> CheckSchema(
-            CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<CheckSchemaResult> CheckSchema(CancellationToken cancellationToken = default)
         {
             using(var connection = _createConnection())
             using(var transaction = await BeginTransaction(connection, false, cancellationToken))

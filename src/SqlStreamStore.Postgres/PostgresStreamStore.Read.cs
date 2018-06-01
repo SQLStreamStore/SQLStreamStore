@@ -98,7 +98,7 @@
 
                 if(messages.Count == count)
                 {
-                    messages.Add(default(StreamMessage));
+                    messages.Add(default);
                 }
 
                 await reader.ReadAsync(cancellationToken).NotOnCapturedContext();

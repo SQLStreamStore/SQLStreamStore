@@ -167,6 +167,14 @@
                 connection.TypeMapper.MapComposite<PostgresNewStreamMessage>(_schema.NewStreamMessage);
             }
 
+            if(_settings.ExplainAnalyze)
+            {
+                using(var command = new NpgsqlCommand(_schema.EnableExplainAnalyze, connection))
+                {
+                    await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                }
+            }
+
             return connection.BeginTransaction(isolationLevel);
         }
 

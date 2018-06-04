@@ -93,7 +93,7 @@
                     var result = await function(_isDisposed.Token);
                     tcs.SetResult(result);
                 }
-                catch (TaskCanceledException)
+                catch (OperationCanceledException)
                 {
                     tcs.SetCanceled();
                 }

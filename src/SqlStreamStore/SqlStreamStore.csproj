@@ -3,24 +3,15 @@
     <Description>A library for writing and reading streams (also known as an 'event store') with a focus on SQL based implementations. This contains the core interfaces, abstractions and an in-memory implementation for tests.</Description>
     <AssemblyTitle>SQL Stream Store</AssemblyTitle>
     <TargetFrameworks>netstandard2.0</TargetFrameworks>
-    <DefineConstants>$(DefineConstants);LIBLOG_PUBLIC;LIBLOG_PORTABLE</DefineConstants>
+    <DefineConstants>$(DefineConstants);LIBLOG_PUBLIC</DefineConstants>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>SqlStreamStore</AssemblyName>
     <PackageId>SqlStreamStore</PackageId>
-    <NoWarn>1701;1702;1705;1591</NoWarn>
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.CSharp" Version="4.4.1" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CSharp" Version="4.4.1" />
+    <PackageReference Include="LibLog" Version="5.0.0" />
     <PackageReference Include="SimpleJson" Version="0.38.0">
-      <PrivateAssets>All</PrivateAssets>
-    </PackageReference>
-    <PackageReference Include="LibLog" Version="4.2.6">
       <PrivateAssets>All</PrivateAssets>
     </PackageReference>
   </ItemGroup>

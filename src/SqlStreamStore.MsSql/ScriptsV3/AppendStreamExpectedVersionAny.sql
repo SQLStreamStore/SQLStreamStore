@@ -16,8 +16,14 @@ BEGIN TRANSACTION AppendStream;
 
     DECLARE @latestStreamVersion AS INT;
     DECLARE @latestStreamPosition AS BIGINT;
+    DECLARE @maxAge AS INT;
+    DECLARE @maxCount AS INT;
 
-    SELECT @streamIdInternal = dbo.Streams.IdInternal, @latestStreamVersion = dbo.Streams.[Version], @latestStreamPosition = dbo.Streams.[Position]
+    SELECT @streamIdInternal = dbo.Streams.IdInternal,
+           @latestStreamVersion = dbo.Streams.[Version],
+           @latestStreamPosition = dbo.Streams.[Position],
+           @maxAge = dbo.Streams.[MaxAge],
+           @maxCount = dbo.Streams.[MaxAge]
     FROM dbo.Streams WITH (UPDLOCK, ROWLOCK)
     WHERE dbo.Streams.Id = @streamId;
 
@@ -44,20 +50,13 @@ BEGIN TRANSACTION AppendStream;
         BEGIN
             SET @latestStreamPosition = ISNULL(@latestStreamPosition, -1)
             SET @latestStreamVersion = ISNULL(@latestStreamVersion, -1)
+            SET @maxAge = ISNULL(@maxAge, -1)
+            SET @maxCount = ISNULL(@maxCount, -1)
         END
 
 COMMIT TRANSACTION AppendStream;
 
-/* Select CurrentVersion, CurrentPosition */
-
-SELECT currentVersion = @latestStreamVersion, currentPosition = @latestStreamPosition
-
-/* Select Metadata */
-
-SELECT dbo.Messages.JsonData
-FROM dbo.Messages
-WHERE dbo.Messages.Position = (
-    SELECT dbo.Streams.Position
-    FROM dbo.Streams
-    WHERE dbo.Streams.Id = '$$' + @streamId
-)
+SELECT currentVersion = @latestStreamVersion,
+       currentPosition = @latestStreamPosition,
+       maxAge = @maxAge,
+       maxCount = @maxCount

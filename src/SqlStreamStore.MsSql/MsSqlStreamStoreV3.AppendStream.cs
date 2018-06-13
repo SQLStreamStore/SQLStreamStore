@@ -11,7 +11,6 @@
     using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Streams;
     using SqlStreamStore.Infrastructure;
-    using StreamStoreStore.Json;
 
     public partial class MsSqlStreamStoreV3
     {
@@ -20,12 +19,18 @@
             public readonly int? MaxCount;
             public readonly int CurrentVersion;
             public readonly long CurrentPosition;
+            public readonly bool WasIdempotent;
 
-            public MsSqlAppendResult(int? maxCount, int currentVersion, long currentPosition)
+            public MsSqlAppendResult(
+                int? maxCount,
+                int currentVersion,
+                long currentPosition,
+                bool wasIdempotent)
             {
                 MaxCount = maxCount;
                 CurrentVersion = currentVersion;
                 CurrentPosition = currentPosition;
+                WasIdempotent = wasIdempotent;
             }
         }
 
@@ -49,9 +54,9 @@
                     messages, cancellationToken);
             }
 
-            if(result.MaxCount.HasValue)
+            if(result.MaxCount.HasValue && result.MaxCount.Value > 0)
             {
-                await CheckStreamMaxCount(streamId, result.MaxCount.Value, cancellationToken);
+                await CheckStreamMaxCount(streamId, result.MaxCount, cancellationToken);
             }
 
             return new AppendResult(result.CurrentVersion, result.CurrentPosition);
@@ -158,17 +163,10 @@
                         await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
                         var currentVersion = reader.GetInt32(0);
                         var currentPosition = reader.GetInt64(1);
-                        int? maxCount = null;
+                        var maxAge = reader.GetInt32(2);
+                        var maxCount = reader.GetInt32(3);
 
-                        await reader.NextResultAsync(cancellationToken);
-                        if(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
-                        {
-                            var jsonData = reader.GetString(0);
-                            var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(jsonData);
-                            maxCount = metadataMessage.MaxCount;
-                        }
-
-                        return new MsSqlAppendResult(maxCount, currentVersion, currentPosition);
+                        return new MsSqlAppendResult(maxCount, currentVersion, currentPosition, false);
                     }
                 }
                 
@@ -193,6 +191,7 @@
                         false,
                         null,
                         connection,
+                        transaction,
                         cancellationToken)
                         .NotOnCapturedContext();
 
@@ -215,7 +214,8 @@
                     return new MsSqlAppendResult(
                                 null,
                                 page.LastStreamVersion,
-                                page.LastStreamPosition);
+                                page.LastStreamPosition,
+                                true);
                 }
                 catch(SqlException ex) when(ex.IsUniqueConstraintViolation())
                 {
@@ -262,15 +262,8 @@
                         await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
                         var currentVersion = reader.GetInt32(0);
                         var currentPosition = reader.GetInt64(1);
-                        int? maxCount = null;
 
-                        if (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
-                        {
-                            var jsonData = reader.GetString(0);
-                            var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(jsonData);
-                            maxCount = metadataMessage.MaxCount;
-                        }
-                        return new MsSqlAppendResult(maxCount, currentVersion, currentPosition);
+                        return new MsSqlAppendResult(0, currentVersion, currentPosition, false);
                     }
                 }
                 catch(SqlException ex)
@@ -288,6 +281,7 @@
                                 false,
                                 null,
                                 connection,
+                                transaction,
                                 cancellationToken)
                             .NotOnCapturedContext();
 
@@ -313,7 +307,8 @@
                         return new MsSqlAppendResult(
                                 null,
                                 page.LastStreamVersion,
-                                page.LastStreamPosition);
+                                page.LastStreamPosition,
+                                true);
                     }
 
                     if(ex.IsUniqueConstraintViolation())
@@ -355,18 +350,10 @@
                         await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
                         var currentVersion = reader.GetInt32(0);
                         var currentPosition = reader.GetInt64(1);
-                        int? maxCount = null;
+                        var maxAge = reader.GetInt32(2);
+                        var maxCount = reader.GetInt32(3);
 
-                        await reader.NextResultAsync(cancellationToken);
-                        if (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
-                        {
-                            var jsonData = reader.GetString(0);
-                            var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(jsonData);
-                            maxCount = metadataMessage.MaxCount;
-
-                        }
-
-                        return new MsSqlAppendResult(maxCount, currentVersion, currentPosition);
+                        return new MsSqlAppendResult(maxCount, currentVersion, currentPosition, false);
                     }
                 }
                 catch(SqlException ex)
@@ -387,6 +374,7 @@
                                 false,
                                 null,
                                 connection,
+                                transaction,
                                 cancellationToken);
 
                             if(messages.Length > page.Messages.Length)
@@ -410,7 +398,8 @@
                             return new MsSqlAppendResult(
                                 null, 
                                 page.LastStreamVersion, 
-                                page.LastStreamPosition);
+                                page.LastStreamPosition,
+                                true);
                         }
                     }
                     if(ex.IsUniqueConstraintViolation())

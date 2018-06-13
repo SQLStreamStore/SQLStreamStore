@@ -12,14 +12,14 @@ namespace SqlStreamStore
     public partial class MsSqlStreamStore
     {
         protected override async Task<ReadAllPage> ReadAllForwardsInternal(
-            long fromPositionExlusive,
+            long fromPosition,
             int maxCount,
             bool prefetch,
             ReadNextAllPage readNext,
             CancellationToken cancellationToken)
         {
             maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;
-            long position = fromPositionExlusive;
+            long position = fromPosition;
 
             using (var connection = _createConnection())
             {
@@ -38,8 +38,8 @@ namespace SqlStreamStore
                     if (!reader.HasRows)
                     {
                         return new ReadAllPage(
-                            fromPositionExlusive,
-                            fromPositionExlusive,
+                            fromPosition,
+                            fromPosition,
                             true,
                             ReadDirection.Forward,
                             readNext,
@@ -98,7 +98,7 @@ namespace SqlStreamStore
                     var nextPosition = messages[messages.Count - 1].Position + 1;
 
                     return new ReadAllPage(
-                        fromPositionExlusive,
+                        fromPosition,
                         nextPosition,
                         isEnd,
                         ReadDirection.Forward,

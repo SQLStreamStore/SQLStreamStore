@@ -246,7 +246,7 @@ namespace SqlStreamStore.Infrastructure
         public event Action OnDispose;
 
         protected abstract Task<ReadAllPage> ReadAllForwardsInternal(
-            long fromPositionExlusive,
+            long fromPosition,
             int maxCount,
             bool prefetch,
             ReadNextAllPage readNext,

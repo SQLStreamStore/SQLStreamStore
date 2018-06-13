@@ -280,7 +280,7 @@ namespace SqlStreamStore
             AppendToStreamInternal(DeletedStreamId, ExpectedVersion.Any, new[] { streamDeletedEvent });
         }
 
-        protected override Task<ReadAllPage> ReadAllForwardsInternal(long fromPositionExlusive, int maxCount,
+        protected override Task<ReadAllPage> ReadAllForwardsInternal(long fromPosition, int maxCount,
             bool prefetch, ReadNextAllPage readNext, CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
@@ -297,11 +297,11 @@ namespace SqlStreamStore
                 }
 
                 var previous = current.Previous;
-                while(current.Value.Position < fromPositionExlusive)
+                while(current.Value.Position < fromPosition)
                 {
                     if(current.Next == null) // fromPosition is past end of store
                     {
-                        var result = new ReadAllPage(fromPositionExlusive, fromPositionExlusive, true,
+                        var result = new ReadAllPage(fromPosition, fromPosition, true,
                             ReadDirection.Forward, readNext);
                         return Task.FromResult(result);
                     }
@@ -350,10 +350,10 @@ namespace SqlStreamStore
 
                 var isEnd = current == null;
                 var nextCheckPoint = current?.Value.Position ?? previous.Value.Position + 1;
-                fromPositionExlusive = messages.Any() ? messages[0].Position : 0;
+                fromPosition = messages.Any() ? messages[0].Position : 0;
 
                 var page = new ReadAllPage(
-                    fromPositionExlusive,
+                    fromPosition,
                     nextCheckPoint,
                     isEnd,
                     ReadDirection.Forward,

@@ -12,14 +12,14 @@ namespace SqlStreamStore
     public partial class MsSqlStreamStoreV3
     {
         protected override async Task<ReadAllPage> ReadAllForwardsInternal(
-            long fromPositionExlusive,
+            long fromPosition,
             int maxCount,
             bool prefetch,
             ReadNextAllPage readNext,
             CancellationToken cancellationToken)
         {
             maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;
-            long position = fromPositionExlusive;
+            long position = fromPosition;
 
             using (var connection = _createConnection())
             {
@@ -38,8 +38,8 @@ namespace SqlStreamStore
                     if (!reader.HasRows)
                     {
                         return new ReadAllPage(
-                            fromPositionExlusive,
-                            fromPositionExlusive,
+                            fromPosition,
+                            fromPosition,
                             true,
                             ReadDirection.Forward,
                             readNext,
@@ -48,60 +48,53 @@ namespace SqlStreamStore
 
                     while (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                     {
-                        if(messages.Count == maxCount)
+                        var streamId = reader.GetString(0);
+                        var maxAge = reader.GetInt32(1);
+                        var streamVersion = reader.GetInt32(2);
+                        position = reader.GetInt64(3);
+                        var eventId = reader.GetGuid(4);
+                        var created = reader.GetDateTime(5);
+                        var type = reader.GetString(6);
+                        var jsonMetadata = reader.GetString(7);
+
+                        Func<CancellationToken, Task<string>> getJsonData;
+                        if(prefetch)
                         {
-                            messages.Add((default(StreamMessage), 0));
+                            var jsonData = reader.GetString(8);
+                            getJsonData = _ => Task.FromResult(jsonData);
                         }
                         else
                         {
-                            var streamId = reader.GetString(0);
-                            var maxAge = reader.GetInt32(1);
-                            var streamVersion = reader.GetInt32(2);
-                            position = reader.GetInt64(3);
-                            var eventId = reader.GetGuid(4);
-                            var created = reader.GetDateTime(5);
-                            var type = reader.GetString(6);
-                            var jsonMetadata = reader.GetString(7);
-
-                            Func<CancellationToken, Task<string>> getJsonData;
-                            if(prefetch)
-                            {
-                                var jsonData = reader.GetString(8);
-                                getJsonData = _ => Task.FromResult(jsonData);
-                            }
-                            else
-                            {
-                                var streamIdInfo = new StreamIdInfo(streamId);
-                                getJsonData = ct => GetJsonData(streamIdInfo.SqlStreamId.Id, streamVersion, ct);
-                            }
-
-                            var message = new StreamMessage(streamId,
-                                eventId,
-                                streamVersion,
-                                position,
-                                created,
-                                type,
-                                jsonMetadata,
-                                getJsonData);
-
-                            messages.Add((message, maxAge));
+                            var streamIdInfo = new StreamIdInfo(streamId);
+                            getJsonData = ct => GetJsonData(streamIdInfo.SqlStreamId.Id, streamVersion, ct);
                         }
+
+                        var message = new StreamMessage(streamId,
+                            eventId,
+                            streamVersion,
+                            position,
+                            created,
+                            type,
+                            jsonMetadata,
+                            getJsonData);
+
+                        messages.Add((message, maxAge));
                     }
 
                     var filteredMessages = FilterExpired(messages);
 
                     bool isEnd = true;
 
-                    if (messages.Count == maxCount + 1) // An extra row was read, we're not at the end
+                    if (filteredMessages.Count == maxCount + 1) // An extra row was read, we're not at the end
                     {
                         isEnd = false;
-                        messages.RemoveAt(maxCount);
+                        filteredMessages.RemoveAt(maxCount);
                     }
 
-                    var nextPosition = filteredMessages[messages.Count - 1].Position + 1;
+                    var nextPosition = filteredMessages[filteredMessages.Count - 1].Position + 1;
 
                     return new ReadAllPage(
-                        fromPositionExlusive,
+                        fromPosition,
                         nextPosition,
                         isEnd,
                         ReadDirection.Forward,

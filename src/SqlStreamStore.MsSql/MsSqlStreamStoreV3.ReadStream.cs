@@ -23,8 +23,16 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                 var streamIdInfo = new StreamIdInfo(streamId);
-                return await ReadStreamInternal(streamIdInfo.SqlStreamId, start, count, ReadDirection.Forward,
-                    prefetch, readNext, connection, cancellationToken);
+                return await ReadStreamInternal(
+                    streamIdInfo.SqlStreamId,
+                    start,
+                    count,
+                    ReadDirection.Forward,
+                    prefetch,
+                    readNext,
+                    connection,
+                    null,
+                    cancellationToken);
             }
         }
 
@@ -40,8 +48,16 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                 var streamIdInfo = new StreamIdInfo(streamId);
-                return await ReadStreamInternal(streamIdInfo.SqlStreamId, start, count, ReadDirection.Backward,
-                    prefetch, readNext, connection, cancellationToken);
+                return await ReadStreamInternal(
+                    streamIdInfo.SqlStreamId,
+                    start,
+                    count,
+                    ReadDirection.Backward,
+                    prefetch,
+                    readNext,
+                    connection,
+                    null,
+                    cancellationToken);
             }
         }
 
@@ -52,7 +68,9 @@
             ReadDirection direction,
             bool prefetch,
             ReadNextStreamPage readNext,
-            SqlConnection connection, CancellationToken cancellationToken)
+            SqlConnection connection,
+            SqlTransaction transaction,
+            CancellationToken cancellationToken)
         {
             // If the count is int.MaxValue, TSql will see it as a negative number. 
             // Users shouldn't be using int.MaxValue in the first place anyway.
@@ -87,7 +105,7 @@
                 };
             }
 
-            using(var command = new SqlCommand(commandText, connection))
+            using(var command = new SqlCommand(commandText, connection, transaction))
             {
                 command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
                 command.Parameters.AddWithValue("count", count + 1); //Read extra row to see if at end or not

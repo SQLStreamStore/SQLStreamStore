@@ -41,16 +41,5 @@ BEGIN TRANSACTION CreateStream;
 
 COMMIT TRANSACTION CreateStream;
 
-/* Select CurrentVersion, CurrentPosition */
-
-SELECT currentVersion = @latestStreamVersion, currentPosition = @latestStreamPosition
-
-/* Select Metadata */
-
-SELECT dbo.Messages.JsonData
-FROM dbo.Messages
-WHERE dbo.Messages.Position = (
-    SELECT dbo.Streams.Position
-    FROM dbo.Streams
-    WHERE dbo.Streams.Id = '$$' + @streamId
-)
+SELECT currentVersion = @latestStreamVersion,
+       currentPosition = @latestStreamPosition

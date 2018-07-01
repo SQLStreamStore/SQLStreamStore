@@ -9,6 +9,7 @@
     using Microsoft.SqlServer.Server;
     using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.Logging;
     using SqlStreamStore.ScriptsV3;
     using SqlStreamStore.Subscriptions;
 
@@ -106,40 +107,6 @@
             }
         }
 
-        internal async Task CreateSchema_v2_ForTests(CancellationToken cancellationToken = default)
-        {
-            GuardAgainstDisposed();
-
-            using (var connection = _createConnection())
-            {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
-                if (_scripts.Schema != "dbo")
-                {
-                    using (var command = new SqlCommand($@"
-                        IF NOT EXISTS (
-                        SELECT  schema_name
-                        FROM    information_schema.schemata
-                        WHERE   schema_name = '{_scripts.Schema}' ) 
-
-                        BEGIN
-                        EXEC sp_executesql N'CREATE SCHEMA {_scripts.Schema}'
-                        END", connection))
-                    {
-                        await command
-                            .ExecuteNonQueryAsync(cancellationToken)
-                            .NotOnCapturedContext();
-                    }
-                }
-
-                using (var command = new SqlCommand(_scripts.CreateSchema_v2, connection))
-                {
-                    await command.ExecuteNonQueryAsync(cancellationToken)
-                        .NotOnCapturedContext();
-                }
-            }
-        }
-
         /// <summary>
         /// 
         /// </summary>
@@ -223,7 +190,7 @@
             }
         }
 
-        public async Task<int> GetmessageCount(
+        public async Task<int> GetMessageCount(
             string streamId,
             DateTime createdBefore,
             CancellationToken cancellationToken = default)
@@ -246,6 +213,102 @@
 
                     return (int)result;
                 }
+            }
+        }
+
+        /// <summary>
+        ///     Migrates a V2 schema to a V3 schema. The V3 schema maintains a
+        ///     copy of 'MaxAge' and 'MaxCount' in the streams table for
+        ///     performance reasons. This modifies the schema and iterates over
+        ///     all streams lifting `MaxAge` and `MaxCount` if the stream has
+        ///     metadata. Migration progress is logged.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns></returns>
+        public async Task Migrate(CancellationToken cancellationToken)
+        {
+            GuardAgainstDisposed();
+
+            Logger.Info("Starting migration from schema v2 to v3...");
+
+            try
+            {
+                // Migrate the schema
+                using(var connection = _createConnection())
+                {
+                    await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                    using(var command = new SqlCommand(_scripts.Migration_v3, connection))
+                    {
+                        await command
+                            .ExecuteNonQueryAsync(cancellationToken)
+                            .NotOnCapturedContext();
+                    }
+                }
+
+                // Loadup the stream IDs that have metadata.
+                Logger.Info("Schema migrated. Starting data migration. Loading stream Ids...");
+                HashSet<string> streamIds = new HashSet<string>();
+                HashSet<string> metadataStreamIds = new HashSet<string>();
+                using(var connection = _createConnection())
+                {
+                    await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                    using(var command = new SqlCommand(_scripts.ListStreamIds, connection))
+                    {
+                        var reader = await command
+                            .ExecuteReaderAsync(cancellationToken)
+                            .NotOnCapturedContext();
+
+                        while(await reader.ReadAsync(cancellationToken))
+                        {
+                            var streamId = reader.GetString(0);
+                            if(streamId.StartsWith("$$"))
+                            {
+                                metadataStreamIds.Add(streamId.Substring(2));
+                            }
+                            else
+                            {
+                                streamIds.Add(streamId);
+                            }
+                        }
+                    }
+                }
+                streamIds.IntersectWith(metadataStreamIds);
+
+                // Migrate data
+                Logger.Info($"{streamIds.Count} streams to be processed...");
+                int i = 0;
+                foreach (var streamId in streamIds)
+                {
+                    var metadata = await GetStreamMetadataInternal(streamId, cancellationToken);
+                    if(metadata != null)
+                    {
+                        Logger.Info($"Migrating stream {streamId} ({i}/{streamIds.Count}");
+
+                        using (var connection = _createConnection())
+                        {
+                            await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                            using(var command = new SqlCommand(_scripts.SetStreamMetadata, connection))
+                            {
+                                command.Parameters.AddWithValue("streamId", new StreamIdInfo(streamId).SqlStreamId.Id);
+                                command.Parameters.AddWithValue("streamIdOriginal", "ignored");
+                                command.Parameters.Add("maxAge", SqlDbType.Int);
+                                command.Parameters["maxAge"].Value = (object)metadata.MaxAge ?? DBNull.Value;
+                                command.Parameters.Add("maxCount", SqlDbType.Int);
+                                command.Parameters["maxCount"].Value = (object)metadata.MaxCount ?? DBNull.Value;
+                                await command.ExecuteNonQueryAsync(cancellationToken);
+                            }
+                        }
+                    }
+                    i++;
+                }
+            }
+            catch(Exception ex)
+            {
+                Logger.ErrorException("Error occured during migration", ex);
+                throw;
             }
         }
 

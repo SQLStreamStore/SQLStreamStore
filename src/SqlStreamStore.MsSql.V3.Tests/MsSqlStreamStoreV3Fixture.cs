@@ -6,19 +6,21 @@ namespace SqlStreamStore
     using System.Threading.Tasks;
     using SqlStreamStore.Infrastructure;
 
-    public class MsSqlStreamStoreFixture : StreamStoreAcceptanceTestFixture
+    public class MsSqlStreamStoreV3Fixture : StreamStoreAcceptanceTestFixture
     {
         public readonly string ConnectionString;
         private readonly string _schema;
         private readonly bool _disableDeletionTracking;
+        private readonly string _databaseNameOverride;
         private readonly string _databaseName;
         private readonly ISqlServerDatabase _localInstance;
 
-        public MsSqlStreamStoreFixture(string schema, bool disableDeletionTracking = false)
+        public MsSqlStreamStoreV3Fixture(string schema, bool disableDeletionTracking = false, string databaseNameOverride = null)
         {
             _schema = schema;
             _disableDeletionTracking = disableDeletionTracking;
-            _databaseName = $"StreamStoreTests-{Guid.NewGuid():n}";
+            _databaseNameOverride = databaseNameOverride;
+            _databaseName = databaseNameOverride ?? $"StreamStoreTests-{Guid.NewGuid():n}";
             _localInstance = Environment.OSVersion.IsWindows()
                 ? (ISqlServerDatabase) new LocalSqlServerDatabase(_databaseName)
                 : new DockerSqlServerDatabase(_databaseName);
@@ -49,42 +51,28 @@ namespace SqlStreamStore
             return store;
         }
 
-        public async Task<MsSqlStreamStore> GetStreamStore_v1Schema()
-        {
-            await CreateDatabase();
-            var settings = new MsSqlStreamStoreSettings(ConnectionString)
-            {
-                Schema = _schema,
-                GetUtcNow = () => GetUtcNow()
-            };
-            var store = new MsSqlStreamStore(settings);
-            await store.CreateSchema_v1_ForTests();
-
-            return store;
-        }
-
-        public async Task<MsSqlStreamStore> GetUninitializedStreamStore()
+        public async Task<MsSqlStreamStoreV3> GetUninitializedStreamStore()
         {
             await CreateDatabase();
             
-            return new MsSqlStreamStore(new MsSqlStreamStoreSettings(ConnectionString)
+            return new MsSqlStreamStoreV3(new MsSqlStreamStoreV3Settings(ConnectionString)
             {
                 Schema = _schema,
                 GetUtcNow = () => GetUtcNow()
             });
         }
 
-        public async Task<MsSqlStreamStore> GetMsSqlStreamStore()
+        public async Task<MsSqlStreamStoreV3> GetMsSqlStreamStore()
         {
             await CreateDatabase();
 
-            var settings = new MsSqlStreamStoreSettings(ConnectionString)
+            var settings = new MsSqlStreamStoreV3Settings(ConnectionString)
             {
                 Schema = _schema,
                 GetUtcNow = () => GetUtcNow()
             };
 
-            var store = new MsSqlStreamStore(settings);
+            var store = new MsSqlStreamStoreV3(settings);
             await store.CreateSchema();
 
             return store;
@@ -108,7 +96,13 @@ namespace SqlStreamStore
             }
         }
 
-        private Task CreateDatabase() => _localInstance.CreateDatabase();
+        private async Task CreateDatabase()
+        {
+            if(_databaseNameOverride == null)
+            {
+                await _localInstance.CreateDatabase();
+            }
+        }
 
         private string CreateConnectionString()
         {

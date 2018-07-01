@@ -36,8 +36,6 @@
 
         internal string CreateSchema => GetScript(nameof(CreateSchema));
 
-        internal string CreateSchema_v2 => GetScript(nameof(CreateSchema_v2));
-
         internal string GetSchemaVersion => GetScript(nameof(GetSchemaVersion));
 
         internal string GetStreamVersionOfMessageId => GetScript(nameof(GetStreamVersionOfMessageId));
@@ -63,6 +61,10 @@
         internal string ReadMessageData => GetScript(nameof(ReadMessageData));
 
         internal string SetStreamMetadata => GetScript(nameof(SetStreamMetadata));
+
+        internal string Migration_v3 => GetScript(nameof(Migration_v3));
+
+        internal string ListStreamIds => GetScript(nameof(ListStreamIds));
 
         private string GetScript(string name)
         {

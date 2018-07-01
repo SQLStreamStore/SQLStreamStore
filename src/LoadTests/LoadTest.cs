@@ -25,7 +25,7 @@
                 .Add("MS SQL (SqlLocalDB, NamedPipes)",
                     () =>
                     {
-                        var fixture = new MsSqlStreamStoreFixture("dbo");
+                        var fixture = new MsSqlStreamStoreV3Fixture("dbo");
                         Console.WriteLine(fixture.ConnectionString);
                         streamStore = fixture.GetStreamStore().Result;
                     })

@@ -30,11 +30,11 @@
         {
             var numberOfStreams = Input.ReadInt("Number of streams: ", 1, 100000000);
 
-            int messageJsonDataSize = Input.ReadInt("Size of Json (kb): ", 1, 1024);
+            int messageJsonDataSize = Input.ReadInt("Size of Json (bytes): ", 1, 1024 * 1024);
 
             int numberOfMessagesPerAmend = Input.ReadInt("Number of messages per stream append: ", 1, 1000);
 
-            string jsonData = new string('a', messageJsonDataSize * 1024);
+            string jsonData = new string('a', messageJsonDataSize);
 
             var stopwatch = Stopwatch.StartNew();
             var messageNumbers = new int[numberOfMessagesPerAmend];

@@ -12,14 +12,14 @@ namespace SqlStreamStore
     public partial class MsSqlStreamStore
     {
         protected override async Task<ReadAllPage> ReadAllForwardsInternal(
-            long fromPositionExlusive,
+            long fromPosition,
             int maxCount,
             bool prefetch,
             ReadNextAllPage readNext,
             CancellationToken cancellationToken)
         {
             maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;
-            long ordinal = fromPositionExlusive;
+            long position = fromPosition;
 
             using (var connection = _createConnection())
             {
@@ -28,7 +28,7 @@ namespace SqlStreamStore
                 var commandText = prefetch ? _scripts.ReadAllForwardWithData : _scripts.ReadAllForward;
                 using (var command = new SqlCommand(commandText, connection))
                 {
-                    command.Parameters.AddWithValue("ordinal", ordinal);
+                    command.Parameters.AddWithValue("position", position);
                     command.Parameters.AddWithValue("count", maxCount + 1); //Read extra row to see if at end or not
                     var reader = await command
                         .ExecuteReaderAsync(cancellationToken)
@@ -38,8 +38,8 @@ namespace SqlStreamStore
                     if (!reader.HasRows)
                     {
                         return new ReadAllPage(
-                            fromPositionExlusive,
-                            fromPositionExlusive,
+                            fromPosition,
+                            fromPosition,
                             true,
                             ReadDirection.Forward,
                             readNext,
@@ -50,14 +50,14 @@ namespace SqlStreamStore
                     {
                         if(messages.Count == maxCount)
                         {
-                            messages.Add(default(StreamMessage));
+                            messages.Add(default);
                         }
                         else
                         {
                             var streamId = reader.GetString(0);
                             var streamVersion = reader.GetInt32(1);
-                            ordinal = reader.GetInt64(2);
-                            var eventId = reader.GetGuid(3);
+                            position = reader.GetInt64(2);
+                            var messageId = reader.GetGuid(3);
                             var created = reader.GetDateTime(4);
                             var type = reader.GetString(5);
                             var jsonMetadata = reader.GetString(6);
@@ -75,9 +75,9 @@ namespace SqlStreamStore
                             }
 
                             var message = new StreamMessage(streamId,
-                                eventId,
+                                messageId,
                                 streamVersion,
-                                ordinal,
+                                position,
                                 created,
                                 type,
                                 jsonMetadata,
@@ -98,7 +98,7 @@ namespace SqlStreamStore
                     var nextPosition = messages[messages.Count - 1].Position + 1;
 
                     return new ReadAllPage(
-                        fromPositionExlusive,
+                        fromPosition,
                         nextPosition,
                         isEnd,
                         ReadDirection.Forward,
@@ -116,7 +116,7 @@ namespace SqlStreamStore
             CancellationToken cancellationToken)
         {
             maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;
-            long ordinal = fromPositionExclusive == Position.End ? long.MaxValue : fromPositionExclusive;
+            long position = fromPositionExclusive == Position.End ? long.MaxValue : fromPositionExclusive;
 
             using (var connection = _createConnection())
             {
@@ -125,7 +125,7 @@ namespace SqlStreamStore
                 var commandText = prefetch ? _scripts.ReadAllBackwardWithData : _scripts.ReadAllBackward;
                 using (var command = new SqlCommand(commandText, connection))
                 {
-                    command.Parameters.AddWithValue("ordinal", ordinal);
+                    command.Parameters.AddWithValue("position", position);
                     command.Parameters.AddWithValue("count", maxCount + 1); //Read extra row to see if at end or not
                     var reader = await command
                         .ExecuteReaderAsync(cancellationToken)
@@ -145,13 +145,13 @@ namespace SqlStreamStore
                             messages.ToArray());
                     }
 
-                    long lastOrdinal = 0;
+                    long lastPosition = 0;
                     while (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                     {
                         var streamId = reader.GetString(0);
                         var streamVersion = reader.GetInt32(1);
-                        ordinal = reader.GetInt64(2);
-                        var eventId = reader.GetGuid(3);
+                        position = reader.GetInt64(2);
+                        var messageId = reader.GetGuid(3);
                         var created = reader.GetDateTime(4);
                         var type = reader.GetString(5);
                         var jsonMetadata = reader.GetString(6);
@@ -170,19 +170,19 @@ namespace SqlStreamStore
 
                         var message = new StreamMessage(
                             streamId,
-                            eventId,
+                            messageId,
                             streamVersion,
-                            ordinal,
+                            position,
                             created,
                             type,
                             jsonMetadata, getJsonData);
 
                         messages.Add(message);
-                        lastOrdinal = ordinal;
+                        lastPosition = position;
                     }
 
                     bool isEnd = true;
-                    var nextPosition = lastOrdinal;
+                    var nextPosition = lastPosition;
 
                     if (messages.Count == maxCount + 1) // An extra row was read, we're not at the end
                     {

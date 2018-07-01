@@ -1,5 +1,4 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.0</TargetFrameworks>
     <DebugType>portable</DebugType>
@@ -9,15 +8,12 @@
     <RootNamespace>SqlStreamStore</RootNamespace>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
-
   <ItemGroup>
     <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" LinkBase="InMemory" />
   </ItemGroup>
-
   <ItemGroup>
     <ProjectReference Include="..\..\src\SqlStreamStore\SqlStreamStore.csproj" />
   </ItemGroup>
-
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.2" />
     <PackageReference Include="Shouldly" Version="3.0.0" />
@@ -26,6 +22,8 @@
     <PackageReference Include="System.Reactive" Version="4.0.0" />
     <PackageReference Include="xunit" Version="2.3.1" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.3.1" />
+  </ItemGroup>
+  <ItemGroup>
     <DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
     <DotNetCliToolReference Include="Microsoft.DotNet.Watcher.Tools" Version="2.0.0" />
   </ItemGroup>

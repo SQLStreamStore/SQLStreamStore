@@ -17,7 +17,7 @@
             this._settings = settings;
         }
 
-        protected override Task<ReadAllPage> ReadAllForwardsInternal(long fromPositionExlusive, int maxCount, bool prefetch, ReadNextAllPage readNext, CancellationToken cancellationToken)
+        protected override Task<ReadAllPage> ReadAllForwardsInternal(long fromPosition, int maxCount, bool prefetch, ReadNextAllPage readNext, CancellationToken cancellationToken)
         {
             throw new NotImplementedException();
         }

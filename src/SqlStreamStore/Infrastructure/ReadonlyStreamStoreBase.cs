@@ -20,6 +20,7 @@ namespace SqlStreamStore.Infrastructure
         protected readonly ILog Logger;
         private bool _isDisposed;
         private readonly MetadataMaxAgeCache _metadataMaxAgeCache;
+        private readonly bool _disableMetadataCache;
 
         protected ReadonlyStreamStoreBase(
             TimeSpan metadataMaxAgeCacheExpiry,
@@ -32,6 +33,13 @@ namespace SqlStreamStore.Infrastructure
 
             _metadataMaxAgeCache = new MetadataMaxAgeCache(this, metadataMaxAgeCacheExpiry,
                 metadataMaxAgeCacheMaxSize, GetUtcNow);
+        }
+
+        protected ReadonlyStreamStoreBase(GetUtcNow getUtcNow, string logName)
+        {
+            GetUtcNow = getUtcNow ?? SystemClock.GetUtcNow;
+            Logger = LogProvider.GetLogger(logName);
+            _disableMetadataCache = true;
         }
 
         public async Task<ReadAllPage> ReadAllForwards(
@@ -240,7 +248,7 @@ namespace SqlStreamStore.Infrastructure
         public event Action OnDispose;
 
         protected abstract Task<ReadAllPage> ReadAllForwardsInternal(
-            long fromPositionExlusive,
+            long fromPosition,
             int maxCount,
             bool prefetch,
             ReadNextAllPage readNext,
@@ -327,7 +335,10 @@ namespace SqlStreamStore.Infrastructure
             {
                 return page;
             }
-            var maxAge = await _metadataMaxAgeCache.GetMaxAge(page.StreamId, cancellationToken);
+
+            int? maxAge = _metadataMaxAgeCache == null 
+                ? null 
+                : await _metadataMaxAgeCache.GetMaxAge(page.StreamId, cancellationToken);
             if (!maxAge.HasValue)
             {
                 return page;
@@ -363,6 +374,10 @@ namespace SqlStreamStore.Infrastructure
            ReadNextAllPage readNext,
            CancellationToken cancellationToken)
         {
+            if(_disableMetadataCache)
+            {
+                return readAllPage;
+            }
             var valid = new List<StreamMessage>();
             var currentUtc = GetUtcNow();
             foreach (var streamMessage in readAllPage.Messages)
@@ -372,7 +387,9 @@ namespace SqlStreamStore.Infrastructure
                     valid.Add(streamMessage);
                     continue;
                 }
-                var maxAge = await _metadataMaxAgeCache.GetMaxAge(streamMessage.StreamId, cancellationToken);
+                int? maxAge = _metadataMaxAgeCache == null
+                    ? null
+                    : await _metadataMaxAgeCache.GetMaxAge(streamMessage.StreamId, cancellationToken);
                 if (!maxAge.HasValue)
                 {
                     valid.Add(streamMessage);
@@ -394,6 +411,34 @@ namespace SqlStreamStore.Infrastructure
                 readAllPage.Direction,
                 readNext,
                 valid.ToArray());
+        }
+
+        protected List<StreamMessage> FilterExpired(List<(StreamMessage StreamMessage, int? MaxAge)> messages)
+        {
+            var valid = new List<StreamMessage>();
+            var currentUtc = GetUtcNow();
+            foreach (var item in messages)
+            {
+                if (item.StreamMessage.StreamId.StartsWith("$"))
+                {
+                    valid.Add(item.StreamMessage);
+                    continue;
+                }
+                if (!item.MaxAge.HasValue || item.MaxAge <= 0)
+                {
+                    valid.Add(item.StreamMessage);
+                    continue;
+                }
+                if (item.StreamMessage.CreatedUtc.AddSeconds(item.MaxAge.Value) > currentUtc)
+                {
+                    valid.Add(item.StreamMessage);
+                }
+                else
+                {
+                    PurgeExpiredMessage(item.StreamMessage);
+                }
+            }
+            return valid;
         }
 
         ~ReadonlyStreamStoreBase()

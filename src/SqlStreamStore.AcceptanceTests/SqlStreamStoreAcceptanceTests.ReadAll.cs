@@ -191,7 +191,7 @@
             int maxCount,
             int expectedCount,
             int expectedFromPosition,
-            int expectedNextCheckPoint)
+            int expectedNextPosition)
         {
             using(var fixture = GetFixture())
             {
@@ -206,7 +206,7 @@
 
                     page.Messages.Length.ShouldBe(expectedCount);
                     page.FromPosition.ShouldBe(expectedFromPosition);
-                    page.NextPosition.ShouldBe(expectedNextCheckPoint);
+                    page.NextPosition.ShouldBe(expectedNextPosition);
                 }
             }
         }
@@ -225,7 +225,7 @@
             int maxCount,
             int expectedCount,
             int expectedFromPosition,
-            int expectedNextCheckPoint)
+            int expectedNextPosition)
         {
             using (var fixture = GetFixture())
             {
@@ -243,7 +243,7 @@
 
                     allMessagesPage.Messages.Length.ShouldBe(expectedCount);
                     allMessagesPage.FromPosition.ShouldBe(expectedFromPosition);
-                    allMessagesPage.NextPosition.ShouldBe(expectedNextCheckPoint);
+                    allMessagesPage.NextPosition.ShouldBe(expectedNextPosition);
                 }
             }
         }

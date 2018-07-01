@@ -9,12 +9,13 @@
     using Microsoft.SqlServer.Server;
     using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Infrastructure;
-    using SqlStreamStore.MsSqlScripts;
+    using SqlStreamStore.ScriptsV2;
     using SqlStreamStore.Subscriptions;
 
     /// <summary>
     ///     Represents a Micrsoft SQL Server stream store implementation.
     /// </summary>
+    [Obsolete("Use MsSqlStreamStoreV3 instead. Note: this will require a schema and data migratiom.", false)]
     public sealed partial class MsSqlStreamStore : StreamStoreBase
     {
         private readonly Func<SqlConnection> _createConnection;

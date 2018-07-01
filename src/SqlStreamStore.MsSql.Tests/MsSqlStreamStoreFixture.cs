@@ -10,16 +10,18 @@ namespace SqlStreamStore
     {
         public readonly string ConnectionString;
         private readonly string _schema;
-        private readonly string _databaseName;
+        private readonly bool _deleteDatabaseOnDispose;
+        public readonly string DatabaseName;
         private readonly ISqlServerDatabase _localInstance;
 
-        public MsSqlStreamStoreFixture(string schema)
+        public MsSqlStreamStoreFixture(string schema, bool deleteDatabaseOnDispose = true)
         {
             _schema = schema;
-            _databaseName = $"StreamStoreTests-{Guid.NewGuid():n}";
+            _deleteDatabaseOnDispose = deleteDatabaseOnDispose;
+            DatabaseName = $"StreamStoreTests-{Guid.NewGuid():n}";
             _localInstance = Environment.OSVersion.IsWindows()
-                ? (ISqlServerDatabase) new LocalSqlServerDatabase(_databaseName)
-                : new DockerSqlServerDatabase(_databaseName);
+                ? (ISqlServerDatabase) new LocalSqlServerDatabase(DatabaseName)
+                : new DockerSqlServerDatabase(DatabaseName);
 
             ConnectionString = CreateConnectionString();
         }
@@ -89,20 +91,23 @@ namespace SqlStreamStore
 
         public override void Dispose()
         {
+            if(!_deleteDatabaseOnDispose)
+            {
+                return;
+            }
             using(var sqlConnection = new SqlConnection(ConnectionString))
             {
                 // Fixes: "Cannot drop database because it is currently in use"
                 SqlConnection.ClearPool(sqlConnection);
             }
-
             using (var connection = _localInstance.CreateConnection())
             {
                 connection.Open();
-                using (var command = new SqlCommand($"ALTER DATABASE [{_databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connection))
+                using (var command = new SqlCommand($"ALTER DATABASE [{DatabaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connection))
                 {
                     command.ExecuteNonQuery();
                 }
-                using (var command = new SqlCommand($"DROP DATABASE [{_databaseName}]", connection))
+                using (var command = new SqlCommand($"DROP DATABASE [{DatabaseName}]", connection))
                 {
                     command.ExecuteNonQuery();
                 }
@@ -115,7 +120,7 @@ namespace SqlStreamStore
         {
             var connectionStringBuilder = _localInstance.CreateConnectionStringBuilder();
             connectionStringBuilder.MultipleActiveResultSets = true;
-            connectionStringBuilder.InitialCatalog = _databaseName;
+            connectionStringBuilder.InitialCatalog = DatabaseName;
 
             return connectionStringBuilder.ToString();
         }

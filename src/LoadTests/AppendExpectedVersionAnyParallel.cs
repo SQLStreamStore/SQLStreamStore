@@ -37,13 +37,13 @@
             int numberOfMessagesToWrite = Input.ReadInt(
                 $"Number message to append: ", 1, 10000000);
 
-            int messageJsonDataSize = Input.ReadInt("Size of Json (kb): ", 1, 1024);
+            int messageJsonDataSize = Input.ReadInt("Size of Json (bytes): ", 1, 1024 * 1024);
 
             int numberOfMessagesPerAmend = Input.ReadInt("Number of messages per append: ", 1, 1000);
 
             var tasks = new List<Task>();
             int count = 0;
-            string jsonData = new string('a', messageJsonDataSize * 1024);
+            string jsonData = new string('a', messageJsonDataSize);
             var stopwatch = Stopwatch.StartNew();
             for (int i = 0; i < parallelTasks; i++)
             {

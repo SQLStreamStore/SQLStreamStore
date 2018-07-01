@@ -9,11 +9,12 @@
     /// </summary>
     public sealed class ReadStreamPage
     {
+        private readonly ReadNextStreamPage _readNext;
+
         /// <summary>
         ///     The collection of messages read.
         /// </summary>
         public readonly StreamMessage[] Messages;
-        private readonly ReadNextStreamPage _readNext;
 
         /// <summary>
         ///     The version of the stream that read from.

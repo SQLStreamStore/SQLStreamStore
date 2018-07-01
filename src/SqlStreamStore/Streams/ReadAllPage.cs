@@ -8,6 +8,8 @@
     /// </summary>
     public sealed class ReadAllPage
     {
+        private readonly ReadNextAllPage _readNext;
+
         /// <summary>
         ///     A long representing the position where this page was read from.
         /// </summary>
@@ -27,7 +29,6 @@
         ///     The direction of the the read request.
         /// </summary>
         public readonly ReadDirection Direction;
-        private readonly ReadNextAllPage _readNext;
 
         /// <summary>
         ///     The collection of <see cref="StreamMessage"/>s returned as part of the read.

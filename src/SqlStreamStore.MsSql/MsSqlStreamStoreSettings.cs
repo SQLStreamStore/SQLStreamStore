@@ -9,6 +9,7 @@ namespace SqlStreamStore
     /// <summary>
     ///     Represents setting to configure a <see cref="MsSqlStreamStore"/>
     /// </summary>
+    [Obsolete("Use MsSqlStreamStoreV3Settings instead. Note: this will require a schema and data migratiom.", false)]
     public class MsSqlStreamStoreSettings
     {
         private string _schema = "dbo";

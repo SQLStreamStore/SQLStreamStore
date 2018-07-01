@@ -12,16 +12,19 @@
         public async Task When_exception_occurs_reading_head_position_then_polling_should_continue()
         {
             int readHeadCount = 0;
-            Func<CancellationToken, Task<long>> readHeadPosition = _ =>
+
+            Task<long> ReadHeadPosition(CancellationToken _)
             {
                 readHeadCount++;
                 if(readHeadCount % 2 == 0)
                 {
                     throw new Exception("oops");
                 }
-                return Task.FromResult((long)readHeadCount);
-            };
-            using(var notifier = new PollingStreamStoreNotifier(readHeadPosition, 10))
+
+                return Task.FromResult((long) readHeadCount);
+            }
+
+            using(var notifier = new PollingStreamStoreNotifier(ReadHeadPosition, 10))
             {
                 int received = 0;
                 var tcs = new TaskCompletionSource<Unit>();

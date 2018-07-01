@@ -23,8 +23,16 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                 var streamIdInfo = new StreamIdInfo(streamId);
-                return await ReadStreamInternal(streamIdInfo.SqlStreamId, start, count, ReadDirection.Forward,
-                    prefetch, readNext, connection, null, cancellationToken);
+                return await ReadStreamInternal(
+                    streamIdInfo.SqlStreamId,
+                    start,
+                    count,
+                    ReadDirection.Forward,
+                    prefetch,
+                    readNext,
+                    connection,
+                    null,
+                    cancellationToken);
             }
         }
 
@@ -40,8 +48,16 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                 var streamIdInfo = new StreamIdInfo(streamId);
-                return await ReadStreamInternal(streamIdInfo.SqlStreamId, start, count, ReadDirection.Backward,
-                    prefetch, readNext, connection, null, cancellationToken);
+                return await ReadStreamInternal(
+                    streamIdInfo.SqlStreamId,
+                    start,
+                    count,
+                    ReadDirection.Backward,
+                    prefetch,
+                    readNext,
+                    connection,
+                    null,
+                    cancellationToken);
             }
         }
 

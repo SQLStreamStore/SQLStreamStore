@@ -350,10 +350,10 @@ namespace SqlStreamStore
 
                 var isEnd = current == null;
                 var nextPosition = current?.Value.Position ?? previous.Value.Position + 1;
-                fromPosition = messages.Any() ? messages[0].Position : 0;
+                fromPositionExclusive = messages.Any() ? messages[0].Position : 0;
 
                 var page = new ReadAllPage(
-                    fromPosition,
+                    fromPositionExclusive,
                     nextPosition,
                     isEnd,
                     ReadDirection.Forward,

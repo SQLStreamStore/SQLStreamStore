@@ -29,8 +29,8 @@
                     int? maxCount;
                     var streamIdInfo = new StreamIdInfo(streamId);
 
-                    using(var connection = _createConnection())
-                    using(var transaction = await BeginTransaction(connection, cancellationToken))
+                    using(var connection = await OpenConnection(cancellationToken))
+                    using(var transaction = connection.BeginTransaction())
                     using(var command = BuildFunctionCommand(
                         _schema.AppendToStream,
                         transaction,

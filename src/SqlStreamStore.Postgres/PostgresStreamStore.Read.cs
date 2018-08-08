@@ -145,8 +145,8 @@
         {
             var streamIdInfo = new StreamIdInfo(streamId);
 
-            using(var connection = _createConnection())
-            using(var transaction = await BeginTransaction(connection, cancellationToken))
+            using(var connection = await OpenConnection(cancellationToken))
+            using(var transaction = connection.BeginTransaction())
             {
                 return await ReadStreamInternal(streamIdInfo.PostgresqlStreamId,
                     start,
@@ -169,8 +169,8 @@
         {
             var streamIdInfo = new StreamIdInfo(streamId);
 
-            using(var connection = _createConnection())
-            using(var transaction = await BeginTransaction(connection, cancellationToken))
+            using(var connection = await OpenConnection(cancellationToken))
+            using(var transaction = connection.BeginTransaction())
             {
                 return await ReadStreamInternal(streamIdInfo.PostgresqlStreamId,
                     fromVersionInclusive,
@@ -213,8 +213,8 @@
 
         protected override async Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken)
         {
-            using(var connection = _createConnection())
-            using(var transaction = await BeginTransaction(connection, cancellationToken))
+            using(var connection = await OpenConnection(cancellationToken))
+            using(var transaction = connection.BeginTransaction())
             using(var command = BuildFunctionCommand(_schema.ReadAllHeadPosition, transaction))
             {
                 var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();

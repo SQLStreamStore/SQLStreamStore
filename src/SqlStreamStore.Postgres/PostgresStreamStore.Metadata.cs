@@ -15,8 +15,8 @@
         {
             var streamIdInfo = new StreamIdInfo(streamId);
 
-            using(var connection = _createConnection())
-            using(var transaction = await BeginTransaction(connection, cancellationToken))
+            using(var connection = await OpenConnection(cancellationToken))
+            using(var transaction = connection.BeginTransaction())
             {
                 return await GetStreamMetadataInternal(streamIdInfo, transaction, cancellationToken);
             }
@@ -72,8 +72,8 @@
 
             var streamIdInfo = new StreamIdInfo(streamId);
 
-            using(var connection = _createConnection())
-            using(var transaction = await BeginTransaction(connection, cancellationToken))
+            using(var connection = await OpenConnection(cancellationToken))
+            using(var transaction = connection.BeginTransaction())
             using(var command = BuildFunctionCommand(
                 _schema.SetStreamMetadata,
                 transaction,
@@ -95,7 +95,7 @@
                 await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
             }
 
-            await TryScavenge(streamIdInfo, metadata.MaxCount, cancellationToken).NotOnCapturedContext();
+            await TryScavenge(streamIdInfo, metadata.MaxCount, cancellationToken);
 
             return new SetStreamMetadataResult(currentVersion);
         }

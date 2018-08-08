@@ -19,8 +19,8 @@
         {
             maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;
 
-            using(var connection = _createConnection())
-            using(var transaction = await BeginTransaction(connection, cancellationToken))
+            using(var connection = await OpenConnection(cancellationToken))
+            using(var transaction = connection.BeginTransaction())
             using(var command = BuildFunctionCommand(
                 _schema.ReadAll,
                 transaction,
@@ -86,8 +86,8 @@
             maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;
             var ordinal = fromPositionExclusive == Position.End ? long.MaxValue : fromPositionExclusive;
 
-            using(var connection = _createConnection())
-            using(var transaction = await BeginTransaction(connection, cancellationToken))
+            using(var connection = await OpenConnection(cancellationToken))
+            using(var transaction = connection.BeginTransaction())
             using(var command = BuildFunctionCommand(
                 _schema.ReadAll,
                 transaction,

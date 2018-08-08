@@ -17,6 +17,7 @@
         private readonly Func<NpgsqlConnection> _createConnection;
         private readonly Schema _schema;
         private readonly Lazy<IStreamStoreNotifier> _streamStoreNotifier;
+
         public const int CurrentVersion = 1;
 
         public PostgresStreamStore(PostgresStreamStoreSettings settings)
@@ -41,22 +42,46 @@
             _schema = new Schema(_settings.Schema);
         }
 
+        private async Task<NpgsqlConnection> OpenConnection(CancellationToken cancellationToken)
+        {
+            var connection = _createConnection();
+
+            await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+            connection.ReloadTypes();
+
+            connection.TypeMapper.MapComposite<PostgresNewStreamMessage>(_schema.NewStreamMessage);
+            
+            if(_settings.ExplainAnalyze)
+            {
+                using(var command = new NpgsqlCommand(_schema.EnableExplainAnalyze, connection))
+                {
+                    await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                }
+            }
+
+            return connection;
+        }
+
         public async Task CreateSchema(CancellationToken cancellationToken = default)
         {
             using(var connection = _createConnection())
-            using(var transaction = await BeginTransaction(connection, false, cancellationToken))
             {
-                using(var command = BuildCommand($"CREATE SCHEMA IF NOT EXISTS {_settings.Schema}", transaction))
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                using(var transaction = connection.BeginTransaction())
                 {
-                    await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
-                }
+                    using(var command = BuildCommand($"CREATE SCHEMA IF NOT EXISTS {_settings.Schema}", transaction))
+                    {
+                        await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                    }
 
-                using(var command = BuildCommand(_schema.Definition, transaction))
-                {
-                    await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
-                }
+                    using(var command = BuildCommand(_schema.Definition, transaction))
+                    {
+                        await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                    }
 
-                await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                    await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                }
             }
         }
 
@@ -77,16 +102,19 @@
             var streamIdInfo = new StreamIdInfo(streamId);
 
             using(var connection = _createConnection())
-            using(var transaction = await BeginTransaction(connection, false, cancellationToken))
-            using(var command = BuildFunctionCommand(
-                _schema.ReadStreamMessageBeforeCreatedCount,
-                transaction,
-                Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
-                Parameters.CreatedUtc(createdBefore)))
             {
-                var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                using(var transaction = connection.BeginTransaction())
+                using(var command = BuildFunctionCommand(
+                    _schema.ReadStreamMessageBeforeCreatedCount,
+                    transaction,
+                    Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
+                    Parameters.CreatedUtc(createdBefore)))
+                {
+                    var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
 
-                return (int) result;
+                    return (int) result;
+                }
             }
         }
 
@@ -95,34 +123,40 @@
             GuardAgainstDisposed();
 
             using(var connection = _createConnection())
-            using(var transaction = await BeginTransaction(connection, false, cancellationToken))
-            using(var command = BuildCommand(_schema.DropAll, transaction))
             {
-                await command
-                    .ExecuteNonQueryAsync(cancellationToken)
-                    .NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                using(var transaction = connection.BeginTransaction())
+                using(var command = BuildCommand(_schema.DropAll, transaction))
+                {
+                    await command
+                        .ExecuteNonQueryAsync(cancellationToken)
+                        .NotOnCapturedContext();
 
-                await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                    await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                }
             }
         }
 
         public async Task<CheckSchemaResult> CheckSchema(CancellationToken cancellationToken = default)
         {
             using(var connection = _createConnection())
-            using(var transaction = await BeginTransaction(connection, false, cancellationToken))
-            using(var command = BuildFunctionCommand(_schema.ReadSchemaVersion, transaction))
             {
-                var result = (int) await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                using(var transaction = connection.BeginTransaction())
+                using(var command = BuildFunctionCommand(_schema.ReadSchemaVersion, transaction))
+                {
+                    var result = (int) await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
 
-                return new CheckSchemaResult(result, CurrentVersion);
+                    return new CheckSchemaResult(result, CurrentVersion);
+                }
             }
         }
 
         private Func<CancellationToken, Task<string>> GetJsonData(PostgresqlStreamId streamId, int version)
             => async cancellationToken =>
             {
-                using(var connection = _createConnection())
-                using(var transaction = await BeginTransaction(connection, cancellationToken))
+                using(var connection = await OpenConnection(cancellationToken))
+                using(var transaction = connection.BeginTransaction())
                 using(var command = BuildFunctionCommand(
                     _schema.ReadJsonData,
                     transaction,
@@ -134,48 +168,6 @@
                     return jsonData == DBNull.Value ? null : (string) jsonData;
                 }
             };
-
-        private Task<NpgsqlTransaction> BeginTransaction(
-            NpgsqlConnection connection,
-            CancellationToken cancellationToken)
-            => BeginTransaction(connection, IsolationLevel.ReadCommitted, cancellationToken);
-
-        private Task<NpgsqlTransaction> BeginTransaction(
-            NpgsqlConnection connection,
-            bool mapCompositeTypes,
-            CancellationToken cancellationToken)
-            => BeginTransaction(connection, IsolationLevel.ReadCommitted, mapCompositeTypes, cancellationToken);
-
-        private Task<NpgsqlTransaction> BeginTransaction(
-            NpgsqlConnection connection,
-            IsolationLevel isolationLevel,
-            CancellationToken cancellationToken)
-            => BeginTransaction(connection, isolationLevel, true, cancellationToken);
-
-        private async Task<NpgsqlTransaction> BeginTransaction(
-            NpgsqlConnection connection,
-            IsolationLevel isolationLevel,
-            bool mapCompositeTypes,
-            CancellationToken cancellationToken)
-        {
-            await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
-            if(mapCompositeTypes)
-            {
-                connection.ReloadTypes();
-                connection.TypeMapper.MapComposite<PostgresNewStreamMessage>(_schema.NewStreamMessage);
-            }
-
-            if(_settings.ExplainAnalyze)
-            {
-                using(var command = new NpgsqlCommand(_schema.EnableExplainAnalyze, connection))
-                {
-                    await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
-                }
-            }
-
-            return connection.BeginTransaction(isolationLevel);
-        }
 
         private static NpgsqlCommand BuildFunctionCommand(
             string function,
@@ -211,8 +203,8 @@
 
             try
             {
-                using(var connection = _createConnection())
-                using(var transaction = await BeginTransaction(connection, cancellationToken))
+                using(var connection = await OpenConnection(cancellationToken))
+                using(var transaction = connection.BeginTransaction())
                 {
                     var deletedMessageIds = new List<Guid>();
                     using(var command = BuildFunctionCommand(

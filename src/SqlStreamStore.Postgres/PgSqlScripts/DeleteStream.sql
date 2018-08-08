@@ -13,7 +13,7 @@ DECLARE
   _affected              INT;
 BEGIN
   SELECT __schema__.streams.id_internal
-  INTO _stream_id_internal
+      INTO _stream_id_internal
   FROM __schema__.streams
   WHERE __schema__.streams.id = _stream_id;
 
@@ -28,7 +28,7 @@ BEGIN
       END IF;
 
       SELECT __schema__.messages.stream_version
-      INTO _latest_stream_version
+          INTO _latest_stream_version
       FROM __schema__.messages
       WHERE __schema__.messages.stream_id_internal = _stream_id_internal
       ORDER BY __schema__.messages.position DESC
@@ -40,28 +40,21 @@ BEGIN
       END IF;
   END IF;
 
-  DELETE
-  FROM __schema__.messages
-  WHERE __schema__.messages.stream_id_internal = _stream_id_internal;
+  DELETE FROM __schema__.messages WHERE __schema__.messages.stream_id_internal = _stream_id_internal;
 
-  DELETE
-  FROM __schema__.streams
-  WHERE __schema__.streams.id = _stream_id;
+  DELETE FROM __schema__.streams WHERE __schema__.streams.id = _stream_id;
 
   GET DIAGNOSTICS _affected = ROW_COUNT;
 
   IF _affected > 0
   THEN
     PERFORM __schema__.append_to_stream(
-        _deleted_stream_id,
-        _deleted_stream_id_original,
-        -2,
-        _created_utc,
-        ARRAY [_deleted_stream_message]
-    );
-    INSERT INTO __schema__.deleted_streams (id)
-    VALUES (_stream_id)
-    ON CONFLICT DO NOTHING;
+              _deleted_stream_id,
+              _deleted_stream_id_original,
+              -2,
+              _created_utc,
+              ARRAY [_deleted_stream_message]);
+    INSERT INTO __schema__.deleted_streams (id) VALUES (_stream_id) ON CONFLICT DO NOTHING;
 
   END IF;
 END;

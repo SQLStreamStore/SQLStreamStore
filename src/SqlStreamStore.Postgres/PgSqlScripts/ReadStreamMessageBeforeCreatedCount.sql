@@ -8,15 +8,13 @@ DECLARE
   _stream_id_internal INT;
 BEGIN
   SELECT __schema__.streams.id_internal
-  INTO _stream_id_internal
+      INTO _stream_id_internal
   FROM __schema__.streams
   WHERE __schema__.streams.id = _stream_id;
-  RETURN (
-    SELECT count(*)
-    FROM __schema__.messages
-    WHERE __schema__.messages.stream_id_internal = _stream_id_internal
-          AND __schema__.messages.created_utc < _created_utc
-  );
+  RETURN (SELECT count(*)
+          FROM __schema__.messages
+          WHERE __schema__.messages.stream_id_internal = _stream_id_internal
+            AND __schema__.messages.created_utc < _created_utc);
 END;
 $F$
 LANGUAGE 'plpgsql';

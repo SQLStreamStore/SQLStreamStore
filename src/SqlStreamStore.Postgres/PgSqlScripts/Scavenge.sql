@@ -10,7 +10,7 @@ DECLARE
   _message_ids        UUID [];
 BEGIN
   SELECT __schema__.streams.id_internal
-  INTO _stream_id_internal
+      INTO _stream_id_internal
   FROM __schema__.streams
   WHERE __schema__.streams.id = _stream_id;
 
@@ -23,8 +23,7 @@ BEGIN
   );
 
   RETURN QUERY
-  SELECT *
-  FROM unnest(_message_ids);
+  SELECT * FROM unnest(_message_ids);
 
 END;
 $F$

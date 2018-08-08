@@ -16,31 +16,30 @@ BEGIN
 
   SELECT current_version
   FROM __schema__.append_to_stream(
-      _metadata_stream_id,
-      _metadata_stream_id_original,
-      _expected_version,
-      _created_utc,
-      ARRAY [_metadata_message]
-  )
-  INTO _current_version;
+         _metadata_stream_id,
+         _metadata_stream_id_original,
+         _expected_version,
+         _created_utc,
+         ARRAY [_metadata_message]
+      )
+      INTO _current_version;
 
-  SELECT COUNT(*)
-  FROM __schema__.deleted_streams
-  INTO _stream_deleted;
+  SELECT COUNT(*) FROM __schema__.deleted_streams
+      INTO _stream_deleted;
 
   IF (_stream_deleted = 0)
   THEN
     PERFORM __schema__.append_to_stream(
-        _stream_id,
-        _stream_id_original,
-        -1,
-        _created_utc,
-        ARRAY [] :: __schema__.new_stream_message []
-    );
+              _stream_id,
+              _stream_id_original,
+              -1,
+              _created_utc,
+              ARRAY [] :: __schema__.new_stream_message []);
   END IF;
 
-  UPDATE __schema__.streams
-  SET max_age = _max_age, max_count = _max_count
+  UPDATE __schema__ . streams
+  SET max_age   = _max_age,
+      max_count = _max_count
   WHERE __schema__.streams.id = _stream_id;
 
   RETURN _current_version;

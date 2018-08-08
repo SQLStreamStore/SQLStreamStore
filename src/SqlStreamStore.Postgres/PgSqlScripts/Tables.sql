@@ -12,7 +12,8 @@ CREATE TABLE IF NOT EXISTS __schema__.streams (
   CONSTRAINT pk_streams PRIMARY KEY (id_internal)
 );
 
-COMMENT ON SCHEMA __schema__ IS '{ "version": 1 }';
+COMMENT ON SCHEMA __schema__
+IS '{ "version": 1 }';
 
 ALTER SEQUENCE __schema__.streams_seq
 OWNED BY __schema__.streams.id_internal;
@@ -40,17 +41,11 @@ CREATE TABLE IF NOT EXISTS __schema__.messages (
 ALTER SEQUENCE __schema__.messages_seq
 OWNED BY __schema__.messages.position;
 
-CREATE UNIQUE INDEX IF NOT EXISTS messages_by_position
-  ON __schema__.messages (position);
-
-CREATE UNIQUE INDEX IF NOT EXISTS messages_by_stream_id_internal_and_message_id
-  ON __schema__.messages (stream_id_internal, message_id);
-
 CREATE UNIQUE INDEX IF NOT EXISTS messages_by_stream_id_internal_and_stream_version
   ON __schema__.messages (stream_id_internal, stream_version);
 
-CREATE INDEX IF NOT EXISTS messages_by_stream_id_internal_and_created_utc
-  ON __schema__.messages (stream_id_internal, created_utc);
+CREATE UNIQUE INDEX IF NOT EXISTS messages_by_stream_id_internal_and_message_id
+  ON __schema__.messages (stream_id_internal, message_id);
 
 CREATE TABLE IF NOT EXISTS __schema__.deleted_streams (
   id CHAR(42) NOT NULL,
@@ -63,8 +58,7 @@ BEGIN
     message_id    UUID,
     "type"        VARCHAR(128),
     json_data     VARCHAR,
-    json_metadata VARCHAR
-  );
+    json_metadata VARCHAR);
   EXCEPTION
   WHEN duplicate_object
     THEN null;

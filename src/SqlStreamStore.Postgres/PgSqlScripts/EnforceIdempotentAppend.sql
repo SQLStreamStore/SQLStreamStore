@@ -9,11 +9,9 @@ DECLARE
   _message_id_cursor REFCURSOR;
   _message_ids       UUID [] = '{}' :: UUID [];
 BEGIN
-  _message_id_cursor = (
-    SELECT *
-    FROM __schema__.read(_stream_id, cardinality(_new_stream_messages), _start, true, false)
-    OFFSET 1
-  );
+  _message_id_cursor = (SELECT *
+                        FROM __schema__.read(_stream_id, cardinality(_new_stream_messages), _start, true, false)
+                        OFFSET 1);
 
   FETCH FROM _message_id_cursor
   INTO _message_id_record;
@@ -31,11 +29,7 @@ BEGIN
     USING HINT = 'Wrong message count';
   END IF;
 
-  IF _message_ids <> (
-    SELECT ARRAY(
-        SELECT n.message_id
-        FROM unnest(_new_stream_messages) n
-    ))
+  IF _message_ids <> (SELECT ARRAY(SELECT n.message_id FROM unnest(_new_stream_messages) n))
   THEN
     RAISE EXCEPTION 'WrongExpectedVersion';
   END IF;

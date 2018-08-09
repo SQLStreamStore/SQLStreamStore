@@ -229,7 +229,7 @@ namespace SqlStreamStore
         private class DockerDatabaseManager : DatabaseManager
         {
             private const string DockerImage = "postgres";
-            private const string DockerTag = "9.6.6-alpine";
+            private const string DockerTag = "10.4-alpine";
             private const string ContainerName = "sql-stream-store-tests-postgres";
 
             private readonly int _tcpPort;

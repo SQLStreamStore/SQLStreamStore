@@ -9,7 +9,8 @@ CREATE TABLE IF NOT EXISTS __schema__.streams (
   position    BIGINT        NOT NULL DEFAULT (-1),
   max_age     INT           NULL,
   max_count   INT           NULL,
-  CONSTRAINT pk_streams PRIMARY KEY (id_internal)
+  CONSTRAINT pk_streams PRIMARY KEY (id_internal),
+  CONSTRAINT uq_streams_id UNIQUE (id)
 );
 
 COMMENT ON SCHEMA __schema__
@@ -17,9 +18,6 @@ IS '{ "version": 1 }';
 
 ALTER SEQUENCE __schema__.streams_seq
 OWNED BY __schema__.streams.id_internal;
-
-CREATE UNIQUE INDEX IF NOT EXISTS streams_by_id
-  ON __schema__.streams (id);
 
 CREATE SEQUENCE IF NOT EXISTS __schema__.messages_seq
   START 0
@@ -35,17 +33,13 @@ CREATE TABLE IF NOT EXISTS __schema__.messages (
   json_data          VARCHAR      NOT NULL,
   json_metadata      VARCHAR,
   CONSTRAINT pk_messages PRIMARY KEY (position),
-  CONSTRAINT fk_messages_stream FOREIGN KEY (stream_id_internal) REFERENCES __schema__.streams (id_internal)
+  CONSTRAINT fk_messages_stream FOREIGN KEY (stream_id_internal) REFERENCES __schema__.streams (id_internal),
+  CONSTRAINT uq_messages_stream_id_internal_and_stream_version UNIQUE (stream_id_internal, stream_version),
+  CONSTRAINT uq_stream_id_internal_and_message_id UNIQUE (stream_id_internal, message_id)
 );
 
 ALTER SEQUENCE __schema__.messages_seq
 OWNED BY __schema__.messages.position;
-
-CREATE UNIQUE INDEX IF NOT EXISTS messages_by_stream_id_internal_and_stream_version
-  ON __schema__.messages (stream_id_internal, stream_version);
-
-CREATE UNIQUE INDEX IF NOT EXISTS messages_by_stream_id_internal_and_message_id
-  ON __schema__.messages (stream_id_internal, message_id);
 
 CREATE TABLE IF NOT EXISTS __schema__.deleted_streams (
   id CHAR(42) NOT NULL,

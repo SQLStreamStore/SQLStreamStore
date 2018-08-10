@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Data;
+    using System.Data.Common;
     using System.Linq;
     using System.Text;
     using System.Threading;
@@ -31,7 +32,7 @@
             // To read backwards from end, need to use int MaxValue
             var streamVersion = start == StreamVersion.End ? int.MaxValue : start;
 
-            var messages = new List<StreamMessage>();
+            var messages = new List<(StreamMessage message, int? maxAge)>();
 
             Func<List<StreamMessage>, int, int> getNextVersion;
 
@@ -105,12 +106,13 @@
 
                 var lastVersion = reader.GetInt32(0);
                 var lastPosition = reader.GetInt64(1);
+                var maxAge = reader.GetFieldValue<int?>(2);
 
                 await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
 
                 while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                 {
-                    messages.Add(ReadStreamMessage(reader, streamId, prefetch));
+                    messages.Add((ReadStreamMessage(reader, streamId, prefetch), maxAge));
                 }
 
                 var isEnd = true;
@@ -121,17 +123,19 @@
                     messages.RemoveAt(count);
                 }
 
+                var filteredMessages = FilterExpired(messages);
+
                 return new ReadStreamPage(
                     streamId.IdOriginal,
                     PageReadStatus.Success,
                     start,
-                    getNextVersion(messages, lastVersion),
+                    getNextVersion(filteredMessages, lastVersion),
                     lastVersion,
                     lastPosition,
                     direction,
                     isEnd,
                     readNext,
-                    messages.ToArray());
+                    filteredMessages.ToArray());
             }
         }
 
@@ -183,7 +187,10 @@
             }
         }
 
-        private StreamMessage ReadStreamMessage(IDataRecord reader, PostgresqlStreamId streamId, bool prefetch)
+        private StreamMessage ReadStreamMessage(
+            DbDataReader reader,
+            PostgresqlStreamId streamId,
+            bool prefetch)
         {
             var streamVersion = reader.GetInt32(2);
 
@@ -200,15 +207,16 @@
                     reader.GetString(7));
             }
 
-            return new StreamMessage(
-                reader.GetString(0),
-                reader.GetGuid(1),
-                streamVersion,
-                reader.GetInt64(3),
-                reader.GetDateTime(4),
-                reader.GetString(5),
-                reader.GetString(6),
-                ct => GetJsonData(streamId, streamVersion)(ct));
+            return
+                new StreamMessage(
+                    reader.GetString(0),
+                    reader.GetGuid(1),
+                    streamVersion,
+                    reader.GetInt64(3),
+                    reader.GetDateTime(4),
+                    reader.GetString(5),
+                    reader.GetString(6),
+                    ct => GetJsonData(streamId, streamVersion)(ct));
         }
 
         protected override async Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken)

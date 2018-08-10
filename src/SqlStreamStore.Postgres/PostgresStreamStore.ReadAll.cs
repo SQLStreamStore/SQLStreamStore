@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Data.Common;
     using System.Threading;
     using System.Threading.Tasks;
     using SqlStreamStore.Infrastructure;
@@ -41,7 +42,7 @@
                         Array.Empty<StreamMessage>());
                 }
 
-                var messages = new List<StreamMessage>();
+                var messages = new List<(StreamMessage message, int? maxAge)>();
 
                 while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                 {
@@ -52,7 +53,7 @@
                     else
                     {
                         var streamIdInfo = new StreamIdInfo(reader.GetString(0));
-                        messages.Add(ReadStreamMessage(reader, streamIdInfo.PostgresqlStreamId, prefetch));
+                        messages.Add(ReadAllStreamMessage(reader, streamIdInfo.PostgresqlStreamId, prefetch));
                     }
                 }
 
@@ -64,7 +65,9 @@
                     messages.RemoveAt(maxCount);
                 }
 
-                var nextPosition = messages[messages.Count - 1].Position + 1;
+                var filteredMessages = FilterExpired(messages);
+
+                var nextPosition = filteredMessages[filteredMessages.Count - 1].Position + 1;
 
                 return new ReadAllPage(
                     fromPositionExclusive,
@@ -72,7 +75,7 @@
                     isEnd,
                     ReadDirection.Forward,
                     readNext,
-                    messages.ToArray());
+                    filteredMessages.ToArray());
             }
         }
 
@@ -100,7 +103,7 @@
                 if(!reader.HasRows)
                 {
                     // When reading backwards and there are no more items, then next position is LongPosition.Start,
-                    // regardles of what the fromPosition is.
+                    // regardless of what the fromPosition is.
                     return new ReadAllPage(
                         Position.Start,
                         Position.Start,
@@ -110,13 +113,13 @@
                         Array.Empty<StreamMessage>());
                 }
 
-                var messages = new List<StreamMessage>();
+                var messages = new List<(StreamMessage message, int? maxAge)>();
 
                 long lastOrdinal = 0;
                 while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                 {
                     var streamIdInfo = new StreamIdInfo(reader.GetString(0));
-                    messages.Add(ReadStreamMessage(reader, streamIdInfo.PostgresqlStreamId, prefetch));
+                    messages.Add(ReadAllStreamMessage(reader, streamIdInfo.PostgresqlStreamId, prefetch));
 
                     lastOrdinal = reader.GetInt64(3);
                 }
@@ -130,7 +133,9 @@
                     messages.RemoveAt(maxCount);
                 }
 
-                fromPositionExclusive = messages.Count > 0 ? messages[0].Position : 0;
+                var filteredMessages = FilterExpired(messages);
+
+                fromPositionExclusive = filteredMessages.Count > 0 ? filteredMessages[0].Position : 0;
 
                 return new ReadAllPage(
                     fromPositionExclusive,
@@ -138,8 +143,43 @@
                     isEnd,
                     ReadDirection.Backward,
                     readNext,
-                    messages.ToArray());
+                    filteredMessages.ToArray());
             }
+        }
+
+        private (StreamMessage, int?) ReadAllStreamMessage(
+            DbDataReader reader,
+            PostgresqlStreamId streamId,
+            bool prefetch)
+        {
+            var streamVersion = reader.GetInt32(2);
+
+            if(prefetch)
+            {
+                return (
+                    new StreamMessage(
+                        reader.GetString(0),
+                        reader.GetGuid(1),
+                        streamVersion,
+                        reader.GetInt64(3),
+                        reader.GetDateTime(4),
+                        reader.GetString(5),
+                        reader.GetString(6),
+                        reader.GetString(7)),
+                    reader.GetFieldValue<int?>(8));
+            }
+
+            return (
+                new StreamMessage(
+                    reader.GetString(0),
+                    reader.GetGuid(1),
+                    streamVersion,
+                    reader.GetInt64(3),
+                    reader.GetDateTime(4),
+                    reader.GetString(5),
+                    reader.GetString(6),
+                    ct => GetJsonData(streamId, streamVersion)(ct)),
+                reader.GetFieldValue<int?>(8));
         }
     }
 }

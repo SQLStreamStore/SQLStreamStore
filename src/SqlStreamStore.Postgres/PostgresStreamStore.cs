@@ -22,8 +22,6 @@
 
         public PostgresStreamStore(PostgresStreamStoreSettings settings)
             : base(
-                settings.MetadataMaxAgeCacheExpire,
-                settings.MetadataMaxAgeCacheMaxSize,
                 settings.GetUtcNow,
                 settings.LogName)
         {

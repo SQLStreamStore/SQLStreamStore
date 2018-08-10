@@ -12,7 +12,8 @@ CREATE OR REPLACE FUNCTION __schema__.read_all(
     create_utc     TIMESTAMP,
     "type"         VARCHAR(128),
     json_metadata  VARCHAR,
-    json_data      VARCHAR
+    json_data      VARCHAR,
+    max_age        INT
   )
 AS $F$
 BEGIN
@@ -28,7 +29,8 @@ BEGIN
              __schema__.messages.json_metadata,
              (CASE _prefetch
                 WHEN TRUE THEN __schema__.messages.json_data
-                ELSE NULL END)
+                ELSE NULL END),
+             __schema__.streams.max_age
       FROM __schema__.messages
              INNER JOIN __schema__.streams ON __schema__.messages.stream_id_internal = __schema__.streams.id_internal
       WHERE (CASE

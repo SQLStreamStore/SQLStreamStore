@@ -34,10 +34,6 @@
 
         public bool ExplainAnalyze { get; set; }
 
-        public TimeSpan MetadataMaxAgeCacheExpire { get; set; } = TimeSpan.FromMinutes(1);
-
-        public int MetadataMaxAgeCacheMaxSize { get; set; } = 10000;
-
         public GetUtcNow GetUtcNow { get; set; }
 
         public string LogName { get; set; } = nameof(PostgresStreamStore);

@@ -18,7 +18,9 @@ BEGIN
   WHERE __schema__.streams.id = _stream_id;
 
   OPEN _stream_info FOR
-  SELECT __schema__.streams.version as stream_version, __schema__.streams.position as position
+  SELECT __schema__.streams.version  as stream_version,
+         __schema__.streams.position as position,
+         __schema__.streams.max_age  as max_age
   FROM __schema__.streams
   WHERE __schema__.streams.id_internal = _stream_id_internal;
 

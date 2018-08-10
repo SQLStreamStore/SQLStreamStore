@@ -105,7 +105,7 @@ namespace SqlStreamStore
         private interface IDatabaseManager : IDisposable
         {
             string ConnectionString { get; }
-            Task CreateDatabase(CancellationToken cancellationToken = default(CancellationToken));
+            Task CreateDatabase(CancellationToken cancellationToken = default);
         }
 
         private abstract class DatabaseManager : IDatabaseManager

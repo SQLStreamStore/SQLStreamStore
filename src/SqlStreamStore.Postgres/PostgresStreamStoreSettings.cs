@@ -1,6 +1,5 @@
 ﻿namespace SqlStreamStore
 {
-    using System;
     using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Subscriptions;

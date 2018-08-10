@@ -36,7 +36,7 @@
                     {
                         var fixture = new PostgresStreamStoreFixture("dbo");
                         Console.WriteLine(fixture.ConnectionString);
-                        streamStore = fixture.GetPostgresStreamStore().Result;
+                        streamStore = fixture.GetPostgresStreamStore(true).Result;
                         disposable = fixture;
                     })
                 .Add("Postgres (Server)",
@@ -46,7 +46,7 @@
                         var connectionString = Console.ReadLine();
                         var fixture = new PostgresStreamStoreFixture("dbo", connectionString);
                         Console.WriteLine(fixture.ConnectionString);
-                        streamStore = fixture.GetPostgresStreamStore().Result;
+                        streamStore = fixture.GetPostgresStreamStore(true).Result;
                         disposable = fixture;
                     })
                 .Display();

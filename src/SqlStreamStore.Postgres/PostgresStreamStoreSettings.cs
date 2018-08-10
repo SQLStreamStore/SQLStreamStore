@@ -41,5 +41,7 @@
         public GetUtcNow GetUtcNow { get; set; }
 
         public string LogName { get; set; } = nameof(PostgresStreamStore);
+
+        public bool ScavengeAsynchronously { get; set; } = true;
     }
 }

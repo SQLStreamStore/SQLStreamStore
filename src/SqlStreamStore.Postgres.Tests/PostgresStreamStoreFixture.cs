@@ -46,8 +46,7 @@ namespace SqlStreamStore
             var settings = new PostgresStreamStoreSettings(ConnectionString)
             {
                 Schema = _schema,
-                GetUtcNow = () => GetUtcNow(),
-                ExplainAnalyze = true
+                GetUtcNow = () => GetUtcNow()
             };
 
             var store = new PostgresStreamStore(settings);
@@ -64,8 +63,7 @@ namespace SqlStreamStore
             var settings = new PostgresStreamStoreSettings(ConnectionString)
             {
                 Schema = schema,
-                GetUtcNow = () => GetUtcNow(),
-                ExplainAnalyze = true
+                GetUtcNow = () => GetUtcNow()
             };
             var store = new PostgresStreamStore(settings);
 
@@ -74,16 +72,16 @@ namespace SqlStreamStore
             return store;
         }
 
-        public async Task<PostgresStreamStore> GetPostgresStreamStore()
+        public async Task<PostgresStreamStore> GetPostgresStreamStore(bool scavengeAsynchronously = false)
         {
-            var store = await GetUninitializedPostgresStreamStore();
+            var store = await GetUninitializedPostgresStreamStore(scavengeAsynchronously);
 
             await store.CreateSchema();
 
             return store;
         }
 
-        public async Task<PostgresStreamStore> GetUninitializedPostgresStreamStore()
+        public async Task<PostgresStreamStore> GetUninitializedPostgresStreamStore(bool scavengeAsynchronously = false)
         {
             await CreateDatabase();
 
@@ -91,7 +89,7 @@ namespace SqlStreamStore
             {
                 Schema = _schema,
                 GetUtcNow = () => GetUtcNow(),
-                ExplainAnalyze = true
+                ScavengeAsynchronously = scavengeAsynchronously
             };
 
             return new PostgresStreamStore(settings);
@@ -197,8 +195,6 @@ namespace SqlStreamStore
                     return;
                 }
 
-                var commandText = $"DROP DATABASE {DatabaseName}";
-
                 try
                 {
                     using(var connection = new NpgsqlConnection(DefaultConnectionString))
@@ -213,7 +209,7 @@ namespace SqlStreamStore
                             command.ExecuteNonQuery();
                         }
 
-                        using(var command = new NpgsqlCommand(commandText, connection))
+                        using(var command = new NpgsqlCommand($"DROP DATABASE {DatabaseName}", connection))
                         {
                             command.ExecuteNonQuery();
                         }
@@ -221,7 +217,7 @@ namespace SqlStreamStore
                 }
                 catch(Exception ex)
                 {
-                    Output.WriteLine($@"Attempted to execute ""{commandText}"" but failed: {ex}");
+                    Output.WriteLine($@"Attempted to execute ""{$"DROP DATABASE {DatabaseName}"}"" but failed: {ex}");
                 }
             }
         }

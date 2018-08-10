@@ -65,7 +65,14 @@
                         }
                     }
 
-                    await TryScavenge(streamIdInfo, maxCount, cancellationToken).NotOnCapturedContext();
+                    if(_settings.ScavengeAsynchronously)
+                    {
+                        Task.Run(() => TryScavenge(streamIdInfo, maxCount, cancellationToken), cancellationToken);
+                    }
+                    else
+                    {
+                        await TryScavenge(streamIdInfo, maxCount, cancellationToken).NotOnCapturedContext();
+                    }
 
                     return result;
                 }

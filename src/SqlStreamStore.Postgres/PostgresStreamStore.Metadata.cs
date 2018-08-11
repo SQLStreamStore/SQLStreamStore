@@ -95,7 +95,7 @@
                 await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
             }
 
-            await TryScavenge(streamIdInfo, metadata.MaxCount, cancellationToken);
+            await TryScavenge(streamIdInfo, cancellationToken);
 
             return new SetStreamMetadataResult(currentVersion);
         }

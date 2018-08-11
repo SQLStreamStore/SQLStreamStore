@@ -54,8 +54,7 @@ DROP FUNCTION IF EXISTS __schema__.read_stream_version_of_message_id(
   UUID
 );
 DROP FUNCTION IF EXISTS __schema__.scavenge(
-  CHAR(42),
-  INT
+  CHAR(42)
 ) CASCADE;
 DROP TABLE IF EXISTS __schema__.deleted_streams CASCADE;
 DROP TABLE IF EXISTS __schema__.messages CASCADE;

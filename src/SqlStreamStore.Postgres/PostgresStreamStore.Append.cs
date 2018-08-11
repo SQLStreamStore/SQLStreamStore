@@ -26,7 +26,6 @@
                 try
                 {
                     AppendResult result;
-                    int? maxCount;
                     var streamIdInfo = new StreamIdInfo(streamId);
 
                     using(var connection = await OpenConnection(cancellationToken))
@@ -48,7 +47,6 @@
                                 await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
 
                                 result = new AppendResult(reader.GetInt32(0), reader.GetInt64(1));
-                                maxCount = reader.GetFieldValue<int?>(3);
                             }
 
                             await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
@@ -67,11 +65,11 @@
 
                     if(_settings.ScavengeAsynchronously)
                     {
-                        Task.Run(() => TryScavenge(streamIdInfo, maxCount, cancellationToken), cancellationToken);
+                        Task.Run(() => TryScavenge(streamIdInfo, cancellationToken), cancellationToken);
                     }
                     else
                     {
-                        await TryScavenge(streamIdInfo, maxCount, cancellationToken).NotOnCapturedContext();
+                        await TryScavenge(streamIdInfo, cancellationToken).NotOnCapturedContext();
                     }
 
                     return result;

@@ -191,7 +191,6 @@
 
         internal async Task<int> TryScavenge(
             StreamIdInfo streamIdInfo,
-            int? maxCount,
             CancellationToken cancellationToken)
         {
             if(streamIdInfo.PostgresqlStreamId == PostgresqlStreamId.Deleted)
@@ -208,8 +207,7 @@
                     using(var command = BuildFunctionCommand(
                         _schema.Scavenge,
                         transaction,
-                        Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
-                        Parameters.OptionalMaxAge(maxCount)))
+                        Parameters.StreamId(streamIdInfo.PostgresqlStreamId)))
                     using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
                     {
                         while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())

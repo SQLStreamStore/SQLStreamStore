@@ -6,24 +6,15 @@ CREATE OR REPLACE FUNCTION __schema__.append_to_stream(
   _new_stream_messages __schema__.new_stream_message [])
   RETURNS TABLE(
     current_version  INT,
-    current_position BIGINT,
-    max_age          INT,
-    max_count        INT
+    current_position BIGINT
   ) AS $F$
 DECLARE
   _current_version    INT;
   _current_position   BIGINT;
   _stream_id_internal INT;
-  _max_age            INT;
-  _max_count          INT;
   _success            INT;
 BEGIN
   DELETE FROM __schema__.deleted_streams WHERE id = _stream_id;
-
-  SELECT __schema__.streams.max_age, __schema__.streams.max_count
-  FROM __schema__.streams
-  WHERE __schema__.streams.id = _stream_id
-      INTO _max_age, _max_count;
 
   IF _expected_version = -2 /* ExpectedVersion.Any */
   THEN
@@ -54,7 +45,7 @@ BEGIN
         WHERE __schema__.streams.id = _stream_id;
 
         RETURN QUERY
-        SELECT _current_version, _current_position, _max_age, _max_count;
+        SELECT _current_version, _current_position;
         RETURN;
       END IF;
   END IF;
@@ -111,15 +102,14 @@ BEGIN
                   _stream_id,
                   _expected_version + 1 - _success,
                   true,
-                  _new_stream_messages
-                    );
+                  _new_stream_messages);
         SELECT version, position, id_internal
             INTO _current_version, _current_position, _stream_id_internal
         FROM __schema__.streams
         WHERE __schema__.streams.id = _stream_id;
 
         RETURN QUERY
-        SELECT _current_version, _current_position, _max_age, _max_count;
+        SELECT _current_version, _current_position;
         RETURN;
       END IF;
     END IF;
@@ -137,11 +127,11 @@ BEGIN
     WHERE id_internal = _stream_id_internal;
 
     RETURN QUERY
-    SELECT _current_version, _current_position, _max_age, _max_count;
+    SELECT _current_version, _current_position;
 
   ELSE
     RETURN QUERY
-    SELECT -1, -1 :: BIGINT, NULL :: INT, NULL :: INT;
+    SELECT -1, -1 :: BIGINT;
 
   END IF;
 

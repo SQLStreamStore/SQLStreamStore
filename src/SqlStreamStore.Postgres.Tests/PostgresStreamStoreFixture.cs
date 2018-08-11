@@ -46,7 +46,8 @@ namespace SqlStreamStore
             var settings = new PostgresStreamStoreSettings(ConnectionString)
             {
                 Schema = _schema,
-                GetUtcNow = () => GetUtcNow()
+                GetUtcNow = () => GetUtcNow(),
+                ScavengeAsynchronously = false
             };
 
             var store = new PostgresStreamStore(settings);

@@ -130,15 +130,14 @@
             }
         }
 
-        [Fact, Trait("Category", "StreamMetadata")]
-        public async Task When_stream_max_count_is_set_then_stream_should_have_max_count()
+        [Theory, InlineData(1, 1), InlineData(2, 2), InlineData(6, 4), Trait("Category", "StreamMetadata")]
+        public async Task When_stream_max_count_is_set_then_stream_should_have_max_count(int maxCount, int expectedLength)
         {
             using(var fixture = GetFixture())
             {
                 using(var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
-                    const int maxCount = 2;
 
                     await store
                         .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3, 4));
@@ -147,7 +146,7 @@
 
                     var streamMessagesPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 4);
 
-                    streamMessagesPage.Messages.Length.ShouldBe(maxCount);
+                    streamMessagesPage.Messages.Length.ShouldBe(expectedLength);
                 }
             }
         }

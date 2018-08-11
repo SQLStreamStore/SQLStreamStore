@@ -87,7 +87,7 @@
 
                     cts.Cancel();
 
-                    var result = await store.TryScavenge(new StreamIdInfo("stream-1"), 10, cts.Token);
+                    var result = await store.TryScavenge(new StreamIdInfo("stream-1"), cts.Token);
 
                     result.ShouldBe(-1);
                 }

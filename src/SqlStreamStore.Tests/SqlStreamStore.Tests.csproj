@@ -12,7 +12,7 @@
     <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" LinkBase="InMemory" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SqlStreamStore\SqlStreamStore.csproj" />
+    <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.7.2" />

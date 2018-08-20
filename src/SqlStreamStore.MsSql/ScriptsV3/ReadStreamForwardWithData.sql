@@ -3,8 +3,9 @@
     DECLARE @streamIdInternal AS INT
     DECLARE @lastStreamVersion AS INT
     DECLARE @lastStreamPosition AS BIGINT
-    DECLARE @maxAge as INT
-    DECLARE @maxCount as INT
+    DECLARE @maxAge AS INT
+    DECLARE @maxCount AS INT
+    DECLARE @position AS BIGINT
 
      SELECT @streamIdInternal = dbo.Streams.IdInternal,
             @lastStreamVersion = dbo.Streams.[Version],
@@ -19,6 +20,17 @@
             @maxAge,
             @maxCount
 
+     SELECT @position = dbo.Messages.Position
+       FROM dbo.Messages 
+      WHERE dbo.Messages.StreamIdInternal = @streamIdInternal AND dbo.Messages.StreamVersion = @streamVersion
+    
+    IF (@position IS NULL)
+        BEGIN
+            SELECT @position = MIN(dbo.Messages.Position)
+              FROM dbo.Messages 
+             WHERE dbo.Messages.StreamIdInternal = @streamIdInternal AND dbo.Messages.StreamVersion >= @streamVersion
+        END
+
      SELECT TOP(@count)
             dbo.Messages.StreamVersion,
             dbo.Messages.Position,
@@ -28,5 +40,5 @@
             dbo.Messages.JsonMetadata,
             dbo.Messages.JsonData
        FROM dbo.Messages
-      WHERE dbo.Messages.StreamIdInternal = @streamIdInternal AND dbo.Messages.StreamVersion >= @streamVersion
+      WHERE dbo.Messages.StreamIdInternal = @streamIdInternal AND dbo.Messages.Position >= @position
    ORDER BY dbo.Messages.Position;

@@ -39,17 +39,9 @@ BEGIN
         [Type]              NVARCHAR(128)                           NOT NULL,
         JsonData            NVARCHAR(max)                           NOT NULL,
         JsonMetadata        NVARCHAR(max)                                   ,
-        CONSTRAINT PK_Events PRIMARY KEY NONCLUSTERED (Position),
+        CONSTRAINT PK_Events PRIMARY KEY CLUSTERED (Position),
         CONSTRAINT FK_Events_Streams FOREIGN KEY (StreamIdInternal) REFERENCES dbo.Streams(IdInternal)
     );
-END
-
-IF NOT EXISTS(
-    SELECT * 
-    FROM sys.indexes
-    WHERE name='IX_Messages_Position' AND object_id = OBJECT_ID('dbo.Messages'))
-BEGIN
-    CREATE UNIQUE NONCLUSTERED INDEX IX_Messages_Position ON dbo.Messages (Position);
 END
 
 IF NOT EXISTS(

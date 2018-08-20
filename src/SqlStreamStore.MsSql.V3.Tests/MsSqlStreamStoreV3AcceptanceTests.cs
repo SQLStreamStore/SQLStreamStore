@@ -106,8 +106,8 @@
                 {
                     var result = await store.CheckSchema();
 
-                    result.ExpectedVersion.ShouldBe(2);
-                    result.CurrentVersion.ShouldBe(2);
+                    result.ExpectedVersion.ShouldBe(3);
+                    result.CurrentVersion.ShouldBe(3);
                     result.IsMatch().ShouldBeTrue();
                 }
             }
@@ -122,7 +122,7 @@
                 {
                     var result = await store.CheckSchema();
 
-                    result.ExpectedVersion.ShouldBe(2);
+                    result.ExpectedVersion.ShouldBe(3);
                     result.CurrentVersion.ShouldBe(0);
                     result.IsMatch().ShouldBeFalse();
                 }

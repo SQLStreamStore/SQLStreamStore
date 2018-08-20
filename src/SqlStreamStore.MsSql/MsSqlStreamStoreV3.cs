@@ -131,7 +131,9 @@
                     while(await extendedProperties.ReadAsync(cancellationToken))
                     {
                         if(extendedProperties.GetString(0) != "version")
+                        {
                             continue;
+                        }
                         version = int.Parse(extendedProperties.GetString(1));
                         break;
                     }

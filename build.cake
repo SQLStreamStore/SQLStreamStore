@@ -20,7 +20,7 @@ Task("RestorePackages")
     DotNetCoreRestore(solution);
 });
 
-Task("Build")
+Task("Compile")
     .IsDependentOn("RestorePackages")
     .Does(() =>
 {
@@ -33,37 +33,56 @@ Task("Build")
 });
 
 Task("RunTests")
-    .IsDependentOn("Build")
+    .IsDependentOn("Compile")
     .Does(() =>
 {
-    const int TenMinutes = 10 * 60 * 60 * 1000;
-    Parallel.ForEach(Projects, project => 
+    var projects = new string[] 
     {
-        using (var process = TestAssembly($"{project}.Tests")) 
-        {
-            process.WaitForExit(TenMinutes);
+        "SqlStreamStore.Tests",
+        "SqlStreamStore.MsSql.Tests",
+        "SqlStreamStore.MsSql.V3.Tests",
+        "SqlStreamStore.Postgres.Tests",
+    };
 
-            Console.Out.WriteLine(string.Join(Environment.NewLine, process.GetStandardOutput()));
-            Console.Error.WriteLine(string.Join(Environment.NewLine, process.GetStandardError()));
-        }
-    });
+    foreach(var project in projects)
+    {
+        var projectDir = $"./src/{project}/";
+        var projectFile = $"{project}.csproj";
+        var settings = new DotNetCoreTestSettings
+        {
+            Configuration = configuration,
+            WorkingDirectory = projectDir,
+            NoBuild = true,
+            NoRestore = true,
+            ResultsDirectory = artifactsDir,
+            Logger = $"trx;LogFileName={project}.xml"
+        };
+        DotNetCoreTest(projectFile, settings);
+    }
 });
 
 Task("DotNetPack")
-    .IsDependentOn("Build")
+    .IsDependentOn("Compile")
     .Does(() =>
 {
     var versionSuffix = "build" + buildNumber.ToString().PadLeft(5, '0');
-
-    var dotNetCorePackSettings = new DotNetCorePackSettings
+    var projects = new string[]
+    {
+        "SqlStreamStore",
+        "SqlStreamStore.MsSql",
+        "SqlStreamStore.Postgres"
+    };
+    var settings = new DotNetCorePackSettings
     {
         OutputDirectory = artifactsDir,
         NoBuild = true,
         Configuration = configuration,
-        VersionSuffix = versionSuffix
+        VersionSuffix = versionSuffix,
     };
-
-    Parallel.ForEach(Projects, project => DotNetCorePack($"./src/{project}", dotNetCorePackSettings));
+    foreach(var project in projects)
+    {
+        DotNetCorePack($"./src/{project}", settings);
+    }
 });
 
 Task("Default")
@@ -71,23 +90,3 @@ Task("Default")
     .IsDependentOn("DotNetPack");
 
 RunTarget(target);
-
-IProcess TestAssembly(string name)
-    => StartAndReturnProcess(
-        "dotnet",
-        new ProcessSettings {
-            Arguments = $"xunit -quiet -parallel all -configuration {configuration} -nobuild",
-            WorkingDirectory = sourceDir + Directory(name),
-            RedirectStandardError = true,
-            RedirectStandardOutput = true
-        });
-
-string XUnitArguments(string name) {
-    var args = $"xunit -parallel all -configuration {configuration} -nobuild";
-    if (BuildSystem.IsRunningOnTeamCity) {
-        args += $" -xml {artifactsDir + File($"{name}.xml")}";
-    }
-    return args;
-}
-
-string[] Projects => new[] {"SqlStreamStore", "SqlStreamStore.MsSql", "SqlStreamStore.Postgres"};

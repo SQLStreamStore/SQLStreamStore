@@ -12,7 +12,7 @@
     <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SqlStreamStore.Postgres\SqlStreamStore.Postgres.csproj" />
+    <ProjectReference Include="..\SqlStreamStore.Postgres\SqlStreamStore.Postgres.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="Docker.DotNet" Version="3.125.2" />

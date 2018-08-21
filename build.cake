@@ -85,8 +85,31 @@ Task("DotNetPack")
     }
 });
 
+Task("PublishPackages")
+    .IsDependentOn("DotNetPack")
+    .Does(() => 
+{
+    var apiKey = EnvironmentVariable("MYGET_API_KEY");
+    if(string.IsNullOrWhiteSpace(apiKey))
+    {
+        Information("MyGet API key not available. Packages will not be pushed.");
+        return;
+    }
+    var settings = new DotNetCoreNuGetPushSettings
+    {
+        ApiKey = EnvironmentVariable("MYGET_API_KEY"),
+        Source = "https://www.myget.org/F/sqlstreamstore/api/v3/index.json"
+    };
+    var files = GetFiles("artifacts/*.nupkg");
+    foreach(var file in files)
+    {
+        Information(file);
+        DotNetCoreNuGetPush(file.FullPath, settings);
+    }
+});
+
 Task("Default")
     .IsDependentOn("RunTests")
-    .IsDependentOn("DotNetPack");
+    .IsDependentOn("PublishPackages");
 
 RunTarget(target);

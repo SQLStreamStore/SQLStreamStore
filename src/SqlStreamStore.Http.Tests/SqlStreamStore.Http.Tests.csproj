@@ -10,7 +10,9 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" />
+    <Compile
+            Include="..\SqlStreamStore.AcceptanceTests\*.cs"
+            Exclude="..\SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.StreamLimits.cs" />
   </ItemGroup>
 
   <ItemGroup>

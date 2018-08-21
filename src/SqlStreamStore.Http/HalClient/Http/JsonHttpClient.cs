@@ -25,24 +25,24 @@ namespace SqlStreamStore.HalClient.Http
 
         public Task<HttpResponseMessage> GetAsync(
             string uri,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
             => HttpClient.GetAsync(uri, cancellationToken);
 
         public Task<HttpResponseMessage> HeadAsync(
             string uri,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
             => HttpClient.SendAsync(new HttpRequestMessage(HttpMethod.Head, uri), cancellationToken);
 
         public Task<HttpResponseMessage> OptionsAsync(
             string uri,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
             => HttpClient.SendAsync(new HttpRequestMessage(HttpMethod.Options, uri), cancellationToken);
 
         public async Task<HttpResponseMessage> PostAsync<T>(
             string uri,
             T value,
             IDictionary<string, string[]> headers,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             using(var stream = s_streamManager.GetStream())
             using(var writer = new JsonTextWriter(new StreamWriter(stream))
@@ -73,7 +73,7 @@ namespace SqlStreamStore.HalClient.Http
         public Task<HttpResponseMessage> DeleteAsync(
             string uri,
             IDictionary<string, string[]> headers,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var request = new HttpRequestMessage(HttpMethod.Delete, uri);
 

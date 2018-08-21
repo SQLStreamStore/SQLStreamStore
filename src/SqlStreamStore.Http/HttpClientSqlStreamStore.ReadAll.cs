@@ -13,7 +13,7 @@ namespace SqlStreamStore
             long fromPositionInclusive,
             int maxCount,
             bool prefetchJsonData = true,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var client = CreateClient();
 
@@ -28,7 +28,7 @@ namespace SqlStreamStore
             long fromPositionInclusive,
             int maxCount,
             bool prefetchJsonData = true,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var client = CreateClient();
 

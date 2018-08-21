@@ -28,7 +28,7 @@
             object parameters, 
             string curie,
             IDictionary<string, string[]> headers = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             headers = headers ?? new Dictionary<string, string[]>();
             

@@ -16,7 +16,7 @@ namespace SqlStreamStore
             int fromVersionInclusive,
             int maxCount,
             bool prefetchJsonData = true,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var client = CreateClient();
 
@@ -37,7 +37,7 @@ namespace SqlStreamStore
             int fromVersionInclusive,
             int maxCount,
             bool prefetchJsonData = true,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var client = CreateClient();
 

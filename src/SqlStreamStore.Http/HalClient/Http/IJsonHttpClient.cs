@@ -23,21 +23,21 @@ namespace SqlStreamStore.HalClient.Http
         /// </summary>
         /// <param name="uri">The Uri the request is sent to.</param>
         /// <returns>Returns <see cref="T:System.Threading.Tasks.Task`1"/>.The task object representing the asynchronous operation.</returns>
-        Task<HttpResponseMessage> GetAsync(string uri, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpResponseMessage> GetAsync(string uri, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Send a HEAD request to the specified Uri as an asynchronous operation.
         /// </summary>
         /// <param name="uri">The Uri the request is sent to.</param>
         /// <returns>Returns <see cref="T:System.Threading.Tasks.Task`1"/>.The task object representing the asynchronous operation.</returns>
-        Task<HttpResponseMessage> HeadAsync(string uri, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpResponseMessage> HeadAsync(string uri, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Send an OPTIONS request to the specified Uri as an asynchronous operation.
         /// </summary>
         /// <param name="uri">The Uri the request is sent to.</param>
         /// <returns>Returns <see cref="T:System.Threading.Tasks.Task`1"/>.The task object representing the asynchronous operation.</returns>
-        Task<HttpResponseMessage> OptionsAsync(string uri, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpResponseMessage> OptionsAsync(string uri, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Send a POST request to the specified Uri as an asynchronous operation.
@@ -46,13 +46,13 @@ namespace SqlStreamStore.HalClient.Http
         /// <param name="uri">The Uri the request is sent to.</param>
         /// <param name="value">The HTTP request content sent to the server.</param>
         /// <returns>Returns <see cref="T:System.Threading.Tasks.Task`1"/>.The task object representing the asynchronous operation.</returns>
-        Task<HttpResponseMessage> PostAsync<T>(string uri, T value, IDictionary<string, string[]> headers, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpResponseMessage> PostAsync<T>(string uri, T value, IDictionary<string, string[]> headers, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Send a DELETE request to the specified Uri as an asynchronous operation.
         /// </summary>
         /// <param name="uri">The Uri the request is sent to.</param>
         /// <returns>Returns <see cref="T:System.Threading.Tasks.Task`1"/>.The task object representing the asynchronous operation.</returns>
-        Task<HttpResponseMessage> DeleteAsync(string uri, IDictionary<string, string[]> headers, CancellationToken cancellationToken = default(CancellationToken));
+        Task<HttpResponseMessage> DeleteAsync(string uri, IDictionary<string, string[]> headers, CancellationToken cancellationToken = default);
     }
 }

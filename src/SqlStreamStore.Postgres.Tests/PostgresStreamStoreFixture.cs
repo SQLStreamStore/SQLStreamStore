@@ -247,7 +247,7 @@ namespace SqlStreamStore
                 MaxPoolSize = 1024
             };
 
-            public DockerDatabaseManager(ITestOutputHelper output, string databaseName, int tcpPort = 15432)
+            public DockerDatabaseManager(ITestOutputHelper output, string databaseName, int tcpPort = 5432)
                 : base(output, databaseName)
             {
                 _tcpPort = tcpPort;

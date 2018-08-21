@@ -7,7 +7,7 @@ used in Event Sourced based applications.
 | --- | --- |
 | SqlStreamStore (Memory) | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg)](https://www.nuget.org/packages/SqlStreamStore) |
 | MSSql | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg)](https://www.nuget.org/packages/SqlStreamStore.MsSql) |
-| Postgres | _under development_ |
+| Postgres | _on master_ |
 | MySql | [_up for grabs_](https://github.com/damianh/SqlStreamStore/issues/29) |
 | Sqlite | [_up for grabs_](https://github.com/damianh/SqlStreamStore/issues/28) |
 | HTTP Wrapper API | _under development_ |

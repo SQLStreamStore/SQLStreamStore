@@ -60,7 +60,7 @@
             _httpClient?.Dispose();
         }
 
-        public async Task<long> ReadHeadPosition(CancellationToken cancellationToken = default(CancellationToken))
+        public async Task<long> ReadHeadPosition(CancellationToken cancellationToken = default)
         {
             var client = CreateClient();
             var response = await client.Client.HeadAsync(LinkFormatter.AllHead, cancellationToken);
@@ -79,14 +79,14 @@
 
         private static void ThrowOnError(IHalClient client)
         {
-            switch(client.StatusCode ?? default(HttpStatusCode))
+            switch(client.StatusCode ?? default)
             {
                 case default(HttpStatusCode):
                     return;
                 case HttpStatusCode.Conflict:
                     var resource = client.Current.First();
                     throw new WrongExpectedVersionException(resource.Data<HttpError>().Detail);
-                case var status when (int) status >= 400:
+                case var status when status >= HttpStatusCode.BadRequest:
                     throw new HttpRequestException($"Response status code does not indicate success: {status}");
                 default:
                     return;

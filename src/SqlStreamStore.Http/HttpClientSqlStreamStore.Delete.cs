@@ -13,7 +13,7 @@ namespace SqlStreamStore
         public async Task DeleteStream(
             StreamId streamId,
             int expectedVersion = ExpectedVersion.Any,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var client = CreateClient(new Resource
             {
@@ -43,7 +43,7 @@ namespace SqlStreamStore
         public async Task DeleteMessage(
             StreamId streamId,
             Guid messageId,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var client = CreateClient(new Resource
             {

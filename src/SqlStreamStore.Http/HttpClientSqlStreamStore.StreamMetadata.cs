@@ -14,7 +14,7 @@ namespace SqlStreamStore
     {
         public async Task<StreamMetadataResult> GetStreamMetadata(
             string streamId,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var client = CreateClient(new Resource
             {
@@ -47,7 +47,7 @@ namespace SqlStreamStore
             int? maxAge = null,
             int? maxCount = null,
             string metadataJson = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var client = CreateClient(new Resource
             {

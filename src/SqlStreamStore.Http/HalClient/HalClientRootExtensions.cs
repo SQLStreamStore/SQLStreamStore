@@ -18,7 +18,7 @@
         public static Task<IHalClient> RootAsync(
             this IHalClient client,
             string href,
-            CancellationToken cancellationToken = default(CancellationToken)) =>
+            CancellationToken cancellationToken = default) =>
             client.ExecuteAsync(href, uri => client.Client.GetAsync(uri, cancellationToken));
 
         /// <summary>

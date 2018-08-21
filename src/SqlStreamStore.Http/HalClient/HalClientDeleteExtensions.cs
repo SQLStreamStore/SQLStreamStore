@@ -26,7 +26,7 @@
             object parameters,
             string curie,
             IDictionary<string, string[]> headers = null,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var relationship = HalClientExtensions.Relationship(rel, curie);
 

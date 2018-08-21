@@ -14,7 +14,7 @@ namespace SqlStreamStore
             StreamId streamId,
             int expectedVersion,
             NewStreamMessage[] messages,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
             var client = CreateClient(new Resource
             {

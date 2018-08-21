@@ -1,4 +1,4 @@
-# SQL Stream Store
+# SQL Stream Store [![Build Status](https://travis-ci.org/SQLStreamStore/SQLStreamStore.svg?branch=master)](https://travis-ci.org/SQLStreamStore/SQLStreamStore)
 
 A stream store library for .NET that specifically target SQL based implementations. Typically
 used in Event Sourced based applications.

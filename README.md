@@ -12,7 +12,7 @@ used in Event Sourced based applications.
 | Sqlite | [_up for grabs_](https://github.com/damianh/SqlStreamStore/issues/28) |
 | HTTP Wrapper API | _under development_ |
 
-[CI Packages on MyGet](https://www.myget.org/F/sqlstreamstore/api/v3/index.json)
+CI Packages available [on MyGet](https://www.myget.org/gallery/sqlstreamstore)
 
 # Design considerations:
 

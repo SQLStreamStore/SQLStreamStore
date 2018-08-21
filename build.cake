@@ -44,7 +44,7 @@ Task("RunTests")
         "SqlStreamStore.Postgres.Tests",
     };
 
-    Parallel.ForEach(projects, project => 
+    foreach(var project in projects)
     {
         var projectDir = $"./src/{project}/";
         var projectFile = $"{project}.csproj";
@@ -85,14 +85,25 @@ Task("DotNetPack")
     }
 });
 
-Task("PublishPackage")
+Task("PublishPackages")
     .IsDependentOn("DotNetPack")
     .Does(() => 
 {
+    var settings = new DotNetCoreNuGetPushSettings
+    {
+        ApiKey = EnvironmentVariable("MYGET_API_KEY"),
+        Source = "https://www.myget.org/F/sqlstreamstore/api/v3/index.json"
+    };
+    var files = GetFiles("artifacts/*.nupkg");
+    foreach(var file in files)
+    {
+        Information(file);
+        DotNetCoreNuGetPush(file.FullPath, settings);
+    }
 });
 
 Task("Default")
     .IsDependentOn("RunTests")
-    .IsDependentOn("DotNetPack");
+    .IsDependentOn("PublishPackages");
 
 RunTarget(target);

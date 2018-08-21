@@ -1,200 +1,142 @@
 ﻿namespace SqlStreamStore.HalClient.Serialization
 {
+    using System;
+    using System.Collections;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using SqlStreamStore.HalClient.Models;
 
-    internal static class HalResourceJsonReader
+    internal class HalResourceJsonReader
     {
         public static async Task<IResource> ReadResource(
             JsonReader reader,
-            CancellationToken cancellationToken = default(CancellationToken))
+            CancellationToken cancellationToken = default)
         {
-            if(reader.TokenType == JsonToken.None)
-            {
-                await ReadNextToken(reader, cancellationToken);
-            }
-
-            await SkipComments(reader, cancellationToken);
-            AssertNextTokenIsStartObject(reader);
-
-            var resource = new Resource();
-
-            while(await reader.ReadAsync(cancellationToken))
-            {
-                switch(reader.TokenType)
-                {
-                    case JsonToken.PropertyName:
-                        var propertyName = reader.Value.ToString();
-                        await ReadNextToken(reader, cancellationToken);
-
-                        switch(propertyName)
-                        {
-                            case "_links":
-                                resource.Links = await ReadLinks(reader, cancellationToken);
-                                break;
-                            case "_embedded":
-                                resource.Embedded = await ReadEmbedded(reader, cancellationToken);
-                                break;
-                            default:
-                                var value = await JToken.LoadAsync(reader, cancellationToken);
-
-                                resource[propertyName] = value.Type == JTokenType.Null
-                                    ? null
-                                    : value;
-
-                                break;
-                        }
-
-                        continue;
-                    case JsonToken.EndObject:
-                        await reader.ReadAsync(cancellationToken);
-                        return resource;
-                    case JsonToken.Comment:
-                        continue;
-                    default:
-                        throw new JsonSerializationException($"Unexpected token encountered:{reader.TokenType}");
-                }
-            }
-
-            return resource;
+            return new JResource(await JObject.LoadAsync(reader, cancellationToken));
         }
 
-        private static async Task<IList<ILink>> ReadLinks(
-            JsonReader reader,
-            CancellationToken cancellationToken)
+        private class JResource : IResource
         {
-            await SkipComments(reader, cancellationToken);
-            AssertNextTokenIsStartObject(reader);
+            private readonly JObject _inner;
 
-            var links = new List<ILink>();
+            public string Rel { get; set; }
 
-            while(await reader.ReadAsync(cancellationToken))
+            public string Href
             {
-                switch(reader.TokenType)
-                {
-                    case JsonToken.PropertyName:
-                        var rel = reader.Value.ToString();
-                        await ReadNextToken(reader, cancellationToken);
-                        links.AddRange(await ReadLinks(reader, rel, cancellationToken));
-                        continue;
-                    case JsonToken.Comment:
-                        continue;
-                    case JsonToken.EndObject:
-                        return links;
-                    default:
-                        throw new JsonSerializationException($"Unexpected token encountered:{reader.TokenType}");
-                }
+                get => _inner.Value<string>("href");
+                set => _inner["href"] = value;
             }
 
-            throw new JsonSerializationException("Unexpected end of tokens.");
-        }
-
-        private static async Task<Link[]> ReadLinks(
-            JsonReader reader,
-            string rel,
-            CancellationToken cancellationToken)
-        {
-            switch(reader.TokenType)
+            public string Name
             {
-                case JsonToken.StartObject:
-                    var link = (await JObject.LoadAsync(reader, cancellationToken)).ToObject<Link>();
-                    link.Rel = rel;
-                    return new[] { link };
-                case JsonToken.StartArray:
-                    return (await JArray.LoadAsync(reader, cancellationToken)).ToObject<Link[]>();
-                default:
-                    throw new JsonSerializationException($"Unexpected token encountered:{reader.TokenType}");
-            }
-        }
-
-        private static async Task<IList<IResource>> ReadEmbedded(
-            JsonReader reader,
-            CancellationToken cancellationToken)
-        {
-            await SkipComments(reader, cancellationToken);
-            AssertNextTokenIsStartObject(reader);
-
-            var embedded = new List<IResource>();
-
-            while(await reader.ReadAsync(cancellationToken))
-            {
-                switch(reader.TokenType)
-                {
-                    case JsonToken.PropertyName:
-                        var rel = reader.Value.ToString();
-                        await ReadNextToken(reader, cancellationToken);
-                        embedded.AddRange(await ReadEmbedded(reader, rel, cancellationToken));
-                        continue;
-                    case JsonToken.Comment:
-                        continue;
-                    case JsonToken.EndObject:
-                        await reader.ReadAsync(cancellationToken);
-                        return embedded;
-                    default:
-                        throw new JsonSerializationException($"Unexpected token encountered:{reader.TokenType}");
-                }
+                get => _inner.Value<string>("name");
+                set => _inner["name"] = value;
             }
 
-            throw new JsonSerializationException("Unexpected end of tokens.");
-        }
-
-        private static async Task<IResource[]> ReadEmbedded(
-            JsonReader reader,
-            string rel,
-            CancellationToken cancellationToken)
-        {
-            switch(reader.TokenType)
+            public JResource(JObject inner, string rel = null)
             {
-                case JsonToken.StartObject:
-                {
-                    var resource = await ReadResource(reader, cancellationToken);
-                    resource.Rel = rel;
-                    return new[] { resource };
-                }
-                case JsonToken.StartArray:
-                {
-                    var resources = new List<IResource>();
+                if(inner == null)
+                    throw new ArgumentNullException(nameof(inner));
+                _inner = inner;
+                Rel = rel;
+            }
 
-                    await ReadNextToken(reader, cancellationToken);
+            public IEnumerator<KeyValuePair<string, object>> GetEnumerator()
+                => _inner.Properties()
+                    .Select(x => new KeyValuePair<string, object>(
+                        x.Name,
+                        x.Value))
+                    .GetEnumerator();
 
-                    while(reader.TokenType != JsonToken.EndArray)
+            IEnumerator IEnumerable.GetEnumerator() => GetEnumerator();
+
+            public IList<ILink> Links => GetLinks().ToArray();
+            public IList<IResource> Embedded => GetEmbedded().ToArray();
+
+            public Uri BaseAddress { get; private set; }
+
+            public IResource WithBaseAddress(Uri baseAddress)
+                => new JResource(_inner, Rel)
+                {
+                    BaseAddress = baseAddress
+                };
+
+            private IEnumerable<ILink> GetLinks()
+            {
+                var links = _inner.Value<JObject>("_links");
+
+                foreach(var property in links.Properties())
+                {
+                    if(property.Value.Type == JTokenType.Array)
                     {
-                        var resource = await ReadResource(reader, cancellationToken);
-                        resource.Rel = rel;
-
-                        resources.Add(resource);
+                        foreach(var link in ((JArray) property.Value).OfType<JObject>())
+                        {
+                            yield return new JLink(link, property.Name);
+                        }
                     }
-
-                    await ReadNextToken(reader, cancellationToken);
-
-                    return resources.ToArray();
+                    else if(property.Value.Type == JTokenType.Object)
+                    {
+                        yield return new JLink((JObject) property.Value, property.Name);
+                    }
                 }
-                default:
-                    throw new JsonSerializationException($"Unexpected token encountered:{reader.TokenType}");
+            }
+
+            private IEnumerable<IResource> GetEmbedded()
+            {
+                var embedded = _inner.Value<JObject>("_embedded");
+
+                foreach(var property in embedded?.Properties() ?? Enumerable.Empty<JProperty>())
+                {
+                    if(property.Value.Type == JTokenType.Array)
+                    {
+                        foreach(var resource in ((JArray) property.Value).OfType<JObject>())
+                        {
+                            yield return new JResource(resource, property.Name).WithBaseAddress(BaseAddress);
+                        }
+                    }
+                    else if(property.Value.Type == JTokenType.Object)
+                    {
+                        yield return
+                            new JResource((JObject) property.Value, property.Name).WithBaseAddress(BaseAddress);
+                    }
+                }
             }
         }
 
-        private static async Task SkipComments(JsonReader reader, CancellationToken cancellationToken)
+        private class JLink : ILink
         {
-            while(reader.TokenType == JsonToken.Comment)
-                if(!await reader.ReadAsync(cancellationToken))
-                    throw new JsonSerializationException("Unexpected end of tokens.");
-        }
+            private readonly JObject _inner;
+            public string Rel { get; set; }
 
-        private static async Task ReadNextToken(JsonReader reader, CancellationToken cancellationToken)
-        {
-            if(!await reader.ReadAsync(cancellationToken))
-                throw new JsonSerializationException("Unexpected end of tokens.");
-        }
+            public string Href
+            {
+                get => _inner.Value<string>("href");
+                set => _inner["href"] = value;
+            }
 
-        private static void AssertNextTokenIsStartObject(JsonReader reader)
-        {
-            if(reader.TokenType != JsonToken.StartObject)
-                throw new JsonSerializationException($"Unexpected token encounturd:{reader.TokenType}");
+            public string Name
+            {
+                get => _inner.Value<string>("name");
+                set => _inner["name"] = value;
+            }
+
+            public bool Templated
+            {
+                get => _inner.Value<bool>("templated");
+                set => _inner["templated"] = value;
+            }
+
+            public JLink(JObject inner, string rel)
+            {
+                if(inner == null)
+                    throw new ArgumentNullException(nameof(inner));
+                _inner = inner;
+                Rel = rel;
+            }
         }
     }
 }

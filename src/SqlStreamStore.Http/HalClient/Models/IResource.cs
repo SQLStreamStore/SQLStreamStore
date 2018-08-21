@@ -6,7 +6,7 @@
     /// <summary>
     /// Represents a generic HAL resource.
     /// </summary>
-    internal interface IResource : IDictionary<string, object>, INode
+    internal interface IResource : INode, IEnumerable<KeyValuePair<string, object>>
     {
         /// <summary>
         /// The list of link relations.

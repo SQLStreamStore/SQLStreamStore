@@ -5,7 +5,7 @@ var configuration   = Argument("configuration", "Release");
 var artifactsDir    = Directory("./artifacts");
 var sourceDir       = Directory("./src");
 var solution        = "./src/SqlStreamStore.sln";
-var buildNumber     = string.IsNullOrWhiteSpace(EnvironmentVariable("BUILD_NUMBER")) ? "0" : EnvironmentVariable("BUILD_NUMBER");
+var buildNumber     = string.IsNullOrWhiteSpace(EnvironmentVariable("TRAVIS_BUILD_NUMBER")) ? "0" : EnvironmentVariable("TRAVIS_BUILD_NUMBER");
 
 Task("Clean")
     .Does(() =>

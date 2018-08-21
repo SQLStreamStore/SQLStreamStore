@@ -44,7 +44,7 @@ Task("RunTests")
         "SqlStreamStore.Postgres.Tests",
     };
 
-    foreach(var project in projects)
+    Parallel.ForEach(projects, project => 
     {
         var projectDir = $"./src/{project}/";
         var projectFile = $"{project}.csproj";
@@ -58,7 +58,7 @@ Task("RunTests")
             Logger = $"trx;LogFileName={project}.xml"
         };
         DotNetCoreTest(projectFile, settings);
-    }
+    });
 });
 
 Task("DotNetPack")
@@ -83,6 +83,12 @@ Task("DotNetPack")
     {
         DotNetCorePack($"./src/{project}", settings);
     }
+});
+
+Task("PublishPackage")
+    .IsDependentOn("DotNetPack")
+    .Does(() => 
+{
 });
 
 Task("Default")

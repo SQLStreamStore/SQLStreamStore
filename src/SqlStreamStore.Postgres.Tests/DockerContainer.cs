@@ -9,26 +9,32 @@ namespace SqlStreamStore
     using Docker.DotNet.Models;
     using SqlStreamStore.Infrastructure;
 
-    public class DockerContainer
+    internal class DockerContainer
     {
         private const string UnixPipe = "unix:///var/run/docker.sock";
         private const string WindowsPipe = "npipe://./pipe/docker_engine";
-        private static readonly Uri s_dockerUri = new Uri(Environment.OSVersion.IsWindows() ? WindowsPipe : UnixPipe);
-        private static readonly DockerClientConfiguration s_dockerClientConfiguration =
-            new DockerClientConfiguration(s_dockerUri);
 
-        private readonly IDictionary<int, int> _ports;
+        private static readonly Uri s_DockerUri = new Uri(Environment.OSVersion.IsWindows() ? WindowsPipe : UnixPipe);
+
+        private static readonly DockerClientConfiguration s_dockerClientConfiguration =
+            new DockerClientConfiguration(s_DockerUri);
+
+        private readonly int[] _ports;
         private readonly string _image;
         private readonly string _tag;
         private readonly Func<CancellationToken, Task<bool>> _healthCheck;
         private readonly IDockerClient _dockerClient;
+
         private string ImageWithTag => $"{_image}:{_tag}";
 
-      public DockerContainer(
+        public string ContainerName { get; set; } = Guid.NewGuid().ToString("n");
+        public string[] Env { get; set; } = Array.Empty<string>();
+
+        public DockerContainer(
             string image,
             string tag,
             Func<CancellationToken, Task<bool>> healthCheck,
-            IDictionary<int, int> ports)
+            params int[] ports)
         {
             _dockerClient = s_dockerClientConfiguration.CreateClient();
             _ports = ports;
@@ -37,32 +43,25 @@ namespace SqlStreamStore
             _healthCheck = healthCheck;
         }
 
-        public string ContainerName { get; set; } = Guid.NewGuid().ToString("n");
-
-        public string[] Env { get; set; } = Array.Empty<string>();
-
         public async Task TryStart(CancellationToken cancellationToken = default)
         {
             var images = await _dockerClient.Images.ListImagesAsync(new ImagesListParameters
-            {
-                MatchName = ImageWithTag
-            },
+                {
+                    MatchName = ImageWithTag
+                },
                 cancellationToken).NotOnCapturedContext();
 
-            if (images.Count == 0)
+            if(images.Count == 0)
             {
                 // No image found. Pulling latest ..
-                await _dockerClient
-                    .Images
-                    .CreateImageAsync(new ImagesCreateParameters
+                await _dockerClient.Images.CreateImageAsync(new ImagesCreateParameters
                     {
                         FromImage = _image,
                         Tag = _tag
                     },
-                        null,
-                        IgnoreProgress.Forever,
-                        cancellationToken)
-                    .NotOnCapturedContext();
+                    null,
+                    IgnoreProgress.Forever,
+                    cancellationToken).NotOnCapturedContext();
             }
 
             var containerId = await FindContainer(cancellationToken).NotOnCapturedContext()
@@ -74,35 +73,23 @@ namespace SqlStreamStore
         private async Task<string> FindContainer(CancellationToken cancellationToken)
         {
             var containers = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters
-            {
-                All = true,
-                Filters = new Dictionary<string, IDictionary<string, bool>>
                 {
-                    ["name"] = new Dictionary<string, bool>
+                    All = true,
+                    Filters = new Dictionary<string, IDictionary<string, bool>>
                     {
-                        [ContainerName] = true
+                        ["name"] = new Dictionary<string, bool>
+                        {
+                            [ContainerName] = true
+                        }
                     }
-                }
-            },
+                },
                 cancellationToken).NotOnCapturedContext();
 
-            return containers
-                .Where(c => c.State != "exited")
-                .Select(x => x.ID).FirstOrDefault();
+            return containers.Select(x => x.ID).FirstOrDefault();
         }
 
         private async Task<string> CreateContainer(CancellationToken cancellationToken)
         {
-            var portBindings = _ports.ToDictionary(
-                pair => $"{pair.Key}/tcp",
-                pair => (IList<PortBinding>)new List<PortBinding>
-                {
-                    new PortBinding
-                    {
-                        HostPort = pair.Value.ToString()
-                    }
-                });
-
             var createContainerParameters = new CreateContainerParameters
             {
                 Image = ImageWithTag,
@@ -111,7 +98,15 @@ namespace SqlStreamStore
                 Env = Env,
                 HostConfig = new HostConfig
                 {
-                    PortBindings = portBindings
+                    PortBindings = _ports.ToDictionary(
+                        port => $"{port}/tcp",
+                        port => (IList<PortBinding>) new List<PortBinding>
+                        {
+                            new PortBinding
+                            {
+                                HostPort = port.ToString()
+                            }
+                        })
                 }
             };
 
@@ -130,9 +125,9 @@ namespace SqlStreamStore
                 new ContainerStartParameters(),
                 cancellationToken).NotOnCapturedContext();
 
-            if (started)
+            if(started)
             {
-                while (!await _healthCheck(cancellationToken).NotOnCapturedContext())
+                while(!await _healthCheck(cancellationToken).NotOnCapturedContext())
                 {
                     await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken).NotOnCapturedContext();
                 }

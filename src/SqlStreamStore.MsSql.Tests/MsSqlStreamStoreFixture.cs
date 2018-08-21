@@ -1,6 +1,7 @@
 namespace SqlStreamStore
 {
     using System;
+    using System.Collections.Generic;
     using System.Data.SqlClient;
     using System.Threading;
     using System.Threading.Tasks;
@@ -12,16 +13,14 @@ namespace SqlStreamStore
         private readonly string _schema;
         private readonly bool _deleteDatabaseOnDispose;
         public readonly string DatabaseName;
-        private readonly ISqlServerDatabase _localInstance;
+        private readonly DockerSqlServerDatabase _databaseInstance;
 
         public MsSqlStreamStoreFixture(string schema, bool deleteDatabaseOnDispose = true)
         {
             _schema = schema;
             _deleteDatabaseOnDispose = deleteDatabaseOnDispose;
             DatabaseName = $"StreamStoreTests-{Guid.NewGuid():n}";
-            _localInstance = Environment.OSVersion.IsWindows()
-                ? (ISqlServerDatabase) new LocalSqlServerDatabase(DatabaseName)
-                : new DockerSqlServerDatabase(DatabaseName);
+            _databaseInstance = new DockerSqlServerDatabase(DatabaseName);
 
             ConnectionString = CreateConnectionString();
         }
@@ -102,7 +101,7 @@ namespace SqlStreamStore
                 // Fixes: "Cannot drop database because it is currently in use"
                 SqlConnection.ClearPool(sqlConnection);
             }
-            using (var connection = _localInstance.CreateConnection())
+            using (var connection = _databaseInstance.CreateConnection())
             {
                 connection.Open();
                 using (var command = new SqlCommand($"ALTER DATABASE [{DatabaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connection))
@@ -116,11 +115,11 @@ namespace SqlStreamStore
             }
         }
 
-        private Task CreateDatabase() => _localInstance.CreateDatabase();
+        private Task CreateDatabase() => _databaseInstance.CreateDatabase();
 
         private string CreateConnectionString()
         {
-            var connectionStringBuilder = _localInstance.CreateConnectionStringBuilder();
+            var connectionStringBuilder = _databaseInstance.CreateConnectionStringBuilder();
             connectionStringBuilder.MultipleActiveResultSets = true;
             connectionStringBuilder.InitialCatalog = DatabaseName;
 
@@ -169,27 +168,32 @@ namespace SqlStreamStore
             }
         }
 
-        private class DockerSqlServerDatabase : ISqlServerDatabase
+        private class DockerSqlServerDatabase
         {
             private readonly string _databaseName;
             private readonly DockerContainer _sqlServerContainer;
             private readonly string _password;
             private const string Image = "microsoft/mssql-server-linux";
-            private const string Tag = "2017-CU5";
-            private const int Port = 1433;
+            private const string Tag = "2017-CU9";
+            private const int Port = 21433;
 
             public DockerSqlServerDatabase(string databaseName)
             {
                 _databaseName = databaseName;
                 _password = "!01u0Yx19PW";
 
+                var ports = new Dictionary<int, int>
+                {
+                    { 1433, Port }
+                };
+
                 _sqlServerContainer = new DockerContainer(
                     Image,
                     Tag,
                     HealthCheck,
-                    Port)
+                    ports)
                 {
-                    ContainerName = "sql-stream-store-tests-mssql",
+                    ContainerName = "sql-stream-store-tests-mssql-v2",
                     Env = new[] { "ACCEPT_EULA=Y", $"SA_PASSWORD={_password}" }
                 };
             }

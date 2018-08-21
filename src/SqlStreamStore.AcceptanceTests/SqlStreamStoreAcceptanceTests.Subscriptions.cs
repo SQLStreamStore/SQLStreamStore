@@ -422,7 +422,6 @@
                             }))
                         .ToArray();
 
-
                     try
                     {
                         await Task.WhenAll(completionSources.Select(source => source.Task)).WithTimeout(10000);

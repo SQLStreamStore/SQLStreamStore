@@ -12,6 +12,8 @@ used in Event Sourced based applications.
 | Sqlite | [_up for grabs_](https://github.com/damianh/SqlStreamStore/issues/28) |
 | HTTP Wrapper API | _under development_ |
 
+[CI Packages on MyGet](https://www.myget.org/F/sqlstreamstore/api/v3/index.json)
+
 # Design considerations:
 
  - Designed to only ever support RDMBS\SQL implementations.

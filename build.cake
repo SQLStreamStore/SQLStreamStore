@@ -58,7 +58,7 @@ Task("RunTests")
             Logger = $"trx;LogFileName={project}.xml"
         };
         DotNetCoreTest(projectFile, settings);
-    });
+    }
 });
 
 Task("DotNetPack")
@@ -89,6 +89,12 @@ Task("PublishPackages")
     .IsDependentOn("DotNetPack")
     .Does(() => 
 {
+    var apiKey = EnvironmentVariable("MYGET_API_KEY");
+    if(string.IsNullOrWhiteSpace(apiKey))
+    {
+        Information("MyGet API key not available. Packages will not be pushed.");
+        return;
+    }
     var settings = new DotNetCoreNuGetPushSettings
     {
         ApiKey = EnvironmentVariable("MYGET_API_KEY"),

@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
     using Docker.DotNet;
@@ -110,11 +111,18 @@
                 }
             };
 
-            var container = await _dockerClient.Containers.CreateContainerAsync(
-                createContainerParameters,
-                cancellationToken).NotOnCapturedContext();
+            try
+            {
+                var container = await _dockerClient.Containers.CreateContainerAsync(
+                    createContainerParameters,
+                    cancellationToken).NotOnCapturedContext();
 
-            return container.ID;
+                return container.ID;
+            }
+            catch(DockerApiException ex) when(ex.StatusCode == HttpStatusCode.Conflict)
+            {
+                return await FindContainer(cancellationToken);
+            }
         }
 
         private async Task StartContainer(string containerId, CancellationToken cancellationToken)

@@ -97,23 +97,32 @@ namespace SqlStreamStore
             {
                 return;
             }
-            using(var sqlConnection = new SqlConnection(ConnectionString))
+
+            try
             {
-                // Fixes: "Cannot drop database because it is currently in use"
-                SqlConnection.ClearPool(sqlConnection);
-            }
-            using (var connection = _localInstance.CreateConnection())
-            {
-                connection.Open();
-                using (var command = new SqlCommand($"ALTER DATABASE [{DatabaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connection))
+                using(var sqlConnection = new SqlConnection(ConnectionString))
                 {
-                    command.ExecuteNonQuery();
+                    // Fixes: "Cannot drop database because it is currently in use"
+                    SqlConnection.ClearPool(sqlConnection);
                 }
-                using (var command = new SqlCommand($"DROP DATABASE [{DatabaseName}]", connection))
+
+                using(var connection = _localInstance.CreateConnection())
                 {
-                    command.ExecuteNonQuery();
+                    connection.Open();
+                    using(var command =
+                        new SqlCommand($"ALTER DATABASE [{DatabaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE",
+                            connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+
+                    using(var command = new SqlCommand($"DROP DATABASE [{DatabaseName}]", connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
                 }
             }
+            catch (Exception ex){}
         }
 
         private Task CreateDatabase() => _localInstance.CreateDatabase();

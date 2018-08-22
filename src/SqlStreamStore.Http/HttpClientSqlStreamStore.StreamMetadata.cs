@@ -6,8 +6,8 @@ namespace SqlStreamStore
     using System.Threading;
     using System.Threading.Tasks;
     using Newtonsoft.Json.Linq;
-    using SqlStreamStore.HalClient;
-    using SqlStreamStore.HalClient.Models;
+    using SqlStreamStore.Internal.HoneyBearHalClient;
+    using SqlStreamStore.Internal.HoneyBearHalClient.Models;
     using SqlStreamStore.Streams;
 
     partial class HttpClientSqlStreamStore

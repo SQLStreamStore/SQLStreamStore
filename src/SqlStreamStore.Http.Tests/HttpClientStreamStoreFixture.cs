@@ -34,15 +34,15 @@ namespace SqlStreamStore
 
         public override int MaxSubscriptionCount => 500;
 
-        public override async Task<IStreamStore> GetStreamStore()
-        {
-            return new HttpClientSqlStreamStore(new HttpClientSqlStreamStoreSettings
-            {
-                GetUtcNow = () => GetUtcNow(),
-                HttpMessageHandler = _messageHandler,
-                BaseAddress = new UriBuilder().Uri
-            });
-        }
+        public override Task<IStreamStore> GetStreamStore()
+            => Task.FromResult<IStreamStore>(
+                new HttpClientSqlStreamStore(
+                    new HttpClientSqlStreamStoreSettings
+                    {
+                        GetUtcNow = () => GetUtcNow(),
+                        HttpMessageHandler = _messageHandler,
+                        BaseAddress = new UriBuilder().Uri
+                    }));
 
         void IDisposable.Dispose()
         {

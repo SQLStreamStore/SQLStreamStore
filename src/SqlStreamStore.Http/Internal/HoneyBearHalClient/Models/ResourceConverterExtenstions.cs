@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HalClient.Models
+namespace SqlStreamStore.Internal.HoneyBearHalClient.Models
 {
     using System;
     using System.Collections.Generic;
@@ -8,10 +8,7 @@ namespace SqlStreamStore.HalClient.Models
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
 
-    /// <summary>
-    /// Contains a set of IResource extensions.
-    /// </summary>
-    internal static class ResourceConverterExtenstions
+    internal static class ResourceConverterExtensions
     {
         internal static T Data<T>(this IResource source)
             where T : class, new()
@@ -19,15 +16,15 @@ namespace SqlStreamStore.HalClient.Models
             var data = new T();
             var dataType = typeof(T);
 
-            foreach (var property in dataType.GetTypeInfo().DeclaredProperties)
+            foreach(var property in dataType.GetTypeInfo().DeclaredProperties)
             {
                 var propertyName = property.Name;
                 var attribute = property.GetCustomAttributes<JsonPropertyAttribute>().FirstOrDefault();
-                if (!string.IsNullOrEmpty(attribute?.PropertyName))
+                if(!string.IsNullOrEmpty(attribute?.PropertyName))
                     propertyName = attribute.PropertyName;
 
                 var pair = source.FirstOrDefault(p => p.Key.Equals(propertyName, StringComparison.OrdinalIgnoreCase));
-                if (pair.Key == null)
+                if(pair.Key == null)
                     continue;
 
                 var propertyType = property.PropertyType;
@@ -36,11 +33,11 @@ namespace SqlStreamStore.HalClient.Models
                 var complex = pair.Value as JObject;
                 var array = pair.Value as JArray;
 
-                if (complex != null)
+                if(complex != null)
                     value = complex.ToObject(propertyType);
-                else if (array != null)
+                else if(array != null)
                     value = array.ToObject(propertyType);
-                else if (pair.Value != null)
+                else if(pair.Value != null)
                     value = TypeDescriptor.GetConverter(propertyType).ConvertFromInvariantString(pair.Value.ToString());
                 else
                     value = null;
@@ -51,12 +48,6 @@ namespace SqlStreamStore.HalClient.Models
             return data;
         }
 
-        /// <summary>
-        /// Deserialises a list of resources into a given type.
-        /// </summary>
-        /// <param name="source">The list of resources.</param>
-        /// <typeparam name="T">The type to deserialise the resources into.</typeparam>
-        /// <returns>A list of deserialised POCOs.</returns>
         public static IEnumerable<T> Data<T>(this IEnumerable<IResource<T>> source)
             where T : class, new()
             => source.Select(s => s.Data);

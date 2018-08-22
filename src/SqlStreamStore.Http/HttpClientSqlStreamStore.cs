@@ -9,8 +9,8 @@
     using System.Threading.Tasks;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Serialization;
-    using SqlStreamStore.HalClient;
-    using SqlStreamStore.HalClient.Models;
+    using SqlStreamStore.Internal.HoneyBearHalClient;
+    using SqlStreamStore.Internal.HoneyBearHalClient.Models;
     using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
 
@@ -96,11 +96,11 @@
         public event Action OnDispose;
 
         private IHalClient CreateClient(IResource resource) =>
-            new HalClient.HalClient(
+            new HalClient(
                 CreateClient(),
                 new[] { resource.WithBaseAddress(_httpClient.BaseAddress) });
 
-        private IHalClient CreateClient() => new HalClient.HalClient(_httpClient, s_serializer);
+        private IHalClient CreateClient() => new HalClient(_httpClient, s_serializer);
 
         private static StreamMessage[] Convert(IResource[] streamMessages, IHalClient client, bool prefetch = false)
             => Array.ConvertAll(

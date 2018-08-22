@@ -27,7 +27,10 @@ namespace SqlStreamStore
             _server = new TestServer(
                 new WebHostBuilder().Configure(builder => builder.UseSqlStreamStoreHal(_innerStreamStore)));
 
-            _messageHandler = _server.CreateHandler();
+            _messageHandler = new RedirectingHandler
+            {
+                InnerHandler = _server.CreateHandler()
+            };
         }
 
         public override long MinPosition => 0;

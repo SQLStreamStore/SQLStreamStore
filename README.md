@@ -10,7 +10,7 @@ used in Event Sourced based applications.
 | Postgres | On CI Feed |
 | MySql | [_up for grabs_](https://github.com/damianh/SqlStreamStore/issues/29) |
 | Sqlite | [_up for grabs_](https://github.com/damianh/SqlStreamStore/issues/28) |
-| HTTP Wrapper API | _under development_ |
+| HTTP Wrapper API | On CI Feed |
 
 CI Packages available [on MyGet](https://www.myget.org/gallery/sqlstreamstore)
 

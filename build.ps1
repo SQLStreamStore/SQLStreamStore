@@ -37,7 +37,7 @@ Param(
 
 $dotNetVersionString = dotnet --version
 $dotNetVersion = [Version]$dotnetVersionString
-$minDotNetVersionString = "2.1.400"
+$minDotNetVersionString = "2.1.401"
 $minDotNetVersion = [Version]$minDotNetVersionString 
 
 If($dotnetVersion -lt $minDotnetVersion){

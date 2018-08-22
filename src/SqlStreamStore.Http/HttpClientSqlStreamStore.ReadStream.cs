@@ -1,12 +1,11 @@
 namespace SqlStreamStore
 {
-    using System;
     using System.Linq;
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
-    using SqlStreamStore.HalClient;
-    using SqlStreamStore.HalClient.Models;
+    using SqlStreamStore.Internal.HoneyBearHalClient;
+    using SqlStreamStore.Internal.HoneyBearHalClient.Models;
     using SqlStreamStore.Streams;
 
     partial class HttpClientSqlStreamStore
@@ -28,7 +27,6 @@ namespace SqlStreamStore
                 client,
                 streamId,
                 fromVersionInclusive,
-                maxCount,
                 prefetchJsonData);
         }
 
@@ -49,7 +47,6 @@ namespace SqlStreamStore
                 client,
                 streamId,
                 fromVersionInclusive,
-                maxCount,
                 prefetchJsonData);
         }
 
@@ -57,7 +54,6 @@ namespace SqlStreamStore
             IHalClient client,
             StreamId streamId,
             int fromVersionInclusive,
-            int maxCount,
             bool prefetchJsonData)
         {
             var resource = client.Current.First();
@@ -105,7 +101,6 @@ namespace SqlStreamStore
                         await client.GetAsync(resource, Constants.Relations.Next),
                         streamId,
                         pageInfo.LastStreamVersion,
-                        maxCount,
                         prefetchJsonData)
                     : new ReadStreamPage(
                         streamId,
@@ -123,7 +118,6 @@ namespace SqlStreamStore
             IHalClient client,
             StreamId streamId,
             int fromVersionInclusive,
-            int maxCount,
             bool prefetchJsonData)
         {
             var resource = client.Current.First();
@@ -163,14 +157,10 @@ namespace SqlStreamStore
                     await client.GetAsync(resource, Constants.Relations.Previous),
                     streamId,
                     pageInfo.LastStreamVersion,
-                    maxCount,
                     prefetchJsonData),
                 streamMessages);
 
             return readStreamPage;
-
-            int GetNextVersion(StreamMessage[] messages, int lastVersion)
-                => messages.Any() ? messages.Last().StreamVersion - 1 : Math.Max(lastVersion - 1, -1);
         }
     }
 }

@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HalClient.Http
+namespace SqlStreamStore.Internal.HoneyBearHalClient.Http
 {
     using System.Collections.Generic;
     using System.IO;
@@ -13,15 +13,15 @@ namespace SqlStreamStore.HalClient.Http
     internal sealed class JsonHttpClient : IJsonHttpClient
     {
         private static readonly RecyclableMemoryStreamManager s_streamManager = new RecyclableMemoryStreamManager();
+        private readonly JsonSerializer _serializer;
 
         public JsonHttpClient(HttpClient client, JsonSerializer serializer)
         {
+            _serializer = serializer;
             HttpClient = client;
-            Serializer = serializer;
         }
 
         public HttpClient HttpClient { get; }
-        public JsonSerializer Serializer { get; }
 
         public Task<HttpResponseMessage> GetAsync(
             string uri,
@@ -50,7 +50,7 @@ namespace SqlStreamStore.HalClient.Http
                 CloseOutput = false
             })
             {
-                await JToken.FromObject(value, Serializer).WriteToAsync(writer, cancellationToken);
+                await JToken.FromObject(value, _serializer).WriteToAsync(writer, cancellationToken);
 
                 await writer.FlushAsync(cancellationToken);
 

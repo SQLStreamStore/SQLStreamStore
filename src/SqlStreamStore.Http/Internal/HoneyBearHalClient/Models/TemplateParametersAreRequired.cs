@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HalClient.Models
+namespace SqlStreamStore.Internal.HoneyBearHalClient.Models
 {
     using System;
 
@@ -6,8 +6,6 @@ namespace SqlStreamStore.HalClient.Models
     {
         public TemplateParametersAreRequired(ILink link)
             : base($"Template parameters are required for link={link}.")
-        {
-
-        }
+        { }
     }
 }

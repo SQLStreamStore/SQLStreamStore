@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore.HalClient.Serialization
+﻿namespace SqlStreamStore.Internal.HoneyBearHalClient.Serialization
 {
     using System;
     using System.Collections;
@@ -8,9 +8,9 @@
     using System.Threading.Tasks;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
-    using SqlStreamStore.HalClient.Models;
+    using SqlStreamStore.Internal.HoneyBearHalClient.Models;
 
-    internal class HalResourceJsonReader
+    internal static class HalResourceJsonReader
     {
         public static async Task<IResource> ReadResource(
             JsonReader reader,

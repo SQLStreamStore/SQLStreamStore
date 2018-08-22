@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HalClient.Models
+namespace SqlStreamStore.Internal.HoneyBearHalClient.Models
 {
     using System;
 

@@ -82,20 +82,31 @@ namespace SqlStreamStore
 
         public override void Dispose()
         {
-            SqlConnection.ClearAllPools();
-
-            using (var connection = _localInstance.CreateConnection())
+            try
             {
-                connection.Open();
-                using (var command = new SqlCommand($"ALTER DATABASE [{_databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connection))
+                using(var sqlConnection = new SqlConnection(ConnectionString))
                 {
-                    command.ExecuteNonQuery();
+                    // Fixes: "Cannot drop database because it is currently in use"
+                    SqlConnection.ClearPool(sqlConnection);
                 }
-                using (var command = new SqlCommand($"DROP DATABASE [{_databaseName}]", connection))
+
+                using(var connection = _localInstance.CreateConnection())
                 {
-                    command.ExecuteNonQuery();
+                    connection.Open();
+                    using(var command =
+                        new SqlCommand($"ALTER DATABASE [{_databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE",
+                            connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+
+                    using(var command = new SqlCommand($"DROP DATABASE [{_databaseName}]", connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
                 }
             }
+            catch (Exception ex){}
         }
 
         private async Task CreateDatabase()

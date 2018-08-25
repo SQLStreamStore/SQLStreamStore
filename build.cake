@@ -36,7 +36,7 @@ Task("RunTests")
     .IsDependentOn("Compile")
     .Does(() =>
 {
-    var projects = new string[] 
+    var projects = new [] 
     {
         "SqlStreamStore.Tests",
         "SqlStreamStore.MsSql.Tests",
@@ -45,7 +45,7 @@ Task("RunTests")
         "SqlStreamStore.Http.Tests"
     };
 
-    foreach(var project in projects)
+    Parallel.ForEach(projects, project =>
     {
         var projectDir = $"./src/{project}/";
         var projectFile = $"{project}.csproj";
@@ -59,7 +59,7 @@ Task("RunTests")
             Logger = $"trx;LogFileName={project}.xml"
         };
         DotNetCoreTest(projectFile, settings);
-    }
+    });
 });
 
 Task("DotNetPack")

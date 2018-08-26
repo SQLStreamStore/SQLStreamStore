@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore
+namespace SqlStreamStore
 {
     using System;
     using System.Collections.Generic;
@@ -9,26 +9,21 @@
     using Docker.DotNet.Models;
     using SqlStreamStore.Infrastructure;
 
-    internal class DockerContainer
+    public class DockerContainer
     {
         private const string UnixPipe = "unix:///var/run/docker.sock";
         private const string WindowsPipe = "npipe://./pipe/docker_engine";
 
-        private static readonly Uri s_DockerUri = new Uri(Environment.OSVersion.IsWindows() ? WindowsPipe : UnixPipe);
-
+        private static readonly Uri s_dockerUri = new Uri(Environment.OSVersion.IsWindows() ? WindowsPipe : UnixPipe);
         private static readonly DockerClientConfiguration s_dockerClientConfiguration =
-            new DockerClientConfiguration(s_DockerUri);
+            new DockerClientConfiguration(s_dockerUri);
 
         private readonly int[] _ports;
         private readonly string _image;
         private readonly string _tag;
         private readonly Func<CancellationToken, Task<bool>> _healthCheck;
         private readonly IDockerClient _dockerClient;
-
         private string ImageWithTag => $"{_image}:{_tag}";
-
-        public string ContainerName { get; set; } = Guid.NewGuid().ToString("n");
-        public string[] Env { get; set; } = Array.Empty<string>();
 
         public DockerContainer(
             string image,
@@ -43,7 +38,11 @@
             _healthCheck = healthCheck;
         }
 
-        public async Task TryStart(CancellationToken cancellationToken = default(CancellationToken))
+        public string ContainerName { get; set; } = Guid.NewGuid().ToString("n");
+
+        public string[] Env { get; set; } = Array.Empty<string>();
+
+        public async Task TryStart(CancellationToken cancellationToken = default)
         {
             var images = await _dockerClient.Images.ListImagesAsync(new ImagesListParameters
                 {

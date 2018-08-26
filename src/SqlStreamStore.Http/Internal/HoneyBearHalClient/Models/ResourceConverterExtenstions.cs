@@ -38,7 +38,7 @@ namespace SqlStreamStore.Internal.HoneyBearHalClient.Models
                 else if(array != null)
                     value = array.ToObject(propertyType);
                 else if(pair.Value != null)
-                    value = TypeDescriptor.GetConverter(propertyType).ConvertFromInvariantString(pair.Value.ToString());
+                    value = TypeDescriptor.GetConverter(propertyType).ConvertFromString(pair.Value.ToString());
                 else
                     value = null;
 

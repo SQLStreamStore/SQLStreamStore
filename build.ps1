@@ -1,8 +1,3 @@
-[CmdletBinding()]
-Param(
-    [string]$Target = "default"
-)
-
 # Install .NET Core
 
 $dotNetVersionString = dotnet --version
@@ -22,4 +17,4 @@ else{
 
 # Run Build
 
-dotnet run -p build\build.csproj -c Release --project $Target
+dotnet run -p build\build.csproj -c Release -- $args

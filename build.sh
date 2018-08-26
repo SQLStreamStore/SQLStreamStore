@@ -10,5 +10,4 @@ curl -sSL https://dot.net/dotnet-install.sh | bash /dev/stdin --channel current 
  
 # Run Build
 echo "${0##*/}": Running Build...
-dotnet run -p build/build.csproj -c Release --project "$@"
-dotnet "$CAKE_DLL" "$@"
+dotnet run -p build/build.csproj -c Release "$@"

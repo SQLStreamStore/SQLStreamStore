@@ -140,7 +140,7 @@
                         Position.None,
                         (_, message, __) =>
                         {
-                            _testOutputHelper.WriteLine($"Received message {message.StreamId} " +
+                            TestOutputHelper.WriteLine($"Received message {message.StreamId} " +
                                                         $"{message.StreamVersion} {message.Position}");
                             receivedMessages.Add(message);
                             if (message.StreamId == streamId1 && message.StreamVersion == 3)
@@ -204,7 +204,7 @@
                         Position.None,
                         (_, message, __) =>
                         {
-                            _testOutputHelper.WriteLine($"Received message {message.StreamId} {message.StreamVersion} {message.Position}");
+                            TestOutputHelper.WriteLine($"Received message {message.StreamId} {message.StreamVersion} {message.Position}");
                             receivedMessages.Add(message);
                             if (message.StreamId == streamId1 && message.StreamVersion == 3)
                             {
@@ -247,7 +247,7 @@
                         StreamVersion.End,
                         (_, message, ct) =>
                         {
-                            _testOutputHelper.WriteLine($"Received message {message.StreamId} {message.StreamVersion} "
+                            TestOutputHelper.WriteLine($"Received message {message.StreamId} {message.StreamVersion} "
                                                         + $"{message.Position}");
                             receivedCount++;
                             if (message.StreamVersion >= 11)
@@ -263,7 +263,7 @@
                         var allMessagesPage = await store.ReadAllForwards(0, 30);
                         foreach(var streamMessage in allMessagesPage.Messages)
                         {
-                            _testOutputHelper.WriteLine(streamMessage.ToString());
+                            TestOutputHelper.WriteLine(streamMessage.ToString());
                         }
 
                         var receivedMessage = await receiveMessage.Task.WithTimeout();
@@ -297,7 +297,7 @@
                         Position.End,
                         (_, message, __) =>
                         {
-                            _testOutputHelper.WriteLine($"StreamId={message.StreamId} Version={message.StreamVersion} "
+                            TestOutputHelper.WriteLine($"StreamId={message.StreamId} Version={message.StreamVersion} "
                                                         + $"Position={message.Position}");
                             receivedMessages.Add(message);
                             if (message.StreamId == streamId1 && message.StreamVersion == 11)
@@ -498,7 +498,7 @@
                         Position.None,
                         (_, message, __) =>
                         {
-                            _testOutputHelper.WriteLine($"Received message {message.StreamId} " +
+                            TestOutputHelper.WriteLine($"Received message {message.StreamId} " +
                                                         $"{message.StreamVersion} {message.Position}");
                             receivedMessages.Add(message);
                             if (message.StreamId == streamId)

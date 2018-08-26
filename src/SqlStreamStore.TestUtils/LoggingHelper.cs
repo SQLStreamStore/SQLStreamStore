@@ -10,7 +10,7 @@
     using Xunit.Abstractions;
     using System.Threading;
 
-    internal static class LoggingHelper
+    public static class LoggingHelper
     {
         private const string CaptureCorrelationIdKey = "CaptureCorrelationId";
         private static readonly Subject<LogEvent> s_logEventSubject = new Subject<LogEvent>();

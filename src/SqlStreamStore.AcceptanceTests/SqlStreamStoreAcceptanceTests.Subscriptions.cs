@@ -756,7 +756,7 @@
                         {
                             droppedTcs.SetResult(reason);
                         });
-                    // First message is blocked in handling, the second is co-operatively cancelled
+                    // First message is blocked in handling, the second is cooperatively cancelled
                     await subscription.Started;
                     await AppendMessages(store, streamId, 2);
                     await handler.WaitAsync().WithTimeout(5000);

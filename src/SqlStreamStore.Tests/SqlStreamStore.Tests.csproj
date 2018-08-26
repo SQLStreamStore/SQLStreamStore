@@ -12,6 +12,7 @@
     <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" LinkBase="InMemory" />
   </ItemGroup>
   <ItemGroup>
+    <ProjectReference Include="..\SqlStreamStore.TestUtils\SqlStreamStore.TestUtils.csproj" />
     <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />
   </ItemGroup>
   <ItemGroup>

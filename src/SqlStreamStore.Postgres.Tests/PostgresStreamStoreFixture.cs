@@ -127,17 +127,17 @@ namespace SqlStreamStore
             {
 #if DEBUG
                 NpgsqlLogManager.IsParameterLoggingEnabled = true;
-                NpgsqlLogManager.Provider = new XunitNpgsqlLogProvider();
+                //NpgsqlLogManager.Provider = new XunitNpgsqlLogProvider();
 #endif
             }
 
             protected DatabaseManager(ITestOutputHelper output, string databaseName)
             {
-                XunitNpgsqlLogProvider.s_CurrentOutput = Output = output;
+                XunitNpgsqlLogProvider.CurrentOutput = Output = output;
                 DatabaseName = databaseName;
             }
 
-            public virtual async Task CreateDatabase(CancellationToken cancellationToken = default(CancellationToken))
+            public virtual async Task CreateDatabase(CancellationToken cancellationToken = default)
             {
                 using(var connection = new NpgsqlConnection(DefaultConnectionString))
                 {
@@ -306,6 +306,7 @@ namespace SqlStreamStore
         private class ConsoleTestoutputHelper : ITestOutputHelper
         {
             public void WriteLine(string message) => Console.Write(message);
+
             public void WriteLine(string format, params object[] args) => Console.WriteLine(format, args);
         }
 
@@ -334,9 +335,9 @@ namespace SqlStreamStore
 
         private class XunitNpgsqlLogProvider : INpgsqlLoggingProvider
         {
-            internal static ITestOutputHelper s_CurrentOutput;
+            internal static ITestOutputHelper CurrentOutput;
 
-            public NpgsqlLogger CreateLogger(string name) => new XunitNpgsqlLogger(s_CurrentOutput, name);
+            public NpgsqlLogger CreateLogger(string name) => new XunitNpgsqlLogger(CurrentOutput, name);
         }
     }
 }

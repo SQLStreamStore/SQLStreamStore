@@ -3,8 +3,5 @@
     <HiddenComponentWarnings>
       <Value>AspNetTestHostCompatibility</Value>
     </HiddenComponentWarnings>
-    <IgnoredTests>
-      <AllTestsSelector />
-    </IgnoredTests>
   </Settings>
 </ProjectConfiguration>

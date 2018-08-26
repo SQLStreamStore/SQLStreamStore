@@ -21,9 +21,7 @@
         public const int CurrentVersion = 1;
 
         public PostgresStreamStore(PostgresStreamStoreSettings settings)
-            : base(
-                settings.GetUtcNow,
-                settings.LogName)
+            : base(settings.GetUtcNow, settings.LogName)
         {
             _settings = settings;
             _createConnection = () => new NpgsqlConnection(settings.ConnectionString);

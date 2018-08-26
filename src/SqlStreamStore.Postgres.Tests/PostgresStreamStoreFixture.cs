@@ -6,6 +6,7 @@ namespace SqlStreamStore
     using Npgsql;
     using Npgsql.Logging;
     using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.Logging;
     using Xunit.Abstractions;
 
     public class PostgresStreamStoreFixture : StreamStoreAcceptanceTestFixture
@@ -34,7 +35,7 @@ namespace SqlStreamStore
                 $"test_{Guid.NewGuid():n}",
                 connectionString);
         }
-
+            
         public override long MinPosition => 0;
 
         public override int MaxSubscriptionCount => 90;
@@ -106,13 +107,14 @@ namespace SqlStreamStore
         private interface IDatabaseManager : IDisposable
         {
             string ConnectionString { get; }
+
             Task CreateDatabase(CancellationToken cancellationToken = default);
         }
 
         private abstract class DatabaseManager : IDatabaseManager
         {
             protected readonly string DatabaseName;
-            protected readonly ITestOutputHelper Output;
+            protected readonly ITestOutputHelper TestOutputHelper;
 
             private bool _started;
 
@@ -127,13 +129,13 @@ namespace SqlStreamStore
             {
 #if DEBUG
                 NpgsqlLogManager.IsParameterLoggingEnabled = true;
-                //NpgsqlLogManager.Provider = new XunitNpgsqlLogProvider();
+                NpgsqlLogManager.Provider = new LibLogNpgsqlLogProvider();
 #endif
             }
 
-            protected DatabaseManager(ITestOutputHelper output, string databaseName)
+            protected DatabaseManager(ITestOutputHelper testOutputHelper, string databaseName)
             {
-                XunitNpgsqlLogProvider.CurrentOutput = Output = output;
+                TestOutputHelper = testOutputHelper;
                 DatabaseName = databaseName;
             }
 
@@ -148,7 +150,6 @@ namespace SqlStreamStore
                         await CreateDatabase(connection, cancellationToken);
                     }
                 }
-
                 _started = true;
             }
 
@@ -166,7 +167,7 @@ namespace SqlStreamStore
                 }
                 catch(Exception ex)
                 {
-                    Output.WriteLine($@"Attempted to execute ""{commandText}"" but failed: {ex}");
+                    TestOutputHelper.WriteLine($@"Attempted to execute ""{commandText}"" but failed: {ex}");
                     throw;
                 }
             }
@@ -184,7 +185,7 @@ namespace SqlStreamStore
                 }
                 catch(Exception ex)
                 {
-                    Output.WriteLine($@"Attempted to execute ""{commandText}"" but failed: {ex}");
+                    TestOutputHelper.WriteLine($@"Attempted to execute ""{commandText}"" but failed: {ex}");
                     throw;
                 }
             }
@@ -218,7 +219,7 @@ namespace SqlStreamStore
                 }
                 catch(Exception ex)
                 {
-                    Output.WriteLine($@"Attempted to execute ""{$"DROP DATABASE {DatabaseName}"}"" but failed: {ex}");
+                    TestOutputHelper.WriteLine($@"Attempted to execute ""{$"DROP DATABASE {DatabaseName}"}"" but failed: {ex}");
                 }
             }
         }
@@ -247,8 +248,8 @@ namespace SqlStreamStore
                 MaxPoolSize = 1024
             };
 
-            public DockerDatabaseManager(ITestOutputHelper output, string databaseName, int tcpPort = 5432)
-                : base(output, databaseName)
+            public DockerDatabaseManager(ITestOutputHelper testOutputHelper, string databaseName, int tcpPort = 5432)
+                : base(testOutputHelper, databaseName)
             {
                 _tcpPort = tcpPort;
                 _postgresContainer = new DockerContainer(
@@ -258,7 +259,7 @@ namespace SqlStreamStore
                     ports: tcpPort)
                 {
                     ContainerName = ContainerName,
-                    //   Env = new[] { @"PGOPTIONS=-N 1024" }
+                    Env = new[] { @"MAX_CONNECTIONS=500" }
                 };
             }
 
@@ -282,7 +283,7 @@ namespace SqlStreamStore
                 }
                 catch(Exception ex)
                 {
-                    Output.WriteLine(ex.Message);
+                    TestOutputHelper.WriteLine(ex.Message);
                 }
 
                 return false;
@@ -293,8 +294,8 @@ namespace SqlStreamStore
         {
             public override string ConnectionString { get; }
 
-            public ServerDatabaseManager(ITestOutputHelper output, string databaseName, string connectionString)
-                : base(output, databaseName)
+            public ServerDatabaseManager(ITestOutputHelper testOutputHelper, string databaseName, string connectionString)
+                : base(testOutputHelper, databaseName)
             {
                 ConnectionString = new NpgsqlConnectionStringBuilder(connectionString)
                 {
@@ -310,34 +311,36 @@ namespace SqlStreamStore
             public void WriteLine(string format, params object[] args) => Console.WriteLine(format, args);
         }
 
-        private class XunitNpgsqlLogger : NpgsqlLogger
+        private class LibLogNpgsqlLogProvider : INpgsqlLoggingProvider
         {
-            private readonly ITestOutputHelper _output;
-            private readonly string _name;
-
-            public XunitNpgsqlLogger(ITestOutputHelper output, string name)
+            public NpgsqlLogger CreateLogger(string name)
             {
-                _output = output;
-                _name = name;
+                var logger = Logging.LogProvider.GetLogger(name);
+                return new LibLogNpgsqlLogger(logger, name);
             }
 
-            public override bool IsEnabled(NpgsqlLogLevel level) => true;
+            private class LibLogNpgsqlLogger : NpgsqlLogger
+            {
+                private readonly ILog _logger;
+                private readonly string _name;
 
-            public override void Log(NpgsqlLogLevel level, int connectorId, string msg, Exception exception = null)
-                => _output.WriteLine(
-                    $@"[{level:G}] [{_name}] (Connector Id: {connectorId}); {msg}; {
-                            FormatOptionalException(exception)
-                        }");
+                public LibLogNpgsqlLogger(ILog logger, string name)
+                {
+                    _logger = logger;
+                    _name = name;
+                }
 
-            private static string FormatOptionalException(Exception exception)
-                => exception == null ? string.Empty : $"(Exception: {exception})";
-        }
+                public override bool IsEnabled(NpgsqlLogLevel level) => true;
 
-        private class XunitNpgsqlLogProvider : INpgsqlLoggingProvider
-        {
-            internal static ITestOutputHelper CurrentOutput;
+                public override void Log(NpgsqlLogLevel level, int connectorId, string msg, Exception exception = null)
+                    => _logger.Info(
+                        $@"[{level:G}] [{_name}] (Connector Id: {connectorId}); {msg}; {
+                                FormatOptionalException(exception)
+                            }");
 
-            public NpgsqlLogger CreateLogger(string name) => new XunitNpgsqlLogger(CurrentOutput, name);
+                private static string FormatOptionalException(Exception exception)
+                    => exception == null ? string.Empty : $"(Exception: {exception})";
+            }
         }
     }
 }

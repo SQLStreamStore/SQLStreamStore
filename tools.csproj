@@ -1,9 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk">
-  <PropertyGroup>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
-  </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Cake.CoreCLR" Version="0.29.0" />
-    <PackageReference Include="xunit.runner.console" Version="2.4.0" />
-  </ItemGroup>
-</Project>

@@ -26,9 +26,12 @@
             v2Store.Dispose();
             v2Fixture.Dispose();
 
-            // Migrate with V3 schema.
-            var v3Fixture = new MsSqlStreamStoreV3Fixture(schema, databaseNameOverride: v2Fixture.DatabaseName);
-            var v3Store = await v3Fixture.GetMsSqlStreamStore();
+            var settings = new MsSqlStreamStoreV3Settings(v2Fixture.ConnectionString)
+            {
+                Schema = schema,
+            };
+
+            var v3Store = new MsSqlStreamStoreV3(settings);
 
             var checkSchemaResult = await v3Store.CheckSchema();
             checkSchemaResult.IsMatch().ShouldBeFalse();
@@ -39,7 +42,6 @@
             checkSchemaResult.IsMatch().ShouldBeTrue();
 
             v3Store.Dispose();
-            v3Fixture.Dispose();
         }
     }
 }

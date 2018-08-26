@@ -23,7 +23,8 @@
                         await store.ReadHeadPosition();
                     }
 
-                    _testOutputHelper.WriteLine(stopwatch.ElapsedMilliseconds.ToString());
+
+                    TestOutputHelper.WriteLine(stopwatch.ElapsedMilliseconds.ToString());
                 }
             }
         }

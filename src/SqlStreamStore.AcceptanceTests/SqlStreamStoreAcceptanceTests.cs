@@ -12,14 +12,13 @@
 
     public abstract partial class StreamStoreAcceptanceTests : IDisposable
     {
-        private readonly ITestOutputHelper _testOutputHelper;
         private readonly IDisposable _logCapture;
 
-        protected ITestOutputHelper TestOutputHelper => _testOutputHelper;
+        protected ITestOutputHelper TestOutputHelper { get; }
 
         protected StreamStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
         {
-            _testOutputHelper = testOutputHelper;
+            TestOutputHelper = testOutputHelper;
             _logCapture = CaptureLogs(testOutputHelper);
         }
 

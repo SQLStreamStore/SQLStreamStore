@@ -42,10 +42,9 @@
                 Value = new Tuple<string, Guid>(CaptureCorrelationIdKey, captureId)
             };
 
-            Func<LogEvent, bool> filter = logEvent =>
-                callContextData.Value.Item2.Equals(captureId);
+            bool Filter(LogEvent logEvent) => callContextData.Value.Item2.Equals(captureId);
 
-            var subscription = s_logEventSubject.Where(filter).Subscribe(logEvent =>
+            var subscription = s_logEventSubject.Where(Filter).Subscribe(logEvent =>
             {
                 using (var writer = new StringWriter())
                 {

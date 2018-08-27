@@ -1,6 +1,7 @@
 namespace SqlStreamStore
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using Npgsql;
@@ -256,7 +257,10 @@ namespace SqlStreamStore
                     DockerImage,
                     DockerTag,
                     HealthCheck,
-                    ports: tcpPort)
+                    new Dictionary<int, int>
+                    {
+                        [tcpPort] = tcpPort
+                    })
                 {
                     ContainerName = ContainerName,
                     Env = new[] { @"MAX_CONNECTIONS=500" }
@@ -315,7 +319,7 @@ namespace SqlStreamStore
         {
             public NpgsqlLogger CreateLogger(string name)
             {
-                var logger = Logging.LogProvider.GetLogger(name);
+                var logger = LogProvider.GetLogger(name);
                 return new LibLogNpgsqlLogger(logger, name);
             }
 

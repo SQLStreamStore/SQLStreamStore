@@ -296,7 +296,8 @@
                         if(messages.Length > page.Messages.Length)
                         {
                             throw new WrongExpectedVersionException(
-                                ErrorMessages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal,
+                                ErrorMessages.AppendFailedWrongExpectedVersion(
+                                    sqlStreamId.IdOriginal,
                                     ExpectedVersion.NoStream),
                                 ex);
                         }

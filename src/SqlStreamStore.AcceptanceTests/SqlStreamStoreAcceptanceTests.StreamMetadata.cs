@@ -52,6 +52,22 @@
             }
         }
 
+        [Fact]
+        public async Task Can_set_and_stream_metadata_for_non_existent_stream_and_create_stream()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    var streamId = "stream-1";
+
+                    await store.SetStreamMetadata(streamId, maxCount: 1);
+
+                    await store.AppendToStream("stream-1", -1, CreateNewStreamMessages(1, 2, 3));
+                }
+            }
+        }
+
         [Fact, Trait("Category", "StreamMetadata")]
         public async Task Can_set_and_get_stream_metadata_after_stream_is_created()
         {
@@ -128,7 +144,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "StreamMetadata")]
         public async Task Can_set_deleted_stream_metadata()
         {
             using (var fixture = GetFixture())

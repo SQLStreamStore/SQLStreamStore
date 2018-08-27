@@ -841,8 +841,9 @@
                         });
                     subscription.MaxCountPerRead = 10;
 
-                    await Assert.ThrowsAsync<TimeoutException>(
-                        async () => await caughtUp.Task.WithTimeout(1000));
+                    Func<Task> act = async () => await caughtUp.Task.WithTimeout(1000);
+
+                    await act.ShouldThrowAsync<TimeoutException>();
 
                     subscription.Dispose();
                 }

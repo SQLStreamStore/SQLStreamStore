@@ -24,7 +24,7 @@
             : base(settings.GetUtcNow, settings.LogName)
         {
             _settings = settings;
-            _createConnection = () => new NpgsqlConnection(settings.ConnectionString);
+            _createConnection = () => _settings.ConnectionFactory(_settings.ConnectionString);
             _streamStoreNotifier = new Lazy<IStreamStoreNotifier>(() =>
             {
                 if(settings.CreateStreamStoreNotifier == null)

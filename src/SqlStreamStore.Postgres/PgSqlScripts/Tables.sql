@@ -41,11 +41,6 @@ CREATE TABLE IF NOT EXISTS __schema__.messages (
 ALTER SEQUENCE __schema__.messages_seq
 OWNED BY __schema__.messages.position;
 
-CREATE TABLE IF NOT EXISTS __schema__.deleted_streams (
-  id CHAR(42) NOT NULL,
-  CONSTRAINT pk_deleted_streams PRIMARY KEY (id)
-);
-
 DO $F$
 BEGIN
   CREATE TYPE __schema__.new_stream_message AS (

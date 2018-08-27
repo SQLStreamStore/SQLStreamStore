@@ -14,8 +14,6 @@ DECLARE
   _stream_id_internal INT;
   _success            INT;
 BEGIN
-  DELETE FROM __schema__.deleted_streams WHERE id = _stream_id;
-
   IF _expected_version = -2 /* ExpectedVersion.Any */
   THEN
 

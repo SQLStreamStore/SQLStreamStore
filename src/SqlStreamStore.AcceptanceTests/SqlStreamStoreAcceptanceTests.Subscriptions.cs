@@ -758,7 +758,7 @@
                     // First message is blocked in handling, the second is cooperatively cancelled
                     await subscription.Started;
                     await AppendMessages(store, streamId, 2);
-                    await handler.WaitAsync().WithTimeout(5000);
+                    await handler.WaitAsync().WithTimeout(10000);
                     subscription.Dispose();
                     handler.Set();
 

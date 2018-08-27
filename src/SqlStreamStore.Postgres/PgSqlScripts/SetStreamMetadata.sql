@@ -24,19 +24,6 @@ BEGIN
       )
       INTO _current_version;
 
-  SELECT COUNT(*) FROM __schema__.deleted_streams
-      INTO _stream_deleted;
-
-  IF (_stream_deleted = 0)
-  THEN
-    PERFORM __schema__.append_to_stream(
-              _stream_id,
-              _stream_id_original,
-              -1,
-              _created_utc,
-              ARRAY [] :: __schema__.new_stream_message []);
-  END IF;
-
   UPDATE __schema__ . streams
   SET max_age   = _max_age,
       max_count = _max_count

@@ -56,7 +56,6 @@ DROP FUNCTION IF EXISTS __schema__.read_stream_version_of_message_id(
 DROP FUNCTION IF EXISTS __schema__.scavenge(
   CHAR(42)
 ) CASCADE;
-DROP TABLE IF EXISTS __schema__.deleted_streams CASCADE;
 DROP TABLE IF EXISTS __schema__.messages CASCADE;
 DROP SEQUENCE IF EXISTS __schema__.messages_seq CASCADE;
 DROP TABLE IF EXISTS __schema__.streams CASCADE;

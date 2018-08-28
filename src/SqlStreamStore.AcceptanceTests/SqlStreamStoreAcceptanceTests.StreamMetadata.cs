@@ -53,7 +53,7 @@
         }
 
         [Fact]
-        public async Task Can_set_and_stream_metadata_for_non_existent_stream_and_create_stream()
+        public async Task Can_set_and_stream_metadata_for_non_existent_stream_and_append()
         {
             using (var fixture = GetFixture())
             {

@@ -96,13 +96,19 @@
             };
         }
 
-        public static NpgsqlParameter CreatedUtc(DateTime value)
+        public static NpgsqlParameter CreatedUtc(DateTime? value)
         {
-            return new NpgsqlParameter<DateTime>
-            {
-                TypedValue = value,
-                NpgsqlDbType = NpgsqlDbType.Timestamp
-            };
+            return value.HasValue
+                ? (NpgsqlParameter) new NpgsqlParameter<DateTime>
+                {
+                    TypedValue = value.Value,
+                    NpgsqlDbType = NpgsqlDbType.Timestamp
+                }
+                : new NpgsqlParameter<DBNull>
+                {
+                    TypedValue = DBNull.Value,
+                    NpgsqlDbType = NpgsqlDbType.Timestamp
+                };
         }
 
         public static NpgsqlParameter NewStreamMessages(NewStreamMessage[] value)

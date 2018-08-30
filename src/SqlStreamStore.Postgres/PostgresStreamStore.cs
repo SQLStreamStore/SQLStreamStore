@@ -27,7 +27,7 @@
             _createConnection = () => _settings.ConnectionFactory(_settings.ConnectionString);
             _streamStoreNotifier = new Lazy<IStreamStoreNotifier>(() =>
             {
-                if(settings.CreateStreamStoreNotifier == null)
+                if(_settings.CreateStreamStoreNotifier == null)
                 {
                     throw new InvalidOperationException(
                         "Cannot create notifier because supplied createStreamStoreNotifier was null");

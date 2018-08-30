@@ -165,5 +165,57 @@
                 }
             }
         }
+
+        public static IEnumerable<object[]> GetUtcNowNullCases()
+        {
+            var message = CreateNewStreamMessages(1).First();
+            yield return new object[]
+            {
+                new Func<PostgresStreamStore, Task>(
+                    store => store.AppendToStream("a-stream", ExpectedVersion.Any, message)),
+            };
+            yield return new object[]
+            {
+                new Func<PostgresStreamStore, Task>(
+                    async store =>
+                    {
+                        await store.AppendToStream("a-stream", ExpectedVersion.Any, message);
+                        await store.DeleteStream("a-stream");
+                    })
+            };
+            yield return new object[]
+            {
+                new Func<PostgresStreamStore, Task>(
+                    async store =>
+                    {
+                        await store.AppendToStream("a-stream", ExpectedVersion.Any, message);
+                        await store.DeleteMessage("a-stream", message.MessageId);
+                    }),
+            };
+            yield return new object[]
+            {
+                new Func<PostgresStreamStore, Task>(
+                    store => store.SetStreamMetadata("a-stream", maxAge: 1))
+            };
+        }
+
+        [Theory, MemberData(nameof(GetUtcNowNullCases))]
+        public async Task Can_invoke_operation_when_get_utc_now_is_null(Func<PostgresStreamStore, Task> operation)
+        {
+            using(var fixture = new PostgresStreamStoreFixture("dbo", TestOutputHelper))
+            {
+                await fixture.CreateDatabase();
+
+                using(var store = new PostgresStreamStore(new PostgresStreamStoreSettings(fixture.ConnectionString)
+                {
+                    GetUtcNow = null
+                }))
+                {
+                    await store.CreateSchema();
+
+                    await operation(store);
+                }
+            }
+        }
     }
 }

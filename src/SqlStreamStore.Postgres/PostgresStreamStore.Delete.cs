@@ -47,7 +47,7 @@
                 transaction,
                 Parameters.StreamId(streamId),
                 Parameters.ExpectedVersion(expectedVersion),
-                Parameters.CreatedUtc(_settings.GetUtcNow()),
+                Parameters.CreatedUtc(_settings.GetUtcNow?.Invoke()),
                 Parameters.DeletedStreamId,
                 Parameters.DeletedStreamIdOriginal,
                 Parameters.DeletedStreamMessage(streamId)))
@@ -98,7 +98,7 @@
                 Parameters.MessageIds(eventIds),
                 Parameters.DeletedStreamId,
                 Parameters.DeletedStreamIdOriginal,
-                Parameters.CreatedUtc(_settings.GetUtcNow()),
+                Parameters.CreatedUtc(_settings.GetUtcNow?.Invoke()),
                 Parameters.DeletedMessages(streamIdInfo.PostgresqlStreamId, eventIds)))
             {
                 await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();

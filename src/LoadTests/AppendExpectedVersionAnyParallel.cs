@@ -72,8 +72,7 @@
                             var newmessages = MessageFactory
                                 .CreateNewStreamMessages(jsonData, messageNumbers);
 
-                            var info = $"{streamNumber} - {newmessages[0].MessageId}," +
-                                       $"{newmessages[1].MessageId}";
+                            var info = $"{streamNumber}";
 
                             Log.Logger.Information($"Begin {info}");
                             await streamStore.AppendToStream(
@@ -87,6 +86,7 @@
                         catch (Exception ex) when (!(ex is TaskCanceledException))
                         {
                             Log.Logger.Error(ex, ex.Message);
+                            Output.WriteLine(ex.ToString());
                         }
                     }
                 }, ct);

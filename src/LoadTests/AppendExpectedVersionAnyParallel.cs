@@ -16,8 +16,8 @@
         {
             Output.WriteLine("");
             Output.WriteLine(ConsoleColor.Green, "Appends events to streams(s) as quickly as possible.");
-            Output.WriteLine(" - The stream ID is randomly choosen within a supplied range. The");
-            Output.WriteLine("   larger the range the more chance of contention of writes between");
+            Output.WriteLine(" - The stream ID is randomly chosen within a supplied range. The");
+            Output.WriteLine("   smaller the range the more chance of contention of writes between");
             Output.WriteLine("   parallel tasks.");
             Output.WriteLine(" - The more parallel tasks, the more chance of contention of writes to a stream.");
             Output.WriteLine("");

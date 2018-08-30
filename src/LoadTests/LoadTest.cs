@@ -23,7 +23,7 @@
             Output.WriteLine(ConsoleColor.Yellow, "Store type:");
             new Menu()
                 .Add("InMem", () => streamStore = new InMemoryStreamStore())
-                .Add("MS SQL (SqlLocalDB, NamedPipes)",
+                .Add("MS SQL (Docker)",
                     () =>
                     {
                         var fixture = new MsSqlStreamStoreV3Fixture("dbo");

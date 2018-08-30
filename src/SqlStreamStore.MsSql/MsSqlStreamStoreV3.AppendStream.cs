@@ -41,7 +41,7 @@
            CancellationToken cancellationToken)
         {
             Ensure.That(streamId, "streamId").IsNotNullOrWhiteSpace();
-            Ensure.That(expectedVersion, "expectedVersion").IsGte(-2);
+            Ensure.That(expectedVersion, "expectedVersion").IsGte(-3);
             Ensure.That(messages, "Messages").IsNotNull();
             GuardAgainstDisposed();
 
@@ -94,6 +94,16 @@
                         connection,
                         transaction,
                         sqlStreamId,
+                        messages,
+                        cancellationToken);
+                }
+                if(expectedVersion == ExpectedVersion.EmptyStream)
+                {
+                    return AppendToStreamExpectedVersion(
+                        connection,
+                        transaction,
+                        sqlStreamId,
+                        -1,
                         messages,
                         cancellationToken);
                 }

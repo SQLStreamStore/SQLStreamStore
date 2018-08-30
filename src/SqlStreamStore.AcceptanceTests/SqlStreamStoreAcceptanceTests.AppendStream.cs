@@ -425,9 +425,9 @@
                     const string streamId = "stream-1";
                     await store.AppendToStream(streamId, ExpectedVersion.NoStream, new NewStreamMessage[0]);
 
-                    var result = await store.AppendToStream(streamId, -1, CreateNewStreamMessages(4));
+                    var result = await store.AppendToStream(streamId, -1, CreateNewStreamMessages(1, 2, 3));
 
-                    result.CurrentVersion.ShouldBe(3);
+                    result.CurrentVersion.ShouldBe(2);
                 }
             }
         }

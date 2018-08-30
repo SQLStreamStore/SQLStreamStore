@@ -63,7 +63,7 @@
 
                     await store.SetStreamMetadata(streamId, maxCount: 1);
 
-                    await store.AppendToStream("stream-1", -1, CreateNewStreamMessages(1, 2, 3));
+                    await store.AppendToStream("stream-1", ExpectedVersion.EmptyStream, CreateNewStreamMessages(1, 2, 3));
                 }
             }
         }

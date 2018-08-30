@@ -14,6 +14,10 @@ DECLARE
   _stream_id_internal INT;
   _success            INT;
 BEGIN
+  IF _created_utc IS NULL THEN
+    _created_utc = now() at time zone 'utc';
+  END IF;
+
   IF _expected_version = -2 /* ExpectedVersion.Any */
   THEN
 

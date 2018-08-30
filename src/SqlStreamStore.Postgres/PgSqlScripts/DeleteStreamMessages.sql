@@ -12,6 +12,9 @@ DECLARE
   _stream_id_internal INT;
   _deleted_count      NUMERIC;
 BEGIN
+  IF _created_utc IS NULL THEN
+    _created_utc = now() at time zone 'utc';
+  END IF;
 
   SELECT __schema__.streams.id_internal
       INTO _stream_id_internal

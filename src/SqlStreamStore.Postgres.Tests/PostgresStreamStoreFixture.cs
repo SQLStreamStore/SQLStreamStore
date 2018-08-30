@@ -103,7 +103,7 @@ namespace SqlStreamStore
             _databaseManager?.Dispose();
         }
 
-        private Task CreateDatabase() => _databaseManager.CreateDatabase();
+        public Task CreateDatabase() => _databaseManager.CreateDatabase();
 
         private interface IDatabaseManager : IDisposable
         {

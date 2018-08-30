@@ -57,7 +57,7 @@
         ///     A delegate to return the current UTC now. Used in testing to
         ///     control timestamps and time related operations.
         /// </summary>
-        public GetUtcNow GetUtcNow { get; set; } = SystemClock.GetUtcNow;
+        public GetUtcNow GetUtcNow { get; set; }
 
         /// <summary>
         ///     The log name used for any of the log messages.

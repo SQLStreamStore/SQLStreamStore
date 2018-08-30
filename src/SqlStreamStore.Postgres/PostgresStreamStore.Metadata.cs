@@ -84,7 +84,7 @@
                 Parameters.OptionalMaxAge(metadata.MaxAge),
                 Parameters.OptionalMaxCount(metadata.MaxCount),
                 Parameters.ExpectedVersion(expectedStreamMetadataVersion),
-                Parameters.CreatedUtc(_settings.GetUtcNow()),
+                Parameters.CreatedUtc(_settings.GetUtcNow?.Invoke()),
                 Parameters.MetadataStreamMessage(
                     streamIdInfo.MetadataPosgresqlStreamId, 
                     expectedStreamMetadataVersion, 

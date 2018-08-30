@@ -36,7 +36,7 @@
                         Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
                         Parameters.StreamIdOriginal(streamIdInfo.PostgresqlStreamId),
                         Parameters.ExpectedVersion(expectedVersion),
-                        Parameters.CreatedUtc(_settings.GetUtcNow()),
+                        Parameters.CreatedUtc(_settings.GetUtcNow?.Invoke()),
                         Parameters.NewStreamMessages(messages)))
                     {
                         try

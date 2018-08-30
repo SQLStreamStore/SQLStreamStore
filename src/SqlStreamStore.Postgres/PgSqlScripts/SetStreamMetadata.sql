@@ -13,6 +13,9 @@ DECLARE
   _current_version INT;
   _stream_updated  INT;
 BEGIN
+  IF _created_utc IS NULL THEN
+    _created_utc = now() at time zone 'utc';
+  END IF;
 
   SELECT current_version
   FROM __schema__.append_to_stream(

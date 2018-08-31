@@ -77,7 +77,7 @@ namespace build
 
                 foreach (var file in files)
                 {
-                    Run("dotnet", $"nuget publish {file} -s https://www.myget.org/F/sqlstreamstore/api/v3/index.json -k {apiKey}");
+                    Run("dotnet", $"nuget push {file} -s https://www.myget.org/F/sqlstreamstore/api/v3/index.json -k {apiKey}");
                 }
             });
 

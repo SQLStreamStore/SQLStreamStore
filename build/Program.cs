@@ -18,6 +18,7 @@ namespace build
         {
             var travisBuildNumber = Environment.GetEnvironmentVariable("TRAVIS_BUILD_NUMBER");
             var buildNumber = travisBuildNumber ?? "0";
+            var versionSuffix = "build" + buildNumber.PadLeft(5, '0');
 
             Target(Clean, () =>
             {
@@ -29,39 +30,26 @@ namespace build
 
             Target(Build, () => Run("dotnet", "build ./src/SqlStreamStore.sln -c Release"));
 
-            Target(RunTests, DependsOn(Build), () =>
-            {
-                var projects = new[]
-                {
+            Target(
+                RunTests,
+                DependsOn(Build),
+                ForEach(
                     "SqlStreamStore.Tests",
                     "SqlStreamStore.MsSql.Tests",
                     "SqlStreamStore.MsSql.V3.Tests",
                     "SqlStreamStore.Postgres.Tests",
-                    "SqlStreamStore.Http.Tests"
-                };
+                    "SqlStreamStore.Http.Tests"),
+                project => Run("dotnet", $"test src/{project}/{project}.csproj -c Release -r ../../{ArtifactsDir} --no-build -l trx;LogFileName={project}.xml"));
 
-                foreach (var project in projects)
-                {
-                    Run("dotnet", $"test src/{project}/{project}.csproj -c Release -r ../../{ArtifactsDir} --no-build -l trx;LogFileName={project}.xml");
-                }
-            });
-
-            Target(Pack, DependsOn(Build), () =>
-            {
-                var versionSuffix = "build" + buildNumber.PadLeft(5, '0');
-                var projects = new[]
-                {
+            Target(
+                Pack,
+                DependsOn(Build),
+                ForEach(
                     "SqlStreamStore",
                     "SqlStreamStore.MsSql",
                     "SqlStreamStore.Postgres",
-                    "SqlStreamStore.Http"
-                };
-
-                foreach (var project in projects)
-                {
-                    Run("dotnet", $"pack src/{project}/{project}.csproj -c Release -o ../../{ArtifactsDir} --no-build --version-suffix {versionSuffix}");
-                }
-            });
+                    "SqlStreamStore.Http"),
+                project => Run("dotnet", $"pack src/{project}/{project}.csproj -c Release -o ../../{ArtifactsDir} --no-build --version-suffix {versionSuffix}"));
 
             Target(Publish, DependsOn(Pack), () =>
             {

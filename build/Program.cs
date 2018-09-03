@@ -19,6 +19,7 @@ namespace build
             var travisBuildNumber = Environment.GetEnvironmentVariable("TRAVIS_BUILD_NUMBER");
             var buildNumber = travisBuildNumber ?? "0";
             var versionSuffix = "build" + buildNumber.PadLeft(5, '0');
+            var apiKey = Environment.GetEnvironmentVariable("MYGET_API_KEY");
 
             Target(Clean, () =>
             {
@@ -51,19 +52,13 @@ namespace build
                     "SqlStreamStore.Http"),
                 project => Run("dotnet", $"pack src/{project}/{project}.csproj -c Release -o ../../{ArtifactsDir} --no-build --version-suffix {versionSuffix}"));
 
-            Target(Publish, DependsOn(Pack), () =>
+            Target(Publish, DependsOn(Pack), Directory.GetFiles(ArtifactsDir, "*.nupkg", SearchOption.TopDirectoryOnly), file =>
             {
-                var files = Directory.GetFiles(ArtifactsDir, "*.nupkg", SearchOption.TopDirectoryOnly);
-                Console.WriteLine($"Found packages to publish: {string.Join("; ", files)}");
-
-                var apiKey = Environment.GetEnvironmentVariable("MYGET_API_KEY");
                 if (string.IsNullOrWhiteSpace(apiKey))
                 {
-                    Console.WriteLine("MyGet API key not available. Packages will not be pushed.");
-                    return;
+                    Console.WriteLine("MyGet API key not available. Package will not be pushed.");
                 }
-
-                foreach (var file in files)
+                else
                 {
                     Run("dotnet", $"nuget push {file} -s https://www.myget.org/F/sqlstreamstore/api/v3/index.json -k {apiKey}");
                 }

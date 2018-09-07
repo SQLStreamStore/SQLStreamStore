@@ -1,3 +1,5 @@
+$ErrorActionPreference = "Stop";
+
 # Install .NET Core
 
 $dotNetVersionString = dotnet --version

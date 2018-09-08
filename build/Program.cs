@@ -37,7 +37,7 @@ namespace build
                 }
             });
 
-            Target(Build, () => Run("dotnet", "build ./src/SqlStreamStore.sln -c Release"));
+            Target(Build, () => Run("dotnet", "build src/SqlStreamStore.sln -c Release"));
 
             Target(
                 RunTests,

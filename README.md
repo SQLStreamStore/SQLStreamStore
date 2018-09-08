@@ -23,9 +23,14 @@ CI Packages available [on MyGet](https://www.myget.org/gallery/sqlstreamstore)
  - JSON only event and metadata payloads (usually just a `string` / `varchar` / etc).
  - No support for `System.Transaction` enforcing the concept of the stream as the consistency and transaction boundary.
 
-# Using
+# Building
 
-Coming soon.
+Building requires Docker. Solution and tests are run on a linux container with .net core leveraging SQL Server and Postgres as sibling containers.
+
+ - Widows, run `.\build.cmd`
+ - Linux, run `./build.sh`
+
+Note: build does not work via WSL.
 
 # Help & Support
 

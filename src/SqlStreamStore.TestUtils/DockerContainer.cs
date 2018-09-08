@@ -107,11 +107,12 @@ namespace SqlStreamStore
             {
                 Image = ImageWithTag,
                 Name = ContainerName,
-                Tty = true,
+                Tty = false,
                 Env = Env,
                 HostConfig = new HostConfig
                 {
-                    PortBindings = portBindings
+                    PortBindings = portBindings,
+                    AutoRemove = true,
                 }
             };
 

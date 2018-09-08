@@ -56,15 +56,20 @@ namespace build
                 ForEach(packages),
                 project => Run("dotnet", $"pack src/{project}/{project}.csproj -c Release -o ../../{ArtifactsDir} --no-build --version-suffix {versionSuffix}"));
 
-            Target(Publish, DependsOn(Pack), ForEach(packages), file =>
+            Target(Publish, DependsOn(Pack), ForEach(packages), package =>
             {
+                var packagesToPush = Directory.GetFiles(ArtifactsDir, "*.nupkg", SearchOption.TopDirectoryOnly);
+                Console.WriteLine($"Found packages to publish: {string.Join("; ", packagesToPush)}");
+
                 if (string.IsNullOrWhiteSpace(apiKey))
                 {
-                    Console.WriteLine("MyGet API key not available. Package will not be pushed.");
+                    Console.WriteLine("MyGet API key not available. Packages will not be pushed.");
+                    return;
                 }
-                else
+
+                foreach (var packageToPush in packagesToPush)
                 {
-                    Run("dotnet", $"nuget push {file} -s https://www.myget.org/F/sqlstreamstore/api/v3/index.json -k {apiKey}");
+                    Run("dotnet", $"nuget push {packageToPush} -s https://www.myget.org/F/sqlstreamstore/api/v3/index.json -k {apiKey}");
                 }
             });
 

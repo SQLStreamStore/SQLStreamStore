@@ -1,12 +1,7 @@
-language: csharp
-mono: none
-dotnet: 2.1.401
+language: minimal
 sudo: required
 dist: trusty
 script: "./build.sh"
-before_install:
-- sudo service postgresql stop
-- while sudo lsof -Pi :5432 -sTCP:LISTEN -t; do sleep 1; done
 env:
   global:
     secure: e2TyjuwV8DgvfkM/NsZw7Q2Trt7IDO6roqQJHa/xbQh4ZInp2JPLgg/f6YVF51dpBxfxsmYSLBbsnj8SLoTuSa904lyoI7p/xY1CDvvQUPiBQD2ORkSkne7RWepZXg5uwm9DQTJJXohR/aPnpNnFGr8RWMhCfIOPgc6wEX7EVCA=

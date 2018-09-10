@@ -13,35 +13,36 @@
         {
             // Set up an old schema + data.
             var schema = "baz";
-            var v2Fixture = new MsSqlStreamStoreFixture(schema, deleteDatabaseOnDispose: false);
-            var v2Store = await v2Fixture.GetMsSqlStreamStore();
-            await v2Store.AppendToStream("stream-1",
-                ExpectedVersion.NoStream,
-                StreamStoreAcceptanceTests.CreateNewStreamMessages(1, 2, 3));
-            await v2Store.AppendToStream("stream-2",
-                ExpectedVersion.NoStream,
-                StreamStoreAcceptanceTests.CreateNewStreamMessages(1, 2, 3));
-
-            await v2Store.SetStreamMetadata("stream-1", ExpectedVersion.Any, maxAge: 10, maxCount: 20);
-            v2Store.Dispose();
-            v2Fixture.Dispose();
-
-            var settings = new MsSqlStreamStoreV3Settings(v2Fixture.ConnectionString)
+            using(var fixture = new MsSqlStreamStoreV3Fixture(schema))
             {
-                Schema = schema,
-            };
+                using(var v2Store = await fixture.GetMsSqlStreamStoreV2())
+                {
+                    await v2Store.AppendToStream("stream-1",
+                        ExpectedVersion.NoStream,
+                        StreamStoreAcceptanceTests.CreateNewStreamMessages(1, 2, 3));
+                    await v2Store.AppendToStream("stream-2",
+                        ExpectedVersion.NoStream,
+                        StreamStoreAcceptanceTests.CreateNewStreamMessages(1, 2, 3));
 
-            var v3Store = new MsSqlStreamStoreV3(settings);
+                    await v2Store.SetStreamMetadata("stream-1", ExpectedVersion.Any, maxAge: 10, maxCount: 20);
+                }
 
-            var checkSchemaResult = await v3Store.CheckSchema();
-            checkSchemaResult.IsMatch().ShouldBeFalse();
+                var settings = new MsSqlStreamStoreV3Settings(fixture.ConnectionString)
+                {
+                    Schema = schema,
+                };
 
-            await v3Store.Migrate(CancellationToken.None);
+                using(var v3Store = new MsSqlStreamStoreV3(settings))
+                {
+                    var checkSchemaResult = await v3Store.CheckSchema();
+                    checkSchemaResult.IsMatch().ShouldBeFalse();
 
-            checkSchemaResult = await v3Store.CheckSchema();
-            checkSchemaResult.IsMatch().ShouldBeTrue();
+                    await v3Store.Migrate(CancellationToken.None);
 
-            v3Store.Dispose();
+                    checkSchemaResult = await v3Store.CheckSchema();
+                    checkSchemaResult.IsMatch().ShouldBeTrue();
+                }
+            }
         }
     }
 }

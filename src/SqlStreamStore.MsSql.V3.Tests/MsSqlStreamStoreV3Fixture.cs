@@ -79,6 +79,22 @@ namespace SqlStreamStore
             return store;
         }
 
+        public async Task<MsSqlStreamStore> GetMsSqlStreamStoreV2()
+        {
+            await CreateDatabase();
+
+            var settings = new MsSqlStreamStoreSettings(ConnectionString)
+            {
+                Schema = _schema,
+                GetUtcNow = () => GetUtcNow()
+            };
+
+            var store = new MsSqlStreamStore(settings);
+            await store.CreateSchema();
+
+            return store;
+        }
+
         public override void Dispose()
         {
             SqlConnection.ClearAllPools();

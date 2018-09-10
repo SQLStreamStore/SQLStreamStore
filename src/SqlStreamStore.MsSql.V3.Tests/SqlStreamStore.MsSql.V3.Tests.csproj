@@ -11,9 +11,6 @@
     <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="..\SqlStreamStore.MsSql.Tests\MsSqlStreamStoreFixture.cs" Link="MsSqlStreamStoreFixture.cs" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\SqlStreamStore.MsSql\SqlStreamStore.MsSql.csproj" />
     <ProjectReference Include="..\SqlStreamStore.TestUtils\SqlStreamStore.TestUtils.csproj" />
   </ItemGroup>

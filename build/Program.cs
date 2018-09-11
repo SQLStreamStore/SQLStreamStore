@@ -48,7 +48,7 @@ namespace build
                     "SqlStreamStore.MsSql.V3.Tests",
                     "SqlStreamStore.Postgres.Tests",
                     "SqlStreamStore.Http.Tests"),
-                project => Run("dotnet", $"test src/{project}/{project}.csproj -c Release -r ../../{ArtifactsDir} --no-build -l trx;LogFileName={project}.xml"));
+                project => Run("dotnet", $"test src/{project}/{project}.csproj -c Release -r ../../{ArtifactsDir} --no-build -l trx;LogFileName={project}.xml --verbosity=normal"));
 
             Target(
                 Pack,

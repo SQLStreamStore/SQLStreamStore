@@ -1,4 +1,4 @@
-FROM microsoft/dotnet:2.1.401-sdk-alpine3.7 AS build
+FROM microsoft/dotnet:2.1.402-sdk-alpine3.7 AS build
 WORKDIR /src
 
 COPY ./src/*.sln ./

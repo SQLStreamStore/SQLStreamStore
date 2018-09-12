@@ -1,7 +1,7 @@
 language: minimal
 sudo: required
 dist: trusty
-script: travis_wait "./build.sh"
+script: ./build.sh
 env:
   global:
     secure: e2TyjuwV8DgvfkM/NsZw7Q2Trt7IDO6roqQJHa/xbQh4ZInp2JPLgg/f6YVF51dpBxfxsmYSLBbsnj8SLoTuSa904lyoI7p/xY1CDvvQUPiBQD2ORkSkne7RWepZXg5uwm9DQTJJXohR/aPnpNnFGr8RWMhCfIOPgc6wEX7EVCA=

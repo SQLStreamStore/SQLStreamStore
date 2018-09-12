@@ -1,1 +1,2 @@
-docker run --rm --name sss-build -v %cd%:/repo -v /var/run/docker.sock:/var/run/docker.sock -w /repo --network host microsoft/dotnet:2.1.401-sdk-alpine dotnet run -p build/build.csproj -- %*
+docker build --tag sss-build . && docker run --rm --name sss-build -v /var/run/docker.sock:/var/run/docker.sock --network host sss-build dotnet run -p /build/build.csproj -- %*
+

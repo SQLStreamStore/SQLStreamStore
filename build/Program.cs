@@ -56,7 +56,7 @@ namespace build
                 ForEach(packages),
                 project => Run("dotnet", $"pack src/{project}/{project}.csproj -c Release -o ../../{ArtifactsDir} --no-build --version-suffix {versionSuffix}"));
 
-            Target(Publish, DependsOn(Pack), ForEach(packages), package =>
+            Target(Publish, DependsOn(Pack), () =>
             {
                 var packagesToPush = Directory.GetFiles(ArtifactsDir, "*.nupkg", SearchOption.TopDirectoryOnly);
                 Console.WriteLine($"Found packages to publish: {string.Join("; ", packagesToPush)}");

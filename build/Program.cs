@@ -19,15 +19,6 @@ namespace build
             var travisBuildNumber = Environment.GetEnvironmentVariable("TRAVIS_BUILD_NUMBER");
             var buildNumber = travisBuildNumber ?? "0";
             var versionSuffix = "build" + buildNumber.PadLeft(5, '0');
-            var apiKey = Environment.GetEnvironmentVariable("MYGET_API_KEY");
-
-            var packages = new[]
-            {
-                "SqlStreamStore",
-                "SqlStreamStore.MsSql",
-                "SqlStreamStore.Postgres",
-                "SqlStreamStore.Http",
-            };
 
             Target(Clean, () =>
             {
@@ -53,13 +44,19 @@ namespace build
             Target(
                 Pack,
                 DependsOn(Build),
-                ForEach(packages),
+                ForEach(
+                    "SqlStreamStore",
+                    "SqlStreamStore.MsSql",
+                    "SqlStreamStore.Postgres",
+                    "SqlStreamStore.Http"),
                 project => Run("dotnet", $"pack src/{project}/{project}.csproj -c Release -o ../../{ArtifactsDir} --no-build --version-suffix {versionSuffix}"));
 
             Target(Publish, DependsOn(Pack), () =>
             {
                 var packagesToPush = Directory.GetFiles(ArtifactsDir, "*.nupkg", SearchOption.TopDirectoryOnly);
                 Console.WriteLine($"Found packages to publish: {string.Join("; ", packagesToPush)}");
+
+                var apiKey = Environment.GetEnvironmentVariable("MYGET_API_KEY");
 
                 if (string.IsNullOrWhiteSpace(apiKey))
                 {

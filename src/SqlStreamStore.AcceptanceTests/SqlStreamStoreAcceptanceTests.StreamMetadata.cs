@@ -53,7 +53,7 @@
         }
 
         [Fact]
-        public async Task Can_set_and_stream_metadata_for_non_existent_stream_and_append()
+        public async Task Can_set_and_get_stream_metadata_for_non_existent_stream_and_append()
         {
             using (var fixture = GetFixture())
             {
@@ -61,9 +61,14 @@
                 {
                     var streamId = "stream-1";
 
-                    await store.SetStreamMetadata(streamId, maxCount: 1);
+                    await store.SetStreamMetadata(streamId, maxCount: 1, maxAge: 2);
 
-                    await store.AppendToStream("stream-1", ExpectedVersion.EmptyStream, CreateNewStreamMessages(1, 2, 3));
+                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+
+                    var metadataResult = await store.GetStreamMetadata(streamId);
+
+                    metadataResult.MaxCount.ShouldBe(1);
+                    metadataResult.MaxAge.ShouldBe(2);
                 }
             }
         }

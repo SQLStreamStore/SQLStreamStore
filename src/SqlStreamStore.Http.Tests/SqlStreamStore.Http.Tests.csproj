@@ -25,11 +25,8 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.1.1" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.8.0" />
-    <PackageReference Include="Serilog" Version="2.7.1" />
-    <PackageReference Include="Serilog.Sinks.Observable" Version="2.0.2" />
     <PackageReference Include="Shouldly" Version="3.0.0" />
     <PackageReference Include="SqlStreamStore.HAL" Version="1.0.0-rc2-*" />
-    <PackageReference Include="System.Reactive" Version="4.1.0" />
     <PackageReference Include="xunit.core" Version="2.4.0" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.0">
       <PrivateAssets>all</PrivateAssets>

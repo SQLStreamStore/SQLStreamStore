@@ -14,8 +14,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="SimpleJson" Version="0.38.0" PrivateAssets="All" />
-    <PackageReference Include="LibLog" Version="5.0.0" PrivateAssets="All" />
     <PackageReference Include="LibLog" Version="5.0.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>

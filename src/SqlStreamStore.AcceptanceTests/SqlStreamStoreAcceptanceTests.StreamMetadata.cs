@@ -1,5 +1,6 @@
 ﻿namespace SqlStreamStore
 {
+    using System;
     using System.Linq;
     using System.Threading.Tasks;
     using Shouldly;
@@ -53,7 +54,7 @@
         }
 
         [Fact]
-        public async Task Can_set_and_get_stream_metadata_for_non_existent_stream_and_append()
+        public async Task Can_set_stream_metadata_for_non_existent_stream_and_append_with_expected_version_nostream()
         {
             using (var fixture = GetFixture())
             {
@@ -61,14 +62,25 @@
                 {
                     var streamId = "stream-1";
 
-                    await store.SetStreamMetadata(streamId, maxCount: 1, maxAge: 2);
+                    await store.SetStreamMetadata(streamId, maxAge: 20, maxCount: 10);
 
-                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1));
+                }
+            }
+        }
 
-                    var metadataResult = await store.GetStreamMetadata(streamId);
+        [Fact]
+        public async Task Can_set_stream_metadata_for_non_existent_stream_and_append_with_expected_version_any()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    var streamId = "stream-1";
 
-                    metadataResult.MaxCount.ShouldBe(1);
-                    metadataResult.MaxAge.ShouldBe(2);
+                    await store.SetStreamMetadata(streamId, maxAge: 20, maxCount: 10);
+
+                    await store.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1));
                 }
             }
         }

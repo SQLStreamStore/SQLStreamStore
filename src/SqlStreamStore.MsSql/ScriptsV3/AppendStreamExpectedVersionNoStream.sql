@@ -83,7 +83,7 @@ BEGIN TRANSACTION CreateStream;
                     UPDATE dbo.Streams
                     SET dbo.Streams.[MaxAge] = @metadataMaxAge,
                         dbo.Streams.[MaxCount] = @metadataMaxCount
-                    WHERE dbo.Streams.[Id] = '$$' + @streamId
+                    WHERE dbo.Streams.[Id] = @streamId
                
                     END
 

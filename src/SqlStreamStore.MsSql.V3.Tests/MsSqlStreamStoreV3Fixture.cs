@@ -129,7 +129,7 @@ namespace SqlStreamStore
         {
             private readonly string _databaseName;
             private readonly DockerContainer _sqlServerContainer;
-            private readonly string _password;
+            private const string Password = "!01u0Yx19PW";
             private const string Image = "microsoft/mssql-server-linux";
             private const string Tag = "2017-CU9";
             private const int Port = 11433;
@@ -137,7 +137,6 @@ namespace SqlStreamStore
             public DockerSqlServerDatabase(string databaseName)
             {
                 _databaseName = databaseName;
-                _password = "!01u0Yx19PW";
 
                 var ports = new Dictionary<int, int>
                 {
@@ -151,7 +150,7 @@ namespace SqlStreamStore
                     ports)
                 {
                     ContainerName = "sql-stream-store-tests-mssql-v3",
-                    Env = new[] { "ACCEPT_EULA=Y", $"SA_PASSWORD={_password}" }
+                    Env = new[] { "ACCEPT_EULA=Y", $"SA_PASSWORD={Password}" }
                 };
             }
 
@@ -159,7 +158,7 @@ namespace SqlStreamStore
                 => new SqlConnection(CreateConnectionStringBuilder().ConnectionString);
 
             public SqlConnectionStringBuilder CreateConnectionStringBuilder()
-                => new SqlConnectionStringBuilder($"server=localhost,{Port};User Id=sa;Password={_password};Initial Catalog=master");
+                => new SqlConnectionStringBuilder($"server=localhost,{Port};User Id=sa;Password={Password};Initial Catalog=master");
 
             public async Task CreateDatabase(CancellationToken cancellationToken = default)
             {

@@ -14,8 +14,7 @@
         { }
 
         protected override StreamStoreAcceptanceTestFixture GetFixture()
-            => new MsSqlStreamStoreV3Fixture("foo");
-
+            => new MsSqlStreamStoreV3Fixture("foo", deleteDatabaseOnDispose: false);
 
         [Fact]
         public async Task Can_use_multiple_schemas()

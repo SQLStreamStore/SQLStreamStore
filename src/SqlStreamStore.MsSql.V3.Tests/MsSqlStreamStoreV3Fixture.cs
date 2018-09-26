@@ -13,14 +13,20 @@ namespace SqlStreamStore
         private readonly string _schema;
         private readonly bool _disableDeletionTracking;
         private readonly string _databaseNameOverride;
+        private readonly bool _deleteDatabaseOnDispose;
         private readonly string _databaseName;
         private readonly DockerSqlServerDatabase _databaseInstance;
 
-        public MsSqlStreamStoreV3Fixture(string schema, bool disableDeletionTracking = false, string databaseNameOverride = null)
+        public MsSqlStreamStoreV3Fixture(
+            string schema,
+            bool disableDeletionTracking = false,
+            string databaseNameOverride = null,
+            bool deleteDatabaseOnDispose = true)
         {
             _schema = schema;
             _disableDeletionTracking = disableDeletionTracking;
             _databaseNameOverride = databaseNameOverride;
+            _deleteDatabaseOnDispose = deleteDatabaseOnDispose;
             _databaseName = databaseNameOverride ?? $"StreamStoreTests-{Guid.NewGuid():n}";
             _databaseInstance = new DockerSqlServerDatabase(_databaseName);
 
@@ -81,6 +87,11 @@ namespace SqlStreamStore
 
         public override void Dispose()
         {
+            if (!_deleteDatabaseOnDispose)
+            {
+                return;
+            }
+
             SqlConnection.ClearAllPools();
 
             using (var connection = _databaseInstance.CreateConnection())

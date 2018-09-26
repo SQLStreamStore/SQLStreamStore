@@ -10,14 +10,15 @@ CREATE TABLE IF NOT EXISTS __schema__.streams (
   max_age     INT           NULL,
   max_count   INT           NULL,
   CONSTRAINT pk_streams PRIMARY KEY (id_internal),
-  CONSTRAINT uq_streams_id UNIQUE (id)
+  CONSTRAINT uq_streams_id UNIQUE (id),
+  CONSTRAINT ck_version_gte_negative_one CHECK (version >= -1)
 );
 
 COMMENT ON SCHEMA __schema__
 IS '{ "version": 1 }';
 
 ALTER SEQUENCE __schema__.streams_seq
-OWNED BY __schema__.streams.id_internal;
+  OWNED BY __schema__.streams.id_internal;
 
 CREATE SEQUENCE IF NOT EXISTS __schema__.messages_seq
   START 0
@@ -35,11 +36,12 @@ CREATE TABLE IF NOT EXISTS __schema__.messages (
   CONSTRAINT pk_messages PRIMARY KEY (position),
   CONSTRAINT fk_messages_stream FOREIGN KEY (stream_id_internal) REFERENCES __schema__.streams (id_internal),
   CONSTRAINT uq_messages_stream_id_internal_and_stream_version UNIQUE (stream_id_internal, stream_version),
-  CONSTRAINT uq_stream_id_internal_and_message_id UNIQUE (stream_id_internal, message_id)
+  CONSTRAINT uq_stream_id_internal_and_message_id UNIQUE (stream_id_internal, message_id),
+  CONSTRAINT ck_stream_version_gte_zero CHECK (stream_version >= 0)
 );
 
 ALTER SEQUENCE __schema__.messages_seq
-OWNED BY __schema__.messages.position;
+  OWNED BY __schema__.messages.position;
 
 DO $F$
 BEGIN

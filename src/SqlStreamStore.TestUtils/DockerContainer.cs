@@ -52,16 +52,16 @@ namespace SqlStreamStore
             if (images.Count == 0)
             {
                 // No image found. Pulling latest ..
+
+                var imagesCreateParameters = new ImagesCreateParameters
+                {
+                    FromImage = _image,
+                    Tag = _tag
+                };
+
                 await _dockerClient
                     .Images
-                    .CreateImageAsync(new ImagesCreateParameters
-                    {
-                        FromImage = _image,
-                        Tag = _tag
-                    },
-                        null,
-                        IgnoreProgress.Forever,
-                        cancellationToken)
+                    .CreateImageAsync(imagesCreateParameters, null, IgnoreProgress.Forever, cancellationToken)
                     .NotOnCapturedContext();
             }
 

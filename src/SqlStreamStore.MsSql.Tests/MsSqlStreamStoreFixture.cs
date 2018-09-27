@@ -172,7 +172,7 @@ namespace SqlStreamStore
         {
             private readonly string _databaseName;
             private readonly DockerContainer _sqlServerContainer;
-            private const string Password = "!01u0Yx19PW";
+            private const string Password = "!Passw0rd";
             private const string Image = "microsoft/mssql-server-linux";
             private const string Tag = "2017-CU9";
             private const int Port = 21433;

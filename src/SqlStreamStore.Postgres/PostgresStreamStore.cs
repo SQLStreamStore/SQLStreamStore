@@ -214,8 +214,18 @@
                         }
                     }
 
+                    if(Logger.IsInfoEnabled())
+                    {
+                        Logger.Info($"Found {deletedMessageIds.Count} message(s) for stream {streamIdInfo.PostgresqlStreamId} to scavenge.");
+                    }
+
                     if(deletedMessageIds.Count > 0)
                     {
+                        if(Logger.IsDebugEnabled())
+                        {
+                            Logger.Debug($"Scavenging the following messages on stream {streamIdInfo.PostgresqlStreamId}: {string.Join(", ", deletedMessageIds)}");
+                        }
+
                         await DeleteEventsInternal(
                             streamIdInfo,
                             deletedMessageIds.ToArray(),

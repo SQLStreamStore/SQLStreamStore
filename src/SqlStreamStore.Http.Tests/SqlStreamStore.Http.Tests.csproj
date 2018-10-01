@@ -20,6 +20,7 @@
   <ItemGroup>
     <ProjectReference Include="..\SqlStreamStore.Http\SqlStreamStore.Http.csproj" />
     <ProjectReference Include="..\SqlStreamStore.TestUtils\SqlStreamStore.TestUtils.csproj" />
+    <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />
   </ItemGroup>
 
   <ItemGroup>

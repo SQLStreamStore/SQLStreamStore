@@ -35,6 +35,7 @@
                         transaction,
                         Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
                         Parameters.StreamIdOriginal(streamIdInfo.PostgresqlStreamId),
+                        Parameters.MetadataStreamId(streamIdInfo.MetadataPosgresqlStreamId),
                         Parameters.ExpectedVersion(expectedVersion),
                         Parameters.CreatedUtc(_settings.GetUtcNow?.Invoke()),
                         Parameters.NewStreamMessages(messages)))

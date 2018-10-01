@@ -9,8 +9,9 @@ namespace SqlStreamStore
 
     public partial class StreamStoreAcceptanceTests
     {
-        [Fact, Trait("Category", "StreamMetadata")]
-        public async Task When_stream_has_max_count_and_append_exceeds_then_should_maintain_max_count()
+        [Theory, Trait("Category", "StreamMetadata"),
+         InlineData(ExpectedVersion.NoStream), InlineData(ExpectedVersion.Any), InlineData(ExpectedVersion.EmptyStream)]
+        public async Task When_stream_has_max_count_and_append_exceeds_then_should_maintain_max_count(int expectedVersion)
         {
             using(var fixture = GetFixture())
             {
@@ -21,7 +22,7 @@ namespace SqlStreamStore
                     await store
                         .SetStreamMetadata(streamId, maxCount: maxCount, metadataJson: "meta");
                     await store
-                        .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1, 2, 3, 4));
+                        .AppendToStream(streamId, expectedVersion, CreateNewStreamMessages(1, 2, 3, 4));
 
                     var streamMessagesPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 4);
 

@@ -44,5 +44,7 @@
                 return (Id.GetHashCode() * 397) ^ IdOriginal.GetHashCode();
             }
         }
+
+        public override string ToString() => IdOriginal;
     }
 }

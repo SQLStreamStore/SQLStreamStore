@@ -78,7 +78,6 @@
                 _schema.SetStreamMetadata,
                 transaction,
                 Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
-                Parameters.StreamIdOriginal(streamIdInfo.PostgresqlStreamId),
                 Parameters.MetadataStreamId(streamIdInfo.MetadataPosgresqlStreamId),
                 Parameters.MetadataStreamIdOriginal(streamIdInfo.MetadataPosgresqlStreamId),
                 Parameters.OptionalMaxAge(metadata.MaxAge),

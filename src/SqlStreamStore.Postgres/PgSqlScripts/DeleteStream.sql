@@ -12,7 +12,8 @@ DECLARE
   _latest_stream_version INT;
   _affected              INT;
 BEGIN
-  IF _created_utc IS NULL THEN
+  IF _created_utc IS NULL
+  THEN
     _created_utc = now() at time zone 'utc';
   END IF;
   SELECT __schema__.streams.id_internal
@@ -54,6 +55,7 @@ BEGIN
     PERFORM __schema__.append_to_stream(
               _deleted_stream_id,
               _deleted_stream_id_original,
+              NULL,
               -2,
               _created_utc,
               ARRAY [_deleted_stream_message]);

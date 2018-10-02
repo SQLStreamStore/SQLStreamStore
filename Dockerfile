@@ -11,15 +11,11 @@ RUN for file in $(ls *.csproj); do mkdir -p ./${file%.*}/ && mv $file ./${file%.
 
 COPY ./NuGet.Config ./
 
-RUN dotnet restore
-
 COPY ./src .
 
 WORKDIR /build
 
 COPY ./build/build.csproj .
-
-RUN dotnet restore
 
 COPY ./build .
 

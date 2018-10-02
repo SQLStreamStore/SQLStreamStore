@@ -1,7 +1,5 @@
 ﻿using System;
 using System.IO;
-using System.Linq;
-using System.Threading.Tasks;
 using static Bullseye.Targets;
 using static SimpleExec.Command;
 
@@ -35,16 +33,15 @@ namespace build
             Target(
                 RunTests,
                 DependsOn(Build),
-                () => Parallel.ForEach(new[]
-                    {
-                        "SqlStreamStore.Tests",
-                        "SqlStreamStore.MsSql.Tests",
-                        "SqlStreamStore.MsSql.V3.Tests",
-                        "SqlStreamStore.Postgres.Tests",
-                        "SqlStreamStore.Http.Tests"
-                    },
-                    project => Run("dotnet",
-                        $"test src/{project}/{project}.csproj -c Release -r ../../{ArtifactsDir} --no-build -l trx;LogFileName={project}.xml --verbosity=normal")));
+                ForEach(
+                    "SqlStreamStore.Tests",
+                    "SqlStreamStore.MsSql.Tests",
+                    "SqlStreamStore.MsSql.V3.Tests",
+                    "SqlStreamStore.Postgres.Tests",
+                    "SqlStreamStore.Http.Tests"
+                ),
+                project => Run("dotnet",
+                    $"test src/{project}/{project}.csproj -c Release -r ../../{ArtifactsDir} --no-build -l trx;LogFileName={project}.xml --verbosity=normal"));
 
             Target(
                 Pack,

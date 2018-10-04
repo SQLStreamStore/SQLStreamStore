@@ -205,5 +205,51 @@
                 NpgsqlValue = value.HasValue ? (object) value.Value : DBNull.Value
             };
         }
+
+        public static NpgsqlParameter MaxCount(int value)
+        {
+            return new NpgsqlParameter<int>
+            {
+                NpgsqlDbType = NpgsqlDbType.Integer,
+                TypedValue = value
+            };
+        }
+
+        public static NpgsqlParameter OptionalStartingAt(int? value)
+        {
+            return value.HasValue
+                ? (NpgsqlParameter) new NpgsqlParameter<int>
+                {
+                    NpgsqlDbType = NpgsqlDbType.Integer,
+                    TypedValue = value.Value
+                }
+                : new NpgsqlParameter<DBNull>
+                {
+                    TypedValue = DBNull.Value
+                };
+        }
+
+        public static NpgsqlParameter OptionalAfterIdInternal(int? value)
+        {
+            return value.HasValue
+                ? (NpgsqlParameter) new NpgsqlParameter<int>
+                {
+                    NpgsqlDbType = NpgsqlDbType.Integer,
+                    TypedValue = value.Value
+                }
+                : new NpgsqlParameter<DBNull>
+                {
+                    TypedValue = DBNull.Value
+                };
+        }
+
+        public static NpgsqlParameter Pattern(string value)
+        {
+            return new NpgsqlParameter<string>
+            {
+                TypedValue = value,
+                NpgsqlDbType = NpgsqlDbType.Varchar
+            };
+        }
     }
 }

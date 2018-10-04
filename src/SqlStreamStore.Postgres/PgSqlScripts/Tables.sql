@@ -14,6 +14,9 @@ CREATE TABLE IF NOT EXISTS __schema__.streams (
   CONSTRAINT ck_version_gte_negative_one CHECK (version >= -1)
 );
 
+CREATE INDEX IF NOT EXISTS ix_id_original
+  ON __schema__.streams (id_original);
+
 COMMENT ON SCHEMA __schema__
 IS '{ "version": 1 }';
 

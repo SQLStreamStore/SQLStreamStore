@@ -28,13 +28,11 @@
         private string Tables => GetScript(nameof(Tables));
 
         private string AppendToStream => GetScript(nameof(AppendToStream));
-
         private string DeleteStream => GetScript(nameof(DeleteStream));
 
         private string DeleteStreamMessages => GetScript(nameof(DeleteStreamMessages));
-
         private string EnforceIdempotentAppend => GetScript(nameof(EnforceIdempotentAppend));
-
+        private string ListStreamsStartingWith => GetScript(nameof(ListStreamsStartingWith));
         private string ReadAll => GetScript(nameof(ReadAll));
 
         private string Read => GetScript(nameof(Read));
@@ -50,14 +48,17 @@
         private string Scavenge => GetScript(nameof(Scavenge));
 
         private string SetStreamMetadata => GetScript(nameof(SetStreamMetadata));
+        
+        
 
         public string CreateSchema => string.Join(
             Environment.NewLine,
             Tables,
             AppendToStream,
-            EnforceIdempotentAppend,
             DeleteStream,
             DeleteStreamMessages,
+            EnforceIdempotentAppend,
+            ListStreamsStartingWith,
             Read,
             ReadAll,
             ReadJsonData,

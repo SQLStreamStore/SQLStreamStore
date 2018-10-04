@@ -26,6 +26,12 @@ DROP FUNCTION IF EXISTS __schema__.enforce_idempotent_append(
   BOOLEAN,
   __schema__ .new_stream_message []
 ) CASCADE;
+DROP FUNCTION IF EXISTS __schema__.list_streams_starting_with(
+  VARCHAR(1000),
+  INT,
+  INT,
+  INT
+) CASCADE;
 DROP FUNCTION IF EXISTS __schema__.read(
   CHAR(42),
   INT,

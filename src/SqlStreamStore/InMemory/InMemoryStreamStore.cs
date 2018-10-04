@@ -6,6 +6,7 @@ namespace SqlStreamStore
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.InMemory;
     using SqlStreamStore.Streams;
@@ -25,6 +26,7 @@ namespace SqlStreamStore
         private readonly Dictionary<string, InMemoryStream> _streams = new Dictionary<string, InMemoryStream>();
         private readonly Subject<Unit> _subscriptions = new Subject<Unit>();
         private readonly InterlockedBoolean _signallingToSubscribers = new InterlockedBoolean();
+        private readonly IList<string> _streamIds = new List<string>();
         private int _currentPosition;
         private static readonly ReadNextStreamPage s_readNextNotFound = 
             (_, ct) => throw new InvalidOperationException("Cannot read next page of non-exisitent stream");
@@ -137,6 +139,7 @@ namespace SqlStreamStore
                         () => _currentPosition++);
                     inMemoryStream.AppendToStream(expectedVersion, messages);
                     _streams.Add(streamId, inMemoryStream);
+                    _streamIds.Add(streamId);
                 }
                 return new AppendResult(inMemoryStream.CurrentVersion, inMemoryStream.CurrentPosition);
             }
@@ -700,6 +703,46 @@ namespace SqlStreamStore
                 hasCaughtUp,
                 prefetchJsonData,
                 name);
+        }
+
+        public override Task<ListStreamsPage> ListStreams(
+            string startsWith,
+            int startingAt = 0,
+            int maxCount = 100,
+            CancellationToken cancellationToken = default)
+        {
+            Ensure.That(startsWith).IsNotNull();
+            Ensure.That(startingAt).IsGte(0);
+            Ensure.That(maxCount).IsGt(0);
+
+            GuardAgainstDisposed();
+
+            Task<ListStreamsPage> ListNext(int s, CancellationToken token) => ListStreams(
+                startsWith,
+                s + maxCount,
+                maxCount,
+                cancellationToken);
+
+            return ListStreamsInternal(startsWith, startingAt, maxCount, ListNext);
+        }
+
+        private Task<ListStreamsPage> ListStreamsInternal(
+            string startsWith,
+            int startingAt,
+            int maxCount,
+            ListNextStreamsPage listNextStreamsPage)
+        {
+            using(_lock.UseReadLock())
+            {
+                return Task.FromResult(new ListStreamsPage(
+                    startingAt,
+                    _streamIds
+                        .Where(streamId => streamId.StartsWith(startsWith))
+                        .Skip(startingAt)
+                        .Take(maxCount)
+                        .ToArray(),
+                    listNextStreamsPage));
+            }
         }
     }
 }

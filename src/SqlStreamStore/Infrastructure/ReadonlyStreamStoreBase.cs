@@ -237,6 +237,25 @@ namespace SqlStreamStore.Infrastructure
             return ReadHeadPositionInternal(cancellationToken);
         }
 
+        public Task<ListStreamsPage> ListStreams(
+            int startingAt = 0,
+            int maxCount = 100,
+            CancellationToken cancellationToken = default)
+        {
+            Ensure.That(startingAt).IsGte(0);
+            Ensure.That(maxCount).IsGt(0);
+            
+            GuardAgainstDisposed();
+            
+            return ListStreams(string.Empty, startingAt, maxCount, cancellationToken);
+        }
+
+        public abstract Task<ListStreamsPage> ListStreams(
+            string startsWith,
+            int startingAt = 0,
+            int maxCount = 100,
+            CancellationToken cancellationToken = default);
+
         public void Dispose()
         {
             OnDispose?.Invoke();

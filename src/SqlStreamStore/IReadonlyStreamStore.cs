@@ -233,11 +233,11 @@
         /// <summary>
         /// Lists Streams in SQL Stream Store
         /// </summary>
-        /// <param name="startingAt">
-        ///     Where to start the list at
-        /// </param>
         /// <param name="maxCount">
         ///     The maximum number of results
+        /// </param>
+        /// <param name="continuationToken">
+        ///     Where to start the list at
         /// </param>
         /// <param name="cancellationToken">
         ///     The cancellation instruction.
@@ -246,8 +246,8 @@
         ///     A <see cref="ListStreamsPage"/>
         /// </returns>
         Task<ListStreamsPage> ListStreams(
-            int startingAt = 0,
             int maxCount = 100,
+            string continuationToken = default,
             CancellationToken cancellationToken = default);
 
         /// <summary>
@@ -256,11 +256,11 @@
         /// <param name="startsWith">
         ///     
         /// </param>
-        /// <param name="startingAt">
-        ///     Where to start the list at
-        /// </param>
         /// <param name="maxCount">
         ///     The maximum number of results
+        /// </param>
+        /// <param name="continuationToken">
+        ///     Where to start the list at
         /// </param>
         /// <param name="cancellationToken">
         ///     The cancellation instruction.
@@ -270,8 +270,8 @@
         /// </returns>
         Task<ListStreamsPage> ListStreams(
             string startsWith,
-            int startingAt = 0,
             int maxCount = 100,
+            string continuationToken = default,
             CancellationToken cancellationToken = default);
 
         event Action OnDispose;

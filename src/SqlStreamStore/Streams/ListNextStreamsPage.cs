@@ -4,6 +4,6 @@
     using System.Threading.Tasks;
 
     public delegate Task<ListStreamsPage> ListNextStreamsPage(
-        int startingAt,
+        string continuationToken,
         CancellationToken cancellationToken = default);
 }

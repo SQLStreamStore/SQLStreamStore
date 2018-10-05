@@ -6,11 +6,12 @@ namespace SqlStreamStore
 
     partial class MsSqlStreamStoreV3
     {
-        public override Task<ListStreamsPage> ListStreams(
-            string startsWith,
-            int startingAt = 0,
-            int maxCount = 100,
-            CancellationToken cancellationToken = default)
+        protected override Task<ListStreamsPage> ListStreamsInternal(
+            string startingWith,
+            int maxCount,
+            string continuationToken,
+            ListNextStreamsPage listNextStreamsPage,
+            CancellationToken cancellationToken)
         {
             throw new System.NotImplementedException();
         }

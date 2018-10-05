@@ -278,6 +278,7 @@ namespace SqlStreamStore
             InMemoryStream inMemoryStream = _streams[streamId];
             _streams.Remove(streamId);
             inMemoryStream.DeleteAllEvents(ExpectedVersion.Any);
+            _streamIds[_streamIds.IndexOf(streamId)] = null;
 
             var streamDeletedEvent = CreateStreamDeletedMessage(streamId);
             AppendToStreamInternal(DeletedStreamId, ExpectedVersion.Any, new[] { streamDeletedEvent });
@@ -705,42 +706,31 @@ namespace SqlStreamStore
                 name);
         }
 
-        public override Task<ListStreamsPage> ListStreams(
+        protected override Task<ListStreamsPage> ListStreamsInternal(
             string startsWith,
-            int startingAt = 0,
-            int maxCount = 100,
-            CancellationToken cancellationToken = default)
-        {
-            Ensure.That(startsWith).IsNotNull();
-            Ensure.That(startingAt).IsGte(0);
-            Ensure.That(maxCount).IsGt(0);
-
-            GuardAgainstDisposed();
-
-            Task<ListStreamsPage> ListNext(int s, CancellationToken token) => ListStreams(
-                startsWith,
-                s + maxCount,
-                maxCount,
-                cancellationToken);
-
-            return ListStreamsInternal(startsWith, startingAt, maxCount, ListNext);
-        }
-
-        private Task<ListStreamsPage> ListStreamsInternal(
-            string startsWith,
-            int startingAt,
             int maxCount,
-            ListNextStreamsPage listNextStreamsPage)
+            string continuationToken,
+            ListNextStreamsPage listNextStreamsPage,
+            CancellationToken cancellationToken)
         {
+            Ensure.That(listNextStreamsPage).IsNotNull();
+            int.TryParse(continuationToken, out var index);
+            
             using(_lock.UseReadLock())
             {
+                var streamIds = _streamIds
+                    .Skip(index)
+                    .Where(streamId => streamId?.StartsWith(startsWith) ?? false)
+                    .Take(maxCount)
+                    .ToArray();
+
+                var nextContinuationToken = streamIds.Length == 0
+                    ? 0 
+                    : _streamIds.IndexOf(streamIds[streamIds.Length - 1]) + 1; 
+                
                 return Task.FromResult(new ListStreamsPage(
-                    startingAt,
-                    _streamIds
-                        .Where(streamId => streamId.StartsWith(startsWith))
-                        .Skip(startingAt)
-                        .Take(maxCount)
-                        .ToArray(),
+                    nextContinuationToken.ToString(),
+                    streamIds,
                     listNextStreamsPage));
             }
         }

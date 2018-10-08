@@ -18,6 +18,7 @@
         public string DeleteStreamMessages => $"{_schema}.delete_stream_messages";
         public string ListStreams => $"{_schema}.list_streams";
         public string ListStreamsStartingWith => $"{_schema}.list_streams_starting_with";
+        public string ListStreamsEndingWith => $"{_schema}.list_streams_ending_with";
         public string Read => $"{_schema}.read";
         public string ReadAll => $"{_schema}.read_all";
         public string ReadAllHeadPosition => $"{_schema}.read_head_position";

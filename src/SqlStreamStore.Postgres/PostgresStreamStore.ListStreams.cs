@@ -62,6 +62,13 @@ namespace SqlStreamStore
                         Parameters.Pattern(p),
                         Parameters.MaxCount(maxCount),
                         Parameters.OptionalAfterIdInternal(afterIdInternal));
+                case Pattern.EndingWith p:
+                    return BuildFunctionCommand(
+                        _schema.ListStreamsEndingWith,
+                        transaction,
+                        Parameters.Pattern(p),
+                        Parameters.MaxCount(maxCount),
+                        Parameters.OptionalAfterIdInternal(afterIdInternal));
 
                 default:
                     throw Pattern.Unrecognized(nameof(pattern));

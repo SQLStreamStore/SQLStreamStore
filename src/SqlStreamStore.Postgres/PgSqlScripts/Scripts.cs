@@ -34,6 +34,7 @@
         private string EnforceIdempotentAppend => GetScript(nameof(EnforceIdempotentAppend));
         private string ListStreams => GetScript(nameof(ListStreams));
         private string ListStreamsStartingWith => GetScript(nameof(ListStreamsStartingWith));
+        private string ListStreamsEndingWith => GetScript(nameof(ListStreamsEndingWith));
         private string ReadAll => GetScript(nameof(ReadAll));
 
         private string Read => GetScript(nameof(Read));
@@ -60,6 +61,7 @@
             EnforceIdempotentAppend,
             ListStreams,
             ListStreamsStartingWith,
+            ListStreamsEndingWith,
             Read,
             ReadAll,
             ReadJsonData,

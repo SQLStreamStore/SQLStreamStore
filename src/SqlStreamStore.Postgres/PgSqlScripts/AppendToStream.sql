@@ -32,8 +32,8 @@ BEGIN
     ORDER BY __schema__.messages.stream_version DESC
     LIMIT 1;
 
-    INSERT INTO __schema__.streams (id, id_original, max_age, max_count)
-    SELECT _stream_id, _stream_id_original, _max_age, _max_count
+    INSERT INTO __schema__.streams (id, id_original, max_age, max_count, id_original_reversed)
+    SELECT _stream_id, _stream_id_original, _max_age, _max_count, REVERSE(_stream_id_original)
     ON CONFLICT DO NOTHING;
     GET DIAGNOSTICS _success = ROW_COUNT;
 

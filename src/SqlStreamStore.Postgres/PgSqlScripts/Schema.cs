@@ -16,6 +16,7 @@
         public string SetStreamMetadata => $"{_schema}.set_stream_metadata";
         public string DeleteStream => $"{_schema}.delete_stream";
         public string DeleteStreamMessages => $"{_schema}.delete_stream_messages";
+        public string ListStreams => $"{_schema}.list_streams";
         public string ListStreamsStartingWith => $"{_schema}.list_streams_starting_with";
         public string Read => $"{_schema}.read";
         public string ReadAll => $"{_schema}.read_all";

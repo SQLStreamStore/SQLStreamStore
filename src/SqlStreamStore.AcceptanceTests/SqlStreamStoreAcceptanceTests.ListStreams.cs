@@ -61,7 +61,7 @@ namespace SqlStreamStore
                         Array.Empty<NewStreamMessage>());
                 }
 
-                var page = await streamStore.ListStreams(streamIdPrefix, 10);
+                var page = await streamStore.ListStreams(Pattern.StartsWith(streamIdPrefix), 10);
                 page.StreamIds.ShouldBe(Enumerable.Range(0, 10).Select(i => $"{streamIdPrefix}-{i}"));
 
                 page = await page.Next();

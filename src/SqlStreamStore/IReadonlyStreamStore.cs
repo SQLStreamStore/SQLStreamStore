@@ -269,7 +269,7 @@
         ///     A <see cref="ListStreamsPage"/>
         /// </returns>
         Task<ListStreamsPage> ListStreams(
-            string startsWith,
+            Pattern pattern,
             int maxCount = 100,
             string continuationToken = default,
             CancellationToken cancellationToken = default);

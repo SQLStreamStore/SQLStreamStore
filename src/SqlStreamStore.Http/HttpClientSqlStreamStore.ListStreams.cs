@@ -12,7 +12,7 @@ namespace SqlStreamStore
         }
 
         public Task<ListStreamsPage> ListStreams(
-            string startsWith,
+            Pattern pattern,
             int maxCount = 100,
             string continuationToken = default,
             CancellationToken cancellationToken = default)

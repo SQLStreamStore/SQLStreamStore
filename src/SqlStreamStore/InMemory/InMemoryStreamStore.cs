@@ -707,7 +707,7 @@ namespace SqlStreamStore
         }
 
         protected override Task<ListStreamsPage> ListStreamsInternal(
-            string startsWith,
+            Pattern pattern,
             int maxCount,
             string continuationToken,
             ListNextStreamsPage listNextStreamsPage,
@@ -715,12 +715,29 @@ namespace SqlStreamStore
         {
             Ensure.That(listNextStreamsPage).IsNotNull();
             int.TryParse(continuationToken, out var index);
+
+            Func<string, bool> filter = default;
+
+            switch(pattern)
+            {
+                case Pattern.Any _:
+                    filter = s => true;
+                    break;
+                case Pattern.StartingWith p:
+                    filter = s => s?.StartsWith(p) ?? false;
+                    break;
+                case Pattern.EndingWith p:
+                    filter = s => s?.EndsWith(p) ?? false;
+                    break;
+                default:
+                    throw Pattern.Unrecognized(nameof(pattern));
+            }
             
             using(_lock.UseReadLock())
             {
                 var streamIds = _streamIds
                     .Skip(index)
-                    .Where(streamId => streamId?.StartsWith(startsWith) ?? false)
+                    .Where(filter)
                     .Take(maxCount)
                     .ToArray();
 

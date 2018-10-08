@@ -246,21 +246,22 @@ namespace SqlStreamStore.Infrastructure
             
             GuardAgainstDisposed();
             
-            return ListStreams(string.Empty, maxCount, continuationToken, cancellationToken);
+            return ListStreams(Pattern.Anything(), maxCount, continuationToken, cancellationToken);
         }
 
         public Task<ListStreamsPage> ListStreams(
-            string startsWith,
+            Pattern pattern,
             int maxCount = 100,
             string continuationToken = default,
             CancellationToken cancellationToken = default)
         {
             Ensure.That(maxCount).IsGt(0);
+            Ensure.That(pattern).IsNotNull();
 
             Task<ListStreamsPage> ListNext(string @continue, CancellationToken ct)
-                => ListStreams(startsWith, maxCount, @continue, ct);
+                => ListStreams(pattern, maxCount, @continue, ct);
 
-            return ListStreamsInternal(startsWith, maxCount, continuationToken, ListNext, cancellationToken);
+            return ListStreamsInternal(pattern, maxCount, continuationToken, ListNext, cancellationToken);
         }
 
         public void Dispose()
@@ -326,7 +327,7 @@ namespace SqlStreamStore.Infrastructure
             CancellationToken cancellationToken);
 
         protected abstract Task<ListStreamsPage> ListStreamsInternal(
-            string startingWith,
+            Pattern pattern,
             int maxCount,
             string continuationToken,
             ListNextStreamsPage listNextStreamsPage,

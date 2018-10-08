@@ -7,7 +7,7 @@ namespace SqlStreamStore
     partial class MsSqlStreamStoreV3
     {
         protected override Task<ListStreamsPage> ListStreamsInternal(
-            string startingWith,
+            Pattern pattern,
             int maxCount,
             string continuationToken,
             ListNextStreamsPage listNextStreamsPage,

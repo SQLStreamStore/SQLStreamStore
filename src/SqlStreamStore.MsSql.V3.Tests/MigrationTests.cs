@@ -54,6 +54,9 @@
             checkSchemaResult = await v3Store.CheckSchema();
             checkSchemaResult.IsMatch().ShouldBeTrue();
 
+            var listStreamsResult = await v3Store.ListStreams(Pattern.EndsWith("1"));
+            listStreamsResult.StreamIds.Length.ShouldBe(2);
+
             v3Store.Dispose();
         }
     }

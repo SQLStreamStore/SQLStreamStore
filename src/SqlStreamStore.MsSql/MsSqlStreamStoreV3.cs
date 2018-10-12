@@ -243,30 +243,21 @@
                 Logger.Info("Schema migrated. Starting data migration. Loading stream Ids...");
                 HashSet<string> streamIds = new HashSet<string>();
                 HashSet<string> metadataStreamIds = new HashSet<string>();
-                using(var connection = _createConnection())
+
+                var listStreamsResult = await ListStreams(int.MaxValue, cancellationToken: cancellationToken);
+
+                foreach(var streamId in listStreamsResult.StreamIds)
                 {
-                    await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
-                    using(var command = new SqlCommand(_scripts.ListStreamIds, connection))
+                    if(streamId.StartsWith("$$"))
                     {
-                        var reader = await command
-                            .ExecuteReaderAsync(cancellationToken)
-                            .NotOnCapturedContext();
-
-                        while(await reader.ReadAsync(cancellationToken))
-                        {
-                            var streamId = reader.GetString(0);
-                            if(streamId.StartsWith("$$"))
-                            {
-                                metadataStreamIds.Add(streamId.Substring(2));
-                            }
-                            else
-                            {
-                                streamIds.Add(streamId);
-                            }
-                        }
+                        metadataStreamIds.Add(streamId.Substring(2));
+                    }
+                    else
+                    {
+                        streamIds.Add(streamId);
                     }
                 }
+
                 streamIds.IntersectWith(metadataStreamIds);
                 progress.Report(new MigrateProgress(MigrateProgress.MigrateStage.StreamIdsLoaded));
 

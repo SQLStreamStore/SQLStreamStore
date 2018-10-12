@@ -15,9 +15,6 @@
     <EmbeddedResource Include="ScriptsV3\*.sql" />
   </ItemGroup>
   <ItemGroup>
-    <None Remove="ScriptsV3\ListStreamIds.sql" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />
   </ItemGroup>
   <ItemGroup>

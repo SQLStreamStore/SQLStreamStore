@@ -11,6 +11,7 @@ BEGIN
     CREATE TABLE dbo.Streams(
         Id                  CHAR(42)                                NOT NULL,
         IdOriginal          NVARCHAR(1000)                          NOT NULL,
+        IdOriginalReversed  NVARCHAR(1000)                          NOT NULL,
         IdInternal          INT                 IDENTITY(1,1)       NOT NULL,
         [Version]           INT                 DEFAULT(-1)         NOT NULL,
         Position            BIGINT              DEFAULT(-1)         NOT NULL,
@@ -27,7 +28,16 @@ IF NOT EXISTS(
 BEGIN
     CREATE UNIQUE NONCLUSTERED INDEX IX_Streams_Id ON dbo.Streams (Id);
 END
- 
+
+IF NOT EXISTS(
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_Streams_IdOriginal' AND object_id = OBJECT_ID('dbo.Streams', 'U'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Streams_IdOriginal
+        ON dbo.Streams (IdOriginal, IdOriginalReversed, IdInternal);
+END
+
 IF object_id('dbo.Messages', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.Messages(

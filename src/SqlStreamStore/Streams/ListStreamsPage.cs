@@ -7,7 +7,7 @@ namespace SqlStreamStore.Streams
     public sealed class ListStreamsPage
     {
         public string[] StreamIds { get; }
-        private readonly string _continuationToken;
+        public string ContinuationToken { get; }
         private readonly ListNextStreamsPage _listNextStreamsPage;
 
         public ListStreamsPage(
@@ -19,11 +19,11 @@ namespace SqlStreamStore.Streams
             Ensure.That(listNextStreamsPage).IsNotNull();
 
             StreamIds = streamIds;
-            _continuationToken = continuationToken;
+            ContinuationToken = continuationToken;
             _listNextStreamsPage = listNextStreamsPage;
         }
 
         public Task<ListStreamsPage> Next(CancellationToken cancellationToken = default) 
-            => _listNextStreamsPage(_continuationToken, cancellationToken);
+            => _listNextStreamsPage(ContinuationToken, cancellationToken);
     }
 }

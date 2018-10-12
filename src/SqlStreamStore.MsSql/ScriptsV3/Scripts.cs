@@ -62,6 +62,8 @@
 
         internal string Migration_v3 => GetScript(nameof(Migration_v3));
 
+        internal string Migration_v3_IdOriginalReversed => GetScript(nameof(Migration_v3_IdOriginalReversed));
+
         internal string ListStreamIds => GetScript(nameof(ListStreamIds));
 
         internal string ListStreamIdsStartingWith => GetScript(nameof(ListStreamIdsStartingWith));

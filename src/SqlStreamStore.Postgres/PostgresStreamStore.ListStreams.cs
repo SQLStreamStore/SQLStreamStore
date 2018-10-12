@@ -4,7 +4,6 @@ namespace SqlStreamStore
     using System.Threading;
     using System.Threading.Tasks;
     using Npgsql;
-    using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Streams;
@@ -18,7 +17,6 @@ namespace SqlStreamStore
             ListNextStreamsPage listNextStreamsPage,
             CancellationToken cancellationToken)
         {
-            Ensure.That(maxCount).IsGt(0);
             if(!int.TryParse(continuationToken, out var afterIdInternal))
             {
                 afterIdInternal = -1;
@@ -59,14 +57,14 @@ namespace SqlStreamStore
                     return BuildFunctionCommand(
                         _schema.ListStreamsStartingWith,
                         transaction,
-                        Parameters.Pattern(p),
+                        Parameters.Pattern(pattern.Value),
                         Parameters.MaxCount(maxCount),
                         Parameters.OptionalAfterIdInternal(afterIdInternal));
                 case Pattern.EndingWith p:
                     return BuildFunctionCommand(
                         _schema.ListStreamsEndingWith,
                         transaction,
-                        Parameters.Pattern(p),
+                        Parameters.Pattern(pattern.Value),
                         Parameters.MaxCount(maxCount),
                         Parameters.OptionalAfterIdInternal(afterIdInternal));
 

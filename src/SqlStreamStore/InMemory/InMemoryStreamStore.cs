@@ -724,10 +724,10 @@ namespace SqlStreamStore
                     filter = s => true;
                     break;
                 case Pattern.StartingWith p:
-                    filter = s => s?.StartsWith(p) ?? false;
+                    filter = s => s?.StartsWith(p.Value) ?? false;
                     break;
                 case Pattern.EndingWith p:
-                    filter = s => s?.EndsWith(p) ?? false;
+                    filter = s => s?.EndsWith(p.Value) ?? false;
                     break;
                 default:
                     throw Pattern.Unrecognized(nameof(pattern));

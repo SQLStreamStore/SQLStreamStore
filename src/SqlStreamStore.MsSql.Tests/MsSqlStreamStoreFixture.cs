@@ -126,48 +126,6 @@ namespace SqlStreamStore
             return connectionStringBuilder.ToString();
         }
 
-        private interface ISqlServerDatabase
-        {
-            SqlConnection CreateConnection();
-            SqlConnectionStringBuilder CreateConnectionStringBuilder();
-            Task CreateDatabase(CancellationToken cancellationToken = default);
-        }
-
-        private class LocalSqlServerDatabase : ISqlServerDatabase
-        {
-            private readonly string _databaseName;
-            private readonly string _connectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=master;Integrated Security=SSPI;";
-
-            public LocalSqlServerDatabase(string databaseName)
-            {
-                _databaseName = databaseName;
-            }
-            public SqlConnection CreateConnection()
-            {
-                return new SqlConnection(_connectionString);
-            }
-
-            public SqlConnectionStringBuilder CreateConnectionStringBuilder()
-            {
-                return new SqlConnectionStringBuilder(_connectionString);
-            }
-
-            public async Task CreateDatabase(CancellationToken cancellationToken = default)
-            {
-                using(var connection = CreateConnection())
-                {
-                    await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-                    var tempPath = Environment.GetEnvironmentVariable("Temp");
-                    var createDatabase = $"CREATE DATABASE [{_databaseName}] on (name='{_databaseName}', "
-                                         + $"filename='{tempPath}\\{_databaseName}.mdf')";
-                    using (var command = new SqlCommand(createDatabase, connection))
-                    {
-                        await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
-                    }
-                }
-            }
-        }
-
         private class DockerSqlServerDatabase
         {
             private readonly string _databaseName;

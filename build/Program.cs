@@ -22,9 +22,14 @@ namespace build
 
             Target(Clean, () =>
             {
-                if (Directory.Exists(ArtifactsDir))
+                DirectoryInfo di = new DirectoryInfo(ArtifactsDir);
+                foreach (var file in di.GetFiles())
                 {
-                    Directory.Delete(ArtifactsDir, true);
+                    file.Delete(); 
+                }
+                foreach (var dir in di.GetDirectories())
+                {
+                    dir.Delete(true); 
                 }
             });
 
@@ -70,7 +75,7 @@ namespace build
                 }
             });
 
-            Target("default", DependsOn(Clean, RunTests, Publish));
+            Target("default", DependsOn(Clean, Publish));
 
             RunTargets(args);
         }

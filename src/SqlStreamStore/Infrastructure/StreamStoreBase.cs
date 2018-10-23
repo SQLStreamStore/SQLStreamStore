@@ -46,7 +46,7 @@ namespace SqlStreamStore.Infrastructure
             Ensure.That(streamId.Value, nameof(streamId)).DoesNotStartWith("$");
             Ensure.That(messages, nameof(messages)).IsNotNull();
 
-            if(Logger.IsDebugEnabled())
+            if (Logger.IsDebugEnabled())
             {
                 Logger.DebugFormat("AppendToStream {streamId} with expected version {expectedVersion} and " +
                                    "{messageCount} messages.", streamId, expectedVersion, messages.Length);

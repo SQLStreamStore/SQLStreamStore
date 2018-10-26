@@ -131,7 +131,7 @@
         {
             using(var command = new SqlCommand(_scripts.AppendStreamExpectedVersionAny, connection, transaction))
             {
-                command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
+                command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = sqlStreamId.Id });
                 command.Parameters.AddWithValue("streamIdOriginal", sqlStreamId.IdOriginal);
 
                 if (messages.Any())
@@ -236,7 +236,7 @@
         {
             using(var command = new SqlCommand(_scripts.AppendStreamExpectedVersionNoStream, connection, transaction))
             {
-                command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
+                command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = sqlStreamId.Id });
                 command.Parameters.AddWithValue("streamIdOriginal", sqlStreamId.IdOriginal);
 
                 if(messages.Length != 0)
@@ -343,7 +343,7 @@
 
             using(var command = new SqlCommand(_scripts.AppendStreamExpectedVersion, connection, transaction))
             {
-                command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
+                command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = sqlStreamId.Id });
                 command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
                 var eventsParam = CreateNewMessagesSqlParameter(sqlDataRecords);
                 command.Parameters.Add(eventsParam);
@@ -459,7 +459,7 @@
         {
             using(var command = new SqlCommand(_scripts.GetStreamVersionOfMessageId, connection, transaction))
             {
-                command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
+                command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = sqlStreamId.Id });
                 command.Parameters.AddWithValue("messageId", messageId);
 
                 var result = await command.ExecuteScalarAsync(cancellationToken)

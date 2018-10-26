@@ -10,12 +10,12 @@ namespace SqlStreamStore
     public partial class StreamStoreAcceptanceTests
     {
         [Theory, Trait("Category", "StreamMetadata"),
-         InlineData(ExpectedVersion.NoStream), InlineData(ExpectedVersion.Any), InlineData(ExpectedVersion.EmptyStream)]
+         InlineData(ExpectedVersion.NoStream), InlineData(ExpectedVersion.Any)]
         public async Task When_stream_has_max_count_and_append_exceeds_then_should_maintain_max_count(int expectedVersion)
         {
-            using(var fixture = GetFixture())
+            using (var fixture = GetFixture())
             {
-                using(var store = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
                     const int maxCount = 2;
@@ -31,14 +31,38 @@ namespace SqlStreamStore
             }
         }
 
+        [Theory, Trait("Category", "StreamMetadata"),
+         InlineData(ExpectedVersion.EmptyStream)]
+        public async Task When_empty_stream_has_max_count_and_append_exceeds_then_should_maintain_max_count(int expectedVersion)
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    const string streamId = "stream-1";
+                    const int maxCount = 2;
+                    await store
+                        .SetStreamMetadata(streamId, maxCount: maxCount, metadataJson: "meta");
+                    await store
+                        .AppendToStream(streamId, ExpectedVersion.NoStream, new NewStreamMessage[0]);
+                    await store
+                        .AppendToStream(streamId, expectedVersion, CreateNewStreamMessages(1, 2, 3, 4));
+
+                    var streamMessagesPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 4);
+
+                    streamMessagesPage.Messages.Length.ShouldBe(maxCount);
+                }
+            }
+        }
+
         [Theory, InlineData(1, 1), InlineData(2, 2), InlineData(6, 4), Trait("Category", "StreamMetadata")]
         public async Task When_stream_max_count_is_set_then_stream_should_have_max_count(
             int maxCount,
             int expectedLength)
         {
-            using(var fixture = GetFixture())
+            using (var fixture = GetFixture())
             {
-                using(var store = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
 
@@ -57,11 +81,11 @@ namespace SqlStreamStore
         [Fact, Trait("Category", "StreamMetadata")]
         public async Task When_stream_has_expired_messages_and_read_forwards_then_should_not_get_expired_messages()
         {
-            using(var fixture = GetFixture())
+            using (var fixture = GetFixture())
             {
                 var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
                 fixture.GetUtcNow = () => currentUtc;
-                using(var store = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     string streamId = "stream-1";
                     await store
@@ -82,11 +106,11 @@ namespace SqlStreamStore
         [Fact, Trait("Category", "StreamMetadata")]
         public async Task When_stream_has_expired_messages_and_read_backward_then_should_not_get_expired_messages()
         {
-            using(var fixture = GetFixture())
+            using (var fixture = GetFixture())
             {
                 var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
                 fixture.GetUtcNow = () => currentUtc;
-                using(var store = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
                     await store
@@ -108,11 +132,11 @@ namespace SqlStreamStore
         public async Task
             When_streams_have_expired_messages_and_read_all_forwards_then_should_not_get_expired_messages()
         {
-            using(var fixture = GetFixture())
+            using (var fixture = GetFixture())
             {
                 var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
                 fixture.GetUtcNow = () => currentUtc;
-                using(var store = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     // Arrange
                     const string streamId1 = "stream-1";
@@ -148,11 +172,11 @@ namespace SqlStreamStore
         public async Task
             When_streams_have_expired_messages_and_read_all_backwards_then_should_not_get_expired_messages()
         {
-            using(var fixture = GetFixture())
+            using (var fixture = GetFixture())
             {
                 var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
                 fixture.GetUtcNow = () => currentUtc;
-                using(var store = await fixture.GetStreamStore())
+                using (var store = await fixture.GetStreamStore())
                 {
                     // Arrange
                     const string streamId1 = "stream-1";

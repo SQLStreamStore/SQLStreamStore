@@ -22,13 +22,13 @@ namespace SqlStreamStore
                     new Link
                     {
                         Href = LinkFormatter.Stream(streamId),
-                        Rel = Constants.Relations.AppendToStream
+                        Rel = Constants.Relations.DeleteStream
                     }
                 }
             });
 
             client = await client.Delete(
-                Constants.Relations.AppendToStream,
+                Constants.Relations.DeleteStream,
                 null,
                 null,
                 new Dictionary<string, string[]>
@@ -52,13 +52,13 @@ namespace SqlStreamStore
                     new Link
                     {
                         Href = LinkFormatter.StreamByMessageId(streamId, messageId),
-                        Rel = Constants.Relations.AppendToStream
+                        Rel = Constants.Relations.DeleteStreamMessage
                     }
                 }
             });
 
             client = await client.Delete(
-                Constants.Relations.AppendToStream,
+                Constants.Relations.DeleteStreamMessage,
                 null,
                 null,
                 cancellationToken: cancellationToken);

@@ -37,7 +37,7 @@
             var current =
                 new[]
                 {
-                    (result.Content == null
+                    (result.Content.Headers.ContentLength == 0
                         ? new Resource()
                         : await result.Content.ReadResource())
                     .WithBaseAddress(new Uri(client.Client.HttpClient.BaseAddress, uri))

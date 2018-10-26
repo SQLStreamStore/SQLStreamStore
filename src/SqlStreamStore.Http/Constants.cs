@@ -26,6 +26,8 @@ namespace SqlStreamStore
             public const string Message = "streamStore:message";
             public const string Metadata = "streamStore:metadata";
             public const string AppendToStream = "streamStore:append";
+            public const string DeleteStreamMessage = "streamStore:delete-message";
+            public const string DeleteStream = "streamStore:delete-stream";
         }
     }
 }

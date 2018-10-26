@@ -181,7 +181,7 @@
                 using(var command = new SqlCommand(_scripts.GetStreamMessageCount, connection))
                 {
                     var streamIdInfo = new StreamIdInfo(streamId);
-                    command.Parameters.AddWithValue("streamId", streamIdInfo.SqlStreamId.Id);
+                    command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = streamIdInfo.SqlStreamId.Id });
 
                     var result = await command
                         .ExecuteScalarAsync(cancellationToken)
@@ -206,7 +206,7 @@
                 using (var command = new SqlCommand(_scripts.GetStreamMessageBeforeCreatedCount, connection))
                 {
                     var streamIdInfo = new StreamIdInfo(streamId);
-                    command.Parameters.AddWithValue("streamId", streamIdInfo.SqlStreamId.Id);
+                    command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = streamIdInfo.SqlStreamId.Id });
                     command.Parameters.AddWithValue("created", createdBefore);
 
                     var result = await command
@@ -294,7 +294,7 @@
 
                             using(var command = new SqlCommand(_scripts.SetStreamMetadata, connection))
                             {
-                                command.Parameters.AddWithValue("streamId", new StreamIdInfo(streamId).SqlStreamId.Id);
+                                command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = new StreamIdInfo(streamId).SqlStreamId.Id });
                                 command.Parameters.AddWithValue("streamIdOriginal", "ignored");
                                 command.Parameters.Add("maxAge", SqlDbType.Int);
                                 command.Parameters["maxAge"].Value = (object)metadata.MaxAge ?? DBNull.Value;

@@ -1,6 +1,7 @@
 namespace SqlStreamStore
 {
     using System;
+    using System.Data;
     using System.Data.SqlClient;
     using System.Threading;
     using System.Threading.Tasks;
@@ -38,7 +39,7 @@ namespace SqlStreamStore
                     bool deleted;
                     using (var command = new SqlCommand(_scripts.DeleteStreamMessage, connection, transaction))
                     {
-                        command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
+                        command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = sqlStreamId.Id });
                         command.Parameters.AddWithValue("eventId", eventId);
                         var count  = await command
                             .ExecuteScalarAsync(cancellationToken)
@@ -76,7 +77,7 @@ namespace SqlStreamStore
                 {
                     using(var command = new SqlCommand(_scripts.DeleteStreamExpectedVersion, connection, transaction))
                     {
-                        command.Parameters.AddWithValue("streamId", streamIdInfo.SqlStreamId.Id);
+                        command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = streamIdInfo.SqlStreamId.Id });
                         command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
                         try
                         {
@@ -142,7 +143,7 @@ namespace SqlStreamStore
             bool aStreamIsDeleted;
             using (var command = new SqlCommand(_scripts.DeleteStreamAnyVersion, connection, transaction))
             {
-                command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
+                command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = sqlStreamId.Id });
                 var i = await command
                     .ExecuteScalarAsync(cancellationToken)
                     .NotOnCapturedContext();

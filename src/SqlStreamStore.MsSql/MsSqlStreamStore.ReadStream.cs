@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Data;
     using System.Data.SqlClient;
     using System.Linq;
     using System.Threading;
@@ -107,7 +108,7 @@
 
             using (var command = new SqlCommand(commandText, connection, transaction))
             {
-                command.Parameters.AddWithValue("streamId", sqlStreamId.Id);
+                command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = sqlStreamId.Id });
                 command.Parameters.AddWithValue("count", count + 1); //Read extra row to see if at end or not
                 command.Parameters.AddWithValue("streamVersion", streamVersion);
 
@@ -201,7 +202,7 @@
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                 using(var command = new SqlCommand(_scripts.ReadMessageData, connection))
                 {
-                    command.Parameters.AddWithValue("streamId", streamId);
+                    command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = streamId });
                     command.Parameters.AddWithValue("streamVersion", streamVersion);
 
                     var jsonData = (string)await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();

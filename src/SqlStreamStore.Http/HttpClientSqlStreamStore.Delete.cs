@@ -63,8 +63,7 @@ namespace SqlStreamStore
                 null,
                 cancellationToken: cancellationToken);
 
-            ThrowOnError(client);
-            
+            ThrowOnError(client);            
         }
     }
 }

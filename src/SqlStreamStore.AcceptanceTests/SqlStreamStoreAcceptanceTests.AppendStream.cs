@@ -399,6 +399,40 @@
         }
 
         [Fact, Trait("Category", "AppendStream")]
+        public async Task Can_create_empty_stream()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    const string streamId = "stream-1";
+                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, new NewStreamMessage[0]);
+
+                    var page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+
+                    page.Messages.Length.ShouldBe(0);
+                }
+            }
+        }
+
+        [Fact, Trait("Category", "AppendStream")]
+        public async Task Can_append_to_empty_stream()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    const string streamId = "stream-1";
+                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, new NewStreamMessage[0]);
+
+                    var result = await store.AppendToStream(streamId, ExpectedVersion.EmptyStream, CreateNewStreamMessages(1, 2, 3));
+
+                    result.CurrentVersion.ShouldBe(2);
+                }
+            }
+        }
+
+        [Fact, Trait("Category", "AppendStream")]
         public async Task When_append_stream_second_time_with_expected_version_any_and_all_messages_committed_then_should_be_idempotent_first_message()
         {
             using (var fixture = GetFixture())

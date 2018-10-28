@@ -41,7 +41,7 @@
            CancellationToken cancellationToken)
         {
             Ensure.That(streamId, "streamId").IsNotNullOrWhiteSpace();
-            Ensure.That(expectedVersion, "expectedVersion").IsGte(-2);
+            Ensure.That(expectedVersion, "expectedVersion").IsGte(-3);
             Ensure.That(messages, "Messages").IsNotNull();
             GuardAgainstDisposed();
 
@@ -94,6 +94,16 @@
                         connection,
                         transaction,
                         sqlStreamId,
+                        messages,
+                        cancellationToken);
+                }
+                if(expectedVersion == ExpectedVersion.EmptyStream)
+                {
+                    return AppendToStreamExpectedVersion(
+                        connection,
+                        transaction,
+                        sqlStreamId,
+                        -1,
                         messages,
                         cancellationToken);
                 }
@@ -296,7 +306,8 @@
                         if(messages.Length > page.Messages.Length)
                         {
                             throw new WrongExpectedVersionException(
-                                ErrorMessages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal,
+                                ErrorMessages.AppendFailedWrongExpectedVersion(
+                                    sqlStreamId.IdOriginal,
                                     ExpectedVersion.NoStream),
                                 ex);
                         }

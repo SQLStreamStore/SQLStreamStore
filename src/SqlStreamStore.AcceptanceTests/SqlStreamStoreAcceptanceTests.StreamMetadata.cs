@@ -1,5 +1,6 @@
 ﻿namespace SqlStreamStore
 {
+    using System;
     using System.Linq;
     using System.Threading.Tasks;
     using Shouldly;
@@ -48,6 +49,38 @@
                     metadata.MetadataStreamVersion.ShouldBe(0);
                     metadata.MaxCount.ShouldBe(3);
                     metadata.MetadataJson.ShouldBe("meta");
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Can_set_stream_metadata_for_non_existent_stream_and_append_with_expected_version_nostream()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    var streamId = "stream-1";
+
+                    await store.SetStreamMetadata(streamId, maxAge: 20, maxCount: 10);
+
+                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1));
+                }
+            }
+        }
+
+        [Fact]
+        public async Task Can_set_stream_metadata_for_non_existent_stream_and_append_with_expected_version_any()
+        {
+            using (var fixture = GetFixture())
+            {
+                using (var store = await fixture.GetStreamStore())
+                {
+                    var streamId = "stream-1";
+
+                    await store.SetStreamMetadata(streamId, maxAge: 20, maxCount: 10);
+
+                    await store.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1));
                 }
             }
         }
@@ -128,7 +161,7 @@
             }
         }
 
-        [Fact]
+        [Fact, Trait("Category", "StreamMetadata")]
         public async Task Can_set_deleted_stream_metadata()
         {
             using (var fixture = GetFixture())

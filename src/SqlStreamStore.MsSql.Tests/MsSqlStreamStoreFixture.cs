@@ -66,7 +66,7 @@ namespace SqlStreamStore
         public async Task<MsSqlStreamStore> GetUninitializedStreamStore()
         {
             await CreateDatabase();
-            
+
             return new MsSqlStreamStore(new MsSqlStreamStoreSettings(ConnectionString)
             {
                 Schema = _schema,
@@ -126,53 +126,11 @@ namespace SqlStreamStore
             return connectionStringBuilder.ToString();
         }
 
-        private interface ISqlServerDatabase
-        {
-            SqlConnection CreateConnection();
-            SqlConnectionStringBuilder CreateConnectionStringBuilder();
-            Task CreateDatabase(CancellationToken cancellationToken = default);
-        }
-
-        private class LocalSqlServerDatabase : ISqlServerDatabase
-        {
-            private readonly string _databaseName;
-            private readonly string _connectionString = @"Data Source=(localdb)\MSSQLLocalDB;Initial Catalog=master;Integrated Security=SSPI;";
-
-            public LocalSqlServerDatabase(string databaseName)
-            {
-                _databaseName = databaseName;
-            }
-            public SqlConnection CreateConnection()
-            {
-                return new SqlConnection(_connectionString);
-            }
-
-            public SqlConnectionStringBuilder CreateConnectionStringBuilder()
-            {
-                return new SqlConnectionStringBuilder(_connectionString);
-            }
-
-            public async Task CreateDatabase(CancellationToken cancellationToken = default)
-            {
-                using(var connection = CreateConnection())
-                {
-                    await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-                    var tempPath = Environment.GetEnvironmentVariable("Temp");
-                    var createDatabase = $"CREATE DATABASE [{_databaseName}] on (name='{_databaseName}', "
-                                         + $"filename='{tempPath}\\{_databaseName}.mdf')";
-                    using (var command = new SqlCommand(createDatabase, connection))
-                    {
-                        await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
-                    }
-                }
-            }
-        }
-
         private class DockerSqlServerDatabase
         {
             private readonly string _databaseName;
             private readonly DockerContainer _sqlServerContainer;
-            private readonly string _password;
+            private const string Password = "!Passw0rd";
             private const string Image = "microsoft/mssql-server-linux";
             private const string Tag = "2017-CU9";
             private const int Port = 21433;
@@ -180,7 +138,6 @@ namespace SqlStreamStore
             public DockerSqlServerDatabase(string databaseName)
             {
                 _databaseName = databaseName;
-                _password = "!01u0Yx19PW";
 
                 var ports = new Dictionary<int, int>
                 {
@@ -194,7 +151,7 @@ namespace SqlStreamStore
                     ports)
                 {
                     ContainerName = "sql-stream-store-tests-mssql-v2",
-                    Env = new[] { "ACCEPT_EULA=Y", $"SA_PASSWORD={_password}" }
+                    Env = new[] { "ACCEPT_EULA=Y", $"SA_PASSWORD={Password}" }
                 };
             }
 
@@ -202,7 +159,7 @@ namespace SqlStreamStore
                 => new SqlConnection(CreateConnectionStringBuilder().ConnectionString);
 
             public SqlConnectionStringBuilder CreateConnectionStringBuilder()
-                => new SqlConnectionStringBuilder($"server=localhost,{Port};User Id=sa;Password={_password};Initial Catalog=master");
+                => new SqlConnectionStringBuilder($"server=localhost,{Port};User Id=sa;Password={Password};Initial Catalog=master");
 
             public async Task CreateDatabase(CancellationToken cancellationToken = default)
             {

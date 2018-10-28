@@ -76,14 +76,14 @@
                         streamId,
                         expectedStreamMetadataVersion,
                         json);
-                    var newmessage = new NewStreamMessage(messageId, "$stream-metadata", json);
+                    var newStreamMessage = new NewStreamMessage(messageId, "$stream-metadata", json);
 
                     result = await AppendToStreamInternal(
                         connection,
                         transaction,
                         streamIdInfo.MetadataSqlStreamId,
                         expectedStreamMetadataVersion,
-                        new[] { newmessage },
+                        new[] { newStreamMessage },
                         cancellationToken);
 
                     using(var command = new SqlCommand(_scripts.SetStreamMetadata, connection, transaction))

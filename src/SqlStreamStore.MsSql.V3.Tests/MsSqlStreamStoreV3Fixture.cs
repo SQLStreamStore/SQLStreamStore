@@ -13,14 +13,20 @@ namespace SqlStreamStore
         private readonly string _schema;
         private readonly bool _disableDeletionTracking;
         private readonly string _databaseNameOverride;
+        private readonly bool _deleteDatabaseOnDispose;
         private readonly string _databaseName;
         private readonly DockerSqlServerDatabase _databaseInstance;
 
-        public MsSqlStreamStoreV3Fixture(string schema, bool disableDeletionTracking = false, string databaseNameOverride = null)
+        public MsSqlStreamStoreV3Fixture(
+            string schema,
+            bool disableDeletionTracking = false,
+            string databaseNameOverride = null,
+            bool deleteDatabaseOnDispose = true)
         {
             _schema = schema;
             _disableDeletionTracking = disableDeletionTracking;
             _databaseNameOverride = databaseNameOverride;
+            _deleteDatabaseOnDispose = deleteDatabaseOnDispose;
             _databaseName = databaseNameOverride ?? $"StreamStoreTests-{Guid.NewGuid():n}";
             _databaseInstance = new DockerSqlServerDatabase(_databaseName);
 
@@ -81,6 +87,11 @@ namespace SqlStreamStore
 
         public override void Dispose()
         {
+            if (!_deleteDatabaseOnDispose)
+            {
+                return;
+            }
+
             SqlConnection.ClearAllPools();
 
             using (var connection = _databaseInstance.CreateConnection())
@@ -118,7 +129,7 @@ namespace SqlStreamStore
         {
             private readonly string _databaseName;
             private readonly DockerContainer _sqlServerContainer;
-            private readonly string _password;
+            private const string Password = "!Passw0rd";
             private const string Image = "microsoft/mssql-server-linux";
             private const string Tag = "2017-CU9";
             private const int Port = 11433;
@@ -126,7 +137,6 @@ namespace SqlStreamStore
             public DockerSqlServerDatabase(string databaseName)
             {
                 _databaseName = databaseName;
-                _password = "!01u0Yx19PW";
 
                 var ports = new Dictionary<int, int>
                 {
@@ -140,7 +150,7 @@ namespace SqlStreamStore
                     ports)
                 {
                     ContainerName = "sql-stream-store-tests-mssql-v3",
-                    Env = new[] { "ACCEPT_EULA=Y", $"SA_PASSWORD={_password}" }
+                    Env = new[] { "ACCEPT_EULA=Y", $"SA_PASSWORD={Password}" }
                 };
             }
 
@@ -148,7 +158,7 @@ namespace SqlStreamStore
                 => new SqlConnection(CreateConnectionStringBuilder().ConnectionString);
 
             public SqlConnectionStringBuilder CreateConnectionStringBuilder()
-                => new SqlConnectionStringBuilder($"server=localhost,{Port};User Id=sa;Password={_password};Initial Catalog=master");
+                => new SqlConnectionStringBuilder($"server=localhost,{Port};User Id=sa;Password={Password};Initial Catalog=master");
 
             public async Task CreateDatabase(CancellationToken cancellationToken = default)
             {

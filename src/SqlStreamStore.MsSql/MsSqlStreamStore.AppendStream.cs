@@ -36,7 +36,7 @@
            CancellationToken cancellationToken)
         {
             Ensure.That(streamId, "streamId").IsNotNullOrWhiteSpace();
-            Ensure.That(expectedVersion, "expectedVersion").IsGte(-2);
+            Ensure.That(expectedVersion, "expectedVersion").IsGte(-3);
             Ensure.That(messages, "Messages").IsNotNull();
             GuardAgainstDisposed();
 
@@ -84,6 +84,16 @@
                         connection,
                         transaction,
                         sqlStreamId,
+                        messages,
+                        cancellationToken);
+                }
+                if (expectedVersion == ExpectedVersion.EmptyStream)
+                {
+                    return AppendToStreamExpectedVersion(
+                        connection,
+                        transaction,
+                        sqlStreamId,
+                        -1,
                         messages,
                         cancellationToken);
                 }
@@ -265,6 +275,8 @@
                         var currentPosition = reader.GetInt64(1);
                         int? maxCount = null;
 
+                        await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
+
                         if (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                         {
                             var jsonData = reader.GetString(0);
@@ -359,7 +371,8 @@
                         var currentPosition = reader.GetInt64(1);
                         int? maxCount = null;
 
-                        await reader.NextResultAsync(cancellationToken);
+                        await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
+
                         if (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                         {
                             var jsonData = reader.GetString(0);

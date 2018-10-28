@@ -218,16 +218,20 @@
             }
         }
 
-        /// <summary>
-        ///     Migrates a V2 schema to a V3 schema. The V3 schema maintains a
-        ///     copy of 'MaxAge' and 'MaxCount' in the streams table for
-        ///     performance reasons. This modifies the schema and iterates over
-        ///     all streams lifting `MaxAge` and `MaxCount` if the stream has
-        ///     metadata. Migration progress is logged.
-        /// </summary>
-        /// <param name="cancellationToken"></param>
-        /// <returns></returns>
-        public async Task Migrate(CancellationToken cancellationToken)
+
+        ///  <summary>
+        ///      Migrates a V2 schema to a V3 schema. The V3 schema maintains a
+        ///      copy of 'MaxAge' and 'MaxCount' in the streams table for
+        ///      performance reasons. This modifies the schema and iterates over
+        ///      all streams lifting `MaxAge` and `MaxCount` if the stream has
+        ///      metadata. Migration progress is logged and reported.
+        /// 
+        ///      As usual, ensure you have the database backed up.
+        ///  </summary>
+        /// <param name="progress">A provider that can receive progress updates.</param>
+        /// <param name="cancellationToken">The cancellation instruction.</param>
+        /// <returns>A Task representing the asynchronous operation.</returns>
+        public async Task Migrate(IProgress<MigrateProgress> progress, CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
 
@@ -235,8 +239,22 @@
 
             try
             {
+                var checkSchemaResult = await CheckSchema(cancellationToken);
+                if(checkSchemaResult.IsMatch())
+                {
+                    Logger.Info("Nothing to do, schema is already v3.");
+                    return;
+                }
+
+                if(checkSchemaResult.CurrentVersion != 2)
+                {
+                    string message = $"Schema did not match expected version for migtation - 2. Actual version is {checkSchemaResult.CurrentVersion}";
+                    throw new InvalidOperationException(message);
+                }
+                progress.Report(new MigrateProgress(MigrateProgress.MigrateStage.SchemaVersionChecked));
+
                 // Migrate the schema
-                using(var connection = _createConnection())
+                using (var connection = _createConnection())
                 {
                     await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
@@ -247,8 +265,9 @@
                             .NotOnCapturedContext();
                     }
                 }
+                progress.Report(new MigrateProgress(MigrateProgress.MigrateStage.SchemaMigrated));
 
-                // Loadup the stream IDs that have metadata.
+                // Load up the stream IDs that have metadata.
                 Logger.Info("Schema migrated. Starting data migration. Loading stream Ids...");
                 HashSet<string> streamIds = new HashSet<string>();
                 HashSet<string> metadataStreamIds = new HashSet<string>();
@@ -277,6 +296,7 @@
                     }
                 }
                 streamIds.IntersectWith(metadataStreamIds);
+                progress.Report(new MigrateProgress(MigrateProgress.MigrateStage.StreamIdsLoaded));
 
                 // Migrate data
                 Logger.Info($"{streamIds.Count} streams to be processed...");
@@ -306,6 +326,7 @@
                     }
                     i++;
                 }
+                progress.Report(new MigrateProgress(MigrateProgress.MigrateStage.MetadataMigrated));
             }
             catch(Exception ex)
             {

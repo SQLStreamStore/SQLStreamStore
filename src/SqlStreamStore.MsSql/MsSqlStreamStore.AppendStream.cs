@@ -275,6 +275,8 @@
                         var currentPosition = reader.GetInt64(1);
                         int? maxCount = null;
 
+                        await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
+
                         if (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                         {
                             var jsonData = reader.GetString(0);
@@ -369,7 +371,8 @@
                         var currentPosition = reader.GetInt64(1);
                         int? maxCount = null;
 
-                        await reader.NextResultAsync(cancellationToken);
+                        await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
+
                         if (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                         {
                             var jsonData = reader.GetString(0);

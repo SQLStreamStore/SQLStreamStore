@@ -102,8 +102,6 @@
 
     public static class TaskExtensions
     {
-        private static Func<int, int> TaskTimeout => timeout => Debugger.IsAttached ? 30000 : timeout;
-
         public static async Task<T> WithTimeout<T>(this Task<T> task, int timeout = 3000)
         {
             if (await Task.WhenAny(task, Task.Delay(timeout)) == task)

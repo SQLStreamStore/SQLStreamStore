@@ -4,7 +4,6 @@ CREATE SEQUENCE IF NOT EXISTS __schema__.streams_seq
 CREATE TABLE IF NOT EXISTS __schema__.streams (
   id                   CHAR(42)      NOT NULL,
   id_original          VARCHAR(1000) NOT NULL,
-  id_original_reversed VARCHAR(1000) NOT NULL,
   id_internal          INT           NOT NULL DEFAULT nextval('__schema__.streams_seq'),
   version              INT           NOT NULL DEFAULT (-1),
   position             BIGINT        NOT NULL DEFAULT (-1),
@@ -19,7 +18,7 @@ CREATE INDEX IF NOT EXISTS ix_id_original
   ON __schema__.streams (id_original);
 
 CREATE INDEX IF NOT EXISTS ix_id_original_reversed
-  ON __schema__.streams (id_original_reversed);
+  ON __schema__.streams (REVERSE(id_original));
 
 COMMENT ON SCHEMA __schema__
 IS '{ "version": 1 }';

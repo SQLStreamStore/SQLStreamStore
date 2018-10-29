@@ -11,7 +11,7 @@ BEGIN
   RETURN QUERY
   SELECT __schema__.streams.id_original, __schema__.streams.id_internal
   FROM __schema__.streams
-  WHERE __schema__.streams.id_original_reversed LIKE CONCAT(REVERSE(_pattern), '%')
+  WHERE REVERSE(__schema__.streams.id_original) LIKE CONCAT(REVERSE(_pattern), '%')
     AND __schema__.streams.id_internal > _after_id_internal
   ORDER BY __schema__.streams.id_internal ASC
   LIMIT _max_count;

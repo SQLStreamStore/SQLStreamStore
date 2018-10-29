@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
-    <VersionPrefix>1.2.0</VersionPrefix>
     <Authors>Damian Hickey</Authors>
     <PackageProjectUrl>https://github.com/SqlStreamStore/SqlStreamStore</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/SqlStreamStore/SqlStreamStore/blob/master/LICENSE</PackageLicenseUrl>
@@ -9,5 +8,13 @@
     <PackageTags>cqrs;event-sourcing;event-store;stream-store</PackageTags>
     <NoWarn>1701;1702;1705;1591</NoWarn>
     <LangVersion>latest</LangVersion>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
+    <MinVerMinimumMajorMinor>1.2</MinVerMinimumMajorMinor>
+    <BUILD_NUMBER Condition="'$(BUILD_NUMBER)' == ''">$(TRAVIS_BUILD_NUMBER)</BUILD_NUMBER>
+    <BUILD_NUMBER Condition="'$(BUILD_NUMBER)' == ''">0</BUILD_NUMBER>
+    <MinVerBuildMetadata>build.$(BUILD_NUMBER)</MinVerBuildMetadata>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MinVer" Version="1.0.0-alpha.12" PrivateAssets="All" />
+  </ItemGroup>
 </Project>

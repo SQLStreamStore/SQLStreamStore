@@ -11,12 +11,12 @@ BEGIN
     CREATE TABLE dbo.Streams(
         Id                  CHAR(42)                                NOT NULL,
         IdOriginal          NVARCHAR(1000)                          NOT NULL,
-        IdOriginalReversed  NVARCHAR(1000)                          NOT NULL,
         IdInternal          INT                 IDENTITY(1,1)       NOT NULL,
         [Version]           INT                 DEFAULT(-1)         NOT NULL,
         Position            BIGINT              DEFAULT(-1)         NOT NULL,
         MaxAge              INT                 DEFAULT(NULL),
         MaxCount            INT                 DEFAULT(NULL),
+        IdOriginalReversed  AS REVERSE(IdOriginal)
         CONSTRAINT PK_Streams PRIMARY KEY CLUSTERED (IdInternal)
     );
 END

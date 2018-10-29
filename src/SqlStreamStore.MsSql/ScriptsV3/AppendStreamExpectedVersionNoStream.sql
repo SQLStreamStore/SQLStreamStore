@@ -8,9 +8,9 @@ BEGIN TRANSACTION CreateStream;
     BEGIN
 
         INSERT INTO dbo.Streams
-            (Id, IdOriginal, IdOriginalReversed)
+            (Id, IdOriginal)
         VALUES
-            (@streamId, @streamIdOriginal, REVERSE(@streamIdOriginal));
+            (@streamId, @streamIdOriginal);
 
         SET @streamIdInternal = SCOPE_IDENTITY();
 

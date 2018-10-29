@@ -9,8 +9,8 @@ BEGIN TRANSACTION CreateStreamIfNotExists;
         WHERE dbo.Streams.Id = @streamId
     )
         BEGIN
-            INSERT INTO dbo.Streams (Id, IdOriginal, IdOriginalReversed)
-            VALUES (@streamId, @streamIdOriginal, REVERSE(@streamIdOriginal));
+            INSERT INTO dbo.Streams (Id, IdOriginal)
+            VALUES (@streamId, @streamIdOriginal);
 
             -- If metadata exists, lift maxAge and maxCount. TODO put this into a function? Duplicate code in Append...NoStream.sql
             DECLARE @jsonData nvarchar(max);

@@ -236,12 +236,6 @@
                             .ExecuteNonQueryAsync(cancellationToken)
                             .NotOnCapturedContext();
                     }
-                    using(var command = new SqlCommand(_scripts.Migration_v3_IdOriginalReversed, connection))
-                    {
-                        await command
-                            .ExecuteNonQueryAsync(cancellationToken)
-                            .NotOnCapturedContext();
-                    }
                 }
                 progress.Report(new MigrateProgress(MigrateProgress.MigrateStage.SchemaMigrated));
 

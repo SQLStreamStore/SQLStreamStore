@@ -19,15 +19,12 @@ IF NOT EXISTS(SELECT 1
               WHERE OBJECT_ID = OBJECT_ID(N'[dbo].[Streams]')
                 AND name = 'IdOriginalReversed')
   ALTER TABLE [dbo].[Streams]
-    ADD [IdOriginalReversed] NVARCHAR(1000) NOT NULL DEFAULT '';
+    ADD [IdOriginalReversed] AS REVERSE([IdOriginal]);
 
-IF NOT EXISTS(
-    SELECT *
-    FROM sys.indexes
-    WHERE name = 'IX_Streams_IdOriginal'
-      AND object_id = OBJECT_ID('dbo.Streams', 'U'))
-  CREATE NONCLUSTERED INDEX IX_Streams_IdOriginal
-    ON dbo.Streams (IdOriginal, IdOriginalReversed, IdInternal);
+DROP INDEX IF EXISTS IX_Streams_IdOriginal ON [dbo].[Streams];
+
+CREATE NONCLUSTERED INDEX IX_Streams_IdOriginal
+  ON dbo.Streams (IdOriginal, IdOriginalReversed, IdInternal);
 
 EXEC sys.sp_updateextendedproperty
 @name = N'version',

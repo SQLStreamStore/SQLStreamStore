@@ -1,13 +1,16 @@
 <?xml version="1.0" encoding="utf-8"?>
 <Project>
   <PropertyGroup>
-    <VersionPrefix>1.2.0</VersionPrefix>
     <Authors>Damian Hickey</Authors>
     <PackageProjectUrl>https://github.com/SqlStreamStore/SqlStreamStore</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/SqlStreamStore/SqlStreamStore/blob/master/LICENSE</PackageLicenseUrl>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageTags>cqrs;event-sourcing;event-store;stream-store</PackageTags>
-    <NoWarn>1701;1702;1705;1591</NoWarn>
+    <NoWarn>1701;1702;1705;1591;NU5105</NoWarn>
     <LangVersion>latest</LangVersion>
+    <MinVerTagPrefix>v</MinVerTagPrefix>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="MinVer" Version="1.0.0-alpha.6" PrivateAssets="All" />
+  </ItemGroup>
 </Project>

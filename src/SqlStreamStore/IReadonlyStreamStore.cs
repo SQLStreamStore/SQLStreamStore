@@ -253,17 +253,17 @@
         /// <summary>
         /// Lists Streams in SQL Stream Store
         /// </summary>
-        /// <param name="startsWith">
-        ///     
+        /// <param name="pattern">
+        ///     The <see cref="Pattern"/> used to match a stream id.
         /// </param>
         /// <param name="maxCount">
         ///     The maximum number of results
         /// </param>
         /// <param name="continuationToken">
-        ///     Where to start the list at
+        ///     Where to start the list at.
         /// </param>
         /// <param name="cancellationToken">
-        ///     The cancellation instruction.
+        ///     The cancellation token.
         /// </param>
         /// <returns>
         ///     A <see cref="ListStreamsPage"/>

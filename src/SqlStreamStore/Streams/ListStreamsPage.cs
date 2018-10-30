@@ -4,9 +4,18 @@ namespace SqlStreamStore.Streams
     using System.Threading.Tasks;
     using SqlStreamStore.Imports.Ensure.That;
 
+    /// <summary>
+    /// Represents the results of listing stream ids.
+    /// </summary>
     public sealed class ListStreamsPage
     {
+        /// <summary>
+        /// A list of stream ids that matched a certain <see cref="Pattern" />
+        /// </summary>
         public string[] StreamIds { get; }
+        /// <summary>
+        /// A continuation token used to retrieve the next page of results.
+        /// </summary>
         public string ContinuationToken { get; }
         private readonly ListNextStreamsPage _listNextStreamsPage;
 
@@ -23,6 +32,11 @@ namespace SqlStreamStore.Streams
             _listNextStreamsPage = listNextStreamsPage;
         }
 
+        /// <summary>
+        /// Call this method to automatically get the next <see cref="ListStreamsPage"/>
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns>A <see cref="ListStreamsPage" /></returns>
         public Task<ListStreamsPage> Next(CancellationToken cancellationToken = default) 
             => _listNextStreamsPage(ContinuationToken, cancellationToken);
     }

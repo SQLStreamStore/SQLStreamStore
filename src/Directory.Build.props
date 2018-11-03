@@ -7,7 +7,7 @@
     <PackageLicenseUrl>https://github.com/SqlStreamStore/SqlStreamStore/blob/master/LICENSE</PackageLicenseUrl>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageTags>cqrs;event-sourcing;event-store;stream-store</PackageTags>
-    <NoWarn>1701;1702;1705;1591</NoWarn>
+    <NoWarn>$(NoWarn);1701;1702;1705;1591</NoWarn>
     <LangVersion>latest</LangVersion>
   </PropertyGroup>
 </Project>

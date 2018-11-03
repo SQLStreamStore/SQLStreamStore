@@ -56,7 +56,7 @@ namespace build
                     "SqlStreamStore.Http"),
                 project => Run("dotnet", $"pack src/{project}/{project}.csproj -c Release -o ../../{ArtifactsDir} --no-build --version-suffix {versionSuffix}"));
 
-            Target(Publish, DependsOn(Pack), () =>
+            Target(Publish, DependsOn(Pack, RunTests), () =>
             {
                 var packagesToPush = Directory.GetFiles(ArtifactsDir, "*.nupkg", SearchOption.TopDirectoryOnly);
                 Console.WriteLine($"Found packages to publish: {string.Join("; ", packagesToPush)}");
@@ -75,7 +75,7 @@ namespace build
                 }
             });
 
-            Target("default", DependsOn(Clean, RunTests, Publish));
+            Target("default", DependsOn(Clean, Publish));
 
             RunTargets(args);
         }

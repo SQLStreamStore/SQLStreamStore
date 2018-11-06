@@ -7,7 +7,6 @@
     <AssemblyName>SqlStreamStore.Http</AssemblyName>
     <PackageId>SqlStreamStore.Http</PackageId>
     <RootNamespace>SqlStreamStore</RootNamespace>
-    <NoWarn>1701;1702;1705;1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.IO.RecyclableMemoryStream" Version="1.2.2" />

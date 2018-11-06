@@ -6,7 +6,6 @@
     <AssemblyName>SqlStreamStore.Postgres</AssemblyName>
     <PackageId>SqlStreamStore.Postgres</PackageId>
     <RootNamespace>SqlStreamStore</RootNamespace>
-    <NoWarn>1701;1702;1705;1591</NoWarn>
     <LangVersion>latest</LangVersion>
     <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.0</NetStandardImplicitPackageVersion>
   </PropertyGroup>

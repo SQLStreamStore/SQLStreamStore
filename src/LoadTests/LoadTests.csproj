@@ -3,7 +3,6 @@
     <TargetFramework>netcoreapp2.1</TargetFramework>
     <RuntimeIdentifiers>win10-x64;osx.10.11-x64;ubuntu.16.10-x64;ubuntu.14.04-x64</RuntimeIdentifiers>
     <OutputType>exe</OutputType>
-    <NoWarn>1701;1702;1705;1591</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="EasyConsoleStd" Version="1.1.0" />

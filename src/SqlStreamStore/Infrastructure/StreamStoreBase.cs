@@ -113,7 +113,8 @@ namespace SqlStreamStore.Infrastructure
                 throw new ArgumentException("Must not start with '$'", nameof(streamId));
             }
 
-            Ensure.That(expectedStreamMetadataVersion, nameof(expectedStreamMetadataVersion)).IsGte(-2);
+            Ensure.That(expectedStreamMetadataVersion, nameof(expectedStreamMetadataVersion))
+                .IsGte(ExpectedVersion.NoStream);
 
             if (Logger.IsDebugEnabled())
             {

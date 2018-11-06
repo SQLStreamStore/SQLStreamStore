@@ -31,16 +31,20 @@
             }
         }
 
-        [Fact, Trait("Category", "StreamMetadata")]
-        public async Task Can_set_and_get_stream_metadata_for_non_existent_stream()
+        [Theory, Trait("Category", "StreamMetadata"), InlineData(ExpectedVersion.NoStream), InlineData(ExpectedVersion.Any)]
+        public async Task Can_set_and_get_stream_metadata_for_non_existent_stream(int expectedVersion)
         {
             using(var fixture = GetFixture())
             {
                 using(var store = await fixture.GetStreamStore())
                 {
                     const string streamId = "stream-1";
-                    await store
-                        .SetStreamMetadata(streamId, maxAge: 2, maxCount: 3, metadataJson: "meta");
+                    await store.SetStreamMetadata(
+                        streamId,
+                        maxAge: 2,
+                        maxCount: 3,
+                        metadataJson: "meta",
+                        expectedStreamMetadataVersion: expectedVersion);
 
                     var metadata = await store.GetStreamMetadata(streamId);
 

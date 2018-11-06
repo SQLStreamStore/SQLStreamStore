@@ -36,7 +36,7 @@
            CancellationToken cancellationToken)
         {
             Ensure.That(streamId, "streamId").IsNotNullOrWhiteSpace();
-            Ensure.That(expectedVersion, "expectedVersion").IsGte(-3);
+            Ensure.That(expectedVersion, "expectedVersion").IsGte(ExpectedVersion.NoStream);
             Ensure.That(messages, "Messages").IsNotNull();
             GuardAgainstDisposed();
 

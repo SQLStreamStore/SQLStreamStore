@@ -8,7 +8,6 @@ namespace build
     class Program
     {
         private const string ArtifactsDir = "artifacts";
-        private const string Clean = "clean";
         private const string Build = "build";
         private const string RunTests = "run-tests";
         private const string Pack = "pack";
@@ -19,19 +18,6 @@ namespace build
             var travisBuildNumber = Environment.GetEnvironmentVariable("TRAVIS_BUILD_NUMBER");
             var buildNumber = travisBuildNumber ?? "0";
             var versionSuffix = "build" + buildNumber.PadLeft(5, '0');
-
-            Target(Clean, () =>
-            {
-                DirectoryInfo di = new DirectoryInfo(ArtifactsDir);
-                foreach (var file in di.GetFiles())
-                {
-                    file.Delete(); 
-                }
-                foreach (var dir in di.GetDirectories())
-                {
-                    dir.Delete(true); 
-                }
-            });
 
             Target(Build, () => Run("dotnet", "build src/SqlStreamStore.sln -c Release"));
 
@@ -75,7 +61,7 @@ namespace build
                 }
             });
 
-            Target("default", DependsOn(Clean, RunTests, Publish));
+            Target("default", DependsOn(RunTests, Publish));
 
             RunTargets(args);
         }

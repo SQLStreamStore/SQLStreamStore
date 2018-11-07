@@ -73,7 +73,7 @@ namespace SqlStreamStore
         /// <summary>
         ///     Disables stream and message deletion tracking. Will increase
         ///     performance, however subscribers won't know if a stream or a
-        ///     message has been deleted.
+        ///     message has been deleted. This can be modified at runtime.
         /// </summary>
         public bool DisableDeletionTracking { get; set; }
     }

@@ -38,7 +38,7 @@ namespace SqlStreamStore
 
         /// <summary>
         ///     MsSqlStream store supports stores in a single database through 
-        ///     the useage of schema. This is useful if you want to contain
+        ///     the usage of schema. This is useful if you want to contain
         ///     multiple bounded contexts in a single database. Alternative is
         ///     use a database per bounded context, which may be more appropriate
         ///     for larger stores.
@@ -72,7 +72,7 @@ namespace SqlStreamStore
 
         /// <summary>
         ///     Disables stream and message deletion tracking. Will increase
-        ///     peformance, however subcribers won't know if a stream or a
+        ///     performance, however subscribers won't know if a stream or a
         ///     message has been deleted.
         /// </summary>
         public bool DisableDeletionTracking { get; set; }

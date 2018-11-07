@@ -30,7 +30,7 @@
         /// <summary>
         ///     Initializes a new instance of <see cref="MsSqlStreamStoreV3"/>
         /// </summary>
-        /// <param name="settings">A settings class to configur this instance.</param>
+        /// <param name="settings">A settings class to configure this instance.</param>
         public MsSqlStreamStoreV3(MsSqlStreamStoreV3Settings settings)
             :base(settings.GetUtcNow, settings.LogName)
         {

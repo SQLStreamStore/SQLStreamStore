@@ -149,7 +149,7 @@ namespace SqlStreamStore
                     HealthCheck,
                     ports)
                 {
-                    ContainerName = "sql-stream-store-tests-mssql-v3",
+                    ContainerName = "sql-stream-store-tests-mssql",
                     Env = new[] { "ACCEPT_EULA=Y", $"SA_PASSWORD={Password}" }
                 };
             }

@@ -133,7 +133,7 @@ namespace SqlStreamStore
             private const string Password = "!Passw0rd";
             private const string Image = "microsoft/mssql-server-linux";
             private const string Tag = "2017-CU9";
-            private const int Port = 21433;
+            private const int Port = 11433;
 
             public DockerSqlServerDatabase(string databaseName)
             {
@@ -150,7 +150,7 @@ namespace SqlStreamStore
                     HealthCheck,
                     ports)
                 {
-                    ContainerName = "sql-stream-store-tests-mssql-v2",
+                    ContainerName = "sql-stream-store-tests-mssql",
                     Env = new[] { "ACCEPT_EULA=Y", $"SA_PASSWORD={Password}" }
                 };
             }

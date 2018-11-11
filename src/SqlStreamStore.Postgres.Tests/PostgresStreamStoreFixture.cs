@@ -267,7 +267,7 @@ namespace SqlStreamStore
                 };
             }
 
-            public override async Task CreateDatabase(CancellationToken cancellationToken = default(CancellationToken))
+            public override async Task CreateDatabase(CancellationToken cancellationToken = default)
             {
                 await _postgresContainer.TryStart(cancellationToken).WithTimeout(60 * 1000 * 3);
 

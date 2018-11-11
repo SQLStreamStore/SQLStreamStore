@@ -36,7 +36,7 @@ namespace SqlStreamStore
                 $"test_{Guid.NewGuid():n}",
                 connectionString);
         }
-            
+
         public override long MinPosition => 0;
 
         public override int MaxSubscriptionCount => 90;
@@ -267,7 +267,7 @@ namespace SqlStreamStore
                 };
             }
 
-            public override async Task CreateDatabase(CancellationToken cancellationToken = default)
+            public override async Task CreateDatabase(CancellationToken cancellationToken = default(CancellationToken))
             {
                 await _postgresContainer.TryStart(cancellationToken).WithTimeout(60 * 1000 * 3);
 

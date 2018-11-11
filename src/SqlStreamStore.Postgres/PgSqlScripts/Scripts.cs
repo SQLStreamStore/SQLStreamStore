@@ -30,6 +30,7 @@
         private string AppendToStream => GetScript(nameof(AppendToStream));
 
         private string DeleteStream => GetScript(nameof(DeleteStream));
+
         private string DeleteStreamMessages => GetScript(nameof(DeleteStreamMessages));
 
         private string EnforceIdempotentAppend => GetScript(nameof(EnforceIdempotentAppend));
@@ -43,8 +44,6 @@
         private string ReadHeadPosition => GetScript(nameof(ReadHeadPosition));
 
         private string ReadSchemaVersion => GetScript(nameof(ReadSchemaVersion));
-
-        private string ReadStreamMessageBeforeCreatedCount => GetScript(nameof(ReadStreamMessageBeforeCreatedCount));
 
         private string ReadStreamVersionOfMessageId => GetScript(nameof(ReadStreamVersionOfMessageId));
 
@@ -64,7 +63,6 @@
             ReadJsonData,
             ReadHeadPosition,
             ReadSchemaVersion,
-            ReadStreamMessageBeforeCreatedCount,
             ReadStreamVersionOfMessageId,
             Scavenge,
             SetStreamMetadata);

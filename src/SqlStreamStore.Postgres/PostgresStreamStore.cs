@@ -81,7 +81,7 @@
             }
         }
 
-        protected override Task<int> GetStreamMessageCount(
+        protected virtual Task<int> GetStreamMessageCount(
             string streamId,
             CancellationToken cancellationToken = new CancellationToken())
         {

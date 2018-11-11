@@ -133,16 +133,6 @@ namespace SqlStreamStore.Infrastructure
         }
 
         /// <summary>
-        ///     Gets the count of messages in a stream.
-        /// </summary>
-        /// <param name="streamId">The stream id.</param>
-        /// <param name="cancellationToken">The cancellation instruction.</param>
-        /// <returns>The number of messages in a stream.</returns>
-        protected abstract Task<int> GetStreamMessageCount(
-            string streamId,
-            CancellationToken cancellationToken = default);
-
-        /// <summary>
         ///     Queues a task to purge expired message.
         /// </summary>
         /// <param name="streamMessage"></param>

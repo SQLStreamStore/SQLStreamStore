@@ -19,7 +19,7 @@ namespace SqlStreamStore
         {
             _schema = schema;
             _deleteDatabaseOnDispose = deleteDatabaseOnDispose;
-            DatabaseName = $"StreamStoreTests-{Guid.NewGuid():n}";
+            DatabaseName = $"sss-v2-{Guid.NewGuid():n}";
             _databaseInstance = new DockerSqlServerDatabase(DatabaseName);
 
             ConnectionString = CreateConnectionString();
@@ -168,7 +168,13 @@ namespace SqlStreamStore
                 using(var connection = CreateConnection())
                 {
                     await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-                    using (var command = new SqlCommand($"CREATE DATABASE [{_databaseName}]", connection))
+
+                    var createCommand = $@"CREATE DATABASE [{_databaseName}]
+ALTER DATABASE [{_databaseName}] SET SINGLE_USER
+ALTER DATABASE [{_databaseName}] SET COMPATIBILITY_LEVEL=110
+ALTER DATABASE [{_databaseName}] SET MULTI_USER";
+
+                    using (var command = new SqlCommand(createCommand, connection))
                     {
                         await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
                     }

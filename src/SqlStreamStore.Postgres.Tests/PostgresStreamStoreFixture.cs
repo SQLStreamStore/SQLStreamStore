@@ -36,7 +36,7 @@ namespace SqlStreamStore
                 $"test_{Guid.NewGuid():n}",
                 connectionString);
         }
-            
+
         public override long MinPosition => 0;
 
         public override int MaxSubscriptionCount => 90;

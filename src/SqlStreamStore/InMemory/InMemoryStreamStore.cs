@@ -65,7 +65,7 @@ namespace SqlStreamStore
             }
         }
 
-        protected override Task<int> GetStreamMessageCount(string streamId, CancellationToken cancellationToken)
+        private Task<int> GetStreamMessageCount(string streamId, CancellationToken cancellationToken)
         {
             using(_lock.UseReadLock())
             {

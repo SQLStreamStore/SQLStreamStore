@@ -32,8 +32,6 @@
 
         internal string GetStreamMessageCount => GetScript(nameof(GetStreamMessageCount));
 
-        internal string GetStreamMessageBeforeCreatedCount => GetScript(nameof(GetStreamMessageBeforeCreatedCount));
-
         internal string CreateSchema => GetScript(nameof(CreateSchema));
 
         internal string GetSchemaVersion => GetScript(nameof(GetSchemaVersion));

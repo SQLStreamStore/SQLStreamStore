@@ -167,8 +167,7 @@
             }
         }
 
-        /// <inheritdoc />
-        protected override async Task<int> GetStreamMessageCount(
+        private async Task<int> GetStreamMessageCount(
             string streamId,
             CancellationToken cancellationToken = default)
         {
@@ -191,33 +190,6 @@
                 }
             }
         }
-
-        public async Task<int> GetMessageCount(
-            string streamId,
-            DateTime createdBefore,
-            CancellationToken cancellationToken = default)
-        {
-            GuardAgainstDisposed();
-
-            using (var connection = _createConnection())
-            {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
-                using (var command = new SqlCommand(_scripts.GetStreamMessageBeforeCreatedCount, connection))
-                {
-                    var streamIdInfo = new StreamIdInfo(streamId);
-                    command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = streamIdInfo.SqlStreamId.Id });
-                    command.Parameters.AddWithValue("created", createdBefore);
-
-                    var result = await command
-                        .ExecuteScalarAsync(cancellationToken)
-                        .NotOnCapturedContext();
-
-                    return (int)result;
-                }
-            }
-        }
-
 
         ///  <summary>
         ///      Migrates a V2 schema to a V3 schema. The V3 schema maintains a

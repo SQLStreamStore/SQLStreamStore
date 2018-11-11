@@ -81,37 +81,11 @@
             }
         }
 
-        protected override Task<int> GetStreamMessageCount(
+        protected virtual Task<int> GetStreamMessageCount(
             string streamId,
             CancellationToken cancellationToken = new CancellationToken())
         {
             throw new NotSupportedException();
-        }
-
-        public async Task<int> GetMessageCount(
-            string streamId,
-            DateTime createdBefore,
-            CancellationToken cancellationToken = new CancellationToken())
-        {
-            GuardAgainstDisposed();
-
-            var streamIdInfo = new StreamIdInfo(streamId);
-
-            using(var connection = _createConnection())
-            {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-                using(var transaction = connection.BeginTransaction())
-                using(var command = BuildFunctionCommand(
-                    _schema.ReadStreamMessageBeforeCreatedCount,
-                    transaction,
-                    Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
-                    Parameters.CreatedUtc(createdBefore)))
-                {
-                    var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
-
-                    return (int) result;
-                }
-            }
         }
 
         public async Task DropAll(CancellationToken cancellationToken = default)

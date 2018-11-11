@@ -42,35 +42,6 @@
             }
         }
 
-        [Fact]
-        public async Task Can_get_stream_message_count_with_created_before_date()
-        {
-            using (var fixture = new MsSqlStreamStoreV3Fixture("dbo"))
-            {
-                using (var store = await fixture.GetMsSqlStreamStore())
-                {
-                    fixture.GetUtcNow = () => new DateTime(2016, 1, 1, 0, 0, 0);
-
-                    var streamId = "stream-1";
-                    await store.AppendToStream(
-                        streamId,
-                        ExpectedVersion.NoStream,
-                        CreateNewStreamMessages(1, 2, 3));
-
-                    fixture.GetUtcNow = () => new DateTime(2016, 1, 1, 0, 1, 0);
-
-                    await store.AppendToStream(
-                        streamId,
-                        ExpectedVersion.Any,
-                        CreateNewStreamMessages(4, 5, 6));
-
-                    var streamCount = await store.GetMessageCount(streamId, new DateTime(2016, 1, 1, 0, 1, 0));
-
-                    streamCount.ShouldBe(3); // The first 3
-                }
-            }
-        }
-
         [Theory, InlineData("dbo"), InlineData("myschema")]
         public async Task Can_call_initialize_repeatably(string schema)
         {

@@ -9,7 +9,7 @@ namespace SqlStreamStore.Infrastructure
     using SqlStreamStore.Logging;
 
     /// <summary>
-    ///     Represnets a base implementation of a stream store. It's primary purpose is to handle 
+    ///     Represents a base implementation of a stream store. It's primary purpose is to handle 
     ///     common needs across all derived implementations such as guard clauses and logging.
     /// </summary>
     public abstract class StreamStoreBase : ReadonlyStreamStoreBase, IStreamStore
@@ -56,7 +56,7 @@ namespace SqlStreamStore.Infrastructure
                 // If there is an expected version then nothing to do...
                 return CreateAppendResultAtHeadPosition(expectedVersion, cancellationToken);
             }
-            // ... expectedVersion.NoStream and ExpectedVesion.Any may create an empty stream though
+            // ... expectedVersion.NoStream and ExpectedVersion.Any may create an empty stream though
             return AppendToStreamInternal(streamId, expectedVersion, messages, cancellationToken);
         }
 

@@ -1,4 +1,4 @@
-/* SQL Server 2008+*/
+/* SQL Server 2012+*/
 
 DECLARE @DBName sysname;
 SET @DBName = (SELECT db_name());

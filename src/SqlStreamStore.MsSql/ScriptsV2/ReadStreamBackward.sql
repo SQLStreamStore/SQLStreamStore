@@ -1,5 +1,3 @@
-/* SQL Server 2008+ */
-
     DECLARE @streamIdInternal AS INT
     DECLARE @lastStreamVersion AS INT
 	DECLARE @lastStreamPosition AS BIGINT

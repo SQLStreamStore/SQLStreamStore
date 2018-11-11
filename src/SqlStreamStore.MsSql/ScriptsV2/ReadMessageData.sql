@@ -1,5 +1,3 @@
-/* SQL Server 2008+ */
-
     DECLARE @streamIdInternal AS INT
 
      SELECT @streamIdInternal = dbo.Streams.IdInternal

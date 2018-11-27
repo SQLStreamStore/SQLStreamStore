@@ -230,6 +230,50 @@
             string streamId,
             CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Lists Streams in SQL Stream Store
+        /// </summary>
+        /// <param name="maxCount">
+        ///     The maximum number of results
+        /// </param>
+        /// <param name="continuationToken">
+        ///     Where to start the list at
+        /// </param>
+        /// <param name="cancellationToken">
+        ///     The cancellation instruction.
+        /// </param>
+        /// <returns>
+        ///     A <see cref="ListStreamsPage"/>
+        /// </returns>
+        Task<ListStreamsPage> ListStreams(
+            int maxCount = 100,
+            string continuationToken = default,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        /// Lists Streams in SQL Stream Store
+        /// </summary>
+        /// <param name="pattern">
+        ///     The <see cref="Pattern"/> used to match a stream id.
+        /// </param>
+        /// <param name="maxCount">
+        ///     The maximum number of results
+        /// </param>
+        /// <param name="continuationToken">
+        ///     Where to start the list at.
+        /// </param>
+        /// <param name="cancellationToken">
+        ///     The cancellation token.
+        /// </param>
+        /// <returns>
+        ///     A <see cref="ListStreamsPage"/>
+        /// </returns>
+        Task<ListStreamsPage> ListStreams(
+            Pattern pattern,
+            int maxCount = 100,
+            string continuationToken = default,
+            CancellationToken cancellationToken = default);
+
         event Action OnDispose;
     }
 }

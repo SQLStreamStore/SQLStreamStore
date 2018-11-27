@@ -14,6 +14,17 @@ IF NOT EXISTS (SELECT 1 FROM SYS.COLUMNS WHERE OBJECT_ID = OBJECT_ID(N'[dbo].[St
 ALTER TABLE [dbo].[Streams]
 ADD [MaxCount] int NULL DEFAULT NULL;
 
+IF NOT EXISTS(SELECT 1
+              FROM SYS.COLUMNS
+              WHERE OBJECT_ID = OBJECT_ID(N'[dbo].[Streams]')
+                AND name = 'IdOriginalReversed')
+BEGIN
+  ALTER TABLE [dbo].[Streams]
+    ADD [IdOriginalReversed] AS REVERSE([IdOriginal]);
+  CREATE NONCLUSTERED INDEX IX_Streams_IdOriginalReversed
+    ON dbo.Streams (IdOriginalReversed, IdInternal);
+END
+
 EXEC sys.sp_updateextendedproperty
 @name = N'version',
 @value = N'3',

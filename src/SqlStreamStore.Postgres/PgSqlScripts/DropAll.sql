@@ -2,7 +2,8 @@ DROP FUNCTION IF EXISTS __schema__.append_to_stream(
   CHAR(42),
   VARCHAR(1000),
   INT,
-  TIMESTAMP
+  TIMESTAMP,
+  __schema__ .new_stream_message []
 ) CASCADE;
 DROP FUNCTION IF EXISTS __schema__.delete_stream(
   CHAR(42),
@@ -25,6 +26,20 @@ DROP FUNCTION IF EXISTS __schema__.enforce_idempotent_append(
   INT,
   BOOLEAN,
   __schema__ .new_stream_message []
+) CASCADE;
+DROP FUNCTION IF EXISTS __schema__.list_streams(
+  INT,
+  INT
+) CASCADE;
+DROP FUNCTION IF EXISTS __schema__.list_streams_starting_with(
+  VARCHAR(1000),
+  INT,
+  INT
+) CASCADE;
+DROP FUNCTION IF EXISTS __schema__.list_streams_ending_with(
+  VARCHAR(1000),
+  INT,
+  INT
 ) CASCADE;
 DROP FUNCTION IF EXISTS __schema__.read(
   CHAR(42),

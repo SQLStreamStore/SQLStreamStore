@@ -64,6 +64,10 @@
 
         internal string ListStreamIds => GetScript(nameof(ListStreamIds));
 
+        internal string ListStreamIdsStartingWith => GetScript(nameof(ListStreamIdsStartingWith));
+
+        internal string ListStreamIdsEndingWith => GetScript(nameof(ListStreamIdsEndingWith));
+
         private string GetScript(string name)
         {
             return _scripts.GetOrAdd(name,

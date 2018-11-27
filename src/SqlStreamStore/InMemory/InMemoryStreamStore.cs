@@ -6,6 +6,7 @@ namespace SqlStreamStore
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.InMemory;
     using SqlStreamStore.Streams;
@@ -25,6 +26,7 @@ namespace SqlStreamStore
         private readonly Dictionary<string, InMemoryStream> _streams = new Dictionary<string, InMemoryStream>();
         private readonly Subject<Unit> _subscriptions = new Subject<Unit>();
         private readonly InterlockedBoolean _signallingToSubscribers = new InterlockedBoolean();
+        private readonly IList<string> _streamIds = new List<string>();
         private int _currentPosition;
         private static readonly ReadNextStreamPage s_readNextNotFound = 
             (_, ct) => throw new InvalidOperationException("Cannot read next page of non-exisitent stream");
@@ -137,6 +139,7 @@ namespace SqlStreamStore
                         () => _currentPosition++);
                     inMemoryStream.AppendToStream(expectedVersion, messages);
                     _streams.Add(streamId, inMemoryStream);
+                    _streamIds.Add(streamId);
                 }
                 return new AppendResult(inMemoryStream.CurrentVersion, inMemoryStream.CurrentPosition);
             }
@@ -275,6 +278,7 @@ namespace SqlStreamStore
             InMemoryStream inMemoryStream = _streams[streamId];
             _streams.Remove(streamId);
             inMemoryStream.DeleteAllEvents(ExpectedVersion.Any);
+            _streamIds[_streamIds.IndexOf(streamId)] = null;
 
             var streamDeletedEvent = CreateStreamDeletedMessage(streamId);
             AppendToStreamInternal(DeletedStreamId, ExpectedVersion.Any, new[] { streamDeletedEvent });
@@ -700,6 +704,52 @@ namespace SqlStreamStore
                 hasCaughtUp,
                 prefetchJsonData,
                 name);
+        }
+
+        protected override Task<ListStreamsPage> ListStreamsInternal(
+            Pattern pattern,
+            int maxCount,
+            string continuationToken,
+            ListNextStreamsPage listNextStreamsPage,
+            CancellationToken cancellationToken)
+        {
+            Ensure.That(listNextStreamsPage).IsNotNull();
+            int.TryParse(continuationToken, out var index);
+
+            Func<string, bool> filter = default;
+
+            switch(pattern)
+            {
+                case Pattern.Any _:
+                    filter = s => true;
+                    break;
+                case Pattern.StartingWith p:
+                    filter = s => s?.StartsWith(p.Value) ?? false;
+                    break;
+                case Pattern.EndingWith p:
+                    filter = s => s?.EndsWith(p.Value) ?? false;
+                    break;
+                default:
+                    throw Pattern.Unrecognized(nameof(pattern));
+            }
+            
+            using(_lock.UseReadLock())
+            {
+                var streamIds = _streamIds
+                    .Skip(index)
+                    .Where(filter)
+                    .Take(maxCount)
+                    .ToArray();
+
+                var nextContinuationToken = streamIds.Length == 0
+                    ? 0 
+                    : _streamIds.IndexOf(streamIds[streamIds.Length - 1]) + 1; 
+                
+                return Task.FromResult(new ListStreamsPage(
+                    nextContinuationToken.ToString(),
+                    streamIds,
+                    listNextStreamsPage));
+            }
         }
     }
 }

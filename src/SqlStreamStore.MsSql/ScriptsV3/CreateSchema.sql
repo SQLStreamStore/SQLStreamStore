@@ -16,6 +16,7 @@ BEGIN
         Position            BIGINT              DEFAULT(-1)         NOT NULL,
         MaxAge              INT                 DEFAULT(NULL),
         MaxCount            INT                 DEFAULT(NULL),
+        IdOriginalReversed  AS REVERSE(IdOriginal)
         CONSTRAINT PK_Streams PRIMARY KEY CLUSTERED (IdInternal)
     );
 END
@@ -27,8 +28,26 @@ IF NOT EXISTS(
 BEGIN
     CREATE UNIQUE NONCLUSTERED INDEX IX_Streams_Id ON dbo.Streams (Id);
 END
- 
-IF object_id('dbo.Messages', 'U') IS NULL
+
+IF NOT EXISTS(
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_Streams_IdOriginal' AND object_id = OBJECT_ID('dbo.Streams', 'U'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Streams_IdOriginal
+        ON dbo.Streams (IdOriginal, IdInternal);
+END
+
+IF NOT EXISTS(
+    SELECT *
+    FROM sys.indexes
+    WHERE name='IX_Streams_IdOriginalReversed' AND object_id = OBJECT_ID('dbo.Streams', 'U'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Streams_IdOriginalReversed
+        ON dbo.Streams (IdOriginalReversed, IdInternal);
+END
+
+  IF object_id('dbo.Messages', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.Messages(
         StreamIdInternal    INT                                     NOT NULL,

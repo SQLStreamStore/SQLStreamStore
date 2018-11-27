@@ -237,6 +237,33 @@ namespace SqlStreamStore.Infrastructure
             return ReadHeadPositionInternal(cancellationToken);
         }
 
+        public Task<ListStreamsPage> ListStreams(
+            int maxCount = 100,
+            string continuationToken = default,
+            CancellationToken cancellationToken = default)
+        {
+            Ensure.That(maxCount).IsGt(0);
+            
+            GuardAgainstDisposed();
+            
+            return ListStreams(Pattern.Anything(), maxCount, continuationToken, cancellationToken);
+        }
+
+        public Task<ListStreamsPage> ListStreams(
+            Pattern pattern,
+            int maxCount = 100,
+            string continuationToken = default,
+            CancellationToken cancellationToken = default)
+        {
+            Ensure.That(maxCount).IsGt(0);
+            Ensure.That(pattern).IsNotNull();
+
+            Task<ListStreamsPage> ListNext(string @continue, CancellationToken ct)
+                => ListStreams(pattern, maxCount, @continue, ct);
+
+            return ListStreamsInternal(pattern, maxCount, continuationToken, ListNext, cancellationToken);
+        }
+
         public void Dispose()
         {
             OnDispose?.Invoke();
@@ -297,6 +324,13 @@ namespace SqlStreamStore.Infrastructure
 
         protected abstract Task<StreamMetadataResult> GetStreamMetadataInternal(
             string streamId,
+            CancellationToken cancellationToken);
+
+        protected abstract Task<ListStreamsPage> ListStreamsInternal(
+            Pattern pattern,
+            int maxCount,
+            string continuationToken,
+            ListNextStreamsPage listNextStreamsPage,
             CancellationToken cancellationToken);
 
         protected virtual void Dispose(bool disposing)

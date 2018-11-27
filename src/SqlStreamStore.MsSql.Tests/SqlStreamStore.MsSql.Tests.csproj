@@ -8,7 +8,8 @@
     <NoWarn>$(NoWarn);CS0618</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" />
+    <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs"
+             Exclude="..\SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.ListStreams.cs"/>
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SqlStreamStore.MsSql\SqlStreamStore.MsSql.csproj" />

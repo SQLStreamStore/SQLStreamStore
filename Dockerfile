@@ -1,4 +1,7 @@
 FROM microsoft/dotnet:2.1.402-sdk-alpine3.7 AS build
+
+RUN apk add libcurl
+
 WORKDIR /src
 
 # https://github.com/moby/moby/issues/15858

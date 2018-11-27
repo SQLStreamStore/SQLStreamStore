@@ -6,5 +6,6 @@ docker run --rm --name sss-build \
  -v $PWD/artifacts:/artifacts \
  --network host \
  -e TRAVIS_BUILD_NUMBER=$TRAVIS_BUILD_NUMBER \
- -e MYGET_API_KEY=$MYGET_API_KEY sss-build \
+ -e MYGET_API_KEY=$MYGET_API_KEY \
+ sss-build \
  dotnet run -p /build/build.csproj -- "$@"

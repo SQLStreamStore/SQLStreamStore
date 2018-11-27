@@ -13,10 +13,12 @@ namespace SqlStreamStore.Streams
         /// A list of stream ids that matched a certain <see cref="Pattern" />
         /// </summary>
         public string[] StreamIds { get; }
+
         /// <summary>
         /// A continuation token used to retrieve the next page of results.
         /// </summary>
         public string ContinuationToken { get; }
+
         private readonly ListNextStreamsPage _listNextStreamsPage;
 
         public ListStreamsPage(

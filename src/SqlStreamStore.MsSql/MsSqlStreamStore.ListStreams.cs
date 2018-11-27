@@ -13,7 +13,7 @@ namespace SqlStreamStore
             ListNextStreamsPage listNextStreamsPage,
             CancellationToken cancellationToken)
         {
-            throw new System.NotImplementedException();
+            throw new System.NotImplementedException("ListStreams is only available in MsSqlStreamStoreV3 onwards.");
         }
     }
 }

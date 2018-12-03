@@ -23,13 +23,29 @@
             Output.WriteLine(ConsoleColor.Yellow, "Store type:");
             new Menu()
                 .Add("InMem", () => streamStore = new InMemoryStreamStore())
-                .Add("MS SQL (Docker)",
+                .Add("MS SQL V2 (Docker)",
+                    () =>
+                    {
+                        var fixture = new MsSqlStreamStoreFixture("dbo");
+                        Console.WriteLine(fixture.ConnectionString);
+                        streamStore = fixture.GetStreamStore().Result;
+                        disposable = fixture;
+                    })
+                .Add("MS SQL V3 (Docker)",
                     () =>
                     {
                         var fixture = new MsSqlStreamStoreV3Fixture("dbo");
                         Console.WriteLine(fixture.ConnectionString);
                         streamStore = fixture.GetStreamStore().Result;
                         disposable = fixture;
+                    })
+                .Add("MS SQL V3 (LocalDB)",
+                    () =>
+                    {
+                        var sqlLocalDb = new SqlLocalDb();
+                        Console.WriteLine(sqlLocalDb.ConnectionString);
+                        streamStore = sqlLocalDb.StreamStore;
+                        disposable = sqlLocalDb;
                     })
                 .Add("Postgres (Docker)",
                     () =>

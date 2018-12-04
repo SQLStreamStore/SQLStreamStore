@@ -34,7 +34,7 @@ Note: build does not work via WSL.
 
 # Help & Support
 
-Ask questions in the `#sql-stream-store` channel in the [ddd-cqrs-es slack](https://ddd-cqrs-es.slack.com) workspace. ([Join here](https://ddd-cqrs-es.herokuapp.com/)).
+Ask questions in the `#sql-stream-store` channel in the [ddd-cqrs-es slack](https://ddd-cqrs-es.slack.com) workspace. ([Join here](https://t.co/MRxpx0rLH2)).
 
 # Licences
 

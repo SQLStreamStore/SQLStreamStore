@@ -8,8 +8,8 @@ used in Event Sourced based applications.
 | SqlStreamStore (Memory) | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg)](https://www.nuget.org/packages/SqlStreamStore) |
 | MSSql | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg)](https://www.nuget.org/packages/SqlStreamStore.MsSql) |
 | Postgres | On CI Feed |
-| MySql | [_up for grabs_](https://github.com/damianh/SqlStreamStore/issues/29) |
-| Sqlite | [_up for grabs_](https://github.com/damianh/SqlStreamStore/issues/28) |
+| MySql | [_up for grabs_](https://github.com/SQLStreamStore/SqlStreamStore/issues/29) |
+| Sqlite | [_up for grabs_](https://github.com/SQLStreamStore/SqlStreamStore/issues/28) |
 | HTTP Wrapper API | On CI Feed |
 
 CI Packages available [on MyGet](https://www.myget.org/gallery/sqlstreamstore)

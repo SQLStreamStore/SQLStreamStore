@@ -16,7 +16,7 @@
     ///     Represents a Micrsoft SQL Server stream store implementation.
     /// </summary>
     [Obsolete("Use MsSqlStreamStoreV3 instead. Note: this will require a schema and data migratiom.", false)]
-    public sealed partial class MsSqlStreamStore : StreamStoreBase
+    public sealed partial class MsSqlStreamStore : StreamStoreBase, IStreamStoreSchema
     {
         private readonly Func<SqlConnection> _createConnection;
         private readonly Lazy<IStreamStoreNotifier> _streamStoreNotifier;
@@ -283,5 +283,14 @@
         }
 
         private IObservable<Unit> GetStoreObservable => _streamStoreNotifier.Value;
+
+        /// <summary>
+        /// Returns the script that can be used to create the Sql Stream Store in an MsSql database.
+        /// </summary>
+        /// <returns>The database creation script.</returns>
+        public string GetSchemaCreationScript()
+        {
+            return _scripts.CreateSchema;
+        }
     }
 }

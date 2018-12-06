@@ -11,7 +11,7 @@
     using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Subscriptions;
 
-    public partial class PostgresStreamStore : StreamStoreBase
+    public partial class PostgresStreamStore : StreamStoreBase, IStreamStoreSchema
     {
         private readonly PostgresStreamStoreSettings _settings;
         private readonly Func<NpgsqlConnection> _createConnection;
@@ -223,6 +223,15 @@
             }
 
             return -1;
+        }
+
+        /// <summary>
+        /// Returns the script that can be used to create the Sql Stream Store in a Postgres database.
+        /// </summary>
+        /// <returns>The database creation script.</returns>
+        public string GetSchemaCreationScript()
+        {
+            return _schema.Definition;
         }
     }
 }

@@ -63,6 +63,8 @@ BEGIN
         FROM __schema__.streams
         WHERE __schema__.streams.id = _stream_id;
 
+        NOTIFY on_append___schema__;
+
         RETURN QUERY
         SELECT _current_version, _current_position;
         RETURN;
@@ -135,6 +137,8 @@ BEGIN
         FROM __schema__.streams
         WHERE __schema__.streams.id = _stream_id;
 
+        NOTIFY on_append___schema__;
+
         RETURN QUERY
         SELECT _current_version, _current_position;
         RETURN;
@@ -153,6 +157,8 @@ BEGIN
         "position" = _current_position
     WHERE id_internal = _stream_id_internal;
 
+    NOTIFY on_append___schema__;
+    
     RETURN QUERY
     SELECT _current_version, _current_position;
 

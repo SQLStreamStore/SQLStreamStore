@@ -11,7 +11,7 @@
     using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Subscriptions;
 
-    public partial class PostgresStreamStore : StreamStoreBase
+    public sealed partial class PostgresStreamStore : StreamStoreBase
     {
         private readonly PostgresStreamStoreSettings _settings;
         private readonly Func<NpgsqlConnection> _createConnection;

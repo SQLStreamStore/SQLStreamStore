@@ -259,7 +259,7 @@ namespace SqlStreamStore
                     HealthCheck,
                     new Dictionary<int, int>
                     {
-                        [tcpPort] = tcpPort
+                        [5432] = tcpPort
                     })
                 {
                     ContainerName = ContainerName,

@@ -162,7 +162,7 @@
                     {
                         await store.AppendToStream("a-stream", ExpectedVersion.Any, message);
                         await store.DeleteMessage("a-stream", message.MessageId);
-                    }),
+                    })
             };
             yield return new object[]
             {
@@ -225,11 +225,11 @@
                         await connection.OpenAsync().NotOnCapturedContext();
 
                         using(var command = new NpgsqlCommand($@"
-                            SELECT 
+                            SELECT
                                 pg_terminate_backend(pid) 
-                            FROM 
+                            FROM
                                 pg_stat_activity 
-                            WHERE 
+                            WHERE
                                 -- don't kill my own connection!
                                 pid <> pg_backend_pid()
                                 -- don't kill the connections to other databases

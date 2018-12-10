@@ -18,6 +18,12 @@ namespace SqlStreamStore
         private readonly Subject<Unit> _notificationReceived;
         private readonly CancellationTokenSource _disposed;
         private readonly Schema _schema;
+        private string ConnectionString => new NpgsqlConnectionStringBuilder(_settings.ConnectionString)
+        {
+            KeepAlive = 5,
+            Pooling = false
+        }.ConnectionString;
+
 
         public PostgresListenNotifyStreamStoreNotifier(PostgresStreamStoreSettings settings)
         {
@@ -37,7 +43,7 @@ namespace SqlStreamStore
         {
             while(!_disposed.IsCancellationRequested)
             {
-                using(var connection = _settings.ConnectionFactory(_settings.ConnectionString))
+                using(var connection = _settings.ConnectionFactory(ConnectionString))
                 {
                     try
                     {

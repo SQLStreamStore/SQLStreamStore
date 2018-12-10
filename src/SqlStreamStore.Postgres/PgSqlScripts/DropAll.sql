@@ -36,6 +36,7 @@ DROP FUNCTION IF EXISTS __schema__.list_streams_starting_with(
   INT,
   INT
 ) CASCADE;
+DROP FUNCTION IF EXISTS __schema__.listen() CASCADE;
 DROP FUNCTION IF EXISTS __schema__.list_streams_ending_with(
   VARCHAR(1000),
   INT,

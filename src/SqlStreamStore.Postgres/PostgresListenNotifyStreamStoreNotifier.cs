@@ -1,17 +1,23 @@
 namespace SqlStreamStore
 {
     using System;
+    using System.Data;
     using System.Threading;
     using System.Threading.Tasks;
     using Npgsql;
     using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.Logging;
+    using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Subscriptions;
 
     public sealed class PostgresListenNotifyStreamStoreNotifier : IStreamStoreNotifier
     {
+        private static readonly ILog s_Log = LogProvider.For<PostgresListenNotifyStreamStoreNotifier>();
+
         private readonly PostgresStreamStoreSettings _settings;
         private readonly Subject<Unit> _notificationReceived;
         private readonly CancellationTokenSource _disposed;
+        private readonly Schema _schema;
 
         public PostgresListenNotifyStreamStoreNotifier(PostgresStreamStoreSettings settings)
         {
@@ -19,7 +25,9 @@ namespace SqlStreamStore
             {
                 throw new ArgumentNullException(nameof(settings));
             }
+
             _settings = settings;
+            _schema = new Schema(_settings.Schema);
             _notificationReceived = new Subject<Unit>();
             _disposed = new CancellationTokenSource();
             Task.Run(ReceiveNotify, _disposed.Token);
@@ -27,27 +35,61 @@ namespace SqlStreamStore
 
         private async Task ReceiveNotify()
         {
-            using(var connection = _settings.ConnectionFactory(_settings.ConnectionString))
+            while(!_disposed.IsCancellationRequested)
             {
-                await connection.OpenAsync(_disposed.Token);
-                connection.Notification += ConnectionOnNotification;
+                using(var connection = _settings.ConnectionFactory(_settings.ConnectionString))
+                {
+                    try
+                    {
+                        await connection.OpenAsync(_disposed.Token).NotOnCapturedContext();
+                        connection.Notification += OnNotificationReceived;
 
-                using(var command = new NpgsqlCommand($"LISTEN on_append_{_settings.Schema}", connection))
-                {
-                    await command.ExecuteNonQueryAsync(_disposed.Token);
-                }
-                while(!_disposed.IsCancellationRequested)
-                {
-                    await connection.WaitAsync(_disposed.Token);
+                        using(var command = new NpgsqlCommand(_schema.Listen, connection)
+                        {
+                            CommandType = CommandType.StoredProcedure
+                        })
+                        {
+                            s_Log.Info("Listening to notifications channel.");
+                            await command.ExecuteNonQueryAsync(_disposed.Token).NotOnCapturedContext();
+                        }
+
+                        while(!_disposed.IsCancellationRequested)
+                        {
+                            await connection.WaitAsync(_disposed.Token).NotOnCapturedContext();
+                        }
+                    }
+                    catch(ObjectDisposedException ex)
+                    {
+                        s_Log.WarnException("Receive notification failed. A new connection will not be opened.", ex);
+                        throw;
+                    }
+                    catch(OperationCanceledException ex)
+                    {
+                        s_Log.WarnException("Receive notification failed. A new connection will not be opened.", ex);
+                    }
+                    catch(Exception ex)
+                    {
+                        s_Log.WarnException("Receive notification failed. A new connection will be opened.", ex);
+                    }
+                    finally
+                    {
+                        connection.Notification -= OnNotificationReceived;
+                    }
                 }
             }
         }
 
-        private void ConnectionOnNotification(object sender, NpgsqlNotificationEventArgs e)
-            => _notificationReceived.OnNext(Unit.Default);
+        private void OnNotificationReceived(object sender, NpgsqlNotificationEventArgs e)
+        {
+            s_Log.TraceFormat(
+                "Notification received. {Condition} {AdditionalInformation}",
+                e.Condition,
+                e.AdditionalInformation);
+            _notificationReceived.OnNext(Unit.Default);
+        }
 
         public IDisposable Subscribe(IObserver<Unit> observer) => _notificationReceived.Subscribe(observer);
 
-        public void Dispose() => _disposed.Dispose();
+        public void Dispose() => _disposed.Cancel();
     }
 }

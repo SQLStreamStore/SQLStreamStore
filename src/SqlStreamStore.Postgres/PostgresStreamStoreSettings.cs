@@ -19,7 +19,11 @@
         {
             Ensure.That(connectionString, nameof(connectionString)).IsNotNullOrWhiteSpace();
 
-            ConnectionString = connectionString;
+            ConnectionString = new NpgsqlConnectionStringBuilder(connectionString)
+            {
+                Pooling = false,
+                KeepAlive = 5 // TODO make configurable?
+            }.ConnectionString;
             CreateStreamStoreNotifier = _ => new PostgresListenNotifyStreamStoreNotifier(this);
         }
 

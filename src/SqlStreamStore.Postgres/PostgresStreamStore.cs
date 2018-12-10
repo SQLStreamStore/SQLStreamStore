@@ -217,5 +217,14 @@
 
             return -1;
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            if(disposing)
+            {
+                _streamStoreNotifier.Value.Dispose();
+            }
+            base.Dispose(disposing);
+        }
     }
 }

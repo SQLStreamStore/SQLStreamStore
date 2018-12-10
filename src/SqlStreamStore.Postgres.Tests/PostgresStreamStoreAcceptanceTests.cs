@@ -8,6 +8,7 @@
     using Npgsql;
     using Shouldly;
     using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Streams;
     using Xunit;
     using Xunit.Abstractions;
@@ -187,6 +188,20 @@
                     await operation(store);
                 }
             }
+        }
+
+
+        [Fact]
+        public void Can_export_database_creation_script()
+        {
+            string schema = "custom_schema";
+            var store = new PostgresStreamStore(new PostgresStreamStoreSettings("server=.;database=sss")
+            {
+                Schema = schema,
+            });
+
+            var sqlScript = store.GetSchemaCreationScript();
+            sqlScript.ShouldBe(new Scripts(schema).CreateSchema);
         }
     }
 }

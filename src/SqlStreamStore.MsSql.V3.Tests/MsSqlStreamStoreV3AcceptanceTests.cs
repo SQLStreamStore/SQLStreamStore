@@ -97,5 +97,19 @@
                 }
             }
         }
+
+        [Fact]
+        public void Can_export_database_creation_script()
+        {
+            string schema = "custom_schema";
+            var store = new MsSqlStreamStoreV3(new MsSqlStreamStoreV3Settings("server=.;database=sss")
+            {
+                Schema = schema,
+            });
+
+
+            var sqlScript = store.GetSchemaCreationScript();
+            sqlScript.ShouldBe(new ScriptsV3.Scripts("custom_schema").CreateSchema);
+        }
     }
 }

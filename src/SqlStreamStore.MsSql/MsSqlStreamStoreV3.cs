@@ -334,5 +334,14 @@
         }
 
         private IObservable<Unit> GetStoreObservable => _streamStoreNotifier.Value;
+
+        /// <summary>
+        /// Returns the script that can be used to create the Sql Stream Store in a Postgres database.
+        /// </summary>
+        /// <returns>The database creation script.</returns>
+        public string GetSchemaCreationScript()
+        {
+            return _scripts.CreateSchema;
+        }
     }
 }

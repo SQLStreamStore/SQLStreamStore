@@ -20,6 +20,7 @@
             Ensure.That(connectionString, nameof(connectionString)).IsNotNullOrWhiteSpace();
 
             ConnectionString = connectionString;
+            CreateStreamStoreNotifier = _ => new PostgresListenNotifyStreamStoreNotifier(this);
         }
 
         /// <summary>
@@ -31,8 +32,7 @@
         ///     Allows overriding of the stream store notifier. The default implementation
         ///     creates <see cref="PollingStreamStoreNotifier"/>.
         /// </summary>
-        public CreateStreamStoreNotifier CreateStreamStoreNotifier { get; set; } =
-            store => new PollingStreamStoreNotifier(store);
+        public CreateStreamStoreNotifier CreateStreamStoreNotifier { get; set; }
 
         /// <summary>
         ///     The schema SQL Stream Store should place database objects into. Defaults to "public".

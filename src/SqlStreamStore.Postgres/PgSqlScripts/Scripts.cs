@@ -32,6 +32,7 @@
 
         private string DeleteStreamMessages => GetScript(nameof(DeleteStreamMessages));
         private string EnforceIdempotentAppend => GetScript(nameof(EnforceIdempotentAppend));
+        private string Listen => GetScript(nameof(Listen));
         private string ListStreams => GetScript(nameof(ListStreams));
         private string ListStreamsStartingWith => GetScript(nameof(ListStreamsStartingWith));
         private string ListStreamsEndingWith => GetScript(nameof(ListStreamsEndingWith));
@@ -51,7 +52,6 @@
 
         private string SetStreamMetadata => GetScript(nameof(SetStreamMetadata));
 
-
         public string CreateSchema => string.Join(
             Environment.NewLine,
             Tables,
@@ -59,6 +59,7 @@
             DeleteStream,
             DeleteStreamMessages,
             EnforceIdempotentAppend,
+            Listen,
             ListStreams,
             ListStreamsStartingWith,
             ListStreamsEndingWith,

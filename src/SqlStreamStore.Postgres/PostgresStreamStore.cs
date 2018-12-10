@@ -11,7 +11,7 @@
     using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Subscriptions;
 
-    public partial class PostgresStreamStore : StreamStoreBase
+    public sealed partial class PostgresStreamStore : StreamStoreBase
     {
         private readonly PostgresStreamStoreSettings _settings;
         private readonly Func<NpgsqlConnection> _createConnection;
@@ -79,13 +79,6 @@
                     await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
                 }
             }
-        }
-
-        protected virtual Task<int> GetStreamMessageCount(
-            string streamId,
-            CancellationToken cancellationToken = new CancellationToken())
-        {
-            throw new NotSupportedException();
         }
 
         public async Task DropAll(CancellationToken cancellationToken = default)
@@ -223,6 +216,15 @@
             }
 
             return -1;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if(disposing)
+            {
+                _streamStoreNotifier.Value.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 }

@@ -9,6 +9,7 @@
     using Shouldly;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Streams;
+    using SqlStreamStore.Subscriptions;
     using Xunit;
     using Xunit.Abstractions;
 
@@ -186,6 +187,99 @@
 
                     await operation(store);
                 }
+            }
+        }
+
+        [Fact]
+        public async Task Can_receive_notifications_after_terminating_database_connection()
+        {
+            int received = 0;
+            long continueAfterPosition = Position.End;
+            var receiveMessages = new TaskCompletionSource<int>();
+            IAllStreamSubscription sub = default;
+
+            Task StreamMessageReceived(
+                IAllStreamSubscription subscription,
+                StreamMessage message,
+                CancellationToken ct)
+            {
+                received++;
+                continueAfterPosition = message.Position;
+                if(received >= 2)
+                {
+                    receiveMessages.SetResult(0);
+                }
+
+                return Task.CompletedTask;
+            }
+
+            using(var fixture = new PostgresStreamStoreFixture("public", TestOutputHelper))
+            {
+                await fixture.CreateDatabase();
+
+                async Task KillConnection()
+                {
+                    var databaseName = new NpgsqlConnectionStringBuilder(fixture.ConnectionString).Database;
+                    using(var connection = new NpgsqlConnection(fixture.ConnectionString))
+                    {
+                        await connection.OpenAsync().NotOnCapturedContext();
+
+                        using(var command = new NpgsqlCommand($@"
+                            SELECT 
+                                pg_terminate_backend(pid) 
+                            FROM 
+                                pg_stat_activity 
+                            WHERE 
+                                -- don't kill my own connection!
+                                pid <> pg_backend_pid()
+                                -- don't kill the connections to other databases
+                                AND datname = '{databaseName}';",
+                            connection))
+                        {
+                            await command.ExecuteNonQueryAsync().NotOnCapturedContext();
+                        }
+                    }
+                }
+
+                using(var streamStore = await fixture.GetStreamStore())
+                {
+                    IAllStreamSubscription Subscribe() => streamStore.SubscribeToAll(
+                        continueAfterPosition,
+                        StreamMessageReceived,
+                        SubscriptionDropped);
+
+                    void SubscriptionDropped(
+                        IAllStreamSubscription subscription,
+                        SubscriptionDroppedReason reason,
+                        Exception exception)
+                    {
+                        if(reason != SubscriptionDroppedReason.StreamStoreError)
+                        {
+                            return;
+                        }
+
+                        sub = Subscribe();
+                    }
+
+                    try
+                    {
+                        sub = Subscribe();
+
+                        await streamStore.AppendToStream("stream", ExpectedVersion.Any, CreateNewStreamMessages(1));
+
+                        await KillConnection();
+
+                        await streamStore.AppendToStream("stream", ExpectedVersion.Any, CreateNewStreamMessages(2));
+
+                        await receiveMessages.Task.WithTimeout();
+                    }
+                    finally
+                    {
+                        sub?.Dispose();
+                    }
+                }
+
+                received.ShouldBe(2);
             }
         }
     }

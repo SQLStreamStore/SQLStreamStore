@@ -81,13 +81,6 @@
             }
         }
 
-        protected virtual Task<int> GetStreamMessageCount(
-            string streamId,
-            CancellationToken cancellationToken = new CancellationToken())
-        {
-            throw new NotSupportedException();
-        }
-
         public async Task DropAll(CancellationToken cancellationToken = default)
         {
             GuardAgainstDisposed();

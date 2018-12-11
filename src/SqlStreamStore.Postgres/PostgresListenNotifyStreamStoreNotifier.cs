@@ -24,7 +24,6 @@ namespace SqlStreamStore
             Pooling = false
         }.ConnectionString;
 
-
         public PostgresListenNotifyStreamStoreNotifier(PostgresStreamStoreSettings settings)
         {
             if(settings == null)
@@ -43,6 +42,7 @@ namespace SqlStreamStore
         {
             while(!_disposed.IsCancellationRequested)
             {
+                _notificationReceived.OnNext(Unit.Default); // force an initial read
                 using(var connection = _settings.ConnectionFactory(ConnectionString))
                 {
                     try

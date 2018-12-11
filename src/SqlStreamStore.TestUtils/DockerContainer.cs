@@ -112,7 +112,8 @@ namespace SqlStreamStore
                 HostConfig = new HostConfig
                 {
                     PortBindings = portBindings,
-                    AutoRemove = true,
+                    //AutoRemove = true,
+                    NetworkMode = "bridge"
                 }
             };
 
@@ -131,13 +132,13 @@ namespace SqlStreamStore
                 new ContainerStartParameters(),
                 cancellationToken).NotOnCapturedContext();
 
-            if (started)
-            {
+            //if (started)
+            //{
                 while (!await _healthCheck(cancellationToken).NotOnCapturedContext())
                 {
                     await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken).NotOnCapturedContext();
                 }
-            }
+            //}
         }
 
         private class IgnoreProgress : IProgress<JSONMessage>

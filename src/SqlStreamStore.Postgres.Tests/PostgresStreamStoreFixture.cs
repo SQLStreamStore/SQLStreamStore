@@ -151,6 +151,7 @@ namespace SqlStreamStore
                         await CreateDatabase(connection, cancellationToken);
                     }
                 }
+
                 _started = true;
             }
 
@@ -220,19 +221,26 @@ namespace SqlStreamStore
                 }
                 catch(Exception ex)
                 {
-                    TestOutputHelper.WriteLine($@"Attempted to execute ""{$"DROP DATABASE {DatabaseName}"}"" but failed: {ex}");
+                    TestOutputHelper.WriteLine(
+                        $@"Attempted to execute ""{$"DROP DATABASE {DatabaseName}"}"" but failed: {ex}");
                 }
             }
         }
 
         private class DockerDatabaseManager : DatabaseManager
         {
-            private const string DockerImage = "postgres";
-            private const string DockerTag = "10.4-alpine";
-            private const string ContainerName = "sql-stream-store-tests-postgres";
+            private const string PostgresDockerImage = "postgres";
+            private const string PostgresDockerTag = "10.4-alpine";
+            private const string PostgresContainerName = "sql-stream-store-tests-postgres";
 
-            private readonly int _tcpPort;
+            private const string PgBouncerDockerImage = "yukimochi/container-pgbouncer";
+            private const string PgBouncerDockerTag = "latest";
+            private const string PgBouncerContainerName = "sql-stream-store-tests-pgbouncer";
+
+            private readonly int _pgBouncerTcpPort;
             private readonly DockerContainer _postgresContainer;
+            private readonly DockerContainer _pgBouncerContainer;
+            private readonly int _postgresTcpPort;
 
             public override string ConnectionString => ConnectionStringBuilder.ConnectionString;
 
@@ -242,43 +250,79 @@ namespace SqlStreamStore
                 Password = Environment.OSVersion.IsWindows()
                     ? "password"
                     : null,
-                Port = _tcpPort,
+                Port = _pgBouncerTcpPort,
                 Username = "postgres",
                 Host = "localhost",
                 Pooling = true,
                 MaxPoolSize = 1024
             };
 
-            public DockerDatabaseManager(ITestOutputHelper testOutputHelper, string databaseName, int tcpPort = 5432)
+            public DockerDatabaseManager(
+                ITestOutputHelper testOutputHelper,
+                string databaseName,
+                int pgBouncerTcpPort = 6432,
+                int postgresTcpPort = 5432)
                 : base(testOutputHelper, databaseName)
             {
-                _tcpPort = tcpPort;
-                _postgresContainer = new DockerContainer(
-                    DockerImage,
-                    DockerTag,
-                    HealthCheck,
+                _pgBouncerTcpPort = pgBouncerTcpPort;
+                _postgresTcpPort = postgresTcpPort;
+
+                _pgBouncerContainer = new DockerContainer(
+                    PgBouncerDockerImage,
+                    PgBouncerDockerTag,
+                    PgBouncerHealthCheck,
                     new Dictionary<int, int>
                     {
-                        [5432] = tcpPort
+                        [6432] = _pgBouncerTcpPort
+                    }
+                )
+                {
+                    ContainerName = PgBouncerContainerName,
+                    Env = new[]
+                    {
+                        $"DB_HOST={ConnectionStringBuilder.Host}",
+                        $"DB_USER={ConnectionStringBuilder.Username}",
+                        $"DB_PASSWORD={ConnectionStringBuilder.Password}"
+                    }
+                };
+
+                _postgresContainer = new DockerContainer(
+                    PostgresDockerImage,
+                    PostgresDockerTag,
+                    PostgresHealthCheck,
+                    new Dictionary<int, int>
+                    {
+                        [5432] = _postgresTcpPort
                     })
                 {
-                    ContainerName = ContainerName,
+                    ContainerName = PostgresContainerName,
                     Env = new[] { @"MAX_CONNECTIONS=500" }
                 };
             }
 
-            public override async Task CreateDatabase(CancellationToken cancellationToken = default(CancellationToken))
+            public override async Task CreateDatabase(CancellationToken cancellationToken = default)
             {
                 await _postgresContainer.TryStart(cancellationToken).WithTimeout(60 * 1000 * 3);
+                await _pgBouncerContainer.TryStart(cancellationToken).WithTimeout(60 * 1000 * 3);
 
                 await base.CreateDatabase(cancellationToken);
             }
 
-            private async Task<bool> HealthCheck(CancellationToken cancellationToken)
+            private Task<bool> PgBouncerHealthCheck(CancellationToken cancellationToken)
+                => HealthCheck(_pgBouncerTcpPort, cancellationToken);
+
+            private Task<bool> PostgresHealthCheck(CancellationToken cancellationToken)
+                => HealthCheck(_postgresTcpPort, cancellationToken);
+
+            private async Task<bool> HealthCheck(int tcpPort, CancellationToken cancellationToken)
             {
                 try
                 {
-                    using(var connection = new NpgsqlConnection(DefaultConnectionString))
+                    using(var connection = new NpgsqlConnection(
+                        new NpgsqlConnectionStringBuilder(DefaultConnectionString)
+                        {
+                            Port = tcpPort
+                        }.ConnectionString))
                     {
                         await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                     }
@@ -298,7 +342,10 @@ namespace SqlStreamStore
         {
             public override string ConnectionString { get; }
 
-            public ServerDatabaseManager(ITestOutputHelper testOutputHelper, string databaseName, string connectionString)
+            public ServerDatabaseManager(
+                ITestOutputHelper testOutputHelper,
+                string databaseName,
+                string connectionString)
                 : base(testOutputHelper, databaseName)
             {
                 ConnectionString = new NpgsqlConnectionStringBuilder(connectionString)

@@ -59,7 +59,7 @@ namespace build
 
             Target("default", DependsOn(RunTests, Publish));
 
-            RunTargets(args);
+            RunTargetsAndExit(args);
         }
     }
 }

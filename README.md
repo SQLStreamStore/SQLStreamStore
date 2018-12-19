@@ -5,10 +5,10 @@ used in Event Sourced based applications.
 
 | Package | Install |
 | --- | --- |
-| SqlStreamStore (Memory) | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg)](https://www.nuget.org/packages/SqlStreamStore) |
-| MSSql | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg)](https://www.nuget.org/packages/SqlStreamStore.MsSql) |
-| Postgres | On CI Feed |
-| MySql | [_up for grabs_](https://github.com/SQLStreamStore/SqlStreamStore/issues/29) |
+| SqlStreamStore (includes in-memory version for behaviour testing) | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg)](https://www.nuget.org/packages/SqlStreamStore) |
+| MS SQL Server / Azure SQL Database | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg)](https://www.nuget.org/packages/SqlStreamStore.MsSql) |
+| PostgreSQL / AWS Aurora | On CI Feed |
+| MySQL | [_up for grabs_](https://github.com/SQLStreamStore/SqlStreamStore/issues/29) |
 | Sqlite | [_up for grabs_](https://github.com/SQLStreamStore/SqlStreamStore/issues/28) |
 | HTTP Wrapper API | On CI Feed |
 

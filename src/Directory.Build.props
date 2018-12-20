@@ -9,11 +9,11 @@
     <NoWarn>$(NoWarn);1701;1702;1705;1591</NoWarn>
     <LangVersion>latest</LangVersion>
     <MinVerTagPrefix>v</MinVerTagPrefix>
-    <MinVerMajorMinor>1.2</MinVerMajorMinor>
+    <MinVerMinimumMajorMinor>1.2</MinVerMinimumMajorMinor>
     <TRAVIS_BUILD_NUMBER Condition="'$(TRAVIS_BUILD_NUMBER)' == ''">0</TRAVIS_BUILD_NUMBER>
     <MinVerBuildMetadata>build.$(TRAVIS_BUILD_NUMBER)</MinVerBuildMetadata>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MinVer" Version="1.0.0-beta.1" PrivateAssets="All" />
+    <PackageReference Include="MinVer" Version="1.0.0-beta.2" PrivateAssets="All" />
   </ItemGroup>
 </Project>

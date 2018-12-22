@@ -73,8 +73,8 @@
             {
                 using(var store = await fixture.GetUninitializedPostgresStreamStore())
                 {
-                    await store.CreateSchema();
-                    await store.CreateSchema();
+                    await store.CreateSchemaIfNotExists();
+                    await store.CreateSchemaIfNotExists();
                 }
             }
         }
@@ -183,7 +183,7 @@
                     GetUtcNow = null
                 }))
                 {
-                    await store.CreateSchema();
+                    await store.CreateSchemaIfNotExists();
 
                     await operation(store);
                 }

@@ -54,7 +54,7 @@ namespace SqlStreamStore
 
             var store = new PostgresStreamStore(settings);
 
-            await store.CreateSchema();
+            await store.CreateSchemaIfNotExists();
 
             return store;
         }
@@ -70,7 +70,7 @@ namespace SqlStreamStore
             };
             var store = new PostgresStreamStore(settings);
 
-            await store.CreateSchema();
+            await store.CreateSchemaIfNotExists();
 
             return store;
         }
@@ -79,7 +79,7 @@ namespace SqlStreamStore
         {
             var store = await GetUninitializedPostgresStreamStore(scavengeAsynchronously);
 
-            await store.CreateSchema();
+            await store.CreateSchemaIfNotExists();
 
             return store;
         }

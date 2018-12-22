@@ -53,7 +53,7 @@ namespace SqlStreamStore
                 DisableDeletionTracking = _disableDeletionTracking
             };
             var store = new MsSqlStreamStoreV3(settings);
-            await store.CreateSchema();
+            await store.CreateSchemaIfNotExists();
 
             return store;
         }
@@ -80,7 +80,7 @@ namespace SqlStreamStore
             };
 
             var store = new MsSqlStreamStoreV3(settings);
-            await store.CreateSchema();
+            await store.CreateSchemaIfNotExists();
 
             return store;
         }

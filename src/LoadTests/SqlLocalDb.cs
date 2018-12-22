@@ -46,7 +46,7 @@
             ConnectionString = sqlConnectionStringBuilder.ToString();
             var settings = new MsSqlStreamStoreV3Settings(ConnectionString);
             _msSqlStreamStoreV3 = new MsSqlStreamStoreV3(settings);
-            await _msSqlStreamStoreV3.CreateSchema();
+            await _msSqlStreamStoreV3.CreateSchemaIfNotExists();
         }
 
         public IStreamStore StreamStore => _msSqlStreamStoreV3;

@@ -14,7 +14,7 @@
     using SqlStreamStore.Subscriptions;
 
     /// <summary>
-    ///     Represents a Micrsoft SQL Server stream store implementation that
+    ///     Represents a Microsoft SQL Server stream store implementation that
     ///     uses V3 of the store schema.
     /// </summary>
     public sealed partial class MsSqlStreamStoreV3 : StreamStoreBase
@@ -69,11 +69,13 @@
         }
 
         /// <summary>
-        ///     Creates a scheme to hold stream 
+        ///     Creates a scheme that will hold streams and messages, if the schema does not exist.
+        ///     Calls to this should part of an application's deployment/upgrade process and
+        ///     not every time your application boots up.
         /// </summary>
         /// <param name="cancellationToken">The cancellation instruction.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task CreateSchema(CancellationToken cancellationToken = default)
+        public async Task CreateSchemaIfNotExists(CancellationToken cancellationToken = default)
         {
             GuardAgainstDisposed();
 
@@ -108,7 +110,7 @@
         }
 
         /// <summary>
-        /// 
+        ///     Checks the store schema for the correct version.
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns>A <see cref="CheckSchemaResult"/> representing the result of the operation.</returns>

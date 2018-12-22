@@ -11,6 +11,9 @@
     using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Subscriptions;
 
+    /// <summary>
+    ///     Represents a PostgreSQL stream store implementation.
+    /// </summary>
     public partial class PostgresStreamStore : StreamStoreBase
     {
         private readonly PostgresStreamStoreSettings _settings;
@@ -20,6 +23,10 @@
 
         public const int CurrentVersion = 1;
 
+        /// <summary>
+        ///     Initializes a new instance of <see cref="PostgresStreamStore"/>
+        /// </summary>
+        /// <param name="settings">A settings class to configure this instance.</param>
         public PostgresStreamStore(PostgresStreamStoreSettings settings)
             : base(settings.GetUtcNow, settings.LogName)
         {
@@ -59,7 +66,14 @@
             return connection;
         }
 
-        public async Task CreateSchema(CancellationToken cancellationToken = default)
+        /// <summary>
+        ///     Creates a scheme that will hold streams and messages, if the schema does not exist.
+        ///     Calls to this should part of an application's deployment/upgrade process and
+        ///     not every time your application boots up.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation instruction.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
+        public async Task CreateSchemaIfNotExists(CancellationToken cancellationToken = default)
         {
             using(var connection = _createConnection())
             {
@@ -81,13 +95,11 @@
             }
         }
 
-        protected virtual Task<int> GetStreamMessageCount(
-            string streamId,
-            CancellationToken cancellationToken = new CancellationToken())
-        {
-            throw new NotSupportedException();
-        }
-
+        /// <summary>
+        ///     Drops all tables related to this store instance.
+        /// </summary>
+        /// <param name="cancellationToken">The cancellation instruction.</param>
+        /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
         public async Task DropAll(CancellationToken cancellationToken = default)
         {
             GuardAgainstDisposed();
@@ -107,6 +119,11 @@
             }
         }
 
+        /// <summary>
+        ///     Checks the store schema for the correct version.
+        /// </summary>
+        /// <param name="cancellationToken"></param>
+        /// <returns>A <see cref="CheckSchemaResult"/> representing the result of the operation.</returns>
         public async Task<CheckSchemaResult> CheckSchema(CancellationToken cancellationToken = default)
         {
             using(var connection = _createConnection())

@@ -25,7 +25,7 @@
         ///     The expected version of the stream the message will be appended to.
         /// </param>
         /// <param name="message">
-        ///     The metadata message uses as input into the generation algorithim.
+        ///     The metadata message uses as input into the generation algorithm.
         /// </param>
         /// <returns>
         ///     A deterministically generated GUID.

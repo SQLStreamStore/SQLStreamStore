@@ -7,7 +7,7 @@
     // MIT Licence
 
     /// <summary>
-    ///     A helper utility to generate deterministed GUIDS.
+    ///     A helper utility to generate deterministic GUIDS.
     /// </summary>
     public class DeterministicGuidGenerator
     {

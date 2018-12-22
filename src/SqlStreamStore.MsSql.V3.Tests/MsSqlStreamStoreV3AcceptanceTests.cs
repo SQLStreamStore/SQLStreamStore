@@ -48,8 +48,8 @@
             {
                 using(var store = await fixture.GetMsSqlStreamStore())
                 {
-                    await store.CreateSchema();
-                    await store.CreateSchema();
+                    await store.CreateSchemaIfNotExists();
+                    await store.CreateSchemaIfNotExists();
                 }
             }
         }

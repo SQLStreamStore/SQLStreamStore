@@ -69,11 +69,13 @@
         }
 
         /// <summary>
-        ///     Creates a scheme to hold stream 
+        ///     Creates a scheme that will hold streams and messages, if the schema does not exist.
+        ///     Calls to this should part of an application's deployment/upgrade process and
+        ///     not every time your application boots up.
         /// </summary>
         /// <param name="cancellationToken">The cancellation instruction.</param>
         /// <returns>A <see cref="Task"/> representing the asynchronous operation.</returns>
-        public async Task CreateSchema(CancellationToken cancellationToken = default)
+        public async Task CreateSchemaIfNotExists(CancellationToken cancellationToken = default)
         {
             GuardAgainstDisposed();
 

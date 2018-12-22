@@ -14,7 +14,7 @@
     using SqlStreamStore.Subscriptions;
 
     /// <summary>
-    ///     Represents a Micrsoft SQL Server stream store implementation that
+    ///     Represents a Microsoft SQL Server stream store implementation that
     ///     uses V3 of the store schema.
     /// </summary>
     public sealed partial class MsSqlStreamStoreV3 : StreamStoreBase
@@ -110,7 +110,7 @@
         }
 
         /// <summary>
-        /// 
+        ///     Checks the store schema for the correct version.
         /// </summary>
         /// <param name="cancellationToken"></param>
         /// <returns>A <see cref="CheckSchemaResult"/> representing the result of the operation.</returns>

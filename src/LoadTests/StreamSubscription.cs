@@ -10,14 +10,14 @@ namespace LoadTests
 
     public class StreamSubscription : LoadTest
     {
-        protected override async Task RunAsync(CancellationToken ct)
+        public override async Task Run(CancellationToken ct)
         {
             Output.WriteLine("");
             Output.WriteLine(ConsoleColor.Green,
                 "Subscribes to multiple individual streams and appends to each of them in turn, multiple times.");
             Output.WriteLine("");
 
-            var (streamStore, dispose) = GetStore();
+            var (streamStore, dispose) = await GetStore(ct);
 
             try
             {

@@ -10,13 +10,13 @@
 
     public class AppendMaxCount : LoadTest
     {
-        protected override async Task RunAsync(CancellationToken ct)
+        public override async Task Run(CancellationToken ct)
         {
             Output.WriteLine("");
             Output.WriteLine(ConsoleColor.Green, "Appends events to a single stream that has a maxCount.");
             Output.WriteLine("");
 
-            var (streamStore, dispose) = GetStore();
+            var (streamStore, dispose) = await GetStore(ct);
 
             try
             {

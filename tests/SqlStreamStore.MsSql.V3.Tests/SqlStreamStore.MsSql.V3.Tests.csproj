@@ -1,17 +1,20 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
     <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
-    <AssemblyName>SqlStreamStore.Postgres.Tests</AssemblyName>
-    <PackageId>SqlStreamStore.Postgres.Tests</PackageId>
+    <AssemblyName>SqlStreamStore.MsSql.V3.Tests</AssemblyName>
+    <PackageId>SqlStreamStore.MsSql.V3.Tests</PackageId>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <RootNamespace>SqlStreamStore</RootNamespace>
+    <NoWarn>$(NoWarn);CS0618</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SqlStreamStore.Postgres\SqlStreamStore.Postgres.csproj" />
+    <Compile Include="..\SqlStreamStore.MsSql.Tests\MsSqlStreamStoreFixture.cs" Link="MsSqlStreamStoreFixture.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\SqlStreamStore.MsSql\SqlStreamStore.MsSql.csproj" />
     <ProjectReference Include="..\SqlStreamStore.TestUtils\SqlStreamStore.TestUtils.csproj" />
   </ItemGroup>
   <ItemGroup>

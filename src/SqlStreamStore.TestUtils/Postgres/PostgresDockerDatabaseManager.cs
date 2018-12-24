@@ -33,7 +33,10 @@ namespace SqlStreamStore.Postgres
             MaxPoolSize = 1024
         };
 
-        public PostgresDockerDatabaseManager(ITestOutputHelper testOutputHelper, string databaseName, int tcpPort = 5432)
+        public PostgresDockerDatabaseManager(
+            ITestOutputHelper testOutputHelper, 
+            string databaseName,
+            int tcpPort = 5432)
             : base(testOutputHelper, databaseName)
         {
             _tcpPort = tcpPort;

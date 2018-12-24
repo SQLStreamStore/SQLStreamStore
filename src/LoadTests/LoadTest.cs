@@ -45,7 +45,7 @@
                 .Add("Postgres (Docker)",
                     async ct =>
                     {
-                        var fixture = new PostgresStreamStoreFixture("dbo");
+                        var fixture = new PostgresStreamStoreDb("dbo");
                         Console.WriteLine(fixture.ConnectionString);
                         streamStore = await fixture.GetPostgresStreamStore(true);
                         disposable = fixture;
@@ -55,7 +55,7 @@
                     {
                         Console.Write("Enter the connection string: ");
                         var connectionString = Console.ReadLine();
-                        var fixture = new PostgresStreamStoreFixture("dbo", connectionString);
+                        var fixture = new PostgresStreamStoreDb("dbo", connectionString);
                         Console.WriteLine(fixture.ConnectionString);
                         streamStore = await fixture.GetPostgresStreamStore(true);
                         disposable = fixture;

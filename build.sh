@@ -9,4 +9,4 @@ docker run --rm --name sss-build \
  -e TRAVIS_BUILD_NUMBER=$TRAVIS_BUILD_NUMBER \
  -e MYGET_API_KEY=$MYGET_API_KEY \
  sss-build \
- dotnet run -p /build/build.csproj -- "$@"
+ dotnet run -p /repo/build/build.csproj -- "$@"

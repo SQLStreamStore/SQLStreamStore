@@ -15,7 +15,7 @@ namespace build
 
         static void Main(string[] args)
         {
-            Target(Build, () => Run("dotnet", "build src/SqlStreamStore.sln -c Release"));
+            Target(Build, () => Run("dotnet", "build SqlStreamStore.sln -c Release"));
 
             Target(
                 RunTests,
@@ -26,7 +26,7 @@ namespace build
                     "SqlStreamStore.MsSql.V3.Tests",
                     "SqlStreamStore.Postgres.Tests",
                     "SqlStreamStore.Http.Tests"),
-                project => Run("dotnet", $"test src/{project}/{project}.csproj -c Release -r ../../{ArtifactsDir} --no-build -l trx;LogFileName={project}.xml --verbosity=normal"));
+                project => Run("dotnet", $"test tests/{project}/{project}.csproj -c Release -r ../../{ArtifactsDir} --no-build -l trx;LogFileName={project}.xml --verbosity=normal"));
 
             Target(
                 Pack,

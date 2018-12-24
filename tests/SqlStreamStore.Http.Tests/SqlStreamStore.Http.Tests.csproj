@@ -18,9 +18,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\SqlStreamStore.Http\SqlStreamStore.Http.csproj" />
+    <ProjectReference Include="..\..\src\SqlStreamStore.Http\SqlStreamStore.Http.csproj" />
     <ProjectReference Include="..\SqlStreamStore.TestUtils\SqlStreamStore.TestUtils.csproj" />
-    <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />
+    <ProjectReference Include="..\..\src\SqlStreamStore\SqlStreamStore.csproj" />
   </ItemGroup>
 
   <ItemGroup>

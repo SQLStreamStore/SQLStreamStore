@@ -5,4 +5,4 @@ docker run --rm --name sss-build ^
  -v %cd%/.git:/.git ^
  --network host ^
  sss-build ^
- dotnet run -p /build/build.csproj -- %*
+ dotnet run -p /repo/build/build.csproj -- %*

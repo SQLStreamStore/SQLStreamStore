@@ -14,7 +14,6 @@
     <PackageReference Include="System.IO.FileSystem.Primitives" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SqlStreamStore.MsSql.V3.Tests\SqlStreamStore.MsSql.V3.Tests.csproj" />
     <ProjectReference Include="..\SqlStreamStore.MsSql\SqlStreamStore.MsSql.csproj" />
     <ProjectReference Include="..\SqlStreamStore.Postgres.Tests\SqlStreamStore.Postgres.Tests.csproj" />
     <ProjectReference Include="..\SqlStreamStore.Postgres\SqlStreamStore.Postgres.csproj" />

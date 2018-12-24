@@ -21,7 +21,7 @@
                 .Add("MS SQL V2 (Docker)",
                     async _ =>
                     {
-                        var fixture = new MsSqlStreamStoreFixture("dbo");
+                        var fixture = new MsSqlStreamStoreDb("dbo");
                         Console.WriteLine(fixture.ConnectionString);
                         streamStore = await fixture.GetStreamStore();
                         disposable = fixture;
@@ -29,7 +29,7 @@
                 .Add("MS SQL V3 (Docker)",
                     async _ =>
                     {
-                        var fixture = new MsSqlStreamStoreV3Fixture("dbo");
+                        var fixture = new MsSqlStreamStoreDbV3("dbo");
                         Console.WriteLine(fixture.ConnectionString);
                         streamStore = await fixture.GetStreamStore();
                         disposable = fixture;

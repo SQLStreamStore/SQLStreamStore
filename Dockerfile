@@ -31,4 +31,4 @@ RUN dotnet restore
 
 COPY ./build .
 
-WORKDIR /
+WORKDIR /repo

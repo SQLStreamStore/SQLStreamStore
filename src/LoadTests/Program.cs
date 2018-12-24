@@ -22,20 +22,20 @@
             new Menu()
                 .Add(
                     "Append with ExpectedVersion.Any",
-                    () => new AppendExpectedVersionAnyParallel().Run(cts.Token))
+                    async ct => await new AppendExpectedVersionAnyParallel().Run(ct))
                 .Add(
                     "Read all",
-                    () => new ReadAll().Run(cts.Token))
+                    async ct => await new ReadAll().Run(ct))
                 .Add(
                     "Append max count",
-                    () => new AppendMaxCount().Run(cts.Token))
+                    async ct => await new AppendMaxCount().Run(ct))
                 .Add(
                     "Many steam subscriptions",
-                    () => new StreamSubscription().Run(cts.Token))
+                    async ct => await new StreamSubscription().Run(ct))
                 .Add(
                     "Test gaps",
-                    () => new TestGaps().Run(cts.Token))
-                .Display();
+                    async ct => await new TestGaps().Run(ct))
+                .Display(cts.Token);
 
             if(Debugger.IsAttached)
             {

@@ -8,38 +8,33 @@
 
     public abstract class LoadTest
     {
-        public void Run(CancellationToken cancellationToken)
-        {
-            Task.Run(() => RunAsync(cancellationToken)).GetAwaiter().GetResult();
-        }
+        public abstract Task Run(CancellationToken cancellationToken);
 
-        protected abstract Task RunAsync(CancellationToken cancellationToken);
-
-        protected (IStreamStore, Action) GetStore()
+        protected async Task<(IStreamStore, Action)> GetStore(CancellationToken cancellationToken)
         {
             IStreamStore streamStore = null;
             IDisposable disposable = null;
 
             Output.WriteLine(ConsoleColor.Yellow, "Store type:");
-            new Menu()
-                .Add("InMem", () => streamStore = new InMemoryStreamStore())
+            await new Menu()
+                .AddSync("InMem", () => streamStore = new InMemoryStreamStore())
                 .Add("MS SQL V2 (Docker)",
-                    () =>
+                    async _ =>
                     {
-                        var fixture = new MsSqlStreamStoreFixture("dbo");
+                        var fixture = new MsSqlStreamStoreDb("dbo");
                         Console.WriteLine(fixture.ConnectionString);
-                        streamStore = fixture.GetStreamStore().Result;
+                        streamStore = await fixture.GetStreamStore();
                         disposable = fixture;
                     })
                 .Add("MS SQL V3 (Docker)",
-                    () =>
+                    async _ =>
                     {
-                        var fixture = new MsSqlStreamStoreV3Fixture("dbo");
+                        var fixture = new MsSqlStreamStoreDbV3("dbo");
                         Console.WriteLine(fixture.ConnectionString);
-                        streamStore = fixture.GetStreamStore().Result;
+                        streamStore = await fixture.GetStreamStore();
                         disposable = fixture;
                     })
-                .Add("MS SQL V3 (LocalDB)",
+                .AddSync("MS SQL V3 (LocalDB)",
                     () =>
                     {
                         var sqlLocalDb = new SqlLocalDb();
@@ -48,24 +43,24 @@
                         disposable = sqlLocalDb;
                     })
                 .Add("Postgres (Docker)",
-                    () =>
+                    async ct =>
                     {
-                        var fixture = new PostgresStreamStoreFixture("dbo");
+                        var fixture = new PostgresStreamStoreDb("dbo");
                         Console.WriteLine(fixture.ConnectionString);
-                        streamStore = fixture.GetPostgresStreamStore(true).Result;
+                        streamStore = await fixture.GetPostgresStreamStore(true);
                         disposable = fixture;
                     })
                 .Add("Postgres (Server)",
-                    () =>
+                    async ct =>
                     {
                         Console.Write("Enter the connection string: ");
                         var connectionString = Console.ReadLine();
-                        var fixture = new PostgresStreamStoreFixture("dbo", connectionString);
+                        var fixture = new PostgresStreamStoreDb("dbo", connectionString);
                         Console.WriteLine(fixture.ConnectionString);
-                        streamStore = fixture.GetPostgresStreamStore(true).Result;
+                        streamStore = await fixture.GetPostgresStreamStore(true);
                         disposable = fixture;
                     })
-                .Display();
+                .Display(cancellationToken);
 
             return (
                 streamStore,

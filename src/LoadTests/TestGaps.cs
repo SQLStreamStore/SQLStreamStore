@@ -12,13 +12,13 @@
 
     public class TestGaps : LoadTest
     {
-        protected override async Task RunAsync(CancellationToken ct)
+        public override async Task Run(CancellationToken ct)
         {
             Output.WriteLine("");
             Output.WriteLine(ConsoleColor.Green, "Appends events to streams and reads them all back in a single task.");
             Output.WriteLine("");
 
-            var (streamStore, dispose) = GetStore();
+            var (streamStore, dispose) = await GetStore(ct);
 
             try
             {

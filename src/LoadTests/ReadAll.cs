@@ -9,13 +9,13 @@
 
     public class ReadAll : LoadTest
     {
-        protected override async Task RunAsync(CancellationToken ct)
+        public override async Task Run(CancellationToken ct)
         {
             Output.WriteLine("");
             Output.WriteLine(ConsoleColor.Green, "Appends events to streams and reads them all back in a single task.");
             Output.WriteLine("");
 
-            var (streamStore, dispose) = GetStore();
+            var (streamStore, dispose) = await GetStore(ct);
 
             try
             {
@@ -23,7 +23,7 @@
                     .Append(streamStore, ct);
 
                 int readPageSize = Input.ReadInt("Read page size: ", 1, 10000);
-                var prefectch = Input.ReadEnum<YesNo>("Prefetch: ");
+                var prefetch = await Input.ReadEnum<YesNo>("Prefetch: ", ct);
 
                 var stopwatch = Stopwatch.StartNew();
                 int count = 0;
@@ -33,7 +33,7 @@
                 {
                     page = await streamStore.ReadAllForwards(position,
                         readPageSize,
-                        prefetchJsonData: prefectch == YesNo.Yes,
+                        prefetchJsonData: prefetch == YesNo.Yes,
                         cancellationToken: ct);
                     count += page.Messages.Length;
                     Console.Write($"\r> Read {count}");

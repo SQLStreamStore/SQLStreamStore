@@ -12,7 +12,7 @@
 
     public class AppendExpectedVersionAnyParallel : LoadTest
     {
-        protected override async Task RunAsync(CancellationToken ct)
+        public override async Task Run(CancellationToken ct)
         {
             Output.WriteLine("");
             Output.WriteLine(ConsoleColor.Green, "Appends events to streams(s) as quickly as possible.");
@@ -22,7 +22,7 @@
             Output.WriteLine(" - The more parallel tasks, the more chance of contention of writes to a stream.");
             Output.WriteLine("");
 
-            var (streamStore, dispose) = GetStore();
+            var (streamStore, dispose) = await GetStore(ct);
 
             try
             {
@@ -34,7 +34,7 @@
             }
         }
 
-        public async Task<int> Append(IStreamStore streamStore, CancellationToken ct)
+        private async Task<int> Append(IStreamStore streamStore, CancellationToken ct)
         {
             var numberOfStreams = Input.ReadInt("Number of streams: ", 1, 100000000);
 

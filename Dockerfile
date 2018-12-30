@@ -1,7 +1,5 @@
 FROM microsoft/dotnet:2.2.100-sdk-stretch AS build
 
-RUN apk add libcurl
-
 WORKDIR /repo
 
 # https://github.com/moby/moby/issues/15858

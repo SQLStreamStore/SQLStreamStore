@@ -1,4 +1,4 @@
-FROM microsoft/dotnet:2.1.402-sdk-alpine3.7 AS build
+FROM microsoft/dotnet:2.2.100-sdk-alpine3.8 AS build
 
 RUN apk add libcurl
 

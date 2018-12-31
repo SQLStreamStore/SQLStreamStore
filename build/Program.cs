@@ -25,6 +25,7 @@ namespace build
                     "SqlStreamStore.MsSql.Tests",
                     "SqlStreamStore.MsSql.V3.Tests",
                     "SqlStreamStore.Postgres.Tests",
+                    "SqlStreamStore.HAL.Tests",
                     "SqlStreamStore.Http.Tests"),
                 project => Run("dotnet", $"test tests/{project}/{project}.csproj -c Release -r ../../{ArtifactsDir} --no-build -l trx;LogFileName={project}.xml --verbosity=normal"));
 

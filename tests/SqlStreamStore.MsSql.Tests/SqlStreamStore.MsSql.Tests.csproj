@@ -1,11 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
+    <TargetFramework>netcoreapp2.2</TargetFramework>
     <AssemblyName>SqlStreamStore.MsSql.Tests</AssemblyName>
     <PackageId>SqlStreamStore.MsSql.Tests</PackageId>
-    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <RootNamespace>SqlStreamStore</RootNamespace>
-    <NoWarn>$(NoWarn);CS0618</NoWarn>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs"

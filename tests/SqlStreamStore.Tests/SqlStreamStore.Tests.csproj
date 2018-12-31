@@ -1,11 +1,8 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netcoreapp2.1</TargetFrameworks>
-    <DebugType>portable</DebugType>
+    <TargetFrameworks>netcoreapp2.2</TargetFrameworks>
     <AssemblyName>SqlStreamStore.Tests</AssemblyName>
-    <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <RootNamespace>SqlStreamStore</RootNamespace>
-    <LangVersion>latest</LangVersion>
   </PropertyGroup>
   <ItemGroup>
     <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" LinkBase="InMemory" />

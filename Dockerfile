@@ -1,6 +1,4 @@
-FROM microsoft/dotnet:2.1.402-sdk-alpine3.7 AS build
-
-RUN apk add libcurl
+FROM microsoft/dotnet:2.2.100-sdk-stretch AS build
 
 WORKDIR /repo
 

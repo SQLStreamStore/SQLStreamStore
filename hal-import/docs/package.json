@@ -1,0 +1,5 @@
+{
+  "devDependencies": {
+    "@adobe/jsonschema2md": "1.1.0"
+  }
+}

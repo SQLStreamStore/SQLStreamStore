@@ -1,0 +1,82 @@
+{
+	"fromPosition": 0,
+	"nextPosition": 3,
+	"isEnd": false,
+	"_links": {
+		"self": {
+			"href": "stream?d=f&m=3&p=0&e=1"
+		},
+		"first": {
+			"href": "stream?d=f&m=3&p=0&e=1"
+		},
+		"next": {
+			"href": "stream?d=f&m=3&p=3&e=1"
+		},
+		"last": {
+			"href": "stream?d=b&m=3&p=-1&e=1"
+		},
+		"streamStore:feed": {
+			"href": "stream?d=f&m=3&p=0&e=1"
+		},
+		"streamStore:find": {
+			"href": "../streams/{streamId}",
+			"templated": true,
+			"title": "Find a Stream"
+		}
+	},
+	"_embedded": {
+		"streamStore:message": [{
+				"messageId": "91e9d8b3-7b96-4cfa-84cc-0c51739db462",
+				"createdUtc": "2018-10-06T11:54:48.1042417Z",
+				"position": 2,
+				"streamId": "cbf68be34d9547eb9b4a390fd2aa417b",
+				"streamVersion": 2,
+				"type": "ItineraryPublished",
+				"payload": "{\"ItineraryId\":\"cbf68be3-4d95-47eb-9b4a-390fd2aa417b\",\"Data\":2}",
+				"metadata": "",
+				"_links": {
+					"self": {
+						"href": "streams/cbf68be34d9547eb9b4a390fd2aa417b/2"
+					},
+					"streamStore:feed": {
+						"href": "streams/cbf68be34d9547eb9b4a390fd2aa417b"
+					}
+				}
+			}, {
+				"messageId": "f240201c-d844-449d-8f31-6e1980f1e3d5",
+				"createdUtc": "2018-10-06T11:54:48.1042383Z",
+				"position": 1,
+				"streamId": "cbf68be34d9547eb9b4a390fd2aa417b",
+				"streamVersion": 1,
+				"type": "ItineraryPublished",
+				"payload": "{\"ItineraryId\":\"cbf68be3-4d95-47eb-9b4a-390fd2aa417b\",\"Data\":1}",
+				"metadata": "",
+				"_links": {
+					"self": {
+						"href": "streams/cbf68be34d9547eb9b4a390fd2aa417b/1"
+					},
+					"streamStore:feed": {
+						"href": "streams/cbf68be34d9547eb9b4a390fd2aa417b"
+					}
+				}
+			}, {
+				"messageId": "7a405cc3-0d45-4a21-9182-929d5782d244",
+				"createdUtc": "2018-10-06T11:54:48.104178Z",
+				"position": 0,
+				"streamId": "cbf68be34d9547eb9b4a390fd2aa417b",
+				"streamVersion": 0,
+				"type": "ItineraryPublished",
+				"payload": "{\"ItineraryId\":\"cbf68be3-4d95-47eb-9b4a-390fd2aa417b\",\"Data\":0}",
+				"metadata": "",
+				"_links": {
+					"self": {
+						"href": "streams/cbf68be34d9547eb9b4a390fd2aa417b/0"
+					},
+					"streamStore:feed": {
+						"href": "streams/cbf68be34d9547eb9b4a390fd2aa417b"
+					}
+				}
+			}
+		]
+	}
+}

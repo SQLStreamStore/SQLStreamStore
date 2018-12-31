@@ -1,0 +1,30 @@
+version: '3.1'
+
+services:
+  sql-stream-store:
+    container_name: sss-example-server
+    image: sqlstreamstore/hal:1.0.0-rc.3.11
+    ports:
+      - "5000:80"
+    networks:
+      - app-network
+      - db-network
+    environment:
+      - SQLSTREAMSTORE_PROVIDER=postgres
+      - SQLSTREAMSTORE_CONNECTION_STRING=Host=database;Port=5432;User Id=postgres;Database=example
+    depends_on:
+      - database
+
+  database:
+    container_name: sss-example-postgres
+    image: postgres:10.4-alpine
+    ports:
+      - "5432:5432"
+    networks:
+      - db-network
+
+networks:
+  app-network:
+    driver: bridge
+  db-network:
+    driver: bridge

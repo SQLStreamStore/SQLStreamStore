@@ -1,0 +1,23 @@
+{
+  "title": "Set Stream Metadata",
+  "type": "object",
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "maxCount": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "maxAge": {
+      "type": "integer",
+      "minimum": 1
+    },
+    "metadataJson": {
+      "type": "object",
+      "x-schema-form": {
+        "key": "metadataJson",
+        "type": "textarea",
+        "rows": 30
+      }
+    }
+  }
+}

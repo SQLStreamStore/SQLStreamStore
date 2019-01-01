@@ -250,10 +250,6 @@ paket-files/
 .idea/
 *.sln.iml
 
-# Tools Cake
-tools/**
-!tools/packages.config
-
 #DotNetCore
 .dotnet
 /src/LoadTests/LoadTests.txt

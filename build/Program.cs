@@ -1,5 +1,7 @@
 ﻿using System;
+using System.ComponentModel;
 using System.IO;
+using System.Linq;
 using static Bullseye.Targets;
 using static SimpleExec.Command;
 
@@ -8,13 +10,33 @@ namespace build
     class Program
     {
         private const string ArtifactsDir = "artifacts";
+        private const string BuildHalDocs = "build-hal-docs";
         private const string Build = "build";
         private const string RunTests = "run-tests";
         private const string Pack = "pack";
         private const string Publish = "publish";
 
-        static void Main(string[] args)
+        private static void Main(string[] args)
         {
+            Target(BuildHalDocs, () =>
+            {
+                RunCmd("yarn", workingDirectory: "./tools/hal-docs");
+
+                var srcDirectory = new DirectoryInfo("./src");
+
+                var schemaDirectories = srcDirectory.GetFiles("*.schema.json", SearchOption.AllDirectories)
+                    .Select(schemaFile => schemaFile.DirectoryName)
+                    .Distinct()
+                    .Select(schemaDirectory => schemaDirectory.Replace(Path.DirectorySeparatorChar, '/'));
+
+                foreach (var schemaDirectory in schemaDirectories)
+                {
+                    Run("node",
+                    $"node_modules/@adobe/jsonschema2md/cli.js -n --input {schemaDirectory} --out {schemaDirectory} --schema-out=-",
+                    "tools/hal-docs");
+                }
+            });
+
             Target(Build, () => Run("dotnet", "build SqlStreamStore.sln -c Release"));
 
             Target(
@@ -61,6 +83,23 @@ namespace build
             Target("default", DependsOn(RunTests, Publish));
 
             RunTargetsAndExit(args);
+        }
+
+        private static void RunCmd(string name, string args = null, string workingDirectory = null, bool noEcho = false)
+        {
+            try
+            {
+                Run(name, args, workingDirectory, noEcho);
+            }
+            catch (Win32Exception ex) when (ex.NativeErrorCode == 2) // The system cannot find the file specified.
+            {
+                var cmdArgs = $"/C {name}";
+                if (args != null)
+                {
+                    cmdArgs += " " + args;
+                }
+                Run("cmd", cmdArgs, workingDirectory, noEcho);
+            }
         }
     }
 }

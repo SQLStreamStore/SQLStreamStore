@@ -58,6 +58,7 @@ namespace build
                     "SqlStreamStore",
                     "SqlStreamStore.MsSql",
                     "SqlStreamStore.Postgres",
+                    "SqlStreamStore.HAL",
                     "SqlStreamStore.Http"),
                 project => Run("dotnet", $"pack src/{project}/{project}.csproj -c Release -o ../../{ArtifactsDir} --no-build"));
 

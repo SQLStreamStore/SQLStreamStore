@@ -3,12 +3,13 @@
     using System;
     using System.Diagnostics;
     using System.Threading;
+    using System.Threading.Tasks;
     using EasyConsole;
     using Serilog;
 
     internal class Program
     {
-        static void Main(string[] args)
+        static async Task Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
                 .WriteTo
@@ -19,7 +20,7 @@
             Console.CancelKeyPress += (_, __) => cts.Cancel();
 
             Output.WriteLine(ConsoleColor.Yellow, "Choose a test:");
-            new Menu()
+            await new Menu()
                 .Add(
                     "Append with ExpectedVersion.Any",
                     async ct => await new AppendExpectedVersionAnyParallel().Run(ct))
@@ -35,6 +36,9 @@
                 .Add(
                     "Test gaps",
                     async ct => await new TestGaps().Run(ct))
+                .Add(
+                    "Append Read Deadlocks",
+                    async ct => await new AppendsReadsDeadlocks().Run(ct))
                 .Display(cts.Token);
 
             if(Debugger.IsAttached)

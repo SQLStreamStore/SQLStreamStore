@@ -17,8 +17,8 @@
     <PackageReference Include="System.IO.Pipelines" Version="4.5.2" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SqlStreamStore.HAL\SqlStreamStore.HAL.csproj" />
-    <ProjectReference Include="..\..\src\SqlStreamStore.MsSql\SqlStreamStore.MsSql.csproj" />
-    <ProjectReference Include="..\..\src\SqlStreamStore.Postgres\SqlStreamStore.Postgres.csproj" />
+    <ProjectReference Include="..\SqlStreamStore.HAL\SqlStreamStore.HAL.csproj" />
+    <ProjectReference Include="..\SqlStreamStore.MsSql\SqlStreamStore.MsSql.csproj" />
+    <ProjectReference Include="..\SqlStreamStore.Postgres\SqlStreamStore.Postgres.csproj" />
   </ItemGroup>
 </Project>

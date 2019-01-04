@@ -29,7 +29,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.HAL", "src\S
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.HAL.Tests", "tests\SqlStreamStore.HAL.Tests\SqlStreamStore.HAL.Tests.csproj", "{FA28BC39-9176-4ACE-8BB8-A6AF0867BA71}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.HAL.DevServer", "tests\SqlStreamStore.HAL.DevServer\SqlStreamStore.HAL.DevServer.csproj", "{4C205CF0-D939-4071-AB84-FB8B7CB4AFD5}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.HAL.DevServer", "src\SqlStreamStore.HAL.DevServer\SqlStreamStore.HAL.DevServer.csproj", "{4C205CF0-D939-4071-AB84-FB8B7CB4AFD5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

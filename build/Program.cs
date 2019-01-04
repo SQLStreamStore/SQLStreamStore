@@ -42,7 +42,7 @@ namespace build
             Target(
                 RunTests,
                 DependsOn(Build),
-                project => Run("dotnet", $"test -c Release -r ../../{ArtifactsDir} -l trx;LogFileName={project}.xml --verbosity=normal"));
+                project => Run("dotnet", "test -c Release --verbosity=normal"));
 
             Target(
                 Pack,

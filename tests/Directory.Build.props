@@ -3,5 +3,6 @@
   <PropertyGroup>
     <NoWarn>$(NoWarn);1701;1702;1705;1591;CS0618</NoWarn>
     <LangVersion>latest</LangVersion>
+    <IsTestProject>true</IsTestProject>
   </PropertyGroup>
 </Project>

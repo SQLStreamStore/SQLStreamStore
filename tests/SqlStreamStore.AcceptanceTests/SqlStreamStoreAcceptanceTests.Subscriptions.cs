@@ -618,10 +618,10 @@
                     var handler = new AsyncAutoResetEvent();
                     var subscription = store.SubscribeToStream(streamId,
                         StreamVersion.Start,
-                        async (_, __, ___) =>
+                        async (_, __, ct) =>
                         {
                             handler.Set();
-                            await handler.WaitAsync(); // block "handling" while a dispose occurs
+                            await Task.Delay(TimeSpan.FromSeconds(3)); // block "handling" while a dispose occurs
                         },
                         (_, reason, __) =>
                         {
@@ -629,11 +629,10 @@
                         });
                     // First message is blocked in handling, the second is co-operatively cancelled
                     await AppendMessages(store, streamId, 2); 
-                    await handler.WaitAsync();
+                    await handler.WaitAsync().WithTimeout(10000);
                     subscription.Dispose();
-                    handler.Set();
 
-                    var droppedReason = await droppedTcs.Task.WithTimeout();
+                    var droppedReason = await droppedTcs.Task.WithTimeout(10000);
 
                     droppedReason.ShouldBe(SubscriptionDroppedReason.Disposed);
                 }
@@ -749,7 +748,7 @@
                         async (_, __, ___) =>
                         {
                             handler.Set();
-                            await handler.WaitAsync().WithTimeout(); // block "handling" while a dispose occurs
+                            await Task.Delay(TimeSpan.FromSeconds(3)); // block "handling" while a dispose occurs
                         },
                         (_, reason, __) =>
                         {
@@ -760,9 +759,8 @@
                     await AppendMessages(store, streamId, 2);
                     await handler.WaitAsync().WithTimeout(10000);
                     subscription.Dispose();
-                    handler.Set();
 
-                    var droppedReason = await droppedTcs.Task.WithTimeout();
+                    var droppedReason = await droppedTcs.Task.WithTimeout(10000);
 
                     droppedReason.ShouldBe(SubscriptionDroppedReason.Disposed);
                 }

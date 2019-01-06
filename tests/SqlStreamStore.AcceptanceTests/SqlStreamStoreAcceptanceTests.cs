@@ -28,6 +28,8 @@
 
         protected abstract StreamStoreAcceptanceTestFixture GetFixture();
 
+        protected abstract Task<IStreamStoreFixture> CreateFixture();
+
         private static IDisposable CaptureLogs(ITestOutputHelper testOutputHelper) 
             => LoggingHelper.Capture(testOutputHelper);
 

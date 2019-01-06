@@ -1,5 +1,6 @@
 ﻿namespace SqlStreamStore
 {
+    using System.Threading.Tasks;
     using Xunit.Abstractions;
 
     public class HttpClientStreamStoreAcceptanceTests : StreamStoreAcceptanceTests
@@ -10,5 +11,8 @@
 
         protected override StreamStoreAcceptanceTestFixture GetFixture()
             => new HttpClientStreamStoreFixture();
+
+        protected override Task<IStreamStoreFixture> CreateFixture()
+            => Task.FromResult<IStreamStoreFixture>(new HttpClientStreamStoreFixture2());
     }
 }

@@ -22,28 +22,32 @@
         protected override StreamStoreAcceptanceTestFixture GetFixture()
             => new PostgresStreamStoreFixture("foo", TestOutputHelper);
 
+        protected override async Task<IStreamStoreFixture> CreateFixture() 
+            => await PostgresStreamStoreFixture2.Create(testOutputHelper: TestOutputHelper);
+
         [Fact]
         public async Task Can_use_multiple_schemas()
         {
-            using(var fixture = new PostgresStreamStoreFixture("dbo", TestOutputHelper))
+            using (var dboFixture = await CreateFixture())
             {
-                using(var dboStore = await fixture.GetStreamStore())
+                var dboStore = dboFixture.Store;
+
+                using(var barFixture = await CreateFixture())
                 {
-                    using(var barStore = await fixture.GetStreamStore("bar"))
-                    {
-                        await dboStore.AppendToStream("stream-1",
-                            ExpectedVersion.NoStream,
-                            CreateNewStreamMessages(1, 2));
-                        await barStore.AppendToStream("stream-1",
-                            ExpectedVersion.NoStream,
-                            CreateNewStreamMessages(1, 2));
+                    var barStore = barFixture.Store;
 
-                        var dboHeadPosition = await dboStore.ReadHeadPosition();
-                        var fooHeadPosition = await dboStore.ReadHeadPosition();
+                    await dboStore.AppendToStream("stream-1",
+                        ExpectedVersion.NoStream,
+                        CreateNewStreamMessages(1, 2));
+                    await barStore.AppendToStream("stream-1",
+                        ExpectedVersion.NoStream,
+                        CreateNewStreamMessages(1, 2));
 
-                        dboHeadPosition.ShouldBe(1);
-                        fooHeadPosition.ShouldBe(1);
-                    }
+                    var dboHeadPosition = await dboStore.ReadHeadPosition();
+                    var barHeadPosition = await barStore.ReadHeadPosition();
+
+                    dboHeadPosition.ShouldBe(1);
+                    barHeadPosition.ShouldBe(1);
                 }
             }
         }
@@ -51,31 +55,25 @@
         [Fact]
         public async Task when_try_scavenge_fails_returns_negative_one()
         {
-            using(var fixture = new PostgresStreamStoreFixture("dbo", TestOutputHelper))
+            using (var fixture = await PostgresStreamStoreFixture2.Create(testOutputHelper: TestOutputHelper))
             {
-                using(var store = await fixture.GetPostgresStreamStore())
-                {
-                    var cts = new CancellationTokenSource();
+                var cts = new CancellationTokenSource();
 
-                    cts.Cancel();
+                cts.Cancel();
 
-                    var result = await store.TryScavenge(new StreamIdInfo("stream-1"), cts.Token);
+                var result = await fixture.Store.TryScavenge(new StreamIdInfo("stream-1"), cts.Token);
 
-                    result.ShouldBe(-1);
-                }
+                result.ShouldBe(-1);
             }
         }
 
         [Theory, InlineData("dbo"), InlineData("myschema")]
         public async Task Can_call_initialize_repeatably(string schema)
         {
-            using(var fixture = new PostgresStreamStoreFixture(schema, TestOutputHelper))
+            using(var fixture = await PostgresStreamStoreFixture2.CreateUninitialized(schema, testOutputHelper: TestOutputHelper))
             {
-                using(var store = await fixture.GetUninitializedPostgresStreamStore())
-                {
-                    await store.CreateSchemaIfNotExists();
-                    await store.CreateSchemaIfNotExists();
-                }
+                await fixture.Store.CreateSchemaIfNotExists();
+                await fixture.Store.CreateSchemaIfNotExists();
             }
         }
 
@@ -87,12 +85,9 @@
             string ReadInformationSchema((string name, string table) _)
                 => $"SELECT {_.name}_name FROM information_schema.{_.table} WHERE {_.name}_schema = 'dbo'";
 
-            using(var fixture = new PostgresStreamStoreFixture("dbo", TestOutputHelper))
+            using(var fixture = await PostgresStreamStoreFixture2.Create(testOutputHelper: TestOutputHelper))
             {
-                using(var store = await fixture.GetPostgresStreamStore())
-                {
-                    await store.DropAll();
-                }
+                await fixture.Store.DropAll();
 
                 var commandText = string.Join(
                     $"{Environment.NewLine}UNION{Environment.NewLine}",
@@ -126,67 +121,12 @@
         [Fact]
         public async Task Can_check_schema()
         {
-            using(var fixture = new PostgresStreamStoreFixture("dbo", TestOutputHelper))
+            using(var fixture = await PostgresStreamStoreFixture2.Create(testOutputHelper: TestOutputHelper))
             {
-                using(var store = await fixture.GetPostgresStreamStore())
-                {
-                    var result = await store.CheckSchema();
+                var result = await fixture.Store.CheckSchema();
 
-                    result.ShouldBe(new CheckSchemaResult(1, 1));
-                    result.IsMatch.ShouldBeTrue();
-                }
-            }
-        }
-
-        public static IEnumerable<object[]> GetUtcNowNullCases()
-        {
-            var message = CreateNewStreamMessages(1).First();
-            yield return new object[]
-            {
-                new Func<PostgresStreamStore, Task>(
-                    store => store.AppendToStream("a-stream", ExpectedVersion.Any, message)),
-            };
-            yield return new object[]
-            {
-                new Func<PostgresStreamStore, Task>(
-                    async store =>
-                    {
-                        await store.AppendToStream("a-stream", ExpectedVersion.Any, message);
-                        await store.DeleteStream("a-stream");
-                    })
-            };
-            yield return new object[]
-            {
-                new Func<PostgresStreamStore, Task>(
-                    async store =>
-                    {
-                        await store.AppendToStream("a-stream", ExpectedVersion.Any, message);
-                        await store.DeleteMessage("a-stream", message.MessageId);
-                    }),
-            };
-            yield return new object[]
-            {
-                new Func<PostgresStreamStore, Task>(
-                    store => store.SetStreamMetadata("a-stream", maxAge: 1))
-            };
-        }
-
-        [Theory, MemberData(nameof(GetUtcNowNullCases))]
-        public async Task Can_invoke_operation_when_get_utc_now_is_null(Func<PostgresStreamStore, Task> operation)
-        {
-            using(var fixture = new PostgresStreamStoreFixture("dbo", TestOutputHelper))
-            {
-                await fixture.CreateDatabase();
-
-                using(var store = new PostgresStreamStore(new PostgresStreamStoreSettings(fixture.ConnectionString)
-                {
-                    GetUtcNow = null
-                }))
-                {
-                    await store.CreateSchemaIfNotExists();
-
-                    await operation(store);
-                }
+                result.ShouldBe(new CheckSchemaResult(1, 1));
+                result.IsMatch.ShouldBeTrue();
             }
         }
 

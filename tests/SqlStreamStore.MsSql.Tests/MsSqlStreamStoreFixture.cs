@@ -15,11 +15,11 @@ namespace SqlStreamStore
         public readonly string DatabaseName;
         private readonly DockerSqlServerDatabase _databaseInstance;
 
-        public MsSqlStreamStoreFixture(string schema, bool deleteDatabaseOnDispose = true)
+        public MsSqlStreamStoreFixture(string schema, bool deleteDatabaseOnDispose = true, string databaseName = null)
         {
             _schema = schema;
             _deleteDatabaseOnDispose = deleteDatabaseOnDispose;
-            DatabaseName = $"sss-v2-{Guid.NewGuid():n}";
+            DatabaseName = databaseName ?? $"sss-v2-{Guid.NewGuid():n}";
             _databaseInstance = new DockerSqlServerDatabase(DatabaseName);
 
             ConnectionString = CreateConnectionString();

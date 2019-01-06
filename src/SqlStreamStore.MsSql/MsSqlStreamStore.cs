@@ -13,7 +13,7 @@
     using SqlStreamStore.Subscriptions;
 
     /// <summary>
-    ///     Represents a Micrsoft SQL Server stream store implementation.
+    ///     Represents a Microsoft SQL Server stream store implementation.
     /// </summary>
     [Obsolete("Use MsSqlStreamStoreV3 instead. Note: this will require a schema and data migratiom.", false)]
     public sealed partial class MsSqlStreamStore : StreamStoreBase
@@ -28,7 +28,7 @@
         /// <summary>
         ///     Initializes a new instance of <see cref="MsSqlStreamStore"/>
         /// </summary>
-        /// <param name="settings">A settings class to configur this instance.</param>
+        /// <param name="settings">A settings class to configure this instance.</param>
         public MsSqlStreamStore(MsSqlStreamStoreSettings settings)
             :base(settings.MetadataMaxAgeCacheExpire, settings.MetadataMaxAgeCacheMaxSize,
                  settings.GetUtcNow, settings.LogName)

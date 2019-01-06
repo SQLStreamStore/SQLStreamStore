@@ -2,8 +2,58 @@ namespace SqlStreamStore
 {
     using System;
     using System.Threading.Tasks;
+    using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Postgres;
     using Xunit.Abstractions;
+
+    public class PostgresStreamStoreFixture2 : IStreamStoreFixture
+    {
+        private readonly PostgresStreamStoreFixture _fixture;
+
+        private PostgresStreamStoreFixture2(
+            PostgresStreamStoreFixture fixture,
+            PostgresStreamStore store)
+        {
+            _fixture = fixture;
+            Store = store;
+        }
+
+        public static async Task<PostgresStreamStoreFixture2> Create(
+            string schema = "dbo",
+            ITestOutputHelper testOutputHelper = null)
+        {
+            var innerFixture = new PostgresStreamStoreFixture(schema, testOutputHelper);
+            var store = await innerFixture.GetPostgresStreamStore();
+            return new PostgresStreamStoreFixture2(innerFixture, store);
+        }
+
+        public static async Task<PostgresStreamStoreFixture2> CreateUninitialized(
+            string schema = "dbo",
+            ITestOutputHelper testOutputHelper = null)
+        {
+            var innerFixture = new PostgresStreamStoreFixture(schema, testOutputHelper);
+            var store = await innerFixture.GetUninitializedPostgresStreamStore();
+            return new PostgresStreamStoreFixture2(innerFixture, store);
+        }
+
+        public void Dispose()
+        {
+            Store.Dispose();
+            _fixture.Dispose();
+        }
+
+        IStreamStore IStreamStoreFixture.Store => Store;
+
+        public PostgresStreamStore Store { get; }
+
+        public GetUtcNow GetUtcNow
+        {
+            get => _fixture.GetUtcNow;
+            set => _fixture.GetUtcNow = value;
+        }
+
+        public string ConnectionString => _fixture.ConnectionString;
+    }
 
     public class PostgresStreamStoreFixture : StreamStoreAcceptanceTestFixture
     {
@@ -20,16 +70,6 @@ namespace SqlStreamStore
             _schema = schema;
 
             _databaseManager = new PostgresDockerDatabaseManager(testOutputHelper, $"test_{Guid.NewGuid():n}");
-        }
-
-        public PostgresStreamStoreFixture(string schema, string connectionString)
-        {
-            _schema = schema;
-
-            _databaseManager = new PostgresServerDatabaseManager(
-                new ConsoleTestoutputHelper(),
-                $"test_{Guid.NewGuid():n}",
-                connectionString);
         }
 
         public override long MinPosition => 0;

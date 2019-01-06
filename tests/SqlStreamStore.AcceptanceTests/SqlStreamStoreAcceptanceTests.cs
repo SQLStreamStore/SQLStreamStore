@@ -29,7 +29,7 @@
 
         protected IStreamStore store => _fixture.Store;
 
-        protected IStreamStoreFixture Fixture => _fixture;
+        protected IStreamStoreFixture fixture => _fixture;
 
         public Task DisposeAsync()
         {

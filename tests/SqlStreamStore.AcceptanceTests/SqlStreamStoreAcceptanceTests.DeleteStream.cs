@@ -13,196 +13,136 @@
         [Fact, Trait("Category", "DeleteStream")]
         public async Task When_delete_stream_with_no_expected_version_and_read_then_should_get_StreamNotFound()
         {
-            using (var fixture = GetFixture())
-            {
-                using (var store = await fixture.GetStreamStore())
-                {
-                    const string streamId = "stream";
+            const string streamId = "stream";
 
-                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-                    await store.DeleteStream(streamId);
+            await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+            await store.DeleteStream(streamId);
 
-                    var page =
-                        await store.ReadStreamForwards(streamId, StreamVersion.Start, 10);
+            var page =
+                await store.ReadStreamForwards(streamId, StreamVersion.Start, 10);
 
-                    page.Status.ShouldBe(PageReadStatus.StreamNotFound);
-                }
-            }
+            page.Status.ShouldBe(PageReadStatus.StreamNotFound);
         }
 
         [Fact, Trait("Category", "DeleteStream")]
         public async Task When_delete_stream_with_expected_version_any_and_then_read_then_should_stream_deleted_message()
         {
-            using (var fixture = GetFixture())
-            {
-                using (var store = await fixture.GetStreamStore())
-                {
-                    const string streamId = "stream";
+            const string streamId = "stream";
 
-                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-                    await store.DeleteStream(streamId, 2);
+            await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+            await store.DeleteStream(streamId, 2);
 
-                    var page =
-                        await store.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
+            var page =
+                await store.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
 
-                    page.Status.ShouldBe(PageReadStatus.Success);
-                    var message = page.Messages.Single();
-                    message.Type.ShouldBe(StreamDeletedMessageType);
-                    var streamDeleted = await message.GetJsonDataAs<StreamDeleted>();
-                    streamDeleted.StreamId.ShouldBe("stream");
-                }
-            }
+            page.Status.ShouldBe(PageReadStatus.Success);
+            var message = page.Messages.Single();
+            message.Type.ShouldBe(StreamDeletedMessageType);
+            var streamDeleted = await message.GetJsonDataAs<StreamDeleted>();
+            streamDeleted.StreamId.ShouldBe("stream");
         }
 
         [Fact, Trait("Category", "DeleteStream")]
         public async Task When_delete_stream_with_no_expected_version_and_read_all_then_should_not_see_deleted_stream_messages()
         {
-            using (var fixture = GetFixture())
-            {
-                using (var store = await fixture.GetStreamStore())
-                {
-                    const string streamId = "stream";
+            const string streamId = "stream";
 
-                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-                    await store.DeleteStream(streamId);
+            await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+            await store.DeleteStream(streamId);
 
-                    var page = await store.ReadAllForwards(Position.Start, 10);
+            var page = await store.ReadAllForwards(Position.Start, 10);
 
-                    page.Messages.Any(message => message.StreamId == streamId).ShouldBeFalse();
-                }
-            }
+            page.Messages.Any(message => message.StreamId == streamId).ShouldBeFalse();
         }
 
         [Fact, Trait("Category", "DeleteStream")]
-        public async Task When_delete_stream_that_does_not_exist()
+        public void When_delete_stream_that_does_not_exist()
         {
-            using (var fixture = GetFixture())
-            {
-                using (var store = await fixture.GetStreamStore())
-                {
-                    const string streamId = "notexist";
-                    Func<Task> act = () => store.DeleteStream(streamId);
+            const string streamId = "notexist";
+            Func<Task> act = () => store.DeleteStream(streamId);
 
-                    act.ShouldNotThrow();
-                }
-            }
+            act.ShouldNotThrow();
         }
 
         [Fact, Trait("Category", "DeleteStream")]
         public async Task When_delete_stream_with_a_matching_expected_version_and_read_then_should_get_StreamNotFound()
         {
-            using (var fixture = GetFixture())
-            {
-                using (var store = await fixture.GetStreamStore())
-                {
-                    const string streamId = "stream";
+            const string streamId = "stream";
 
-                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-                    await store.DeleteStream(streamId, 2);
+            await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+            await store.DeleteStream(streamId, 2);
 
-                    var page =
-                        await store.ReadStreamForwards(streamId, StreamVersion.Start, 10);
+            var page =
+                await store.ReadStreamForwards(streamId, StreamVersion.Start, 10);
 
-                    page.Status.ShouldBe(PageReadStatus.StreamNotFound);
-                }
-            }
+            page.Status.ShouldBe(PageReadStatus.StreamNotFound);
         }
 
         [Fact, Trait("Category", "DeleteStream")]
         public async Task When_delete_stream_with_a_matching_expected_version_and_read_then_should_get_stream_deleted_message()
         {
-            using (var fixture = GetFixture())
-            {
-                using (var store = await fixture.GetStreamStore())
-                {
-                    const string streamId = "stream";
+            const string streamId = "stream";
 
-                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-                    await store.DeleteStream(streamId, 2);
+            await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+            await store.DeleteStream(streamId, 2);
 
-                    var page =
-                        await store.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
+            var page =
+                await store.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
 
-                    page.Status.ShouldBe(PageReadStatus.Success);
-                    var message = page.Messages.Single();
-                    message.Type.ShouldBe(StreamDeletedMessageType);
-                    var streamDeleted = await message.GetJsonDataAs<StreamDeleted>();
-                    streamDeleted.StreamId.ShouldBe("stream");
-                }
-            }
+            page.Status.ShouldBe(PageReadStatus.Success);
+            var message = page.Messages.Single();
+            message.Type.ShouldBe(StreamDeletedMessageType);
+            var streamDeleted = await message.GetJsonDataAs<StreamDeleted>();
+            streamDeleted.StreamId.ShouldBe("stream");
         }
 
         [Fact, Trait("Category", "DeleteStream")]
         public async Task When_delete_stream_with_a_matching_expected_version_and_read_all_then_should_not_see_deleted_stream_messages()
         {
-            using (var fixture = GetFixture())
-            {
-                using (var store = await fixture.GetStreamStore())
-                {
-                    const string streamId = "stream";
+            const string streamId = "stream";
 
-                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-                    await store.DeleteStream(streamId);
+            await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+            await store.DeleteStream(streamId);
 
-                    var allMessagesPage = await store.ReadAllForwards(Position.Start, 10);
+            var allMessagesPage = await store.ReadAllForwards(Position.Start, 10);
 
-                    allMessagesPage.Messages.Any(message => message.StreamId == streamId).ShouldBeFalse();
-                }
-            }
+            allMessagesPage.Messages.Any(message => message.StreamId == streamId).ShouldBeFalse();
         }
 
         [Fact, Trait("Category", "DeleteStream")]
         public async Task When_delete_stream_that_does_not_exist_then_should_not_throw()
         {
-            using (var fixture = GetFixture())
-            {
-                using (var store = await fixture.GetStreamStore())
-                {
-                    const string streamId = "notexist";
+            const string streamId = "notexist";
 
-                    var exception = await Record.ExceptionAsync(() => store.DeleteStream(streamId));
+            var exception = await Record.ExceptionAsync(() => store.DeleteStream(streamId));
 
-                    exception.ShouldBeNull();
-                }
-            }
+            exception.ShouldBeNull();
         }
 
         [Fact, Trait("Category", "DeleteStream")]
         public async Task When_delete_stream_that_does_not_exist_with_expected_version_number_then_should_not_throw()
         {
-            using (var fixture = GetFixture())
-            {
-                using (var store = await fixture.GetStreamStore())
-                {
-                    const string streamId = "notexist";
-                    const int expectedVersion = 1;
+            const string streamId = "notexist";
+            const int expectedVersion = 1;
 
-                    var exception = await Record.ExceptionAsync(() =>
-                        store.DeleteStream(streamId, expectedVersion));
+            var exception = await Record.ExceptionAsync(() =>
+                store.DeleteStream(streamId, expectedVersion));
 
-                    exception.ShouldBeOfType<WrongExpectedVersionException>(
-                        ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamId, expectedVersion));
-                }
-            }
+            exception.ShouldBeOfType<WrongExpectedVersionException>(
+                ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamId, expectedVersion));
         }
 
         [Fact, Trait("Category", "DeleteStream")]
         public async Task When_delete_stream_with_a_non_matching_expected_version_then_should_throw()
         {
-            using (var fixture = GetFixture())
-            {
-                using (var store = await fixture.GetStreamStore())
-                {
-                    const string streamId = "stream";
-                    await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+            const string streamId = "stream";
+            await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
 
-                    var exception = await Record.ExceptionAsync(() =>
-                        store.DeleteStream(streamId, 100));
+            var exception = await Record.ExceptionAsync(() =>
+                store.DeleteStream(streamId, 100));
 
-                    exception.ShouldBeOfType<WrongExpectedVersionException>(
-                            ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamId, 100));
-                }
-            }
+            exception.ShouldBeOfType<WrongExpectedVersionException>(
+                    ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamId, 100));
         }
     }
 }

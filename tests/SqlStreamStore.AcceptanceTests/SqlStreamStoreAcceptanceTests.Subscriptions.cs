@@ -16,108 +16,90 @@
         [Fact, Trait("Category", "Subscriptions")]
         public async Task Can_subscribe_to_a_stream_from_start()
         {
-            using(var fixture = GetFixture())
-            {
-                using(var store = await fixture.GetStreamStore())
+            var streamId1 = "stream-1";
+            await AppendMessages(store, streamId1, 10);
+
+            var streamId2 = "stream-2";
+            await AppendMessages(store, streamId2, 10);
+
+            var done = new TaskCompletionSource<StreamMessage>();
+            var receivedMessages = new List<StreamMessage>();
+            using (var subscription = store.SubscribeToStream(
+                streamId1,
+                StreamVersion.None,
+                (_, message, ct) =>
                 {
-                    var streamId1 = "stream-1";
-                    await AppendMessages(store, streamId1, 10);
-
-                    var streamId2 = "stream-2";
-                    await AppendMessages(store, streamId2, 10);
-
-                    var done = new TaskCompletionSource<StreamMessage>();
-                    var receivedMessages = new List<StreamMessage>();
-                    using (var subscription = store.SubscribeToStream(
-                        streamId1,
-                        StreamVersion.None,
-                        (_, message, ct) =>
-                        {
-                            receivedMessages.Add(message);
-                            if (message.StreamVersion == 11)
-                            {
-                                done.SetResult(message);
-                            }
-                            return Task.CompletedTask;
-                        }))
+                    receivedMessages.Add(message);
+                    if (message.StreamVersion == 11)
                     {
-                        await AppendMessages(store, streamId1, 2);
-
-                        var receivedMessage = await done.Task.WithTimeout();
-
-                        receivedMessages.Count.ShouldBe(12);
-                        subscription.StreamId.ShouldBe(streamId1);
-                        receivedMessage.StreamId.ShouldBe(streamId1);
-                        receivedMessage.StreamVersion.ShouldBe(11);
-                        subscription.LastVersion.Value.ShouldBeGreaterThan(0);
+                        done.SetResult(message);
                     }
-                }
+                    return Task.CompletedTask;
+                }))
+            {
+                await AppendMessages(store, streamId1, 2);
+
+                var receivedMessage = await done.Task.WithTimeout();
+
+                receivedMessages.Count.ShouldBe(12);
+                subscription.StreamId.ShouldBe(streamId1);
+                receivedMessage.StreamId.ShouldBe(streamId1);
+                receivedMessage.StreamVersion.ShouldBe(11);
+                subscription.LastVersion.Value.ShouldBeGreaterThan(0);
             }
         }
 
         [Fact, Trait("Category", "Subscriptions")]
         public async Task When_subscribe_to_a_stream_and_receive_message_then_should_get_subscription_instance()
         {
-            using (var fixture = GetFixture())
-            {
-                using (var store = await fixture.GetStreamStore())
+            var streamId = "stream-1";
+            await AppendMessages(store, streamId, 10);
+
+            var done = new TaskCompletionSource<IStreamSubscription>();
+            using (var subscription = store.SubscribeToStream(
+                streamId,
+                StreamVersion.None,
+                (sub, _, ct) =>
                 {
-                    var streamId = "stream-1";
-                    await AppendMessages(store, streamId, 10);
+                    done.SetResult(sub);
+                    return Task.CompletedTask;
+                }))
+            {
+                var receivedSubscription = await done.Task.WithTimeout();
 
-                    var done = new TaskCompletionSource<IStreamSubscription>();
-                    using (var subscription = store.SubscribeToStream(
-                        streamId,
-                        StreamVersion.None,
-                        (sub, _, ct) =>
-                        {
-                            done.SetResult(sub);
-                            return Task.CompletedTask;
-                        }))
-                    {
-                        var receivedSubscription = await done.Task.WithTimeout();
-
-                        receivedSubscription.ShouldBe(subscription);
-                    }
-                }
+                receivedSubscription.ShouldBe(subscription);
             }
         }
 
         [Fact, Trait("Category", "Subscriptions")]
         public async Task Can_subscribe_to_a_stream_from_start_before_messages_are_written()
         {
-            using (var fixture = GetFixture())
-            {
-                using (var store = await fixture.GetStreamStore())
+            var streamId = "stream-1";
+            var done = new TaskCompletionSource<StreamMessage>();
+            var receivedMessages = new List<StreamMessage>();
+
+            using (var subscription = store.SubscribeToStream(
+                streamId,
+                StreamVersion.None,
+                (_, message, ct) =>
                 {
-                    var streamId = "stream-1";
-                    var done = new TaskCompletionSource<StreamMessage>();
-                    var receivedMessages = new List<StreamMessage>();
-
-                    using (var subscription = store.SubscribeToStream(
-                        streamId,
-                        StreamVersion.None,
-                        (_, message, ct) =>
-                        {
-                            receivedMessages.Add(message);
-                            if (message.StreamVersion == 1)
-                            {
-                                done.SetResult(message);
-                            }
-                            return Task.CompletedTask;
-                        }))
+                    receivedMessages.Add(message);
+                    if (message.StreamVersion == 1)
                     {
-                        await AppendMessages(store, streamId, 2);
-
-                        var receivedMessage = await done.Task.WithTimeout();
-
-                        receivedMessages.Count.ShouldBe(2);
-                        subscription.StreamId.ShouldBe(streamId);
-                        receivedMessage.StreamId.ShouldBe(streamId);
-                        receivedMessage.StreamVersion.ShouldBe(1);
-                        subscription.LastVersion.Value.ShouldBeGreaterThan(0);
+                        done.SetResult(message);
                     }
-                }
+                    return Task.CompletedTask;
+                }))
+            {
+                await AppendMessages(store, streamId, 2);
+
+                var receivedMessage = await done.Task.WithTimeout();
+
+                receivedMessages.Count.ShouldBe(2);
+                subscription.StreamId.ShouldBe(streamId);
+                receivedMessage.StreamId.ShouldBe(streamId);
+                receivedMessage.StreamVersion.ShouldBe(1);
+                subscription.LastVersion.Value.ShouldBeGreaterThan(0);
             }
         }
 
@@ -972,108 +954,86 @@
         [Fact, Trait("Category", "Subscriptions")]
         public async Task When_dispose_store_then_should_dispose_all_stream_subscriptions()
         {
-            using (var fixture = GetFixture())
-            {
-                var store = await fixture.GetStreamStore();
-                var subscriptionDropped = new TaskCompletionSource<SubscriptionDroppedReason>();
-                var subscription = store.SubscribeToAll(
-                    Position.None,
-                    (_, __, ___) => Task.CompletedTask,
-                    subscriptionDropped: (streamSubscription, reason, exception) =>
-                    {
-                        subscriptionDropped.SetResult(reason);
-                    });
+            var subscriptionDropped = new TaskCompletionSource<SubscriptionDroppedReason>();
+            var subscription = store.SubscribeToAll(
+                Position.None,
+                (_, __, ___) => Task.CompletedTask,
+                subscriptionDropped: (streamSubscription, reason, exception) =>
+                {
+                    subscriptionDropped.SetResult(reason);
+                });
 
-                store.Dispose();
+            store.Dispose();
 
-                var droppedReason = await subscriptionDropped.Task.WithTimeout(5000);
+            var droppedReason = await subscriptionDropped.Task.WithTimeout(5000);
 
-                droppedReason.ShouldBe(SubscriptionDroppedReason.Disposed);
-            }
+            droppedReason.ShouldBe(SubscriptionDroppedReason.Disposed);
         }
 
         [Fact, Trait("Category", "Subscriptions")]
         public async Task When_subscribe_to_stream_and_append_messages_then_should_receive_message()
         {
-            using (var fixture = GetFixture())
-            {
-                using (var store = await fixture.GetStreamStore())
+            var streamId1 = "stream-1";
+            var streamId2 = "stream-2";
+            var received = new AsyncAutoResetEvent();
+            string streamIdReceived = null;
+
+            using (store.SubscribeToStream(
+                streamId1,
+                StreamVersion.None,
+                (_, message, ct) =>
                 {
-                    var streamId1 = "stream-1";
-                    var streamId2 = "stream-2";
-                    var received = new AsyncAutoResetEvent();
-                    string streamIdReceived = null;
+                    streamIdReceived = message.StreamId;
+                    received.Set();
+                    return Task.CompletedTask;
+                }))
+            {
+                await AppendMessages(store, streamId1, 1);
+                await AppendMessages(store, streamId2, 1);
+                await received.WaitAsync().WithTimeout();
+                streamIdReceived.ShouldBe(streamId1);
 
-                    using (store.SubscribeToStream(
-                        streamId1,
-                        StreamVersion.None,
-                        (_, message, ct) =>
-                        {
-                            streamIdReceived = message.StreamId;
-                            received.Set();
-                            return Task.CompletedTask;
-                        }))
-                    {
-                        await AppendMessages(store, streamId1, 1);
-                        await AppendMessages(store, streamId2, 1);
-                        await received.WaitAsync().WithTimeout();
-                        streamIdReceived.ShouldBe(streamId1);
+                await AppendMessages(store, streamId1, 1);
+                await AppendMessages(store, streamId2, 1);
+                await received.WaitAsync().WithTimeout();
+                streamIdReceived.ShouldBe(streamId1);
 
-                        await AppendMessages(store, streamId1, 1);
-                        await AppendMessages(store, streamId2, 1);
-                        await received.WaitAsync().WithTimeout();
-                        streamIdReceived.ShouldBe(streamId1);
-
-                        await AppendMessages(store, streamId1, 1);
-                        await AppendMessages(store, streamId2, 1);
-                        await received.WaitAsync().WithTimeout();
-                        streamIdReceived.ShouldBe(streamId1);
-                    }
-                }
+                await AppendMessages(store, streamId1, 1);
+                await AppendMessages(store, streamId2, 1);
+                await received.WaitAsync().WithTimeout();
+                streamIdReceived.ShouldBe(streamId1);
             }
         }
 
         [Fact, Trait("Category", "Subscriptions")]
         public async Task When_subsribe_to_all_with_empty_store_should_raise_has_caughtup()
         {
-            using (var fixture = GetFixture())
+            bool hasCaughtUp;
+            var tcs = new TaskCompletionSource<bool>();
+            using (store.SubscribeToAll(
+                null,
+                (_, message, ct) => Task.CompletedTask,
+                hasCaughtUp: b => tcs.SetResult(b)))
             {
-                using (var store = await fixture.GetStreamStore())
-                {
-                    bool hasCaughtUp;
-                    var tcs = new TaskCompletionSource<bool>();
-                    using (store.SubscribeToAll(
-                        null,
-                        (_, message, ct) => Task.CompletedTask,
-                        hasCaughtUp: b => tcs.SetResult(b)))
-                    {
-                        hasCaughtUp = await tcs.Task.WithTimeout(5000);
-                    }
-                    hasCaughtUp.ShouldBeTrue();
-                }
+                hasCaughtUp = await tcs.Task.WithTimeout(5000);
             }
+            hasCaughtUp.ShouldBeTrue();
         }
 
         [Fact, Trait("Category", "Subscriptions")]
         public async Task When_subscribe_to_stream_with_empty_store_should_raise_has_caughtup()
         {
-            using (var fixture = GetFixture())
+            bool hasCaughtUp;
+            var tcs = new TaskCompletionSource<bool>();
+            using (store.SubscribeToStream(
+                "stream-1",
+                null,
+                (_, message, ct) => Task.CompletedTask,
+                hasCaughtUp: b => tcs.SetResult(b)))
             {
-                using (var store = await fixture.GetStreamStore())
-                {
-                    bool hasCaughtUp;
-                    var tcs = new TaskCompletionSource<bool>();
-                    using (store.SubscribeToStream(
-                        "stream-1",
-                        null,
-                        (_, message, ct) => Task.CompletedTask,
-                        hasCaughtUp: b => tcs.SetResult(b)))
-                    {
-                        hasCaughtUp = await tcs.Task.WithTimeout(5000);
-                    }
-                    hasCaughtUp.ShouldBeTrue();
-                }
+                hasCaughtUp = await tcs.Task.WithTimeout(5000);
             }
+            hasCaughtUp.ShouldBeTrue();
         }
 
         private static async Task AppendMessages(

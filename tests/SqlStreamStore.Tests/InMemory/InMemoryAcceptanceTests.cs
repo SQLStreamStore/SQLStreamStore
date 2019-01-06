@@ -12,6 +12,6 @@ namespace SqlStreamStore
         { }
 
         protected override Task<IStreamStoreFixture> CreateFixture() 
-            => Task.FromResult<IStreamStoreFixture>(new InMemoryStreamStoreFixture2());
+            => Task.FromResult<IStreamStoreFixture>(new InMemoryStreamStoreFixture());
     }
 }

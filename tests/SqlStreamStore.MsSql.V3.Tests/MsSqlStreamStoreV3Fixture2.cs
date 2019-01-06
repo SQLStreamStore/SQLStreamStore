@@ -1,70 +1,100 @@
 namespace SqlStreamStore
 {
+    using System;
+    using System.Data.SqlClient;
     using System.Threading.Tasks;
     using SqlStreamStore.Infrastructure;
 
     public sealed class MsSqlStreamStoreV3Fixture2 : IStreamStoreFixture
     {
-        private readonly MsSqlStreamStoreV3Fixture _fixture;
+        private readonly bool _createSchema;
+        public readonly string ConnectionString;
+        private readonly string _schema;
+        private readonly bool _disableDeletionTracking;
+        private readonly bool _deleteDatabaseOnDispose;
+        private readonly string _databaseName;
+        private readonly DockerMsSqlServerDatabase _databaseInstance;
 
         private MsSqlStreamStoreV3Fixture2(
-            MsSqlStreamStoreV3Fixture fixture,
-            MsSqlStreamStoreV3 store,
-            GetUtcNow getUtcNow)
+            string schema,
+            bool disableDeletionTracking = false,
+            bool deleteDatabaseOnDispose = true,
+            bool createSchema = true)
         {
-            _fixture = fixture;
-            Store = store;
-            GetUtcNow = getUtcNow;
+            _schema = schema;
+            _disableDeletionTracking = disableDeletionTracking;
+            _deleteDatabaseOnDispose = deleteDatabaseOnDispose;
+            _createSchema = createSchema;
+            _databaseName = $"sss-v3-{Guid.NewGuid():n}";
+            _databaseInstance = new DockerMsSqlServerDatabase(_databaseName);
+
+            var connectionStringBuilder = _databaseInstance.CreateConnectionStringBuilder();
+            connectionStringBuilder.MultipleActiveResultSets = true;
+            connectionStringBuilder.InitialCatalog = _databaseName;
+            ConnectionString = connectionStringBuilder.ToString();
         }
 
         IStreamStore IStreamStoreFixture.Store => Store;
 
-        public MsSqlStreamStoreV3 Store { get; }
+        public MsSqlStreamStoreV3 Store { get; private set; }
 
-        public GetUtcNow GetUtcNow
-        {
-            get => _fixture.GetUtcNow;
-            set => _fixture.GetUtcNow = value;
-        }
+        public GetUtcNow GetUtcNow { get; set; } = SystemClock.GetUtcNow;
 
         public long MinPosition { get; set; } = 0;
 
         public int MaxSubscriptionCount { get; set; } = 500;
 
-        public static async Task<MsSqlStreamStoreV3Fixture2> Create(
-            string schema = "dbo",
-            bool deleteDatabaseOnDispose = true,
-            GetUtcNow getUtcNow = null,
-            string databaseName = null)
+        private async Task Init()
         {
-            getUtcNow = getUtcNow ?? SystemClock.GetUtcNow;
-            var fixture = new MsSqlStreamStoreV3Fixture(schema, deleteDatabaseOnDispose, databaseName)
+            await _databaseInstance.CreateDatabase();
+            var settings = new MsSqlStreamStoreV3Settings(ConnectionString)
             {
-                GetUtcNow = getUtcNow
+                Schema = _schema,
+                GetUtcNow = () => GetUtcNow(),
+                DisableDeletionTracking = _disableDeletionTracking
             };
-            var streamStore = await fixture.GetMsSqlStreamStore();
-            return new MsSqlStreamStoreV3Fixture2(fixture, streamStore, getUtcNow);
+            Store = new MsSqlStreamStoreV3(settings);
+            if(_createSchema)
+            {
+                await Store.CreateSchemaIfNotExists();
+            }
         }
 
-        public static async Task<MsSqlStreamStoreV3Fixture2> CreateUninitialized(
+        public static async Task<MsSqlStreamStoreV3Fixture2> Create(
             string schema = "dbo",
-            bool deleteDatabaseOnDispose = true,
-            GetUtcNow getUtcNow = null,
-            string databaseName = null)
+            bool createSchema = true,
+            bool deleteDatabaseOnDispose = true)
         {
-            getUtcNow = getUtcNow ?? SystemClock.GetUtcNow;
-            var fixture = new MsSqlStreamStoreV3Fixture(schema, deleteDatabaseOnDispose, databaseName)
-            {
-                GetUtcNow = getUtcNow
-            };
-            var streamStore = await fixture.GetUninitializedStreamStore();
-            return new MsSqlStreamStoreV3Fixture2(fixture, streamStore, getUtcNow);
+            var fixture = new MsSqlStreamStoreV3Fixture2(
+                schema,
+                false,
+                deleteDatabaseOnDispose,
+                createSchema);
+            await fixture.Init();
+            return fixture;
         }
 
         public void Dispose()
         {
-            Store.Dispose();
-            _fixture.Dispose();
+            Store?.Dispose();
+
+            if (!_deleteDatabaseOnDispose)
+            {
+                return;
+            }
+            SqlConnection.ClearAllPools();
+            using (var connection = _databaseInstance.CreateConnection())
+            {
+                connection.Open();
+                using (var command = new SqlCommand($"ALTER DATABASE [{_databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+                using (var command = new SqlCommand($"DROP DATABASE [{_databaseName}]", connection))
+                {
+                    command.ExecuteNonQuery();
+                }
+            }
         }
     }
 }

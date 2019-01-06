@@ -9,7 +9,6 @@ namespace SqlStreamStore
         public readonly string ConnectionString;
         private readonly string _schema;
         private readonly bool _disableDeletionTracking;
-        private readonly string _databaseNameOverride;
         private readonly bool _deleteDatabaseOnDispose;
         private readonly string _databaseName;
         private readonly DockerMsSqlServerDatabase _databaseInstance;
@@ -17,14 +16,12 @@ namespace SqlStreamStore
         public MsSqlStreamStoreV3Fixture(
             string schema,
             bool disableDeletionTracking = false,
-            string databaseNameOverride = null,
             bool deleteDatabaseOnDispose = true)
         {
             _schema = schema;
             _disableDeletionTracking = disableDeletionTracking;
-            _databaseNameOverride = databaseNameOverride;
             _deleteDatabaseOnDispose = deleteDatabaseOnDispose;
-            _databaseName = databaseNameOverride ?? $"sss-v3-{Guid.NewGuid():n}";
+            _databaseName = $"sss-v3-{Guid.NewGuid():n}";
             _databaseInstance = new DockerMsSqlServerDatabase(_databaseName);
 
             ConnectionString = CreateConnectionString();
@@ -36,7 +33,7 @@ namespace SqlStreamStore
 
         public override async Task<IStreamStore> GetStreamStore()
         {
-            await CreateDatabase();
+            await _databaseInstance.CreateDatabase();
 
             return await GetStreamStore(_schema);
         }
@@ -57,8 +54,8 @@ namespace SqlStreamStore
 
         public async Task<MsSqlStreamStoreV3> GetUninitializedStreamStore()
         {
-            await CreateDatabase();
-            
+            await _databaseInstance.CreateDatabase();
+
             return new MsSqlStreamStoreV3(new MsSqlStreamStoreV3Settings(ConnectionString)
             {
                 Schema = _schema,
@@ -68,8 +65,7 @@ namespace SqlStreamStore
 
         public async Task<MsSqlStreamStoreV3> GetMsSqlStreamStore()
         {
-            await CreateDatabase();
-
+            await _databaseInstance.CreateDatabase();
             var settings = new MsSqlStreamStoreV3Settings(ConnectionString)
             {
                 Schema = _schema,
@@ -78,7 +74,6 @@ namespace SqlStreamStore
 
             var store = new MsSqlStreamStoreV3(settings);
             await store.CreateSchemaIfNotExists();
-
             return store;
         }
 
@@ -102,14 +97,6 @@ namespace SqlStreamStore
                 {
                     command.ExecuteNonQuery();
                 }
-            }
-        }
-
-        private async Task CreateDatabase()
-        {
-            if(_databaseNameOverride == null)
-            {
-                await _databaseInstance.CreateDatabase();
             }
         }
 

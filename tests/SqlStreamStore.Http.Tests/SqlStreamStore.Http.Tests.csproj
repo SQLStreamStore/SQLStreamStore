@@ -8,7 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" Exclude="..\SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.StreamLimits.cs;..\SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.ListStreams.cs" />
+    <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" Exclude="..\SqlStreamStore.AcceptanceTests\AcceptanceTests.StreamLimits.cs;..\SqlStreamStore.AcceptanceTests\AcceptanceTests.ListStreams.cs" />
   </ItemGroup>
 
   <ItemGroup>

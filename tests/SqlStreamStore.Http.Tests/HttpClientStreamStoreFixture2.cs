@@ -44,5 +44,9 @@ namespace SqlStreamStore
         public IStreamStore Store { get; }
 
         public GetUtcNow GetUtcNow { get; set; } = SystemClock.GetUtcNow;
+
+        public long MinPosition { get; set; } = 0;
+
+        public int MaxSubscriptionCount { get; set; } = 500;
     }
 }

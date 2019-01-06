@@ -18,6 +18,22 @@ namespace SqlStreamStore
             Store = store;
         }
 
+        IStreamStore IStreamStoreFixture.Store => Store;
+
+        public PostgresStreamStore Store { get; }
+
+        public GetUtcNow GetUtcNow
+        {
+            get => _fixture.GetUtcNow;
+            set => _fixture.GetUtcNow = value;
+        }
+
+        public string ConnectionString => _fixture.ConnectionString;
+
+        public long MinPosition { get; set; } = 0;
+
+        public int MaxSubscriptionCount { get; set; } = 500;
+
         public static async Task<PostgresStreamStoreFixture2> Create(
             string schema = "dbo",
             ITestOutputHelper testOutputHelper = null)
@@ -41,18 +57,6 @@ namespace SqlStreamStore
             Store.Dispose();
             _fixture.Dispose();
         }
-
-        IStreamStore IStreamStoreFixture.Store => Store;
-
-        public PostgresStreamStore Store { get; }
-
-        public GetUtcNow GetUtcNow
-        {
-            get => _fixture.GetUtcNow;
-            set => _fixture.GetUtcNow = value;
-        }
-
-        public string ConnectionString => _fixture.ConnectionString;
     }
 
     public class PostgresStreamStoreFixture : StreamStoreAcceptanceTestFixture

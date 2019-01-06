@@ -17,6 +17,20 @@ namespace SqlStreamStore
             GetUtcNow = getUtcNow;
         }
 
+        IStreamStore IStreamStoreFixture.Store => Store;
+
+        public MsSqlStreamStore Store { get; }
+
+        public GetUtcNow GetUtcNow
+        {
+            get => _fixture.GetUtcNow;
+            set => _fixture.GetUtcNow = value;
+        }
+
+        public long MinPosition { get; set; } = 0;
+
+        public int MaxSubscriptionCount { get; set; } = 500;
+
         public static async Task<MsSqlStreamStoreV3Fixture2> Create(
             string schema = "dbo",
             bool deleteDatabaseOnDispose = true,
@@ -66,16 +80,6 @@ namespace SqlStreamStore
         {
             Store.Dispose();
             _fixture.Dispose();
-        }
-
-        IStreamStore IStreamStoreFixture.Store => Store;
-
-        public MsSqlStreamStore Store { get; }
-
-        public GetUtcNow GetUtcNow
-        {
-            get => _fixture.GetUtcNow;
-            set => _fixture.GetUtcNow = value;
         }
     }
 }

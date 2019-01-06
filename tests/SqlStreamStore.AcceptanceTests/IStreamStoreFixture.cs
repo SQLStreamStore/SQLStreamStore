@@ -8,5 +8,9 @@ namespace SqlStreamStore
         IStreamStore Store { get; }
 
         GetUtcNow GetUtcNow { get; set; }
+
+        long MinPosition { get; set; }
+
+        int MaxSubscriptionCount { get; set; }
     }
 }

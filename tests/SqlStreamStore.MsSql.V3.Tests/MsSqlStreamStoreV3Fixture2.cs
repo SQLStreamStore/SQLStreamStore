@@ -5,11 +5,11 @@ namespace SqlStreamStore
 
     public sealed class MsSqlStreamStoreV3Fixture2 : IStreamStoreFixture
     {
-        private readonly MsSqlStreamStoreFixture _fixture;
+        private readonly MsSqlStreamStoreV3Fixture _fixture;
 
         private MsSqlStreamStoreV3Fixture2(
-            MsSqlStreamStoreFixture fixture,
-            MsSqlStreamStore store,
+            MsSqlStreamStoreV3Fixture fixture,
+            MsSqlStreamStoreV3 store,
             GetUtcNow getUtcNow)
         {
             _fixture = fixture;
@@ -19,7 +19,7 @@ namespace SqlStreamStore
 
         IStreamStore IStreamStoreFixture.Store => Store;
 
-        public MsSqlStreamStore Store { get; }
+        public MsSqlStreamStoreV3 Store { get; }
 
         public GetUtcNow GetUtcNow
         {
@@ -38,7 +38,7 @@ namespace SqlStreamStore
             string databaseName = null)
         {
             getUtcNow = getUtcNow ?? SystemClock.GetUtcNow;
-            var fixture = new MsSqlStreamStoreFixture(schema, deleteDatabaseOnDispose, databaseName)
+            var fixture = new MsSqlStreamStoreV3Fixture(schema, deleteDatabaseOnDispose, databaseName)
             {
                 GetUtcNow = getUtcNow
             };
@@ -53,26 +53,11 @@ namespace SqlStreamStore
             string databaseName = null)
         {
             getUtcNow = getUtcNow ?? SystemClock.GetUtcNow;
-            var fixture = new MsSqlStreamStoreFixture(schema, deleteDatabaseOnDispose, databaseName)
+            var fixture = new MsSqlStreamStoreV3Fixture(schema, deleteDatabaseOnDispose, databaseName)
             {
                 GetUtcNow = getUtcNow
             };
             var streamStore = await fixture.GetUninitializedStreamStore();
-            return new MsSqlStreamStoreV3Fixture2(fixture, streamStore, getUtcNow);
-        }
-
-        public static async Task<MsSqlStreamStoreV3Fixture2> CreateWithV1Schema(
-            string schema = "dbo",
-            bool deleteDatabaseOnDispose = true,
-            GetUtcNow getUtcNow = null,
-            string databaseName = null)
-        {
-            getUtcNow = getUtcNow ?? SystemClock.GetUtcNow;
-            var fixture = new MsSqlStreamStoreFixture(schema, deleteDatabaseOnDispose, databaseName)
-            {
-                GetUtcNow = getUtcNow
-            };
-            var streamStore = await fixture.GetStreamStore_v1Schema();
             return new MsSqlStreamStoreV3Fixture2(fixture, streamStore, getUtcNow);
         }
 

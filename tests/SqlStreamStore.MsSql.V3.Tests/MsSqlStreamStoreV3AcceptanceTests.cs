@@ -21,37 +21,34 @@
         [Fact]
         public async Task Can_use_multiple_schemas()
         {
-            using (var dboFixture = await MsSqlStreamStoreV3Fixture2.Create())
+            var dboStore = fixture.Store;
+
+            using (var barFixture = await MsSqlStreamStoreV3Fixture2.Create("bar"))
             {
-                var dboStore = dboFixture.Store;
+                var barStore = barFixture.Store;
 
-                using (var barFixture = await MsSqlStreamStoreV3Fixture2.Create("bar"))
-                {
-                    var barStore = barFixture.Store;
+                await dboStore.AppendToStream("stream-1",
+                    ExpectedVersion.NoStream,
+                    CreateNewStreamMessages(1, 2));
+                await barStore.AppendToStream("stream-1",
+                    ExpectedVersion.NoStream,
+                    CreateNewStreamMessages(1, 2));
 
-                    await dboStore.AppendToStream("stream-1",
-                        ExpectedVersion.NoStream,
-                        CreateNewStreamMessages(1, 2));
-                    await barStore.AppendToStream("stream-1",
-                        ExpectedVersion.NoStream,
-                        CreateNewStreamMessages(1, 2));
+                var dboHeadPosition = await dboStore.ReadHeadPosition();
+                var barHeadPosition = await barStore.ReadHeadPosition();
 
-                    var dboHeadPosition = await dboStore.ReadHeadPosition();
-                    var barHeadPosition = await barStore.ReadHeadPosition();
-
-                    dboHeadPosition.ShouldBe(1);
-                    barHeadPosition.ShouldBe(1);
-                }
+                dboHeadPosition.ShouldBe(1);
+                barHeadPosition.ShouldBe(1);
             }
         }
 
         [Theory, InlineData("dbo"), InlineData("myschema")]
         public async Task Can_call_initialize_repeatably(string schema)
         {
-            using (var fixture = await MsSqlStreamStoreV3Fixture2.Create(schema))
+            using (var fixture = await MsSqlStreamStoreV3Fixture2.CreateUninitialized(schema))
             {
-                await fixture.Store.CreateSchema();
-                await fixture.Store.CreateSchema();
+                await fixture.Store.CreateSchemaIfNotExists();
+                await fixture.Store.CreateSchemaIfNotExists();
             }
         }
 
@@ -71,8 +68,8 @@
             {
                 var result = await fixture.Store.CheckSchema();
 
-                result.ExpectedVersion.ShouldBe(2);
-                result.CurrentVersion.ShouldBe(2);
+                result.ExpectedVersion.ShouldBe(3);
+                result.CurrentVersion.ShouldBe(3);
                 result.IsMatch().ShouldBeTrue();
             }
         }
@@ -84,7 +81,7 @@
             {
                 var result = await fixture.Store.CheckSchema();
 
-                result.ExpectedVersion.ShouldBe(2);
+                result.ExpectedVersion.ShouldBe(3);
                 result.CurrentVersion.ShouldBe(0);
                 result.IsMatch().ShouldBeFalse();
             }

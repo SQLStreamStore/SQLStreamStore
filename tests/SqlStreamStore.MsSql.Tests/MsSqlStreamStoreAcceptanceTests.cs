@@ -14,16 +14,16 @@
         { }
 
         protected override async Task<IStreamStoreFixture> CreateFixture()
-            => await MsSqlStreamStoreFixture2.Create("foo");
+            => await MsSqlStreamStoreFixture.Create("foo");
 
         [Fact]
         public async Task Can_use_multiple_schemas()
         {
-            using(var dboFixture = await MsSqlStreamStoreFixture2.Create())
+            using(var dboFixture = await MsSqlStreamStoreFixture.Create())
             {
                 var dboStore = dboFixture.Store;
 
-                using(var barFixture = await MsSqlStreamStoreFixture2.Create("bar"))
+                using(var barFixture = await MsSqlStreamStoreFixture.Create("bar"))
                 {
                     var barStore = barFixture.Store;
 
@@ -46,7 +46,7 @@
         [Fact]
         public async Task Can_get_stream_message_count_with_created_before_date()
         {
-            using (var fixture = await MsSqlStreamStoreFixture2.Create())
+            using (var fixture = await MsSqlStreamStoreFixture.Create())
             {
                 var store = fixture.Store;
                 fixture.GetUtcNow = () => new DateTime(2016, 1, 1, 0, 0, 0);
@@ -73,7 +73,7 @@
         [Theory, InlineData("dbo"), InlineData("myschema")]
         public async Task Can_call_initialize_repeatably(string schema)
         {
-            using(var fixture = await MsSqlStreamStoreFixture2.Create(schema))
+            using(var fixture = await MsSqlStreamStoreFixture.Create(schema))
             {
                 await fixture.Store.CreateSchema();
                 await fixture.Store.CreateSchema();
@@ -83,7 +83,7 @@
         [Fact]
         public async Task Can_drop_all()
         {
-            using (var fixture = await MsSqlStreamStoreFixture2.Create())
+            using (var fixture = await MsSqlStreamStoreFixture.Create())
             {
                 await fixture.Store.DropAll();
             }
@@ -92,7 +92,7 @@
         [Fact]
         public async Task Can_check_schema()
         {
-            using (var fixture = await MsSqlStreamStoreFixture2.Create())
+            using (var fixture = await MsSqlStreamStoreFixture.Create())
             {
                 var result = await fixture.Store.CheckSchema();
 
@@ -105,7 +105,7 @@
         [Fact]
         public async Task When_schema_is_v1_then_should_not_match()
         {
-            using (var fixture = await MsSqlStreamStoreFixture2.CreateWithV1Schema())
+            using (var fixture = await MsSqlStreamStoreFixture.CreateWithV1Schema())
             {
                 var result = await fixture.Store.CheckSchema();
 
@@ -118,7 +118,7 @@
         [Fact]
         public async Task When_schema_is_not_created_then_should_be_indicated()
         {
-            using (var fixture = await MsSqlStreamStoreFixture2.Create(createSchema:false))
+            using (var fixture = await MsSqlStreamStoreFixture.Create(createSchema:false))
             {
                 var result = await fixture.Store.CheckSchema();
 

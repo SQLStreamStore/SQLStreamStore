@@ -22,8 +22,8 @@
         {
             // Set up an old schema + data.
             var schema = "baz";
-            var v2Fixture = new MsSqlStreamStoreFixture(schema, deleteDatabaseOnDispose: false);
-            var v2Store = await v2Fixture.GetMsSqlStreamStore();
+            var v2Fixture = await MsSqlStreamStoreFixture.Create(schema, deleteDatabaseOnDispose: false);
+            var v2Store = v2Fixture.Store;
             await v2Store.AppendToStream("stream-1",
                 ExpectedVersion.NoStream,
                 AcceptanceTests.CreateNewStreamMessages(1, 2, 3));

@@ -54,7 +54,7 @@ namespace SqlStreamStore
                 DisableDeletionTracking = _disableDeletionTracking
             };
             Store = new MsSqlStreamStoreV3(settings);
-            if(_createSchema)
+            if (_createSchema)
             {
                 await Store.CreateSchemaIfNotExists();
             }

@@ -7,7 +7,7 @@
     using SqlStreamStore.Streams;
     using Xunit;
 
-    public partial class StreamStoreAcceptanceTests
+    public partial class AcceptanceTests
     {
         [Fact, Trait("Category", "ReadAll")]
         public async Task Can_read_all_forwards()

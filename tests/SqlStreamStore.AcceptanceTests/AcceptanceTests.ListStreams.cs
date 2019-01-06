@@ -7,7 +7,7 @@ namespace SqlStreamStore
     using SqlStreamStore.Streams;
     using Xunit;
 
-    public partial class StreamStoreAcceptanceTests
+    public partial class AcceptanceTests
     {
         [Fact]
         public async Task Can_list_streams()

@@ -6,7 +6,7 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public class MsSqlStreamStoreV3AcceptanceTests : StreamStoreAcceptanceTests
+    public class MsSqlStreamStoreV3AcceptanceTests : AcceptanceTests
     {
         public MsSqlStreamStoreV3AcceptanceTests(ITestOutputHelper testOutputHelper)
             : base(testOutputHelper)

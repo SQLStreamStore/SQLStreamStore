@@ -3,7 +3,7 @@
     using System.Threading.Tasks;
     using Xunit.Abstractions;
 
-    public class HttpClientStreamStoreAcceptanceTests : StreamStoreAcceptanceTests
+    public class HttpClientStreamStoreAcceptanceTests : AcceptanceTests
     {
         public HttpClientStreamStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
             : base(testOutputHelper)

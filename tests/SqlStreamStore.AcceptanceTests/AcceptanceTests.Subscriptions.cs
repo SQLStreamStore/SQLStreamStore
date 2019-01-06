@@ -11,7 +11,7 @@
     using SqlStreamStore.Subscriptions;
     using Xunit;
 
-    public partial class StreamStoreAcceptanceTests
+    public partial class AcceptanceTests
     {
         [Fact, Trait("Category", "Subscriptions")]
         public async Task Can_subscribe_to_a_stream_from_start()

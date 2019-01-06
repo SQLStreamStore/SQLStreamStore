@@ -8,7 +8,7 @@
     using Xunit;
     using static Streams.Deleted;
 
-    public partial class StreamStoreAcceptanceTests
+    public partial class AcceptanceTests
     {
         [Fact, Trait("Category", "DeleteEvent")]
         public async Task When_delete_message_then_message_should_be_removed_from_stream()

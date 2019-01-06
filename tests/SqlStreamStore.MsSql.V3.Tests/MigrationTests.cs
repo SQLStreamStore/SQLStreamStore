@@ -26,10 +26,10 @@
             var v2Store = await v2Fixture.GetMsSqlStreamStore();
             await v2Store.AppendToStream("stream-1",
                 ExpectedVersion.NoStream,
-                StreamStoreAcceptanceTests.CreateNewStreamMessages(1, 2, 3));
+                AcceptanceTests.CreateNewStreamMessages(1, 2, 3));
             await v2Store.AppendToStream("stream-2",
                 ExpectedVersion.NoStream,
-                StreamStoreAcceptanceTests.CreateNewStreamMessages(1, 2, 3));
+                AcceptanceTests.CreateNewStreamMessages(1, 2, 3));
 
             await v2Store.SetStreamMetadata("stream-1", ExpectedVersion.Any, maxAge: 10, maxCount: 20);
             v2Store.Dispose();

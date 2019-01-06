@@ -13,7 +13,7 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public class PostgresStreamStoreAcceptanceTests : StreamStoreAcceptanceTests
+    public class PostgresStreamStoreAcceptanceTests : AcceptanceTests
     {
         public PostgresStreamStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
             : base(testOutputHelper)

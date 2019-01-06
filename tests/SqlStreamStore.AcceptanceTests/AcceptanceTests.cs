@@ -9,14 +9,14 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public abstract partial class StreamStoreAcceptanceTests : IAsyncLifetime, IDisposable
+    public abstract partial class AcceptanceTests : IAsyncLifetime, IDisposable
     {
         private readonly IDisposable _logCapture;
         private IStreamStoreFixture _fixture;
 
         protected ITestOutputHelper TestOutputHelper { get; }
 
-        protected StreamStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
+        protected AcceptanceTests(ITestOutputHelper testOutputHelper)
         {
             TestOutputHelper = testOutputHelper;
             _logCapture = CaptureLogs(testOutputHelper);

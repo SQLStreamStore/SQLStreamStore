@@ -6,13 +6,6 @@ namespace SqlStreamStore
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.TestHost;
     using SqlStreamStore.HAL;
-    using MidFunc = System.Func<
-        System.Func<
-            System.Collections.Generic.IDictionary<string, object>,
-            System.Threading.Tasks.Task>,
-        System.Func<
-            System.Collections.Generic.IDictionary<string, object>,
-            System.Threading.Tasks.Task>>;
 
     public class HttpClientStreamStoreFixture : StreamStoreAcceptanceTestFixture, IDisposable
     {

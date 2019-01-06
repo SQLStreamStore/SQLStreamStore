@@ -9,9 +9,6 @@
             : base(testOutputHelper)
         { }
 
-        protected override StreamStoreAcceptanceTestFixture GetFixture()
-            => new HttpClientStreamStoreFixture();
-
         protected override Task<IStreamStoreFixture> CreateFixture()
             => Task.FromResult<IStreamStoreFixture>(new HttpClientStreamStoreFixture2());
     }

@@ -13,9 +13,6 @@
             : base(testOutputHelper)
         { }
 
-        protected override StreamStoreAcceptanceTestFixture GetFixture()
-            => new MsSqlStreamStoreFixture("foo");
-
         protected override async Task<IStreamStoreFixture> CreateFixture()
             => await MsSqlStreamStoreFixture2.Create("foo");
 

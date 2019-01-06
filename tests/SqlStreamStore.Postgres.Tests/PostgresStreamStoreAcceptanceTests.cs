@@ -19,9 +19,6 @@
             : base(testOutputHelper)
         { }
 
-        protected override StreamStoreAcceptanceTestFixture GetFixture()
-            => new PostgresStreamStoreFixture("foo", TestOutputHelper);
-
         protected override async Task<IStreamStoreFixture> CreateFixture() 
             => await PostgresStreamStoreFixture2.Create(testOutputHelper: TestOutputHelper);
 

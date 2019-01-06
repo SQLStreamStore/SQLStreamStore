@@ -9,7 +9,7 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public abstract partial class AcceptanceTests : IAsyncLifetime, IDisposable
+    public abstract partial class AcceptanceTests : IAsyncLifetime
     {
         private readonly IDisposable _logCapture;
         private IStreamStoreFixture _fixture;
@@ -37,13 +37,6 @@
             _logCapture.Dispose();
             return Task.CompletedTask;
         }
-
-        public void Dispose()
-        {
-            _logCapture.Dispose();
-        }
-
-        protected abstract StreamStoreAcceptanceTestFixture GetFixture();
 
         protected abstract Task<IStreamStoreFixture> CreateFixture();
 

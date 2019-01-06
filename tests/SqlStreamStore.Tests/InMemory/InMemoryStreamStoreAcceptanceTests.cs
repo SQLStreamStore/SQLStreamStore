@@ -11,9 +11,6 @@ namespace SqlStreamStore
             : base(testOutputHelper)
         { }
 
-        protected override  StreamStoreAcceptanceTestFixture GetFixture()
-            => new InMemoryStreamStoreFixture();
-
         protected override Task<IStreamStoreFixture> CreateFixture() 
             => Task.FromResult<IStreamStoreFixture>(new InMemoryStreamStoreFixture2());
     }

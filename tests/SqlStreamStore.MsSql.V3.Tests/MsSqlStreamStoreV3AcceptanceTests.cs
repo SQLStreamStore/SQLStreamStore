@@ -12,9 +12,6 @@
             : base(testOutputHelper)
         { }
 
-        protected override StreamStoreAcceptanceTestFixture GetFixture()
-            => new MsSqlStreamStoreV3Fixture("foo");
-
         protected override async Task<IStreamStoreFixture> CreateFixture()
             => await MsSqlStreamStoreV3Fixture2.Create("foo");
 
@@ -45,7 +42,7 @@
         [Theory, InlineData("dbo"), InlineData("myschema")]
         public async Task Can_call_initialize_repeatably(string schema)
         {
-            using (var fixture = await MsSqlStreamStoreV3Fixture2.CreateUninitialized(schema))
+            using (var fixture = await MsSqlStreamStoreV3Fixture2.Create(schema, createSchema:false))
             {
                 await fixture.Store.CreateSchemaIfNotExists();
                 await fixture.Store.CreateSchemaIfNotExists();
@@ -77,7 +74,7 @@
         [Fact]
         public async Task When_schema_is_not_created_then_should_be_indicated()
         {
-            using (var fixture = await MsSqlStreamStoreV3Fixture2.CreateUninitialized())
+            using (var fixture = await MsSqlStreamStoreV3Fixture2.Create(createSchema: false))
             {
                 var result = await fixture.Store.CheckSchema();
 

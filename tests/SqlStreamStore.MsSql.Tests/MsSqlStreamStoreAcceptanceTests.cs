@@ -118,7 +118,7 @@
         [Fact]
         public async Task When_schema_is_not_created_then_should_be_indicated()
         {
-            using (var fixture = await MsSqlStreamStoreFixture2.CreateUninitialized())
+            using (var fixture = await MsSqlStreamStoreFixture2.Create(createSchema:false))
             {
                 var result = await fixture.Store.CheckSchema();
 

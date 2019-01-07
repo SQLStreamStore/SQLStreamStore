@@ -29,7 +29,7 @@
         ///     5. When expectedVersion is specified and the stream current version does not match the 
         ///        collection of message IDs are are checked against the stream in the correct position then the 
         ///        operation is considered idempotent. Otherwise a <see cref="WrongExpectedVersionException"/> will be
-        ///        throwm.
+        ///        throw.
         /// </remarks>
         /// <param name="streamId">
         ///     The Stream Id of the stream to append the messages. Must not start with a '$'.

@@ -6,84 +6,39 @@ namespace SqlStreamStore
     using SqlStreamStore.Postgres;
     using Xunit.Abstractions;
 
-    public class PostgresStreamStoreFixture2 : IStreamStoreFixture
+    public class PostgresStreamStoreFixture : IStreamStoreFixture
     {
-        private readonly PostgresStreamStoreFixture _fixture;
+        private readonly string _schema;
+        private readonly bool _createSchema;
+        private readonly PostgresDatabaseManager _databaseManager;
 
-        private PostgresStreamStoreFixture2(
-            PostgresStreamStoreFixture fixture,
-            PostgresStreamStore store)
+        private PostgresStreamStoreFixture(
+            string schema,
+            ITestOutputHelper testOutputHelper,
+            bool createSchema)
         {
-            _fixture = fixture;
-            Store = store;
+            _schema = schema;
+            _createSchema = createSchema;
+            _databaseManager = new PostgresDockerDatabaseManager(
+                testOutputHelper, 
+                $"test_{Guid.NewGuid():n}");
         }
 
         IStreamStore IStreamStoreFixture.Store => Store;
 
-        public PostgresStreamStore Store { get; }
+        public PostgresStreamStore Store { get; private set; }
 
-        public GetUtcNow GetUtcNow
-        {
-            get => _fixture.GetUtcNow;
-            set => _fixture.GetUtcNow = value;
-        }
+        public GetUtcNow GetUtcNow { get; set; } = SystemClock.GetUtcNow;
 
-        public string ConnectionString => _fixture.ConnectionString;
+        public string ConnectionString => _databaseManager.ConnectionString;
 
         public long MinPosition { get; set; } = 0;
 
         public int MaxSubscriptionCount { get; set; } = 500;
 
-        public static async Task<PostgresStreamStoreFixture2> Create(
-            string schema = "dbo",
-            ITestOutputHelper testOutputHelper = null)
+        private async Task Init()
         {
-            var innerFixture = new PostgresStreamStoreFixture(schema, testOutputHelper);
-            var store = await innerFixture.GetPostgresStreamStore();
-            return new PostgresStreamStoreFixture2(innerFixture, store);
-        }
-
-        public static async Task<PostgresStreamStoreFixture2> CreateUninitialized(
-            string schema = "dbo",
-            ITestOutputHelper testOutputHelper = null)
-        {
-            var innerFixture = new PostgresStreamStoreFixture(schema, testOutputHelper);
-            var store = await innerFixture.GetUninitializedPostgresStreamStore();
-            return new PostgresStreamStoreFixture2(innerFixture, store);
-        }
-
-        public void Dispose()
-        {
-            Store.Dispose();
-            _fixture.Dispose();
-        }
-    }
-
-    public class PostgresStreamStoreFixture : StreamStoreAcceptanceTestFixture
-    {
-        public string ConnectionString => _databaseManager.ConnectionString;
-        private readonly string _schema;
-        private readonly PostgresDatabaseManager _databaseManager;
-
-        public PostgresStreamStoreFixture(string schema)
-            : this(schema, new ConsoleTestoutputHelper())
-        { }
-
-        public PostgresStreamStoreFixture(string schema, ITestOutputHelper testOutputHelper)
-        {
-            _schema = schema;
-
-            _databaseManager = new PostgresDockerDatabaseManager(testOutputHelper, $"test_{Guid.NewGuid():n}");
-        }
-
-        public override long MinPosition => 0;
-
-        public override int MaxSubscriptionCount => 90;
-
-        public override async Task<IStreamStore> GetStreamStore()
-        {
-            await CreateDatabase();
-
+            await _databaseManager.CreateDatabase();
             var settings = new PostgresStreamStoreSettings(ConnectionString)
             {
                 Schema = _schema,
@@ -91,64 +46,28 @@ namespace SqlStreamStore
                 ScavengeAsynchronously = false
             };
 
-            var store = new PostgresStreamStore(settings);
+            Store = new PostgresStreamStore(settings);
 
-            await store.CreateSchemaIfNotExists();
-
-            return store;
-        }
-
-        public async Task<IStreamStore> GetStreamStore(string schema)
-        {
-            await CreateDatabase();
-
-            var settings = new PostgresStreamStoreSettings(ConnectionString)
+            if(_createSchema)
             {
-                Schema = schema,
-                GetUtcNow = () => GetUtcNow()
-            };
-            var store = new PostgresStreamStore(settings);
-
-            await store.CreateSchemaIfNotExists();
-
-            return store;
+                await Store.CreateSchemaIfNotExists();
+            }
         }
 
-        public async Task<PostgresStreamStore> GetPostgresStreamStore(bool scavengeAsynchronously = false)
+        public static async Task<PostgresStreamStoreFixture> Create(
+            string schema = "dbo",
+            ITestOutputHelper testOutputHelper = null,
+            bool createSchema = true)
         {
-            var store = await GetUninitializedPostgresStreamStore(scavengeAsynchronously);
-
-            await store.CreateSchemaIfNotExists();
-
-            return store;
+            var fixture = new PostgresStreamStoreFixture(schema, testOutputHelper, createSchema);
+            await fixture.Init();
+            return fixture;
         }
 
-        public async Task<PostgresStreamStore> GetUninitializedPostgresStreamStore(bool scavengeAsynchronously = false)
+        public void Dispose()
         {
-            await CreateDatabase();
-
-            var settings = new PostgresStreamStoreSettings(ConnectionString)
-            {
-                Schema = _schema,
-                GetUtcNow = () => GetUtcNow(),
-                ScavengeAsynchronously = scavengeAsynchronously
-            };
-
-            return new PostgresStreamStore(settings);
-        }
-
-        public override void Dispose()
-        {
-            _databaseManager?.Dispose();
-        }
-
-        public Task CreateDatabase() => _databaseManager.CreateDatabase();
-
-        private class ConsoleTestoutputHelper : ITestOutputHelper
-        {
-            public void WriteLine(string message) => Console.Write(message);
-
-            public void WriteLine(string format, params object[] args) => Console.WriteLine(format, args);
+            Store.Dispose();
+            _databaseManager.Dispose();
         }
     }
 }

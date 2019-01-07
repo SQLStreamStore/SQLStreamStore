@@ -20,7 +20,7 @@
         { }
 
         protected override async Task<IStreamStoreFixture> CreateFixture() 
-            => await PostgresStreamStoreFixture2.Create(testOutputHelper: TestOutputHelper);
+            => await PostgresStreamStoreFixture.Create(testOutputHelper: TestOutputHelper);
 
         [Fact]
         public async Task Can_use_multiple_schemas()
@@ -52,7 +52,7 @@
         [Fact]
         public async Task when_try_scavenge_fails_returns_negative_one()
         {
-            using (var fixture = await PostgresStreamStoreFixture2.Create(testOutputHelper: TestOutputHelper))
+            using (var fixture = await PostgresStreamStoreFixture.Create(testOutputHelper: TestOutputHelper))
             {
                 var cts = new CancellationTokenSource();
 
@@ -67,7 +67,7 @@
         [Theory, InlineData("dbo"), InlineData("myschema")]
         public async Task Can_call_initialize_repeatably(string schema)
         {
-            using(var fixture = await PostgresStreamStoreFixture2.CreateUninitialized(schema, testOutputHelper: TestOutputHelper))
+            using(var fixture = await PostgresStreamStoreFixture.Create(schema, testOutputHelper: TestOutputHelper, createSchema: false))
             {
                 await fixture.Store.CreateSchemaIfNotExists();
                 await fixture.Store.CreateSchemaIfNotExists();
@@ -82,7 +82,7 @@
             string ReadInformationSchema((string name, string table) _)
                 => $"SELECT {_.name}_name FROM information_schema.{_.table} WHERE {_.name}_schema = 'dbo'";
 
-            using(var fixture = await PostgresStreamStoreFixture2.Create(testOutputHelper: TestOutputHelper))
+            using(var fixture = await PostgresStreamStoreFixture.Create(testOutputHelper: TestOutputHelper))
             {
                 await fixture.Store.DropAll();
 
@@ -118,7 +118,7 @@
         [Fact]
         public async Task Can_check_schema()
         {
-            using(var fixture = await PostgresStreamStoreFixture2.Create(testOutputHelper: TestOutputHelper))
+            using(var fixture = await PostgresStreamStoreFixture.Create(testOutputHelper: TestOutputHelper))
             {
                 var result = await fixture.Store.CheckSchema();
 

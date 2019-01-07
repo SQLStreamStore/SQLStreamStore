@@ -34,7 +34,7 @@ namespace SqlStreamStore
 
         public long MinPosition { get; set; } = 0;
 
-        public int MaxSubscriptionCount { get; set; } = 500;
+        public int MaxSubscriptionCount { get; set; } = 100;
 
         private async Task Init()
         {

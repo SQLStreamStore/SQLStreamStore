@@ -126,17 +126,14 @@ namespace SqlStreamStore
         private async Task StartContainer(string containerId, CancellationToken cancellationToken)
         {
             // Starting the container ...
-            var started = await _dockerClient.Containers.StartContainerAsync(
+            await _dockerClient.Containers.StartContainerAsync(
                 containerId,
                 new ContainerStartParameters(),
                 cancellationToken).NotOnCapturedContext();
 
-            if (started)
+            while (!await _healthCheck(cancellationToken).NotOnCapturedContext())
             {
-                while (!await _healthCheck(cancellationToken).NotOnCapturedContext())
-                {
-                    await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken).NotOnCapturedContext();
-                }
+                await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken).NotOnCapturedContext();
             }
         }
 

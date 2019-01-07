@@ -41,22 +41,22 @@ namespace SqlStreamStore
 
         public string[] Env { get; set; } = Array.Empty<string>();
 
+        public string[] Cmd { get; set; } = Array.Empty<string>();
+
         public async Task TryStart(CancellationToken cancellationToken = default)
         {
             var images = await _dockerClient.Images.ListImagesAsync(new ImagesListParameters
             {
                 MatchName = ImageWithTag
-            },
-                cancellationToken).NotOnCapturedContext();
+            }, cancellationToken).NotOnCapturedContext();
 
             if (images.Count == 0)
             {
                 // No image found. Pulling latest ..
-
                 var imagesCreateParameters = new ImagesCreateParameters
                 {
                     FromImage = _image,
-                    Tag = _tag
+                    Tag = _tag,
                 };
 
                 await _dockerClient
@@ -113,7 +113,8 @@ namespace SqlStreamStore
                 {
                     PortBindings = portBindings,
                     AutoRemove = true,
-                }
+                },
+                Cmd = Cmd
             };
 
             var container = await _dockerClient.Containers.CreateContainerAsync(
@@ -126,17 +127,14 @@ namespace SqlStreamStore
         private async Task StartContainer(string containerId, CancellationToken cancellationToken)
         {
             // Starting the container ...
-            var started = await _dockerClient.Containers.StartContainerAsync(
+            await _dockerClient.Containers.StartContainerAsync(
                 containerId,
                 new ContainerStartParameters(),
                 cancellationToken).NotOnCapturedContext();
 
-            if (started)
+            while (!await _healthCheck(cancellationToken).NotOnCapturedContext())
             {
-                while (!await _healthCheck(cancellationToken).NotOnCapturedContext())
-                {
-                    await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken).NotOnCapturedContext();
-                }
+                await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken).NotOnCapturedContext();
             }
         }
 

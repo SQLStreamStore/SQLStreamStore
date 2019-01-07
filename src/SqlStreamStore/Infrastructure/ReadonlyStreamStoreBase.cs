@@ -230,7 +230,7 @@ namespace SqlStreamStore.Infrastructure
             return GetStreamMetadataInternal(streamId, cancellationToken);
         }
 
-        public Task<long> ReadHeadPosition(CancellationToken cancellationToken)
+        public Task<long> ReadHeadPosition(CancellationToken cancellationToken = default)
         {
             GuardAgainstDisposed();
 

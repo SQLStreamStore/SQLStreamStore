@@ -50,7 +50,7 @@ namespace SqlStreamStore.Postgres
                 })
             {
                 ContainerName = ContainerName,
-                Env = new[] { @"MAX_CONNECTIONS=500" }
+                Cmd = new []{ "-N" ,"500" }
             };
         }
 

@@ -1,18 +1,25 @@
 namespace SqlStreamStore.InMemory
 {
-    using System.Threading.Tasks;
-    using SqlStreamStore;
+    using SqlStreamStore.Infrastructure;
 
-    public class InMemoryStreamStoreFixture : StreamStoreAcceptanceTestFixture
+    public class InMemoryStreamStoreFixture : IStreamStoreFixture
     {
-        public override Task<IStreamStore> GetStreamStore()
+        public InMemoryStreamStoreFixture()
         {
-            IStreamStore streamStore = new InMemoryStreamStore(() => GetUtcNow());
-            return Task.FromResult(streamStore);
+            Store = new InMemoryStreamStore(() => GetUtcNow());  
         }
 
-        public override long MinPosition => 0;
+        public void Dispose()
+        {
+            Store.Dispose();
+        }
 
-        public override int MaxSubscriptionCount => 1000;
+        public IStreamStore Store { get; }
+
+        public GetUtcNow GetUtcNow { get; set; } = SystemClock.GetUtcNow;
+
+        public long MinPosition { get; set; } = 0;
+
+        public int MaxSubscriptionCount { get; set; } = 500;
     }
 }

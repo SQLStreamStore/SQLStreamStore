@@ -6,7 +6,7 @@
     <RootNamespace>SqlStreamStore</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" Exclude="..\SqlStreamStore.AcceptanceTests\SqlStreamStoreAcceptanceTests.ListStreams.cs" />
+    <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" Exclude="..\SqlStreamStore.AcceptanceTests\AcceptanceTests.ListStreams.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\SqlStreamStore.MsSql\SqlStreamStore.MsSql.csproj" />

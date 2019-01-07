@@ -10,6 +10,7 @@
     {
         private string _schema = "public";
         private Func<string, NpgsqlConnection> _connectionFactory;
+        private GetUtcNow _getUtcNow = SystemClock.GetUtcNow;
 
         /// <summary>
         /// Initializes a new instance of <see cref="PostgresStreamStoreSettings"/>.
@@ -57,12 +58,16 @@
         ///     A delegate to return the current UTC now. Used in testing to
         ///     control timestamps and time related operations.
         /// </summary>
-        public GetUtcNow GetUtcNow { get; set; }
+        public GetUtcNow GetUtcNow
+        {
+            get => _getUtcNow;
+            set => _getUtcNow = value ?? SystemClock.GetUtcNow;
+        }
 
         /// <summary>
         ///     The log name used for any of the log messages.
         /// </summary>
-        public string LogName { get; set; } = nameof(PostgresStreamStore);
+        public string LogName { get; } = nameof(PostgresStreamStore);
 
         /// <summary>
         ///     Allows setting whether or not deleting expired (i.e., older than maxCount) messages happens in the same database transaction as append to stream or not.

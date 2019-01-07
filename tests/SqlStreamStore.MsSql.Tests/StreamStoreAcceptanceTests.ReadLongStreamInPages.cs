@@ -8,27 +8,21 @@ namespace SqlStreamStore
     using SqlStreamStore.Streams;
     using Xunit;
 
-    public partial class StreamStoreAcceptanceTests
+    public partial class AcceptanceTests
     {
         [Fact]
         public async Task Given_large_message_stream_can_be_read_back_in_pages()
         {
-            using (var fixture = GetFixture())
-            {
-                using (var store = await fixture.GetStreamStore())
-                {
-                    var eventsToWrite = CreateNewmessages();
+            var eventsToWrite = CreateNewMessages();
 
-                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, eventsToWrite);
+            await store.AppendToStream("stream-1", ExpectedVersion.NoStream, eventsToWrite);
 
-                    var readEvents = await new PagedStreamStore(store).GetAsync("stream-1");
+            var readEvents = await new PagedStreamStore(store).GetAsync("stream-1");
 
-                    readEvents.Count().ShouldBe(eventsToWrite.Length);
-                }
-            }
+            readEvents.Count().ShouldBe(eventsToWrite.Length);
         }
 
-        private static NewStreamMessage[] CreateNewmessages()
+        private static NewStreamMessage[] CreateNewMessages()
         {
             var eventsToWrite = new List<NewStreamMessage>();
             var largeStreamCount = 7500;

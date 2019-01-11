@@ -37,12 +37,12 @@ namespace build
                 }
             });
 
-            Target(Build, () => Run("dotnet", "build SqlStreamStore.sln -c Release"));
+            Target(Build, () => Run("dotnet", "build --configuration=Release"));
 
             Target(
                 RunTests,
                 DependsOn(Build),
-                project => Run("dotnet", "test -c Release --verbosity=normal"));
+                project => Run("dotnet", "test --configuration=Release --no-build --no-restore --verbosity=normal"));
 
             Target(
                 Pack,

@@ -42,6 +42,12 @@ namespace SqlStreamStore
             bool prefetchJsonData)
             => ReadStream(streamId, fromVersionInclusive, maxCount, prefetchJsonData, Constants.Direction.Backwards);
 
+        public static string ListStreams(Pattern pattern, int maxCount)
+            => $"/streams?p={pattern.Value}&t={GetPatternTypeArgumentName(pattern)}&m={maxCount}";
+
+        public static string ListStreams(Pattern pattern, int maxCount, string continuationToken)
+            => $"{ListStreams(pattern, maxCount)}&c={continuationToken}";
+
         private static string ReadAll(long fromPositionInclusive, int maxCount, bool prefetchJsonData, int direction)
             => $"{AllHead}?{GetStreamQueryString(fromPositionInclusive, maxCount, prefetchJsonData, direction)}";
 
@@ -68,6 +74,19 @@ namespace SqlStreamStore
             }
             
             return queryString.ToUrlFormEncoded();
+        }
+
+        private static string GetPatternTypeArgumentName(Pattern pattern)
+        {
+            switch(pattern)
+            {
+                case Pattern.StartingWith _:
+                    return "s";
+                case Pattern.EndingWith _:
+                    return "e";
+                default:
+                    return string.Empty;
+            }
         }
     }
 }

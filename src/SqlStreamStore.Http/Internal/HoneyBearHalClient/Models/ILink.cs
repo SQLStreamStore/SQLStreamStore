@@ -6,5 +6,8 @@
     {
         [JsonProperty("templated", DefaultValueHandling = DefaultValueHandling.Ignore)]
         bool Templated { get; set; }
+
+        [JsonProperty("title")]
+        string Title { get; set; }
     }
 }

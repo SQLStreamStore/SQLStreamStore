@@ -130,6 +130,12 @@
                 set => _inner["templated"] = value;
             }
 
+            public string Title
+            {
+                get => _inner.Value<string>("title");
+                set => _inner["title"] = value;
+            }
+
             public JLink(JObject inner, string rel)
             {
                 if(inner == null)

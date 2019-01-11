@@ -1,6 +1,7 @@
 namespace SqlStreamStore.HAL.Index
 {
     using System;
+    using System.Linq;
     using System.Reflection;
     using Halcyon.HAL;
     using Microsoft.AspNetCore.Http;
@@ -13,27 +14,31 @@ namespace SqlStreamStore.HAL.Index
 
         private readonly JObject _data;
 
-        public IndexResource(IStreamStore streamStore)
+        public IndexResource(IStreamStore streamStore, Assembly serverAssembly)
         {
             var streamStoreType = streamStore.GetType();
             var streamStoreTypeName = streamStoreType.Name;
+            var versions = JObject.FromObject(new
+            {
+                streamStore = GetVersion(streamStoreType)
+            });
+            versions[serverAssembly?.GetName().Name?.Split('.').LastOrDefault() ?? "Server"] = GetVersion(serverAssembly);
+            
             _data = JObject.FromObject(new
             {
                 provider = streamStoreTypeName.Substring(0, streamStoreTypeName.Length - "StreamStore".Length),
-                versions = new
-                {
-                    streamStore = GetVersion(streamStoreType),
-                    server = GetVersion(typeof(IndexResource))
-                }
+                versions
             });
         }
 
-        private static string GetVersion(Type type)
-            => type.Assembly
-                   .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+        private static string GetVersion(Type type) => GetVersion(type.Assembly);
+
+        private static string GetVersion(Assembly assembly)
+            => assembly
+                   ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
                    ?.InformationalVersion
-               ?? type.Assembly
-                   .GetCustomAttribute<AssemblyVersionAttribute>()
+               ?? assembly
+                   ?.GetCustomAttribute<AssemblyVersionAttribute>()
                    ?.Version
                ?? "unknown";
 

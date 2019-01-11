@@ -60,7 +60,7 @@
 
             options = options ?? new SqlStreamStoreMiddlewareOptions();
 
-            var index = new IndexResource(streamStore);
+            var index = new IndexResource(streamStore, options.ServerAssembly);
             var allStream = new AllStreamResource(streamStore, options.UseCanonicalUrls);
             var allStreamMessages = new AllStreamMessageResource(streamStore);
             var streamBrowser = new StreamBrowserResource(streamStore);

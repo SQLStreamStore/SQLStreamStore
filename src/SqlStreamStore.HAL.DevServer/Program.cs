@@ -50,7 +50,8 @@
                     .UseKestrel()
                     .UseStartup(new DevServerStartup(streamStore, new SqlStreamStoreMiddlewareOptions
                     {
-                        UseCanonicalUrls = UseCanonicalUrls
+                        UseCanonicalUrls = UseCanonicalUrls,
+                        ServerAssembly = typeof(Program).Assembly
                     }))
                     .UseSerilog()
                     .Build())

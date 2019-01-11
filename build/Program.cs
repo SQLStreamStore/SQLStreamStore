@@ -74,7 +74,7 @@ namespace build
                 }
             });
 
-            Target("default", DependsOn(RunTests, Publish));
+            Target("default", DependsOn(Build, RunTests, Publish));
 
             RunTargetsAndExit(args);
         }

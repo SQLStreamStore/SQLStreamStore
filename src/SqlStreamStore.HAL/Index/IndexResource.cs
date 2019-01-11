@@ -13,7 +13,7 @@ namespace SqlStreamStore.HAL.Index
 
         private readonly JObject _data;
 
-        public IndexResource(IStreamStore streamStore)
+        public IndexResource(IStreamStore streamStore, Assembly serverAssembly)
         {
             var streamStoreType = streamStore.GetType();
             var streamStoreTypeName = streamStoreType.Name;
@@ -23,17 +23,19 @@ namespace SqlStreamStore.HAL.Index
                 versions = new
                 {
                     streamStore = GetVersion(streamStoreType),
-                    server = GetVersion(typeof(IndexResource))
+                    server = GetVersion(serverAssembly)
                 }
             });
         }
 
-        private static string GetVersion(Type type)
-            => type.Assembly
-                   .GetCustomAttribute<AssemblyInformationalVersionAttribute>()
+        private static string GetVersion(Type type) => GetVersion(type.Assembly);
+
+        private static string GetVersion(Assembly assembly)
+            => assembly
+                   ?.GetCustomAttribute<AssemblyInformationalVersionAttribute>()
                    ?.InformationalVersion
-               ?? type.Assembly
-                   .GetCustomAttribute<AssemblyVersionAttribute>()
+               ?? assembly
+                   ?.GetCustomAttribute<AssemblyVersionAttribute>()
                    ?.Version
                ?? "unknown";
 

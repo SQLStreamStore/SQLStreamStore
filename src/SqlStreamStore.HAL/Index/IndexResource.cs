@@ -1,6 +1,7 @@
 namespace SqlStreamStore.HAL.Index
 {
     using System;
+    using System.Linq;
     using System.Reflection;
     using Halcyon.HAL;
     using Microsoft.AspNetCore.Http;
@@ -17,14 +18,16 @@ namespace SqlStreamStore.HAL.Index
         {
             var streamStoreType = streamStore.GetType();
             var streamStoreTypeName = streamStoreType.Name;
+            var versions = JObject.FromObject(new
+            {
+                streamStore = GetVersion(streamStoreType)
+            });
+            versions[serverAssembly.GetName().Name.Split('.').Last()] = GetVersion(serverAssembly);
+            
             _data = JObject.FromObject(new
             {
                 provider = streamStoreTypeName.Substring(0, streamStoreTypeName.Length - "StreamStore".Length),
-                versions = new
-                {
-                    streamStore = GetVersion(streamStoreType),
-                    server = GetVersion(serverAssembly)
-                }
+                versions
             });
         }
 

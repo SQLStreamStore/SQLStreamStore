@@ -42,7 +42,7 @@ namespace build
             Target(
                 RunTests,
                 DependsOn(Build),
-                project => Run("dotnet", "test --configuration=Release --no-build --no-restore --verbosity=normal"));
+                () => Run("dotnet", "test --configuration=Release --no-build --no-restore --verbosity=normal"));
 
             Target(
                 Pack,
@@ -74,7 +74,7 @@ namespace build
                 }
             });
 
-            Target("default", DependsOn(Build, RunTests, Publish));
+            Target("default", DependsOn(RunTests, Publish));
 
             RunTargetsAndExit(args);
         }

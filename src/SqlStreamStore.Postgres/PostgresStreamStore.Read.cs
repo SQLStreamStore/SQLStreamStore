@@ -208,30 +208,35 @@
                 }
             }
 
+            var messageId = reader.GetGuid(1);
             var streamVersion = reader.GetInt32(2);
+            var position = reader.GetInt64(3);
+            var createdUtc = reader.GetDateTime(4);
+            var type = reader.GetString(5);
+            var jsonMetadata = await ReadString(6);
 
             if(prefetch)
             {
                 return new StreamMessage(
-                    reader.GetString(0),
-                    reader.GetGuid(1),
+                    streamId.IdOriginal,
+                    messageId,
                     streamVersion,
-                    reader.GetInt64(3),
-                    reader.GetDateTime(4),
-                    reader.GetString(5),
-                    await ReadString(6),
+                    position,
+                    createdUtc,
+                    type,
+                    jsonMetadata,
                     await ReadString(7));
             }
 
             return
                 new StreamMessage(
-                    reader.GetString(0),
-                    reader.GetGuid(1),
+                    streamId.IdOriginal,
+                    messageId,
                     streamVersion,
-                    reader.GetInt64(3),
-                    reader.GetDateTime(4),
-                    reader.GetString(5),
-                    await ReadString(6),
+                    position,
+                    createdUtc,
+                    type,
+                    jsonMetadata,
                     ct => GetJsonData(streamId, streamVersion)(ct));
         }
 

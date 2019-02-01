@@ -10,6 +10,6 @@
         { }
 
         protected override Task<IStreamStoreFixture> CreateFixture()
-            => Task.FromResult<IStreamStoreFixture>(new HttpClientStreamStoreFixture2());
+            => Task.FromResult<IStreamStoreFixture>(new HttpClientStreamStoreFixture());
     }
 }

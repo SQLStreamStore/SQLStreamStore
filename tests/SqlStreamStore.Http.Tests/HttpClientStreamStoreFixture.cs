@@ -1,50 +1,52 @@
 namespace SqlStreamStore
 {
     using System;
-    using System.Net.Http;
-    using System.Threading.Tasks;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.TestHost;
     using SqlStreamStore.HAL;
+    using SqlStreamStore.Infrastructure;
 
-    public class HttpClientStreamStoreFixture : StreamStoreAcceptanceTestFixture, IDisposable
+    public class HttpClientStreamStoreFixture : IStreamStoreFixture
     {
-        private readonly InMemoryStreamStore _innerStreamStore;
-        private readonly HttpMessageHandler _messageHandler;
+        private readonly InMemoryStreamStore _inMemoryStreamStore;
         private readonly TestServer _server;
 
         public HttpClientStreamStoreFixture()
         {
-            _innerStreamStore = new InMemoryStreamStore(() => GetUtcNow());
+            _inMemoryStreamStore = new InMemoryStreamStore(() => GetUtcNow());
 
-            _server = new TestServer(
-                new WebHostBuilder().Configure(builder => builder.UseSqlStreamStoreHal(_innerStreamStore)));
+            var webHostBuilder = new WebHostBuilder()
+                .Configure(builder => builder.UseSqlStreamStoreHal(_inMemoryStreamStore));
 
-            _messageHandler = new RedirectingHandler
+            _server = new TestServer(webHostBuilder);
+
+            var handler = new RedirectingHandler
             {
                 InnerHandler = _server.CreateHandler()
             };
+
+            Store = new HttpClientSqlStreamStore(
+                new HttpClientSqlStreamStoreSettings
+                {
+                    GetUtcNow = () => GetUtcNow(),
+                    HttpMessageHandler = handler,
+                    BaseAddress = new UriBuilder().Uri
+                });
         }
 
-        public override long MinPosition => 0;
-
-        public override int MaxSubscriptionCount => 500;
-
-        public override Task<IStreamStore> GetStreamStore()
-            => Task.FromResult<IStreamStore>(
-                new HttpClientSqlStreamStore(
-                    new HttpClientSqlStreamStoreSettings
-                    {
-                        GetUtcNow = () => GetUtcNow(),
-                        HttpMessageHandler = _messageHandler,
-                        BaseAddress = new UriBuilder().Uri
-                    }));
-
-        void IDisposable.Dispose()
+        public void Dispose()
         {
-            _server?.Dispose();
-            _messageHandler?.Dispose();
-            _innerStreamStore?.Dispose();
+            Store.Dispose();
+            _server.Dispose();
+            _inMemoryStreamStore.Dispose();
         }
+
+        public IStreamStore Store { get; }
+
+        public GetUtcNow GetUtcNow { get; set; } = SystemClock.GetUtcNow;
+
+        public long MinPosition { get; set; } = 0;
+
+        public int MaxSubscriptionCount { get; set; } = 500;
     }
 }

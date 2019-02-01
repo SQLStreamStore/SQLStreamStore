@@ -112,7 +112,7 @@
 
                 while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                 {
-                    messages.Add((ReadStreamMessage(reader, streamId, prefetch), maxAge));
+                    messages.Add((await ReadStreamMessage(reader, streamId, prefetch), maxAge));
                 }
 
                 var isEnd = true;
@@ -187,11 +187,23 @@
             }
         }
 
-        private StreamMessage ReadStreamMessage(
+        private async Task<StreamMessage> ReadStreamMessage(
             DbDataReader reader,
             PostgresqlStreamId streamId,
             bool prefetch)
         {
+            async Task<string> ReadString(int ordinal)
+            {
+                if(reader.IsDBNull(ordinal))
+                {
+                    return null;
+                }
+                using(var textReader = reader.GetTextReader(ordinal))
+                {
+                    return await textReader.ReadToEndAsync().NotOnCapturedContext();
+                }
+            }
+
             var streamVersion = reader.GetInt32(2);
 
             if(prefetch)
@@ -203,8 +215,8 @@
                     reader.GetInt64(3),
                     reader.GetDateTime(4),
                     reader.GetString(5),
-                    reader.GetString(6),
-                    reader.GetString(7));
+                    await ReadString(6),
+                    await ReadString(7));
             }
 
             return
@@ -215,7 +227,7 @@
                     reader.GetInt64(3),
                     reader.GetDateTime(4),
                     reader.GetString(5),
-                    reader.GetString(6),
+                    await ReadString(6),
                     ct => GetJsonData(streamId, streamVersion)(ct));
         }
 

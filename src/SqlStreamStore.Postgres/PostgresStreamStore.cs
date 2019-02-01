@@ -149,10 +149,17 @@
                     transaction,
                     Parameters.StreamId(streamId),
                     Parameters.Version(version)))
+                using (var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
                 {
-                    var jsonData = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                    if(!await reader.ReadAsync(cancellationToken).NotOnCapturedContext() || reader.IsDBNull(0))
+                    {
+                        return null;
+                    }
 
-                    return jsonData == DBNull.Value ? null : (string) jsonData;
+                    using(var textReader = reader.GetTextReader(0))
+                    {
+                        return await textReader.ReadToEndAsync().NotOnCapturedContext();
+                    }
                 }
             };
 

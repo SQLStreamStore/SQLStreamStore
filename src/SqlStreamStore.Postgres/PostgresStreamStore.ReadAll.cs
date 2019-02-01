@@ -53,7 +53,7 @@
                     else
                     {
                         var streamIdInfo = new StreamIdInfo(reader.GetString(0));
-                        messages.Add(ReadAllStreamMessage(reader, streamIdInfo.PostgresqlStreamId, prefetch));
+                        messages.Add(await ReadAllStreamMessage(reader, streamIdInfo.PostgresqlStreamId, prefetch));
                     }
                 }
 
@@ -119,7 +119,7 @@
                 while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                 {
                     var streamIdInfo = new StreamIdInfo(reader.GetString(0));
-                    messages.Add(ReadAllStreamMessage(reader, streamIdInfo.PostgresqlStreamId, prefetch));
+                    messages.Add(await ReadAllStreamMessage(reader, streamIdInfo.PostgresqlStreamId, prefetch));
 
                     lastOrdinal = reader.GetInt64(3);
                 }
@@ -147,11 +147,23 @@
             }
         }
 
-        private (StreamMessage, int?) ReadAllStreamMessage(
+        private async Task<(StreamMessage, int?)> ReadAllStreamMessage(
             DbDataReader reader,
             PostgresqlStreamId streamId,
             bool prefetch)
         {
+            async Task<string> ReadString(int ordinal)
+            {
+                if(reader.IsDBNull(ordinal))
+                {
+                    return null;
+                }
+                using(var textReader = reader.GetTextReader(ordinal))
+                {
+                    return await textReader.ReadToEndAsync().NotOnCapturedContext();
+                }
+            }
+
             var streamVersion = reader.GetInt32(2);
 
             if(prefetch)
@@ -164,8 +176,8 @@
                         reader.GetInt64(3),
                         reader.GetDateTime(4),
                         reader.GetString(5),
-                        reader.GetString(6),
-                        reader.GetString(7)),
+                        await ReadString(6),
+                        await ReadString(7)),
                     reader.GetFieldValue<int?>(8));
             }
 
@@ -177,7 +189,7 @@
                     reader.GetInt64(3),
                     reader.GetDateTime(4),
                     reader.GetString(5),
-                    reader.GetString(6),
+                    await ReadString(6),
                     ct => GetJsonData(streamId, streamVersion)(ct)),
                 reader.GetFieldValue<int?>(8));
         }

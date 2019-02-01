@@ -207,9 +207,18 @@
                     command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = streamId });
                     command.Parameters.AddWithValue("streamVersion", streamVersion);
 
-                    var jsonData = (string)await command
-                        .ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
-                    return jsonData;
+                    using(var reader = await command
+                        .ExecuteReaderAsync(
+                            CommandBehavior.SequentialAccess | CommandBehavior.SingleRow, 
+                            cancellationToken)
+                        .NotOnCapturedContext())
+                    {
+                        if(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                        {
+                            return await reader.GetTextReader(0).ReadToEndAsync();
+                        }
+                        return string.Empty;
+                    }
                 }
             }
         }

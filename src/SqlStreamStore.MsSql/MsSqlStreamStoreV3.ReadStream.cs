@@ -106,7 +106,9 @@
                 command.Parameters.AddWithValue("count", count + 1); //Read extra row to see if at end or not
                 command.Parameters.AddWithValue("streamVersion", streamVersion);
 
-                using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
+                using(var reader = await command
+                    .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
+                    .NotOnCapturedContext())
                 {
                     await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
                     if(reader.IsDBNull(0))
@@ -149,7 +151,7 @@
                             Func<CancellationToken, Task<string>> getJsonData;
                             if(prefetch)
                             {
-                                var jsonData = reader.GetString(ordinal);
+                                var jsonData = await reader.GetTextReader(ordinal).ReadToEndAsync();
                                 getJsonData = _ => Task.FromResult(jsonData);
                             }
                             else
@@ -198,16 +200,26 @@
 
         private async Task<string> GetJsonData(string streamId, int streamVersion, CancellationToken cancellationToken)
         {
-            using(var connection = _createConnection())
+            using (var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-                using(var command = new SqlCommand(_scripts.ReadMessageData, connection))
+                using (var command = new SqlCommand(_scripts.ReadMessageData, connection))
                 {
                     command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = streamId });
                     command.Parameters.AddWithValue("streamVersion", streamVersion);
 
-                    var jsonData = (string)await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
-                    return jsonData;
+                    using (var reader = await command
+                        .ExecuteReaderAsync(
+                            CommandBehavior.SequentialAccess | CommandBehavior.SingleRow,
+                            cancellationToken)
+                        .NotOnCapturedContext())
+                    {
+                        if (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                        {
+                            return await reader.GetTextReader(0).ReadToEndAsync();
+                        }
+                        return string.Empty;
+                    }
                 }
             }
         }

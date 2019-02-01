@@ -12,7 +12,6 @@
         [Fact, Trait("Category", "ReadAll")]
         public async Task Can_read_all_forwards()
         {
-            
             await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
             await store.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
             var expectedMessages = new[]
@@ -56,26 +55,20 @@
             }
         }
 
-        /*[Fact, Trait("Category", "ReadAll")]
+        [Fact, Trait("Category", "ReadAll")]
         public async Task Can_read_all_forwards_without_prefetch()
         {
-            using (var fixture = GetFixture())
+            await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+
+            var page = await store.ReadAllForwards(Position.Start, 4, prefetchJsonData: false);
+
+            foreach(var streamMessage in page.Messages)
             {
-                using (var store = await fixture.GetStreamStore())
-                {
-                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                streamMessage.GetJsonData().IsCompleted.ShouldBeFalse();
 
-                    var page = await store.ReadAllForwards(Position.Start, 4, prefetchJsonData: false);
-
-                    foreach(var streamMessage in page.Messages)
-                    {
-                        streamMessage.GetJsonData().IsCompleted.ShouldBeFalse();
-
-                        (await streamMessage.GetJsonData()).ShouldNotBeNullOrWhiteSpace();
-                    }
-                }
+                (await streamMessage.GetJsonData()).ShouldNotBeNullOrWhiteSpace();
             }
-        }*/
+        }
 
         [Fact, Trait("Category", "ReadAll")]
         public async Task When_read_without_prefetch_and_stream_is_deleted_then_GetJsonData_should_return_null()

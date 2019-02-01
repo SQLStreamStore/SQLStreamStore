@@ -2,6 +2,7 @@ namespace SqlStreamStore
 {
     using System;
     using System.Collections.Generic;
+    using System.Data;
     using System.Data.SqlClient;
     using System.Linq;
     using System.Threading;
@@ -31,7 +32,7 @@ namespace SqlStreamStore
                     command.Parameters.AddWithValue("position", position);
                     command.Parameters.AddWithValue("count", maxCount + 1); //Read extra row to see if at end or not
                     var reader = await command
-                        .ExecuteReaderAsync(cancellationToken)
+                        .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
                         .NotOnCapturedContext();
 
                     var messages = new List<(StreamMessage, int?)>();
@@ -61,7 +62,7 @@ namespace SqlStreamStore
                         Func<CancellationToken, Task<string>> getJsonData;
                         if(prefetch)
                         {
-                            var jsonData = reader.GetString(ordinal);
+                            var jsonData = await reader.GetTextReader(ordinal).ReadToEndAsync();
                             getJsonData = _ => Task.FromResult(jsonData);
                         }
                         else
@@ -125,14 +126,14 @@ namespace SqlStreamStore
                     command.Parameters.AddWithValue("position", position);
                     command.Parameters.AddWithValue("count", maxCount + 1); //Read extra row to see if at end or not
                     var reader = await command
-                        .ExecuteReaderAsync(cancellationToken)
+                        .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
                         .NotOnCapturedContext();
 
                     var messages = new List<(StreamMessage, int?)>();
                     if (!reader.HasRows)
                     {
                         // When reading backwards and there are no more items, then next position is LongPosition.Start,
-                        // regardles of what the fromPosition is.
+                        // regardless of what the fromPosition is.
                         return new ReadAllPage(
                             Position.Start,
                             Position.Start,
@@ -158,7 +159,7 @@ namespace SqlStreamStore
                         Func<CancellationToken, Task<string>> getJsonData;
                         if (prefetch)
                         {
-                            var jsonData = reader.GetString(ordinal);
+                            var jsonData = await reader.GetTextReader(ordinal).ReadToEndAsync();
                             getJsonData = _ => Task.FromResult(jsonData);
                         }
                         else

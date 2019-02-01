@@ -26,13 +26,10 @@ namespace SqlStreamStore.Postgres
             public override bool IsEnabled(NpgsqlLogLevel level) => true;
 
             public override void Log(NpgsqlLogLevel level, int connectorId, string msg, Exception exception = null)
-                => LogExtensions.Info(_logger,
-                    $@"[{level:G}] [{_name}] (Connector Id: {connectorId}); {msg}; {
-                            FormatOptionalException(exception)
-                        }");
+                => _logger.Info($@"[{level:G}] [{_name}] (Connector Id: {connectorId}); {msg}; {FormatOptionalException(exception)}");
 
             private static string FormatOptionalException(Exception exception)
-                => exception == null ? String.Empty : $"(Exception: {exception})";
+                => exception == null ? string.Empty : $"(Exception: {exception})";
         }
     }
 }

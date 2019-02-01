@@ -217,7 +217,7 @@
                         {
                             return await reader.GetTextReader(0).ReadToEndAsync();
                         }
-                        return string.Empty;
+                        return null;
                     }
                 }
             }

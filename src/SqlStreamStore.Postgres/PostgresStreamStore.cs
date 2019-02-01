@@ -54,7 +54,7 @@
             connection.ReloadTypes();
 
             connection.TypeMapper.MapComposite<PostgresNewStreamMessage>(_schema.NewStreamMessage);
-            
+
             if(_settings.ExplainAnalyze)
             {
                 using(var command = new NpgsqlCommand(_schema.EnableExplainAnalyze, connection))
@@ -149,10 +149,19 @@
                     transaction,
                     Parameters.StreamId(streamId),
                     Parameters.Version(version)))
+                using(var reader = await command
+                    .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
+                    .NotOnCapturedContext())
                 {
-                    var jsonData = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                    if(!await reader.ReadAsync(cancellationToken).NotOnCapturedContext() || reader.IsDBNull(0))
+                    {
+                        return null;
+                    }
 
-                    return jsonData == DBNull.Value ? null : (string) jsonData;
+                    using(var textReader = reader.GetTextReader(0))
+                    {
+                        return await textReader.ReadToEndAsync().NotOnCapturedContext();
+                    }
                 }
             };
 
@@ -163,7 +172,7 @@
         {
             var command = new NpgsqlCommand(function, transaction.Connection, transaction)
             {
-                CommandType = CommandType.StoredProcedure
+                CommandType = CommandType.StoredProcedure,
             };
 
             foreach(var parameter in parameters)
@@ -197,7 +206,9 @@
                         _schema.Scavenge,
                         transaction,
                         Parameters.StreamId(streamIdInfo.PostgresqlStreamId)))
-                    using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
+                    using(var reader = await command
+                        .ExecuteReaderAsync(cancellationToken)
+                        .NotOnCapturedContext())
                     {
                         while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                         {
@@ -207,14 +218,16 @@
 
                     if(Logger.IsInfoEnabled())
                     {
-                        Logger.Info($"Found {deletedMessageIds.Count} message(s) for stream {streamIdInfo.PostgresqlStreamId} to scavenge.");
+                        Logger.Info(
+                            $"Found {deletedMessageIds.Count} message(s) for stream {streamIdInfo.PostgresqlStreamId} to scavenge.");
                     }
 
                     if(deletedMessageIds.Count > 0)
                     {
                         if(Logger.IsDebugEnabled())
                         {
-                            Logger.Debug($"Scavenging the following messages on stream {streamIdInfo.PostgresqlStreamId}: {string.Join(", ", deletedMessageIds)}");
+                            Logger.Debug(
+                                $"Scavenging the following messages on stream {streamIdInfo.PostgresqlStreamId}: {string.Join(", ", deletedMessageIds)}");
                         }
 
                         await DeleteEventsInternal(

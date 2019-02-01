@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Data;
     using System.Data.Common;
     using System.Threading;
     using System.Threading.Tasks;
@@ -29,7 +30,9 @@
                 Parameters.Position(fromPositionExclusive),
                 Parameters.ReadDirection(ReadDirection.Forward),
                 Parameters.Prefetch(prefetch)))
-            using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
+            using(var reader = await command
+                .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
+                .NotOnCapturedContext())
             {
                 if(!reader.HasRows)
                 {
@@ -53,7 +56,9 @@
                     else
                     {
                         var streamIdInfo = new StreamIdInfo(reader.GetString(0));
-                        messages.Add(ReadAllStreamMessage(reader, streamIdInfo.PostgresqlStreamId, prefetch));
+                        var (message, maxAge, _) =
+                            await ReadAllStreamMessage(reader, streamIdInfo.PostgresqlStreamId, prefetch);
+                        messages.Add((message, maxAge));
                     }
                 }
 
@@ -98,7 +103,9 @@
                 Parameters.Position(ordinal),
                 Parameters.ReadDirection(ReadDirection.Backward),
                 Parameters.Prefetch(prefetch)))
-            using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
+            using(var reader = await command
+                .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
+                .NotOnCapturedContext())
             {
                 if(!reader.HasRows)
                 {
@@ -119,9 +126,10 @@
                 while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                 {
                     var streamIdInfo = new StreamIdInfo(reader.GetString(0));
-                    messages.Add(ReadAllStreamMessage(reader, streamIdInfo.PostgresqlStreamId, prefetch));
+                    var (message, maxAge, position) = await ReadAllStreamMessage(reader, streamIdInfo.PostgresqlStreamId, prefetch);
+                    messages.Add((message, maxAge));
 
-                    lastOrdinal = reader.GetInt64(3);
+                    lastOrdinal = position;
                 }
 
                 bool isEnd = true;
@@ -147,39 +155,59 @@
             }
         }
 
-        private (StreamMessage, int?) ReadAllStreamMessage(
+        private async Task<(StreamMessage message, int? maxAge, long position)> ReadAllStreamMessage(
             DbDataReader reader,
             PostgresqlStreamId streamId,
             bool prefetch)
         {
+            async Task<string> ReadString(int ordinal)
+            {
+                if(reader.IsDBNull(ordinal))
+                {
+                    return null;
+                }
+
+                using(var textReader = reader.GetTextReader(ordinal))
+                {
+                    return await textReader.ReadToEndAsync().NotOnCapturedContext();
+                }
+            }
+
+            var messageId = reader.GetGuid(1);
             var streamVersion = reader.GetInt32(2);
+            var position = reader.GetInt64(3);
+            var createdUtc = reader.GetDateTime(4);
+            var type = reader.GetString(5);
+            var jsonMetadata = await ReadString(6);
 
             if(prefetch)
             {
                 return (
                     new StreamMessage(
-                        reader.GetString(0),
-                        reader.GetGuid(1),
+                        streamId.IdOriginal,
+                        messageId,
                         streamVersion,
-                        reader.GetInt64(3),
-                        reader.GetDateTime(4),
-                        reader.GetString(5),
-                        reader.GetString(6),
-                        reader.GetString(7)),
-                    reader.GetFieldValue<int?>(8));
+                        position,
+                        createdUtc,
+                        type,
+                        jsonMetadata,
+                        await ReadString(7)),
+                    reader.GetFieldValue<int?>(8),
+                    position);
             }
 
             return (
                 new StreamMessage(
-                    reader.GetString(0),
-                    reader.GetGuid(1),
+                    streamId.IdOriginal,
+                    messageId,
                     streamVersion,
-                    reader.GetInt64(3),
-                    reader.GetDateTime(4),
-                    reader.GetString(5),
-                    reader.GetString(6),
+                    position,
+                    createdUtc,
+                    type,
+                    jsonMetadata,
                     ct => GetJsonData(streamId, streamVersion)(ct)),
-                reader.GetFieldValue<int?>(8));
+                reader.GetFieldValue<int?>(8),
+                position);
         }
     }
 }

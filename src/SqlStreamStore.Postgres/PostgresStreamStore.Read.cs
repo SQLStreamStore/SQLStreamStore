@@ -71,7 +71,8 @@
                 Parameters.Version(streamVersion),
                 Parameters.ReadDirection(direction),
                 Parameters.Prefetch(prefetch)))
-            using(var reader = await command.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
+            using(var reader = await command
+                .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
                 .NotOnCapturedContext())
             {
                 while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
@@ -81,7 +82,9 @@
             }
 
             using(var command = new NpgsqlCommand(refcursorSql.ToString(), transaction.Connection, transaction))
-            using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
+            using(var reader = await command
+                .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
+                .NotOnCapturedContext())
             {
                 if(!reader.HasRows)
                 {
@@ -112,7 +115,7 @@
 
                 while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                 {
-                    messages.Add((ReadStreamMessage(reader, streamId, prefetch), maxAge));
+                    messages.Add((await ReadStreamMessage(reader, streamId, prefetch), maxAge));
                 }
 
                 var isEnd = true;
@@ -187,35 +190,53 @@
             }
         }
 
-        private StreamMessage ReadStreamMessage(
+        private async Task<StreamMessage> ReadStreamMessage(
             DbDataReader reader,
             PostgresqlStreamId streamId,
             bool prefetch)
         {
+            async Task<string> ReadString(int ordinal)
+            {
+                if(reader.IsDBNull(ordinal))
+                {
+                    return null;
+                }
+
+                using(var textReader = reader.GetTextReader(ordinal))
+                {
+                    return await textReader.ReadToEndAsync().NotOnCapturedContext();
+                }
+            }
+
+            var messageId = reader.GetGuid(1);
             var streamVersion = reader.GetInt32(2);
+            var position = reader.GetInt64(3);
+            var createdUtc = reader.GetDateTime(4);
+            var type = reader.GetString(5);
+            var jsonMetadata = await ReadString(6);
 
             if(prefetch)
             {
                 return new StreamMessage(
-                    reader.GetString(0),
-                    reader.GetGuid(1),
+                    streamId.IdOriginal,
+                    messageId,
                     streamVersion,
-                    reader.GetInt64(3),
-                    reader.GetDateTime(4),
-                    reader.GetString(5),
-                    reader.GetString(6),
-                    reader.GetString(7));
+                    position,
+                    createdUtc,
+                    type,
+                    jsonMetadata,
+                    await ReadString(7));
             }
 
             return
                 new StreamMessage(
-                    reader.GetString(0),
-                    reader.GetGuid(1),
+                    streamId.IdOriginal,
+                    messageId,
                     streamVersion,
-                    reader.GetInt64(3),
-                    reader.GetDateTime(4),
-                    reader.GetString(5),
-                    reader.GetString(6),
+                    position,
+                    createdUtc,
+                    type,
+                    jsonMetadata,
                     ct => GetJsonData(streamId, streamVersion)(ct));
         }
 

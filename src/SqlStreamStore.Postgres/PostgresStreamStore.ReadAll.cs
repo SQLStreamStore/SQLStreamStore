@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Data;
     using System.Data.Common;
     using System.Threading;
     using System.Threading.Tasks;
@@ -29,7 +30,9 @@
                 Parameters.Position(fromPositionExclusive),
                 Parameters.ReadDirection(ReadDirection.Forward),
                 Parameters.Prefetch(prefetch)))
-            using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
+            using(var reader = await command
+                .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
+                .NotOnCapturedContext())
             {
                 if(!reader.HasRows)
                 {
@@ -98,7 +101,9 @@
                 Parameters.Position(ordinal),
                 Parameters.ReadDirection(ReadDirection.Backward),
                 Parameters.Prefetch(prefetch)))
-            using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
+            using(var reader = await command
+                .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
+                .NotOnCapturedContext())
             {
                 if(!reader.HasRows)
                 {
@@ -158,6 +163,7 @@
                 {
                     return null;
                 }
+
                 using(var textReader = reader.GetTextReader(ordinal))
                 {
                     return await textReader.ReadToEndAsync().NotOnCapturedContext();

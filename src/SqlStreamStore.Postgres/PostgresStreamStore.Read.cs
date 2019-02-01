@@ -71,7 +71,8 @@
                 Parameters.Version(streamVersion),
                 Parameters.ReadDirection(direction),
                 Parameters.Prefetch(prefetch)))
-            using(var reader = await command.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
+            using(var reader = await command
+                .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
                 .NotOnCapturedContext())
             {
                 while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
@@ -81,7 +82,9 @@
             }
 
             using(var command = new NpgsqlCommand(refcursorSql.ToString(), transaction.Connection, transaction))
-            using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
+            using(var reader = await command
+                .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
+                .NotOnCapturedContext())
             {
                 if(!reader.HasRows)
                 {
@@ -198,6 +201,7 @@
                 {
                     return null;
                 }
+
                 using(var textReader = reader.GetTextReader(ordinal))
                 {
                     return await textReader.ReadToEndAsync().NotOnCapturedContext();

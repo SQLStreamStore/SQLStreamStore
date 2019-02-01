@@ -42,8 +42,9 @@
                     {
                         try
                         {
-                            using(var reader =
-                                await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
+                            using(var reader = await command
+                                .ExecuteReaderAsync(cancellationToken)
+                                .NotOnCapturedContext())
                             {
                                 await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
 

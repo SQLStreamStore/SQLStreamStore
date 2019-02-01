@@ -1,6 +1,7 @@
 namespace SqlStreamStore
 {
     using System.Collections.Generic;
+    using System.Data;
     using System.Threading;
     using System.Threading.Tasks;
     using Npgsql;
@@ -27,7 +28,9 @@ namespace SqlStreamStore
             using(var connection = await OpenConnection(cancellationToken))
             using(var transaction = connection.BeginTransaction())
             using(var command = GetListStreamsCommand(pattern, maxCount, afterIdInternal, transaction))
-            using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
+            using(var reader = await command
+                .ExecuteReaderAsync(cancellationToken)
+                .NotOnCapturedContext())
             {
                 while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                 {

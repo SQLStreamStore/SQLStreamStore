@@ -1,6 +1,7 @@
 ﻿namespace SqlStreamStore
 {
     using System;
+    using System.Diagnostics;
     using System.Threading.Tasks;
     using Shouldly;
     using SqlStreamStore.Streams;
@@ -141,5 +142,21 @@
             var sqlScript = store.GetSchemaCreationScript();
             sqlScript.ShouldBe(new ScriptsV2.Scripts("custom_schema").CreateSchema);
         }
+
+        [Fact]
+        public async Task Time_taken_to_append_and_read_large_message()
+        {
+            var stopwatch = Stopwatch.StartNew();
+            var streamId = "stream-large";
+            var data = new string('a', 1024 * 1024 * 2);
+            var newStreamMessage = new NewStreamMessage(Guid.NewGuid(), "foo", data);
+            await fixture.Store.AppendToStream(streamId, ExpectedVersion.Any, newStreamMessage);
+            TestOutputHelper.WriteLine($"Append: {stopwatch.Elapsed}");
+
+            stopwatch.Restart();
+            var readStreamPage = await fixture.Store.ReadStreamForwards(streamId, StreamVersion.Start, 1);
+            var jsonData = await readStreamPage.Messages[0].GetJsonData();
+            TestOutputHelper.WriteLine($"Read: {stopwatch.Elapsed}");
+        } 
     }
 }

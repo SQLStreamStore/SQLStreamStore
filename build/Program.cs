@@ -12,7 +12,7 @@ namespace build
         private const string ArtifactsDir = "artifacts";
         private const string BuildHalDocs = "build-hal-docs";
         private const string Build = "build";
-        private const string RunTests = "run-tests";
+        private const string Test = "test";
         private const string Pack = "pack";
         private const string Publish = "publish";
 
@@ -40,7 +40,7 @@ namespace build
             Target(Build, () => Run("dotnet", "build --configuration=Release"));
 
             Target(
-                RunTests,
+                Test,
                 DependsOn(Build),
                 () => Run("dotnet", "test --configuration=Release --no-build --no-restore --verbosity=normal"));
 
@@ -74,7 +74,7 @@ namespace build
                 }
             });
 
-            Target("default", DependsOn(RunTests, Publish));
+            Target("default", DependsOn(Test, Publish));
 
             RunTargetsAndExit(args);
         }

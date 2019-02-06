@@ -20,7 +20,7 @@ namespace build
         {
             Target(BuildHalDocs, () =>
             {
-                RunCmd("yarn", workingDirectory: "./tools/hal-docs");
+                Run("yarn", workingDirectory: "./tools/hal-docs");
 
                 var srcDirectory = new DirectoryInfo("./src");
 
@@ -77,23 +77,6 @@ namespace build
             Target("default", DependsOn(Test, Publish));
 
             RunTargetsAndExit(args);
-        }
-
-        private static void RunCmd(string name, string args = null, string workingDirectory = null, bool noEcho = false)
-        {
-            try
-            {
-                Run(name, args, workingDirectory, noEcho);
-            }
-            catch (Win32Exception ex) when (ex.NativeErrorCode == 2) // The system cannot find the file specified.
-            {
-                var cmdArgs = $"/C {name}";
-                if (args != null)
-                {
-                    cmdArgs += " " + args;
-                }
-                Run("cmd", cmdArgs, workingDirectory, noEcho);
-            }
         }
     }
 }

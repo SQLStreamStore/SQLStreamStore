@@ -83,6 +83,15 @@ BEGIN
   FROM __schema__.streams
   WHERE __schema__.streams.id = _stream_id;
 
+  IF (_expected_version >= 0 AND (
+                                   SELECT __schema__.streams.version
+                                   FROM __schema__.streams
+                                   WHERE __schema__.streams.id_internal = _stream_id_internal
+                                 ) < _expected_version)
+  THEN
+    RAISE EXCEPTION 'WrongExpectedVersion';
+  END IF;
+
   IF (_expected_version >= 0 AND _stream_id_internal IS NULL)
   THEN
     RAISE EXCEPTION 'WrongExpectedVersion';

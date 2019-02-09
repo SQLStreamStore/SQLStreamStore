@@ -650,5 +650,19 @@
             result2.CurrentVersion.ShouldBe(2);
             result2.CurrentPosition.ShouldBeGreaterThanOrEqualTo(result1.CurrentPosition + 2L);
         }
+
+        [Fact, Trait("Category", "AppendStream")]
+        public async Task When_append_stream_with_higher_wrong_expected_version_then_should_throw()
+        {
+            const string streamId = "stream-1";
+            await store
+                .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+
+            var exception = await Record.ExceptionAsync(() =>
+                store.AppendToStream(streamId, 10, CreateNewStreamMessages(4)));
+
+            exception.ShouldBeOfType<WrongExpectedVersionException>(
+                ErrorMessages.AppendFailedWrongExpectedVersion(streamId, 10));
+        }
     }
 }

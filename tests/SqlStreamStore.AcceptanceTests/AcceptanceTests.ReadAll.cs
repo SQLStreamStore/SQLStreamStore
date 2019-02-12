@@ -46,9 +46,11 @@
                 var expectedMessage = expectedMessages[i];
 
                 message.MessageId.ShouldBe(expectedMessage.MessageId);
+                var jsonData = await message.GetJsonData();
+                var expectedJsonData = await expectedMessage.GetJsonData();
                 JToken.DeepEquals(
-                        JObject.Parse(await message.GetJsonData()),
-                        JObject.Parse(await expectedMessage.GetJsonData()))
+                        JObject.Parse(jsonData),
+                        JObject.Parse(expectedJsonData))
                     .ShouldBeTrue();
                 JToken.DeepEquals(JObject.Parse(message.JsonMetadata), JObject.Parse(expectedMessage.JsonMetadata))
                     .ShouldBeTrue();
@@ -134,9 +136,11 @@
                 var expectedMessage = expectedMessages[i];
 
                 message.MessageId.ShouldBe(expectedMessage.MessageId);
+                var jsonData = await message.GetJsonData();
+                var expectedJsonData = await expectedMessage.GetJsonData();
                 JToken.DeepEquals(
-                        JObject.Parse(await message.GetJsonData()),
-                        JObject.Parse(await expectedMessage.GetJsonData()))
+                        JObject.Parse(jsonData),
+                        JObject.Parse(expectedJsonData))
                     .ShouldBeTrue();
                 JToken.DeepEquals(JObject.Parse(message.JsonMetadata), JObject.Parse(expectedMessage.JsonMetadata))
                     .ShouldBeTrue();

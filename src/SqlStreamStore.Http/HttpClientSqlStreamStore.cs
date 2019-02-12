@@ -116,7 +116,7 @@
                     return httpStreamMessage.ToStreamMessage(
                         ct =>
                             prefetch
-                                ? Task.FromResult(httpStreamMessage.Payload)
+                                ? Task.FromResult(httpStreamMessage.Payload.ToString())
                                 : Task.Run(() => GetPayload(client, streamMessage, ct), ct));
                 });
 
@@ -125,6 +125,6 @@
             IResource streamMessage,
             CancellationToken cancellationToken)
             => (await client.GetAsync(streamMessage, Constants.Relations.Self, cancellationToken))
-                .Current.FirstOrDefault()?.Data<HttpStreamMessage>()?.Payload;
+                .Current.FirstOrDefault()?.Data<HttpStreamMessage>()?.Payload?.ToString();
     }
 }

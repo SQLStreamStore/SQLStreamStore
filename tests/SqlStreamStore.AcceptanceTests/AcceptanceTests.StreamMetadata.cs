@@ -2,12 +2,14 @@
 {
     using System.Linq;
     using System.Threading.Tasks;
+    using Newtonsoft.Json.Linq;
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
 
     public partial class AcceptanceTests
     {
+        private const string DefaultStreamMetadataJson = @"{ ""meta"": ""meta"" }";
         //TODO: Port some of the tests from AppendStream with regard to expected version to verify behavior of Get/SetStreamMetadata.
 
         [Fact, Trait("Category", "StreamMetadata")]
@@ -32,7 +34,7 @@
                 streamId,
                 maxAge: 2,
                 maxCount: 3,
-                metadataJson: "meta",
+                metadataJson: DefaultStreamMetadataJson,
                 expectedStreamMetadataVersion: expectedVersion);
 
             var metadata = await store.GetStreamMetadata(streamId);
@@ -41,7 +43,10 @@
             metadata.MaxAge.ShouldBe(2);
             metadata.MetadataStreamVersion.ShouldBe(0);
             metadata.MaxCount.ShouldBe(3);
-            metadata.MetadataJson.ShouldBe("meta");
+            JToken.DeepEquals(
+                JObject.Parse(metadata.MetadataJson),
+                JObject.Parse(DefaultStreamMetadataJson))
+                .ShouldBeTrue();
         }
 
         [Fact]
@@ -73,7 +78,7 @@
                 .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessageSequence(1, 4));
 
             await store
-                .SetStreamMetadata(streamId, maxAge: 2, maxCount: 3, metadataJson: "meta");
+                .SetStreamMetadata(streamId, maxAge: 2, maxCount: 3, metadataJson: DefaultStreamMetadataJson);
 
             var metadata = await store.GetStreamMetadata(streamId);
 
@@ -81,7 +86,10 @@
             metadata.MaxAge.ShouldBe(2);
             metadata.MetadataStreamVersion.ShouldBe(0);
             metadata.MaxCount.ShouldBe(3);
-            metadata.MetadataJson.ShouldBe("meta");
+            JToken.DeepEquals(
+                    JObject.Parse(metadata.MetadataJson),
+                    JObject.Parse(DefaultStreamMetadataJson))
+                .ShouldBeTrue();
         }
 
         [Fact, Trait("Category", "StreamMetadata")]
@@ -91,7 +99,7 @@
             await store
                 .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
             await store
-                .SetStreamMetadata(streamId, maxCount: 3, metadataJson: "meta");
+                .SetStreamMetadata(streamId, maxCount: 3, metadataJson: DefaultStreamMetadataJson);
 
             await store.DeleteStream(streamId);
 
@@ -113,9 +121,9 @@
         {
             const string streamId = "stream-1";
             await store
-                .SetStreamMetadata(streamId, maxCount: 2, maxAge: 30, metadataJson: "meta");
+                .SetStreamMetadata(streamId, maxCount: 2, maxAge: 30, metadataJson: DefaultStreamMetadataJson);
             await store
-                .SetStreamMetadata(streamId, maxCount: 2, maxAge: 30, metadataJson: "meta");
+                .SetStreamMetadata(streamId, maxCount: 2, maxAge: 30, metadataJson: DefaultStreamMetadataJson);
 
             var metadata = await store.GetStreamMetadata(streamId);
 

@@ -1,12 +1,14 @@
 ﻿namespace SqlStreamStore
 {
+    using Newtonsoft.Json;
+    using Newtonsoft.Json.Linq;
     using SqlStreamStore.Streams;
 
     internal class HalStreamMetadataResult
     {
         public int MetadataStreamVersion { get; set; }
         public string StreamId { get; set; }
-        public string MetadataJson { get; set; }
+        public JObject MetadataJson { get; set; }
         public int? MaxCount { get; set; }
         public int? MaxAge { get; set; }
 
@@ -16,6 +18,6 @@
                 result.MetadataStreamVersion,
                 result.MaxAge,
                 result.MaxCount,
-                result.MetadataJson);
+                result.MetadataJson?.ToString(Formatting.Indented));
     }
 }

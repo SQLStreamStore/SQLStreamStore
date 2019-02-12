@@ -85,7 +85,8 @@
                 ((int) resource.State.metadataStreamVersion).ShouldBe(0);
                 ((int?) resource.State.maxAge).ShouldBe(30);
                 ((int?) resource.State.maxCount).ShouldBe(20);
-                JToken.DeepEquals(JObject.Parse((string) resource.State.metadataJson),
+                JToken.DeepEquals(
+                    (JObject)resource.State.metadataJson,
                     JObject.FromObject(new
                     {
                         type = "a-type"
@@ -131,7 +132,8 @@
                 ((string) resource.State.streamId).ShouldBe(StreamId);
                 ((int?) resource.State.maxAge).ShouldBe(30);
                 ((int?) resource.State.maxCount).ShouldBe(20);
-                JToken.DeepEquals(JObject.Parse((string) resource.State.metadataJson),
+                JToken.DeepEquals(
+                    (JObject)resource.State.metadataJson,
                     JObject.FromObject(new
                     {
                         type = "a-type"

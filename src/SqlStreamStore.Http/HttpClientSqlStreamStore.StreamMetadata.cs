@@ -99,15 +99,6 @@ namespace SqlStreamStore
         }
 
         private static object TryParseMetadataJson(string metadataJson)
-        {
-            try
-            {
-                return JToken.Parse(metadataJson);
-            }
-            catch(Newtonsoft.Json.JsonException)
-            {
-                return metadataJson;
-            }
-        }
+            => metadataJson == default ? default : JObject.Parse(metadataJson);
     }
 }

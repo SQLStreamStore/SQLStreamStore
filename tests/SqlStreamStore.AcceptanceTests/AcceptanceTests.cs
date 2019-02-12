@@ -11,6 +11,9 @@
 
     public abstract partial class AcceptanceTests : IAsyncLifetime
     {
+        private const string DefaultJsonData = @"{ ""data"": ""data"" }";
+        private const string DefaultJsonMetadata = @"{ ""meta"": ""data"" }";
+
         private readonly IDisposable _logCapture;
         private IStreamStoreFixture _fixture;
 
@@ -65,7 +68,7 @@
 
         public static NewStreamMessage[] CreateNewStreamMessages(params int[] messageNumbers)
         {
-            return CreateNewStreamMessages("\"data\"", messageNumbers);
+            return CreateNewStreamMessages(DefaultJsonData, messageNumbers);
         }
 
         public static NewStreamMessage[] CreateNewStreamMessages(string jsonData, params int[] messageNumbers)
@@ -74,7 +77,7 @@
                 .Select(number =>
                 {
                     var id = Guid.Parse("00000000-0000-0000-0000-" + number.ToString().PadLeft(12, '0'));
-                    return new NewStreamMessage(id, "type", jsonData, "\"metadata\"");
+                    return new NewStreamMessage(id, "type", jsonData, DefaultJsonMetadata);
                 })
                 .ToArray();
         }
@@ -86,7 +89,7 @@
             {
                 var messageNumber = startId + i;
                 var messageId = Guid.Parse("00000000-0000-0000-0000-" + messageNumber.ToString().PadLeft(12, '0'));
-                var newStreamMessage = new NewStreamMessage(messageId, "type", "\"data\"", "\"metadata\"");
+                var newStreamMessage = new NewStreamMessage(messageId, "type", DefaultJsonData, DefaultJsonMetadata);
                 messages.Add(newStreamMessage);
             }
             return messages.ToArray();
@@ -99,7 +102,7 @@
             DateTime created)
         {
             var id = Guid.Parse("00000000-0000-0000-0000-" + messageNumber.ToString().PadLeft(12, '0'));
-            return new StreamMessage(streamId, id, sequenceNumber, 0, created, "type", "\"metadata\"", "\"data\"");
+            return new StreamMessage(streamId, id, sequenceNumber, 0, created, "type", DefaultJsonMetadata, DefaultJsonData);
         }
 
        

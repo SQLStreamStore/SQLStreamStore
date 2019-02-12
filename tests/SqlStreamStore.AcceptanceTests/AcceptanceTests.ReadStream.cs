@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Newtonsoft.Json.Linq;
     using Shouldly;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Streams;
@@ -39,8 +40,12 @@
                 var expectedMessage = expectedMessages[i];
 
                 message.MessageId.ShouldBe(expectedMessage.MessageId);
-                (await message.GetJsonData()).ShouldBe(await expectedMessage.GetJsonData());
-                message.JsonMetadata.ShouldBe(expectedMessage.JsonMetadata);
+                JToken.DeepEquals(
+                        JObject.Parse(await message.GetJsonData()),
+                        JObject.Parse(await expectedMessage.GetJsonData()))
+                    .ShouldBeTrue();
+                JToken.DeepEquals(JObject.Parse(message.JsonMetadata), JObject.Parse(expectedMessage.JsonMetadata))
+                    .ShouldBeTrue();
                 message.StreamId.ShouldBe(expectedMessage.StreamId);
                 message.StreamVersion.ShouldBe(expectedMessage.StreamVersion);
                 message.Type.ShouldBe(expectedMessage.Type);
@@ -166,8 +171,13 @@
                 var expectedMessage = expectedMessages[i];
 
                 streamMessage.MessageId.ShouldBe(expectedMessage.MessageId);
-                (await streamMessage.GetJsonData()).ShouldBe(await expectedMessage.GetJsonData());
-                streamMessage.JsonMetadata.ShouldBe(expectedMessage.JsonMetadata);
+                JToken.DeepEquals(
+                        JObject.Parse(await streamMessage.GetJsonData()),
+                        JObject.Parse(await expectedMessage.GetJsonData()))
+                    .ShouldBeTrue();
+                JToken.DeepEquals(JObject.Parse(streamMessage.JsonMetadata),
+                        JObject.Parse(expectedMessage.JsonMetadata))
+                    .ShouldBeTrue();
                 streamMessage.StreamId.ShouldBe(expectedMessage.StreamId);
                 streamMessage.StreamVersion.ShouldBe(expectedMessage.StreamVersion);
                 streamMessage.Type.ShouldBe(expectedMessage.Type);

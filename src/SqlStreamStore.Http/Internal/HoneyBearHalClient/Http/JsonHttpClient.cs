@@ -50,7 +50,9 @@ namespace SqlStreamStore.Internal.HoneyBearHalClient.Http
                 CloseOutput = false
             })
             {
-                await JToken.FromObject(value, _serializer).WriteToAsync(writer, cancellationToken);
+                var token = JToken.FromObject(value, _serializer);
+
+                await token.WriteToAsync(writer, cancellationToken);
 
                 await writer.FlushAsync(cancellationToken);
 

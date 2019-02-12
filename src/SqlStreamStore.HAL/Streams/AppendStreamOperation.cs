@@ -75,8 +75,8 @@ namespace SqlStreamStore.HAL.Streams
             {
                 MessageId = messageId,
                 Type = type,
-                JsonData = newStreamMessage.Value<JToken>("jsonData"),
-                JsonMetadata = newStreamMessage.Value<JToken>("jsonMetadata")
+                JsonData = newStreamMessage.Value<JObject>("jsonData"),
+                JsonMetadata = newStreamMessage.Value<JObject>("jsonMetadata")
             };
         }
 

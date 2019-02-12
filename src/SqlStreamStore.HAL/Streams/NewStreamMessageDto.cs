@@ -8,8 +8,8 @@
     {
         public Guid MessageId { get; set; }
         public string Type { get; set; }
-        public JToken JsonData { get; set; }
-        public JToken JsonMetadata { get; set; }
+        public JObject JsonData { get; set; }
+        public JObject JsonMetadata { get; set; }
 
         public NewStreamMessage ToNewStreamMessage()
             => new NewStreamMessage(MessageId, Type, JsonData.ToString(), JsonMetadata?.ToString());

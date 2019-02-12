@@ -19,7 +19,11 @@
         private static readonly JsonSerializer s_serializer = JsonSerializer.Create(new JsonSerializerSettings
         {
             TypeNameHandling = TypeNameHandling.None,
-            ContractResolver = new CamelCasePropertyNamesContractResolver()
+            ContractResolver = new CamelCasePropertyNamesContractResolver(),
+            Converters =
+            {
+                new NewStreamMessageConverter()
+            }
         });
 
         private readonly HttpClient _httpClient;

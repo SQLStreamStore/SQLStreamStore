@@ -5,12 +5,18 @@ BEGIN TRANSACTION CreateStreamIfNotExists;
 
     IF NOT EXISTS (
         SELECT *
-        FROM dbo.Streams WITH (UPDLOCK, ROWLOCK, HOLDLOCK)
+        FROM dbo.Streams WITH (NOLOCK)
         WHERE dbo.Streams.Id = @streamId
     )
         BEGIN
-            INSERT INTO dbo.Streams (Id, IdOriginal)
-            VALUES (@streamId, @streamIdOriginal);
+
+			BEGIN TRY
+				INSERT INTO dbo.Streams (Id, IdOriginal)
+				VALUES (@streamId, @streamIdOriginal);
+			END TRY
+			BEGIN CATCH
+				IF ERROR_NUMBER() NOT IN (2601, 2627) THROW;	-- rethrow errors not caued by unique violations	
+			END CATCH
 
             -- If metadata exists, lift maxAge and maxCount. TODO put this into a function? Duplicate code in Append...NoStream.sql
             DECLARE @jsonData nvarchar(max);

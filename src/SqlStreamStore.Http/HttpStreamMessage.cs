@@ -3,6 +3,7 @@ namespace SqlStreamStore
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Newtonsoft.Json.Linq;
     using SqlStreamStore.Streams;
 
     internal class HttpStreamMessage
@@ -13,8 +14,8 @@ namespace SqlStreamStore
         public string StreamId { get; set; }
         public int StreamVersion { get; set; }
         public string Type { get; set; }
-        public string Payload { get; set; }
-        public string Metadata { get; set; }
+        public JObject Payload { get; set; }
+        public JObject Metadata { get; set; }
 
         public StreamMessage ToStreamMessage(Func<CancellationToken, Task<string>> getPayload)
             => new StreamMessage(
@@ -24,7 +25,7 @@ namespace SqlStreamStore
                 Position,
                 CreatedUtc.DateTime,
                 Type,
-                Metadata,
+                Metadata?.ToString(),
                 getPayload);
     }
 }

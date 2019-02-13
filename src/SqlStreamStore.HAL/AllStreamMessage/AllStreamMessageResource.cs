@@ -52,18 +52,7 @@
 
             var payload = await message.GetJsonData(cancellationToken);
 
-            return new HalJsonResponse(
-                new HALResponse(new
-                {
-                    message.MessageId,
-                    message.CreatedUtc,
-                    message.Position,
-                    message.StreamId,
-                    message.StreamVersion,
-                    message.Type,
-                    payload,
-                    metadata = message.JsonMetadata
-             }).AddLinks(links));
+            return new HalJsonResponse(new StreamMessageHALResponse(message, payload).AddLinks(links));
         }
     }
 }

@@ -33,7 +33,7 @@ namespace SqlStreamStore.HAL.StreamMessage
                 .Find()
                 .Browse()
                 .StreamMessageNavigation(message, operation);
-            
+
             if(message.MessageId == Guid.Empty)
             {
                 return new HalJsonResponse(
@@ -62,17 +62,7 @@ namespace SqlStreamStore.HAL.StreamMessage
             var eTag = ETag.FromStreamVersion(message.StreamVersion);
 
             return new HalJsonResponse(
-                new HALResponse(new
-                    {
-                        message.MessageId,
-                        message.CreatedUtc,
-                        message.Position,
-                        message.StreamId,
-                        message.StreamVersion,
-                        message.Type,
-                        payload,
-                        metadata = message.JsonMetadata
-                    })
+                new StreamMessageHALResponse(message, payload)
                     .AddEmbeddedResource(
                         Constants.Relations.DeleteMessage,
                         DeleteStreamMessage)

@@ -3,6 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using Newtonsoft.Json.Linq;
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
@@ -45,8 +46,14 @@
                 var expectedMessage = expectedMessages[i];
 
                 message.MessageId.ShouldBe(expectedMessage.MessageId);
-                (await message.GetJsonData()).ShouldBe(await expectedMessage.GetJsonData());
-                message.JsonMetadata.ShouldBe(expectedMessage.JsonMetadata);
+                var jsonData = await message.GetJsonData();
+                var expectedJsonData = await expectedMessage.GetJsonData();
+                JToken.DeepEquals(
+                        JObject.Parse(jsonData),
+                        JObject.Parse(expectedJsonData))
+                    .ShouldBeTrue();
+                JToken.DeepEquals(JObject.Parse(message.JsonMetadata), JObject.Parse(expectedMessage.JsonMetadata))
+                    .ShouldBeTrue();
                 message.StreamId.ShouldBe(expectedMessage.StreamId);
                 message.StreamVersion.ShouldBe(expectedMessage.StreamVersion);
                 message.Type.ShouldBe(expectedMessage.Type);
@@ -129,8 +136,14 @@
                 var expectedMessage = expectedMessages[i];
 
                 message.MessageId.ShouldBe(expectedMessage.MessageId);
-                (await message.GetJsonData()).ShouldBe(await expectedMessage.GetJsonData());
-                message.JsonMetadata.ShouldBe(expectedMessage.JsonMetadata);
+                var jsonData = await message.GetJsonData();
+                var expectedJsonData = await expectedMessage.GetJsonData();
+                JToken.DeepEquals(
+                        JObject.Parse(jsonData),
+                        JObject.Parse(expectedJsonData))
+                    .ShouldBeTrue();
+                JToken.DeepEquals(JObject.Parse(message.JsonMetadata), JObject.Parse(expectedMessage.JsonMetadata))
+                    .ShouldBeTrue();
                 message.StreamId.ShouldBe(expectedMessage.StreamId);
                 message.StreamVersion.ShouldBe(expectedMessage.StreamVersion);
                 message.Type.ShouldBe(expectedMessage.Type);

@@ -4,6 +4,7 @@ namespace SqlStreamStore.HAL.StreamMetadata
     using System.Threading;
     using System.Threading.Tasks;
     using Halcyon.HAL;
+    using Newtonsoft.Json.Linq;
 
     internal class StreamMetadataResource : IResource
     {
@@ -32,7 +33,9 @@ namespace SqlStreamStore.HAL.StreamMetadata
                         result.MetadataStreamVersion,
                         result.MaxAge,
                         result.MaxCount,
-                        result.MetadataJson
+                        MetadataJson = string.IsNullOrEmpty(result.MetadataJson)
+                            ? default
+                            : JObject.Parse(result.MetadataJson)
                     })
                     .AddLinks(
                         Links

@@ -111,17 +111,7 @@ namespace SqlStreamStore.HAL.Streams
                         Constants.Relations.Message,
                         streamMessages.Zip(
                             payloads,
-                            (message, payload) => new HALResponse(new
-                                {
-                                    message.MessageId,
-                                    message.CreatedUtc,
-                                    message.Position,
-                                    message.StreamId,
-                                    message.StreamVersion,
-                                    message.Type,
-                                    payload,
-                                    metadata = message.JsonMetadata
-                                })
+                            (message, payload) => new StreamMessageHALResponse(message, payload)
                                 .AddLinks(
                                     Links
                                         .FromOperation(operation)

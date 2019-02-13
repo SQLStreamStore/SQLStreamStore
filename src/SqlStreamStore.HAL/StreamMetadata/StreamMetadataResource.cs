@@ -33,7 +33,9 @@ namespace SqlStreamStore.HAL.StreamMetadata
                         result.MetadataStreamVersion,
                         result.MaxAge,
                         result.MaxCount,
-                        MetadataJson = result.MetadataJson == default ? default : JObject.Parse(result.MetadataJson)
+                        MetadataJson = string.IsNullOrEmpty(result.MetadataJson)
+                            ? default
+                            : JObject.Parse(result.MetadataJson)
                     })
                     .AddLinks(
                         Links

@@ -19,6 +19,6 @@ namespace SqlStreamStore.HAL
             })
         { }
 
-        private static JObject FromString(string data) => data == default ? default : JObject.Parse(data);
+        private static JObject FromString(string data) => string.IsNullOrEmpty(data) ? default : JObject.Parse(data);
     }
 }

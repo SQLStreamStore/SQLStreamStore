@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Authors>Damian Hickey</Authors>
     <PackageProjectUrl>https://github.com/SqlStreamStore/SqlStreamStore</PackageProjectUrl>
-    <PackageLicenseUrl>https://github.com/SqlStreamStore/SqlStreamStore/blob/master/LICENSE</PackageLicenseUrl>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageTags>cqrs;event-sourcing;event-store;stream-store</PackageTags>
     <NoWarn>$(NoWarn);1701;1702;1705;1591;NU5105</NoWarn>

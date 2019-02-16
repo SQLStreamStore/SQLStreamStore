@@ -5,7 +5,6 @@
     <Description>HTTP Server for SQL Stream Store</Description>
     <AssemblyTitle>Stream Store - HAL Server</AssemblyTitle>    
     <DebugSymbols>true</DebugSymbols>
-    <NoWarn>1701;1702;1705;1591</NoWarn>
     <LangVersion>latest</LangVersion>
     <CrossGenDuringPublish>false</CrossGenDuringPublish>
   </PropertyGroup>

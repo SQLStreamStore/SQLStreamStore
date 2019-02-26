@@ -58,7 +58,9 @@ namespace SqlStreamStore.InMemory
             if(expectedVersion > CurrentVersion)
             {
                 throw new WrongExpectedVersionException(
-                    ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
+                    ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion),
+                    _streamId,
+                    expectedVersion);
             }
 
             if(CurrentVersion >= 0 && expectedVersion < CurrentVersion)
@@ -70,12 +72,16 @@ namespace SqlStreamStore.InMemory
                     if(index >= _messages.Count)
                     {
                         throw new WrongExpectedVersionException(
-                            ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
+                            ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion),
+                            _streamId,
+                            expectedVersion);
                     }
                     if(_messages[index].MessageId != newMessages[i].MessageId)
                     {
                         throw new WrongExpectedVersionException(
-                            ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
+                            ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion),
+                            _streamId,
+                            expectedVersion);
                     }
                 }
                 return;
@@ -85,7 +91,9 @@ namespace SqlStreamStore.InMemory
             if(newMessages.Any(newmessage => _messagesById.ContainsKey(newmessage.MessageId)))
             {
                 throw new WrongExpectedVersionException(
-                    ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
+                    ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion),
+                    _streamId,
+                    expectedVersion);
             }
 
             AppendEvents(newMessages);
@@ -102,7 +110,9 @@ namespace SqlStreamStore.InMemory
                     if(i + newMessages.Length > _messages.Count)
                     {
                         throw new WrongExpectedVersionException(
-                            ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
+                            ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion),
+                            _streamId,
+                            expectedVersion);
                     }
 
                     for(int n = 1; n < newMessages.Length; n++)
@@ -110,7 +120,9 @@ namespace SqlStreamStore.InMemory
                         if(newMessages[n].MessageId != _messages[i + n].MessageId)
                         {
                             throw new WrongExpectedVersionException(
-                                ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
+                                ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion),
+                                _streamId,
+                                expectedVersion);
                         }
                     }
 
@@ -130,13 +142,17 @@ namespace SqlStreamStore.InMemory
                 if(newMessages.Length > _messages.Count)
                 {
                     throw new WrongExpectedVersionException(
-                        ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
+                        ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion),
+                        _streamId,
+                        expectedVersion);
                 }
 
                 if(newMessages.Where((message, index) => _messages[index].MessageId != message.MessageId).Any())
                 {
                     throw new WrongExpectedVersionException(
-                        ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
+                        ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion),
+                        _streamId,
+                        expectedVersion);
                 }
                 return;
             }
@@ -175,7 +191,9 @@ namespace SqlStreamStore.InMemory
             if (expectedVersion > 0 && expectedVersion != CurrentVersion)
             {
                 throw new WrongExpectedVersionException(
-                   ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion));
+                   ErrorMessages.AppendFailedWrongExpectedVersion(_streamId, expectedVersion),
+                   _streamId,
+                   expectedVersion);
             }
 
             foreach (var inMemorymessage in _messages)
@@ -188,8 +206,7 @@ namespace SqlStreamStore.InMemory
 
         internal bool DeleteEvent(Guid eventId)
         {
-            InMemoryStreamMessage inMemoryStreamMessage;
-            if(!_messagesById.TryGetValue(eventId, out inMemoryStreamMessage))
+            if (!_messagesById.TryGetValue(eventId, out var inMemoryStreamMessage))
             {
                 return false;
             }
@@ -202,8 +219,7 @@ namespace SqlStreamStore.InMemory
 
         internal string GetMessageData(Guid messageId)
         {
-            InMemoryStreamMessage message;
-            return _messagesById.TryGetValue(messageId, out message) ? message.JsonData : string.Empty;
+            return _messagesById.TryGetValue(messageId, out var message) ? message.JsonData : string.Empty;
         }
     }
 }

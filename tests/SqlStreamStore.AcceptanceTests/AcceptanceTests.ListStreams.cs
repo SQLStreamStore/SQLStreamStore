@@ -6,9 +6,13 @@ namespace SqlStreamStore
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
+    using Xunit.Abstractions;
 
-    public partial class AcceptanceTests
+    public class ListStreamsAcceptanceTests : AcceptanceTests 
     {
+        public ListStreamsAcceptanceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        { }
+
         [Fact]
         public async Task Can_list_streams()
         {

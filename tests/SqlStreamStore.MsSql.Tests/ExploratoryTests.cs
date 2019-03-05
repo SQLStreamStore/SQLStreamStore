@@ -4,9 +4,13 @@
     using System.Threading.Tasks;
     using SqlStreamStore.Streams;
     using Xunit;
+    using Xunit.Abstractions;
 
-    public partial class AcceptanceTests
+    public class ExploratoryTests : AcceptanceTests
     {
+        public ExploratoryTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        { }
+
         [Fact]
         public async Task Time_to_take_to_read_1000_read_head_positions()
         {

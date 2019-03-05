@@ -4,9 +4,13 @@
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
+    using Xunit.Abstractions;
 
-    public partial class AcceptanceTests
+    public class ReadHeadCheckpointsAcceptanceTests : AcceptanceTests
     {
+        public ReadHeadCheckpointsAcceptanceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        { }
+
         [Fact]
         public async Task Given_empty_store_when_get_head_position_Then_should_be_minus_one()
         {

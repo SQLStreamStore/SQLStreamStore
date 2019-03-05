@@ -9,7 +9,7 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public abstract partial class AcceptanceTests : IAsyncLifetime
+    public abstract class AcceptanceTestsBase : IAsyncLifetime
     {
         private const string DefaultJsonData = @"{ ""data"": ""data"" }";
         private const string DefaultJsonMetadata = @"{ ""meta"": ""data"" }";
@@ -19,7 +19,7 @@
 
         protected ITestOutputHelper TestOutputHelper { get; }
 
-        protected AcceptanceTests(ITestOutputHelper testOutputHelper)
+        protected AcceptanceTestsBase(ITestOutputHelper testOutputHelper)
         {
             TestOutputHelper = testOutputHelper;
             _logCapture = CaptureLogs(testOutputHelper);
@@ -43,7 +43,7 @@
 
         protected abstract Task<IStreamStoreFixture> CreateFixture();
 
-        private static IDisposable CaptureLogs(ITestOutputHelper testOutputHelper) 
+        private static IDisposable CaptureLogs(ITestOutputHelper testOutputHelper)
             => LoggingHelper.Capture(testOutputHelper);
 
         [Fact]
@@ -92,6 +92,7 @@
                 var newStreamMessage = new NewStreamMessage(messageId, "type", DefaultJsonData, DefaultJsonMetadata);
                 messages.Add(newStreamMessage);
             }
+
             return messages.ToArray();
         }
 
@@ -102,9 +103,26 @@
             DateTime created)
         {
             var id = Guid.Parse("00000000-0000-0000-0000-" + messageNumber.ToString().PadLeft(12, '0'));
-            return new StreamMessage(streamId, id, sequenceNumber, 0, created, "type", DefaultJsonMetadata, DefaultJsonData);
+            return new StreamMessage(streamId,
+                id,
+                sequenceNumber,
+                0,
+                created,
+                "type",
+                DefaultJsonMetadata,
+                DefaultJsonData);
         }
 
-       
+        protected static async Task AppendMessages(
+            IStreamStore streamStore,
+            string streamId,
+            int numberOfEvents)
+        {
+            for(int i = 0; i < numberOfEvents; i++)
+            {
+                var newmessage = new NewStreamMessage(Guid.NewGuid(), "MyEvent", "{}");
+                await streamStore.AppendToStream(streamId, ExpectedVersion.Any, newmessage);
+            }
+        }
     }
 }

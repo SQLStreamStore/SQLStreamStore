@@ -6,9 +6,13 @@ namespace SqlStreamStore
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
+    using Xunit.Abstractions;
 
-    public partial class AcceptanceTests
+    public class StreamLimitsAcceptanceTests : AcceptanceTests    
     {
+        public StreamLimitsAcceptanceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        { }
+
         [Theory, Trait("Category", "StreamMetadata"),
          InlineData(ExpectedVersion.NoStream), InlineData(ExpectedVersion.Any)]
         public async Task When_stream_has_max_count_and_append_exceeds_then_should_maintain_max_count(int expectedVersion)

@@ -8,9 +8,9 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public class MsSqlStreamStoreV3AcceptanceTests : AcceptanceTests
+    public abstract class AcceptanceTests : AcceptanceTestsBase
     {
-        public MsSqlStreamStoreV3AcceptanceTests(ITestOutputHelper testOutputHelper)
+        public AcceptanceTests(ITestOutputHelper testOutputHelper)
             : base(testOutputHelper)
         { }
 

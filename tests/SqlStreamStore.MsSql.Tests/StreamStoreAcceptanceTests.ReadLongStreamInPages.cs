@@ -7,9 +7,13 @@ namespace SqlStreamStore
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
+    using Xunit.Abstractions;
 
-    public partial class AcceptanceTests
+    public class ReadLongStreamInPagesAcceptanceTests : AcceptanceTests
     {
+        public ReadLongStreamInPagesAcceptanceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        { }
+
         [Fact]
         public async Task Given_large_message_stream_can_be_read_back_in_pages()
         {

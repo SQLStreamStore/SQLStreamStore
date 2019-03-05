@@ -6,11 +6,15 @@
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
+    using Xunit.Abstractions;
 
-    public partial class AcceptanceTests
+    public class StreamMetadataAcceptanceTests : AcceptanceTests    
     {
         private const string DefaultStreamMetadataJson = @"{ ""meta"": ""meta"" }";
         //TODO: Port some of the tests from AppendStream with regard to expected version to verify behavior of Get/SetStreamMetadata.
+
+        public StreamMetadataAcceptanceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        { }
 
         [Fact, Trait("Category", "StreamMetadata")]
         public async Task When_get_non_existent_metadata_then_meta_stream_version_should_be_negative()

@@ -10,9 +10,13 @@
     using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
     using Xunit;
+    using Xunit.Abstractions;
 
-    public partial class AcceptanceTests
+    public class SubscriptionsAcceptanceTests : AcceptanceTests    
     {
+        public SubscriptionsAcceptanceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        { }
+
         [Fact, Trait("Category", "Subscriptions")]
         public async Task Can_subscribe_to_a_stream_from_start()
         {
@@ -880,18 +884,6 @@
                 hasCaughtUp = await tcs.Task.WithTimeout(5000);
             }
             hasCaughtUp.ShouldBeTrue();
-        }
-
-        private static async Task AppendMessages(
-            IStreamStore streamStore,
-            string streamId,
-            int numberOfEvents)
-        {
-            for(int i = 0; i < numberOfEvents; i++)
-            {
-                var newmessage = new NewStreamMessage(Guid.NewGuid(), "MyEvent", "{}");
-                await streamStore.AppendToStream(streamId, ExpectedVersion.Any, newmessage);
-            }
         }
     }
 }

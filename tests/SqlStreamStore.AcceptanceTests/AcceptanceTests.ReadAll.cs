@@ -7,9 +7,13 @@
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
+    using Xunit.Abstractions;
 
-    public partial class AcceptanceTests
+    public class ReadAllAcceptanceTests : AcceptanceTests    
     {
+        public ReadAllAcceptanceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        { }
+
         [Fact, Trait("Category", "ReadAll")]
         public async Task Can_read_all_forwards()
         {

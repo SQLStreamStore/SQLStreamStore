@@ -13,9 +13,9 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public class PostgresStreamStoreAcceptanceTests : AcceptanceTests
+    public abstract class AcceptanceTests : AcceptanceTestsBase
     {
-        public PostgresStreamStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
+        protected AcceptanceTests(ITestOutputHelper testOutputHelper)
             : base(testOutputHelper)
         { }
 

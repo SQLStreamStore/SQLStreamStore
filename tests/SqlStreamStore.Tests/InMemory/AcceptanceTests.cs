@@ -5,9 +5,9 @@ namespace SqlStreamStore
     using SqlStreamStore.InMemory;
     using Xunit.Abstractions;
 
-    public class InMemoryAcceptanceTests : AcceptanceTests
+    public class AcceptanceTests : AcceptanceTestsBase
     {
-        public InMemoryAcceptanceTests(ITestOutputHelper testOutputHelper)
+        public AcceptanceTests(ITestOutputHelper testOutputHelper)
             : base(testOutputHelper)
         { }
 

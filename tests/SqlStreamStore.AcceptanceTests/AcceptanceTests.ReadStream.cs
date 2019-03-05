@@ -9,9 +9,13 @@
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Streams;
     using Xunit;
+    using Xunit.Abstractions;
 
-    public partial class AcceptanceTests
+    public class ReadStreamAcceptanceTests : AcceptanceTests
     {
+        public ReadStreamAcceptanceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        { }
+
         [Theory, Trait("Category", "ReadStream")]
         [MemberData(nameof(GetReadStreamForwardsTheories))]
         public async Task Can_read_streams_forwards_with_prefetch(ReadStreamTheory theory)

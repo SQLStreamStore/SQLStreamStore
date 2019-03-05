@@ -3,9 +3,9 @@
     using System.Threading.Tasks;
     using Xunit.Abstractions;
 
-    public class HttpClientStreamStoreAcceptanceTests : AcceptanceTests
+    public class AcceptanceTests : AcceptanceTestsBase
     {
-        public HttpClientStreamStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
+        public AcceptanceTests(ITestOutputHelper testOutputHelper)
             : base(testOutputHelper)
         { }
 

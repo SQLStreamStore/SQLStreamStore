@@ -6,10 +6,14 @@
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
+    using Xunit.Abstractions;
     using static Streams.Deleted;
 
-    public partial class AcceptanceTests
+    public class DeleteEventAcceptanceTests : AcceptanceTests
     {
+        public DeleteEventAcceptanceTests(ITestOutputHelper testOutputHelper) : base(testOutputHelper)
+        { }
+
         [Fact, Trait("Category", "DeleteEvent")]
         public async Task When_delete_message_then_message_should_be_removed_from_stream()
         {

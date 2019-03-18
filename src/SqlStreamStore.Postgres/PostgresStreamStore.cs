@@ -219,7 +219,9 @@
                     if(Logger.IsInfoEnabled())
                     {
                         Logger.Info(
-                            $"Found {deletedMessageIds.Count} message(s) for stream {streamIdInfo.PostgresqlStreamId} to scavenge.");
+                            "Found {count} message(s) for stream {streamId} to scavenge.",
+                            deletedMessageIds.Count,
+                            streamIdInfo.PostgresqlStreamId);
                     }
 
                     if(deletedMessageIds.Count > 0)
@@ -227,7 +229,9 @@
                         if(Logger.IsDebugEnabled())
                         {
                             Logger.Debug(
-                                $"Scavenging the following messages on stream {streamIdInfo.PostgresqlStreamId}: {string.Join(", ", deletedMessageIds)}");
+                                "Scavenging the following messages on stream {streamId}: {messageIds}",
+                                streamIdInfo.PostgresqlStreamId,
+                                deletedMessageIds);
                         }
 
                         await DeleteEventsInternal(
@@ -247,8 +251,9 @@
                 if(Logger.IsWarnEnabled())
                 {
                     Logger.WarnException(
-                        $"Scavenge attempt failed on stream {streamIdInfo.PostgresqlStreamId.IdOriginal}. Another attempt will be made when this stream is written to.",
-                        ex);
+                        "Scavenge attempt failed on stream {streamId}. Another attempt will be made when this stream is written to.",
+                        ex,
+                        streamIdInfo.PostgresqlStreamId.IdOriginal);
                 }
             }
 

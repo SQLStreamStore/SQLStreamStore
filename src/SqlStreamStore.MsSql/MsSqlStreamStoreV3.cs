@@ -264,14 +264,14 @@
                 progress.Report(new MigrateProgress(MigrateProgress.MigrateStage.StreamIdsLoaded));
 
                 // Migrate data
-                Logger.Info($"{streamIds.Count} streams to be processed...");
+                Logger.Info("{count} streams to be processed...", streamIds.Count);
                 int i = 0;
                 foreach (var streamId in streamIds)
                 {
                     var metadata = await GetStreamMetadataInternal(streamId, cancellationToken);
                     if(metadata != null)
                     {
-                        Logger.Info($"Migrating stream {streamId} ({i}/{streamIds.Count}");
+                        Logger.Info("Migrating stream {streamId} ({current}/{total}", streamId, i, streamIds.Count);
 
                         using (var connection = _createConnection())
                         {

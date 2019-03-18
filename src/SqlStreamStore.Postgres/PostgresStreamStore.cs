@@ -216,23 +216,17 @@
                         }
                     }
 
-                    if(Logger.IsInfoEnabled())
-                    {
-                        Logger.Info(
-                            "Found {count} message(s) for stream {streamId} to scavenge.",
-                            deletedMessageIds.Count,
-                            streamIdInfo.PostgresqlStreamId);
-                    }
+                    Logger.Info(
+                        "Found {count} message(s) for stream {streamId} to scavenge.",
+                        deletedMessageIds.Count,
+                        streamIdInfo.PostgresqlStreamId);
 
                     if(deletedMessageIds.Count > 0)
                     {
-                        if(Logger.IsDebugEnabled())
-                        {
-                            Logger.Debug(
-                                "Scavenging the following messages on stream {streamId}: {messageIds}",
-                                streamIdInfo.PostgresqlStreamId,
-                                deletedMessageIds);
-                        }
+                        Logger.Debug(
+                            "Scavenging the following messages on stream {streamId}: {messageIds}",
+                            streamIdInfo.PostgresqlStreamId,
+                            deletedMessageIds);
 
                         await DeleteEventsInternal(
                             streamIdInfo,
@@ -248,13 +242,10 @@
             }
             catch(Exception ex)
             {
-                if(Logger.IsWarnEnabled())
-                {
-                    Logger.WarnException(
-                        "Scavenge attempt failed on stream {streamId}. Another attempt will be made when this stream is written to.",
-                        ex,
-                        streamIdInfo.PostgresqlStreamId.IdOriginal);
-                }
+                Logger.WarnException(
+                    "Scavenge attempt failed on stream {streamId}. Another attempt will be made when this stream is written to.",
+                    ex,
+                    streamIdInfo.PostgresqlStreamId.IdOriginal);
             }
 
             return -1;

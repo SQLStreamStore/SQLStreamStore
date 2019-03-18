@@ -54,11 +54,8 @@ namespace SqlStreamStore.Infrastructure
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (Logger.IsDebugEnabled())
-            {
-                Logger.DebugFormat("ReadAllForwards from position {fromPositionInclusive} with max count " +
+            Logger.DebugFormat("ReadAllForwards from position {fromPositionInclusive} with max count " +
                                    "{maxCount}.", fromPositionInclusive, maxCount);
-            }
 
             Task<ReadAllPage> ReadNext(long nextPosition, CancellationToken ct) => ReadAllForwards(nextPosition, maxCount, prefetchJsonData, ct);
 
@@ -106,11 +103,10 @@ namespace SqlStreamStore.Infrastructure
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (Logger.IsDebugEnabled())
-            {
-                Logger.DebugFormat("ReadAllBackwards from position {fromPositionInclusive} with max count " +
-                                   "{maxCount}.", fromPositionInclusive, maxCount);
-            }
+            Logger.Debug(
+                "ReadAllBackwards from position {fromPositionInclusive} with max count {maxCount}.",
+                fromPositionInclusive,
+                maxCount);
 
             ReadNextAllPage readNext = (nextPosition, ct) => ReadAllBackwards(nextPosition, maxCount, prefetchJsonData, ct);
             var page = await ReadAllBackwardsInternal(fromPositionInclusive, maxCount, prefetchJsonData, readNext, cancellationToken);
@@ -130,11 +126,11 @@ namespace SqlStreamStore.Infrastructure
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (Logger.IsDebugEnabled())
-            {
-                Logger.DebugFormat("ReadStreamForwards {streamId} from version {fromVersionInclusive} with max count " +
-                                   "{maxCount}.", streamId, fromVersionInclusive, maxCount);
-            }
+            Logger.Debug(
+                "ReadStreamForwards {streamId} from version {fromVersionInclusive} with max count {maxCount}.",
+                streamId,
+                fromVersionInclusive,
+                maxCount);
 
             ReadNextStreamPage readNext = (nextVersion, ct) => ReadStreamForwards(streamId, nextVersion, maxCount, prefetchJsonData, ct);
             var page = await ReadStreamForwardsInternal(streamId, fromVersionInclusive, maxCount, prefetchJsonData,
@@ -155,11 +151,12 @@ namespace SqlStreamStore.Infrastructure
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
 
-            if (Logger.IsDebugEnabled())
-            {
-                Logger.DebugFormat("ReadStreamBackwards {streamId} from version {fromVersionInclusive} with max count " +
-                                   "{maxCount}.", streamId, fromVersionInclusive, maxCount);
-            }
+            Logger.Debug(
+                "ReadStreamBackwards {streamId} from version {fromVersionInclusive} with max count {maxCount}.",
+                streamId,
+                fromVersionInclusive,
+                maxCount);
+
             ReadNextStreamPage readNext =
                 (nextVersion, ct) => ReadStreamBackwards(streamId, nextVersion, maxCount, prefetchJsonData, ct);
             var page = await ReadStreamBackwardsInternal(streamId, fromVersionInclusive, maxCount, prefetchJsonData, readNext,
@@ -222,10 +219,7 @@ namespace SqlStreamStore.Infrastructure
                 throw new ArgumentException("Must not start with '$'", nameof(streamId));
             }
 
-            if (Logger.IsDebugEnabled())
-            {
-                Logger.DebugFormat("GetStreamMetadata {streamId}.", streamId);
-            }
+            Logger.Debug("GetStreamMetadata {streamId}.", streamId);
 
             return GetStreamMetadataInternal(streamId, cancellationToken);
         }
@@ -353,7 +347,7 @@ namespace SqlStreamStore.Infrastructure
             ReadNextAllPage readNext,
             CancellationToken cancellationToken)
         {
-            Logger.InfoFormat($"ReadAllForwards: gap detected in position, reloading after {DefaultReloadInterval}ms");
+            Logger.Info("ReadAllForwards: gap detected in position, reloading after {DefaultReloadInterval}ms", DefaultReloadInterval);
             await Task.Delay(DefaultReloadInterval, cancellationToken);
             var reloadedPage = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, prefetch, readNext, cancellationToken)
                 .NotOnCapturedContext();

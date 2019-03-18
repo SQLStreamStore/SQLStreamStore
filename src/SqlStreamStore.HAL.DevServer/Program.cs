@@ -80,7 +80,7 @@
             }
         }
 
-        private static void DisplayMenu(IStreamStore streamStore, string url = null)
+        private static void DisplayMenu(IStreamStore streamStore)
         {
             while(true)
             {
@@ -95,10 +95,10 @@
                     case ConsoleKey.Escape:
                         return;
                     case ConsoleKey.W:
-                        Write(streamStore, url, 10, 100);
+                        Write(streamStore, 10, 100);
                         break;
                     case ConsoleKey.T:
-                        Write(streamStore, url, 100, 10);
+                        Write(streamStore, 100, 10);
                         break;
                     default:
                         Console.WriteLine("Computer says no");
@@ -107,14 +107,9 @@
             }
         }
 
-        private static void Write(IStreamStore streamStore, string url, int messageCount, int streamCount)
+        private static void Write(IStreamStore streamStore, int messageCount, int streamCount)
         {
             var streams = Enumerable.Range(0, streamCount).Select(_ => $"test-{Guid.NewGuid():n}").ToList();
-
-            var streamIds = string.Join("\n", streams.Select(streamid => $"{url}streams/{streamid}"));
-
-            Console.WriteLine("\nAbout to create the following streams: ");
-            Console.WriteLine(streamIds);
 
             Task.Run(() => Task.WhenAll(
                 from streamId in streams

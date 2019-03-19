@@ -2,6 +2,7 @@ namespace SqlStreamStore.HAL
 {
     using System;
     using System.Collections.Concurrent;
+    using System.Collections.Generic;
     using System.IO;
     using System.Reflection;
     using Halcyon.HAL;
@@ -12,6 +13,14 @@ namespace SqlStreamStore.HAL
     {
         private static readonly ConcurrentDictionary<string, HALResponse> s_schemas
             = new ConcurrentDictionary<string, HALResponse>();
+
+        private static readonly IDictionary<string, string> s_mediaTypeToExtension = new Dictionary<string, string>
+        {
+            [Constants.MediaTypes.JsonHyperSchema] = "json",
+            [Constants.MediaTypes.TextMarkdown] = "md",
+            [Constants.MediaTypes.Any] = "md",
+            ["*"] = "md"
+        };
 
         private readonly Type _resourceType;
 
@@ -24,7 +33,10 @@ namespace SqlStreamStore.HAL
 
         public HALResponse GetSchema(string name) => s_schemas.GetOrAdd(name, ReadSchema);
 
-        public Stream GetDocumentation(string name) => GetStream(name, "md");
+        public Stream GetDocumentation(string name, string mediaType)
+            => s_mediaTypeToExtension.TryGetValue(mediaType, out var extension)
+                ? GetStream(name, extension)
+                : null;
 
         private HALResponse ReadSchema(string name)
         {

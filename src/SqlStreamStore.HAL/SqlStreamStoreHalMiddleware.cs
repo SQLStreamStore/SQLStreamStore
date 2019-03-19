@@ -73,7 +73,8 @@
                 allStreamMessages,
                 streams,
                 streamMessages,
-                streamMetadata);
+                streamMetadata,
+                streamBrowser);
 
             s_Log.Info(index.ToString);
 

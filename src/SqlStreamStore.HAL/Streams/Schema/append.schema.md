@@ -7,7 +7,7 @@
 
 | Abstract | Extensible | Status | Identifiable | Custom Properties | Additional Properties | Defined In |
 |----------|------------|--------|--------------|-------------------|-----------------------|------------|
-| Can be instantiated | No | Experimental | No | Forbidden | Permitted | [append.schema.json](append.schema.json) |
+| Can be instantiated | No | Experimental | No | Forbidden | Forbidden | [append.schema.json](append.schema.json) |
 
 # Append to Stream Properties
 
@@ -17,7 +17,6 @@
 | [jsonMetadata](#jsonmetadata) | `object` | Optional | Append to Stream (this schema) |
 | [messageId](#messageid) | `string` | **Required** | Append to Stream (this schema) |
 | [type](#type) | `string` | **Required** | Append to Stream (this schema) |
-| `*` | any | Additional | this schema *allows* additional properties |
 
 ## jsonData
 

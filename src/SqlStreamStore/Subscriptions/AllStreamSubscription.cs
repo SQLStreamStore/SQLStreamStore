@@ -159,7 +159,7 @@
                 NotifySubscriptionDropped(SubscriptionDroppedReason.Disposed);
                 throw;
             }
-            catch (OperationCanceledException)
+            catch (Exception ex) when (ex.IsOperationCancelledException())
             {
                 NotifySubscriptionDropped(SubscriptionDroppedReason.Disposed);
                 throw;
@@ -190,7 +190,7 @@
                 NotifySubscriptionDropped(SubscriptionDroppedReason.Disposed);
                 throw;
             }
-            catch (OperationCanceledException)
+            catch (Exception ex) when (ex.IsOperationCancelledException())
             {
                 NotifySubscriptionDropped(SubscriptionDroppedReason.Disposed);
                 throw;

@@ -15,9 +15,9 @@ namespace SqlStreamStore.HAL.Docs
     {
         public static IApplicationBuilder UseDocs(
             this IApplicationBuilder builder,
-            DocsResource documentation) 
+            DocsResource documentation)
             => builder.MapWhen(IsMatch, Configure(documentation));
-        
+
         private static bool IsMatch(HttpContext context)
             => context.Request.Path.IsDocs();
 
@@ -29,16 +29,23 @@ namespace SqlStreamStore.HAL.Docs
             Task Docs(HttpContext context, Func<Task> next)
             {
                 Response response;
-                
+
                 return !context.Request.Path.StartsWithSegments("/docs", out var rel)
-                       || (response = documentation.Get(rel.Value.Remove(0, 1))) == null
+                       || (response = documentation.Get(
+                           rel.Value.Remove(0, 1),
+                           context.Request.Headers["Accept"])) == null
                     ? next()
                     : context.WriteResponse(response);
             }
 
             return builder => builder
                 .UseMiddlewareLogging(typeof(DocsMiddleware))
-                .MapWhen(HttpMethod.Get, inner => inner.UseAccept(Constants.MediaTypes.TextMarkdown).Use(Docs))
+                .MapWhen(
+                    HttpMethod.Get,
+                    inner => inner.UseAccept(
+                            Constants.MediaTypes.TextMarkdown,
+                            Constants.MediaTypes.JsonHyperSchema)
+                        .Use(Docs))
                 .UseAllowedMethods(documentation);
         }
     }

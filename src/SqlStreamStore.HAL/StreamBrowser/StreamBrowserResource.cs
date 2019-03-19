@@ -6,13 +6,16 @@ namespace SqlStreamStore.HAL.StreamBrowser
     using Halcyon.HAL;
     using SqlStreamStore.HAL.StreamBrowser;
 
-    internal class StreamBrowserResource
+    internal class StreamBrowserResource : IResource
     {
         private readonly IStreamStore _streamStore;
+
+        public SchemaSet Schema { get; }
 
         public StreamBrowserResource(IStreamStore streamStore)
         {
             _streamStore = streamStore;
+            Schema = new SchemaSet<StreamBrowserResource>();
         }
 
         public async Task<Response> Get(ListStreamsOperation operation, CancellationToken cancellationToken)

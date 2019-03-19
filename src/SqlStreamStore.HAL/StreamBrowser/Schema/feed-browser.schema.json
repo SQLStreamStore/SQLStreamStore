@@ -1,0 +1,33 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Browse Streams",
+  "type": "object",
+  "properties": {
+    "p": {
+      "type": "string",
+      "title": "Pattern",
+      "description": "The pattern to search for."
+    },
+    "t": {
+      "type": "string",
+      "enum": [
+        "s",
+        "e",
+        null
+      ],
+      "title": "Pattern Type",
+      "description": "The pattern type. Valid values are s (startsWith), e (endsWith), or null (match any stream)."
+    },
+    "m": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 100,
+      "title": "Max Count",
+      "description": "The maximum number of results to return."
+    },
+    "c": {
+      "type": "string",
+      "description": "A continuation token. Used for paging."
+    }
+  }
+}

@@ -7,7 +7,7 @@
 
 | Abstract | Extensible | Status | Identifiable | Custom Properties | Additional Properties | Defined In |
 |----------|------------|--------|--------------|-------------------|-----------------------|------------|
-| Can be instantiated | No | Experimental | No | Forbidden | Permitted | [feed-browser.schema.json](feed-browser.schema.json) |
+| Can be instantiated | No | Experimental | No | Forbidden | Forbidden | [feed-browser.schema.json](feed-browser.schema.json) |
 
 # Browse Streams Properties
 
@@ -17,7 +17,6 @@
 | [m](#m) | `integer` | Optional | Browse Streams (this schema) |
 | [p](#p) | `string` | Optional | Browse Streams (this schema) |
 | [t](#t) | `enum` | Optional | Browse Streams (this schema) |
-| `*` | any | Additional | this schema *allows* additional properties |
 
 ## c
 

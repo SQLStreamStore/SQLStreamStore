@@ -11,5 +11,6 @@
       "title": "Stream Id",
       "description": "The stream's id."
     }
-  }
+  },
+  "additionalProperties": false
 }

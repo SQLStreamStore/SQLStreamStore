@@ -29,5 +29,6 @@
       "type": "string",
       "description": "A continuation token. Used for paging."
     }
-  }
+  },
+  "additionalProperties": false
 }

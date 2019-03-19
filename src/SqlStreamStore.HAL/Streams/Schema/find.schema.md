@@ -7,14 +7,13 @@
 
 | Abstract | Extensible | Status | Identifiable | Custom Properties | Additional Properties | Defined In |
 |----------|------------|--------|--------------|-------------------|-----------------------|------------|
-| Can be instantiated | No | Experimental | No | Forbidden | Permitted | [find.schema.json](find.schema.json) |
+| Can be instantiated | No | Experimental | No | Forbidden | Forbidden | [find.schema.json](find.schema.json) |
 
 # Find a Stream Properties
 
 | Property | Type | Required | Defined by |
 |----------|------|----------|------------|
 | [streamId](#streamid) | `string` | **Required** | Find a Stream (this schema) |
-| `*` | any | Additional | this schema *allows* additional properties |
 
 ## streamId
 ### Stream Id

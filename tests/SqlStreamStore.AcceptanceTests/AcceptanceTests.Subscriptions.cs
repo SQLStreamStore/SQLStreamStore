@@ -185,7 +185,7 @@
 
                 await AppendMessages(store, streamId1, 1);
 
-                await receiveMessages.Task.WithTimeout();
+                await receiveMessages.Task.WithTimeout(5000);
 
                 receivedMessages.Count.ShouldBe(7);
             }
@@ -627,10 +627,10 @@
             // First message is blocked in handling, the second is cooperatively cancelled
             await subscription.Started;
             await AppendMessages(store, streamId, 2);
-            await handler.WaitAsync().WithTimeout(10000);
+            await handler.WaitAsync().WithTimeout();
             subscription.Dispose();
 
-            var droppedReason = await droppedTcs.Task.WithTimeout(10000);
+            var droppedReason = await droppedTcs.Task.WithTimeout();
 
             droppedReason.ShouldBe(SubscriptionDroppedReason.Disposed);
         }

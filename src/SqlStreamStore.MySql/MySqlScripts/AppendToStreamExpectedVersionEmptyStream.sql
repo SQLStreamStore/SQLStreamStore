@@ -9,7 +9,7 @@ CREATE PROCEDURE append_to_stream_expected_version_empty_stream(_stream_id CHAR(
                                                                 _json_data LONGTEXT,
                                                                 _json_metadata LONGTEXT,
                                                                 OUT _current_version INT,
-                                                                OUT _current_position LONG,
+                                                                OUT _current_position BIGINT,
                                                                 OUT _message_exists BOOLEAN)
 BEGIN
     DECLARE _stream_id_internal INT;

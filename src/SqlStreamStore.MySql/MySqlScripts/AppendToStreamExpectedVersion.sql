@@ -8,10 +8,10 @@ CREATE PROCEDURE append_to_stream_expected_version(_stream_id CHAR(42),
                                                    _json_data LONGTEXT,
                                                    _json_metadata LONGTEXT,
                                                    OUT _current_version INT,
-                                                   OUT _current_position BIGINT)
+                                                   OUT _current_position BIGINT,
+                                                   OUT _message_exists BOOLEAN)
 BEGIN
     DECLARE _stream_id_internal INT;
-    DECLARE _message_exists BOOLEAN;
 
     SELECT streams.id_internal INTO _stream_id_internal
     FROM streams
@@ -25,11 +25,11 @@ BEGIN
             SET MESSAGE_TEXT = 'WrongExpectedVersion';
     END IF;
 
-    SET _message_exists := (SELECT COUNT(*)
-                            FROM messages
-                            WHERE stream_id_internal = _stream_id_internal
-                              AND stream_version = _expected_version + 1
-                              AND message_id = _message_id) > 0;
+    SELECT COUNT(*) > 0 INTO _message_exists
+    FROM messages
+    WHERE stream_id_internal = _stream_id_internal
+      AND stream_version = _expected_version + 1
+      AND message_id = _message_id;
 
     IF NOT _message_exists
     THEN
@@ -37,6 +37,8 @@ BEGIN
         THEN
             SET _created_utc := UTC_TIMESTAMP(6);
         END IF;
+
+        SET _current_version := _expected_version + 1;
 
         INSERT INTO messages (stream_id_internal,
                               stream_version,
@@ -54,8 +56,6 @@ BEGIN
                 _json_metadata);
 
         SET _current_position := LAST_INSERT_ID();
-
-        SET _current_version := _expected_version + 1;
 
         UPDATE streams
         SET version  = _expected_version + 1,

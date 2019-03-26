@@ -50,25 +50,34 @@ namespace SqlStreamStore
                 .BeginTransactionAsync(cancellationToken)
                 .NotOnCapturedContext())
             {
-                foreach(var message in messages)
+                var throwIfAdditionalMessages = false;
+
+                for(var i = 0; i < messages.Length; i++)
                 {
-                    (nextExpectedVersion, appendResult) = await AppendMessageToStream(
+                    bool messageExists;
+                    (nextExpectedVersion, appendResult, messageExists) = await AppendMessageToStream(
                         streamId,
                         nextExpectedVersion,
-                        message,
+                        messages[i],
                         transaction,
                         cancellationToken);
-                }
 
-                if(appendResult.CurrentVersion - Math.Max(expectedVersion, 0) + 1 < +messages.Length)
-                {
-                    await transaction.RollbackAsync(cancellationToken).NotOnCapturedContext();
-                    throw new WrongExpectedVersionException(
-                        ErrorMessages.AppendFailedWrongExpectedVersion(
-                            streamId.MySqlStreamId.IdOriginal,
-                            expectedVersion),
-                        streamId.MySqlStreamId.IdOriginal,
-                        expectedVersion);
+                    if(i == 0)
+                    {
+                        throwIfAdditionalMessages = messageExists;
+                    }
+                    else
+                    {
+                        if(throwIfAdditionalMessages && !messageExists)
+                        {
+                            throw new WrongExpectedVersionException(
+                                ErrorMessages.AppendFailedWrongExpectedVersion(
+                                    streamId.MySqlStreamId.IdOriginal,
+                                    expectedVersion),
+                                streamId.MySqlStreamId.IdOriginal,
+                                expectedVersion);
+                        }
+                    }
                 }
 
                 await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
@@ -79,7 +88,7 @@ namespace SqlStreamStore
             return appendResult;
         }
 
-        private Task<(int nextExpectedVersion, AppendResult)> AppendMessageToStream(
+        private Task<(int nextExpectedVersion, AppendResult appendResult, bool messageExists)> AppendMessageToStream(
             StreamIdInfo streamId,
             int expectedVersion,
             NewStreamMessage message,
@@ -104,14 +113,16 @@ namespace SqlStreamStore
             }
         }
 
-        private async Task<(int nextExpectedVersion, AppendResult)> AppendToStreamExpectedVersionAny(
-            StreamIdInfo streamId,
-            NewStreamMessage message,
-            MySqlTransaction transaction,
-            CancellationToken cancellationToken)
+        private async Task<(int nextExpectedVersion, AppendResult appendResult, bool messageExists)>
+            AppendToStreamExpectedVersionAny(
+                StreamIdInfo streamId,
+                NewStreamMessage message,
+                MySqlTransaction transaction,
+                CancellationToken cancellationToken)
         {
             var currentVersion = Parameters.CurrentVersion();
             var currentPosition = Parameters.CurrentPosition();
+            var messageExists = Parameters.MessageExists();
 
             using(var command = BuildStoredProcedureCall(
                 _schema.AppendToStreamExpectedVersionAny,
@@ -125,7 +136,8 @@ namespace SqlStreamStore
                 Parameters.JsonData(message.JsonData),
                 Parameters.JsonMetadata(message.JsonMetadata),
                 currentVersion,
-                currentPosition))
+                currentPosition,
+                messageExists))
             {
                 var nextExpectedVersion = Convert.ToInt32(
                     await command
@@ -133,18 +145,23 @@ namespace SqlStreamStore
                         .NotOnCapturedContext());
                 return (
                     nextExpectedVersion,
-                    new AppendResult((int) currentVersion.Value, (long) currentPosition.Value));
+                    new AppendResult(
+                        (int) currentVersion.Value,
+                        (long) currentPosition.Value),
+                    (bool) messageExists.Value);
             }
         }
 
-        private async Task<(int nextExpectedVersion, AppendResult)> AppendToStreamExpectedVersionNoStream(
-            StreamIdInfo streamId,
-            NewStreamMessage message,
-            MySqlTransaction transaction,
-            CancellationToken cancellationToken)
+        private async Task<(int nextExpectedVersion, AppendResult appendResult, bool messageExists)>
+            AppendToStreamExpectedVersionNoStream(
+                StreamIdInfo streamId,
+                NewStreamMessage message,
+                MySqlTransaction transaction,
+                CancellationToken cancellationToken)
         {
             var currentVersion = Parameters.CurrentVersion();
             var currentPosition = Parameters.CurrentPosition();
+            var messageExists = Parameters.MessageExists();
 
             using(var command = BuildStoredProcedureCall(
                 _schema.AppendToStreamExpectedVersionNoStream,
@@ -158,7 +175,8 @@ namespace SqlStreamStore
                 Parameters.JsonData(message.JsonData),
                 Parameters.JsonMetadata(message.JsonMetadata),
                 currentVersion,
-                currentPosition))
+                currentPosition,
+                messageExists))
             {
                 var nextExpectedVersion = Convert.ToInt32(
                     await command
@@ -166,18 +184,23 @@ namespace SqlStreamStore
                         .NotOnCapturedContext());
                 return (
                     nextExpectedVersion,
-                    new AppendResult((int) currentVersion.Value, (long) currentPosition.Value));
+                    new AppendResult(
+                        (int) currentVersion.Value,
+                        (long) currentPosition.Value),
+                    (bool) messageExists.Value);
             }
         }
 
-        private async Task<(int nextExpectedVersion, AppendResult)> AppendToStreamExpectedVersionEmptyStream(
-            StreamIdInfo streamId,
-            NewStreamMessage message,
-            MySqlTransaction transaction,
-            CancellationToken cancellationToken)
+        private async Task<(int nextExpectedVersion, AppendResult appendResult, bool messageExists)>
+            AppendToStreamExpectedVersionEmptyStream(
+                StreamIdInfo streamId,
+                NewStreamMessage message,
+                MySqlTransaction transaction,
+                CancellationToken cancellationToken)
         {
             var currentVersion = Parameters.CurrentVersion();
             var currentPosition = Parameters.CurrentPosition();
+            var messageExists = Parameters.MessageExists();
 
             using(var command = BuildStoredProcedureCall(
                 _schema.AppendToStreamExpectedVersionEmptyStream,
@@ -191,7 +214,8 @@ namespace SqlStreamStore
                 Parameters.JsonData(message.JsonData),
                 Parameters.JsonMetadata(message.JsonMetadata),
                 currentVersion,
-                currentPosition))
+                currentPosition,
+                messageExists))
             {
                 var nextExpectedVersion = Convert.ToInt32(
                     await command
@@ -199,41 +223,50 @@ namespace SqlStreamStore
                         .NotOnCapturedContext());
                 return (
                     nextExpectedVersion,
-                    new AppendResult((int) currentVersion.Value, (long) currentPosition.Value));
+                    new AppendResult(
+                        (int) currentVersion.Value,
+                        (long) currentPosition.Value),
+                    (bool) messageExists.Value);
             }
         }
 
-        private async Task<(int nextExpectedVersion, AppendResult)> AppendToStreamExpectedVersion(
-            StreamIdInfo streamId,
-            int expectedVersion,
-            NewStreamMessage message,
-            MySqlTransaction transaction,
-            CancellationToken cancellationToken)
+        private async Task<(int nextExpectedVersion, AppendResult appendResult, bool messageExists)>
+            AppendToStreamExpectedVersion(
+                StreamIdInfo streamId,
+                int expectedVersion,
+                NewStreamMessage message,
+                MySqlTransaction transaction,
+                CancellationToken cancellationToken)
         {
             var currentVersion = Parameters.CurrentVersion();
             var currentPosition = Parameters.CurrentPosition();
+            var messageExists = Parameters.MessageExists();
 
             using(var command = BuildStoredProcedureCall(
                 _schema.AppendToStreamExpectedVersion,
                 transaction,
                 Parameters.StreamId(streamId.MySqlStreamId),
-                Parameters.StreamIdOriginal(streamId.MySqlStreamId),
                 Parameters.ExpectedVersion(expectedVersion),
                 Parameters.CreatedUtc(_settings.GetUtcNow?.Invoke()),
                 Parameters.MessageId(message.MessageId),
                 Parameters.Type(message.Type),
                 Parameters.JsonData(message.JsonData),
                 Parameters.JsonMetadata(message.JsonMetadata),
+                messageExists,
                 currentVersion,
                 currentPosition))
             {
+                await command.PrepareAsync(cancellationToken).NotOnCapturedContext();
                 var nextExpectedVersion = Convert.ToInt32(
                     await command
                         .ExecuteScalarAsync(cancellationToken)
                         .NotOnCapturedContext());
                 return (
                     nextExpectedVersion,
-                    new AppendResult((int) currentVersion.Value, (long) currentPosition.Value));
+                    new AppendResult(
+                        (int) currentVersion.Value,
+                        (long) currentPosition.Value),
+                    (bool) messageExists.Value);
             }
         }
 
@@ -248,7 +281,8 @@ namespace SqlStreamStore
             using(var transaction = await connection
                 .BeginTransactionAsync(cancellationToken)
                 .NotOnCapturedContext())
-            using(var command = BuildStoredProcedureCall(_schema.CreateEmptyStream,
+            using(var command = BuildStoredProcedureCall(
+                _schema.CreateEmptyStream,
                 transaction,
                 Parameters.StreamId(streamId.MySqlStreamId),
                 Parameters.StreamIdOriginal(streamId.MySqlStreamId),

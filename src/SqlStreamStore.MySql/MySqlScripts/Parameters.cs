@@ -192,6 +192,14 @@ namespace SqlStreamStore.MySqlScripts
                 ParameterName = "_pattern"
             };
 
+        public static MySqlParameter MessageExists()
+            => new MySqlParameter
+            {
+                MySqlDbType = MySqlDbType.Bool,
+                ParameterName = "_message_exists",
+                Direction = ParameterDirection.Output
+            };
+
         private static MySqlParameter StreamIdInternal(MySqlStreamId streamId, string parameterName)
             => new MySqlParameter
             {

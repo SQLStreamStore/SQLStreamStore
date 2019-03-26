@@ -15,6 +15,7 @@ BEGIN
     DECLARE _affected INT;
     DECLARE _ INT;
     DECLARE __ BIGINT;
+    DECLARE ___ BOOLEAN;
 
     BEGIN
         IF _created_utc IS NULL
@@ -69,7 +70,8 @@ BEGIN
                     _deleted_stream_message_json_data,
                     NULL,
                     _,
-                    __);
+                    __,
+                    ___);
 
         END IF;
     END;

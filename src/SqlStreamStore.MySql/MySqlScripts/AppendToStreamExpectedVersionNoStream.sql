@@ -9,10 +9,10 @@ CREATE PROCEDURE append_to_stream_expected_version_no_stream(_stream_id CHAR(42)
                                                              _json_data LONGTEXT,
                                                              _json_metadata LONGTEXT,
                                                              OUT _current_version INT,
-                                                             OUT _current_position LONG)
+                                                             OUT _current_position LONG,
+                                                             OUT _message_exists BOOLEAN)
 BEGIN
     DECLARE _stream_id_internal INT;
-    DECLARE _message_exists BOOLEAN;
     DECLARE _max_age INT;
     DECLARE _max_count INT;
 
@@ -29,7 +29,7 @@ BEGIN
         SET _stream_id_internal := LAST_INSERT_ID();
     END IF;
 
-    SET _message_exists := (SELECT COUNT(*)
+    SET _message_exists := (SELECT COUNT(*) > 0
                             FROM messages
                             WHERE messages.stream_id_internal = _stream_id_internal
                               AND messages.message_id = _message_id

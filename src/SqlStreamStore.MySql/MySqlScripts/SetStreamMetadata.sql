@@ -13,6 +13,7 @@ CREATE PROCEDURE set_stream_metadata(_stream_id CHAR(42),
                                      OUT _current_version INT,
                                      OUT _current_position LONG)
 BEGIN
+    DECLARE _ BOOLEAN;
     IF _created_utc IS NULL
     THEN
         SET _created_utc = UTC_TIMESTAMP(6);
@@ -30,7 +31,8 @@ BEGIN
                 _metadata_message_json_data,
                 NULL,
                 _current_version,
-                _current_position);
+                _current_position,
+                _);
     ELSEIF _expected_version = -2
     THEN
         CALL append_to_stream_expected_version_any(
@@ -43,24 +45,25 @@ BEGIN
                 _metadata_message_json_data,
                 NULL,
                 _current_version,
-                _current_position);
+                _current_position,
+                _);
     ELSEIF _expected_version = -1
     THEN
         CALL append_to_stream_expected_version_empty_stream(
                 _metadata_stream_id,
                 _metadata_stream_id_original,
-                null,
+                NULL,
                 _created_utc,
                 _metadata_message_message_id,
                 _metadata_message_type,
                 _metadata_message_json_data,
                 NULL,
                 _current_version,
-                _current_position);
+                _current_position,
+                _);
     ELSE
         CALL append_to_stream_expected_version(
                 _metadata_stream_id,
-                _metadata_stream_id_original,
                 _expected_version,
                 _created_utc,
                 _metadata_message_message_id,
@@ -68,7 +71,8 @@ BEGIN
                 _metadata_message_json_data,
                 NULL,
                 _current_version,
-                _current_position);
+                _current_position,
+                _);
     END IF;
 
     UPDATE streams

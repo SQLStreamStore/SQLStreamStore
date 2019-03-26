@@ -13,6 +13,7 @@ BEGIN
     DECLARE _stream_id_internal INT;
     DECLARE _ INT;
     DECLARE __ BIGINT;
+    DECLARE ___ BOOLEAN;
 
     SELECT streams.id_internal INTO _stream_id_internal
     FROM streams
@@ -39,6 +40,7 @@ BEGIN
                 _deleted_message_json_data,
                 NULL,
                 _,
-                __);
+                __,
+                ___);
     END IF;
 END;

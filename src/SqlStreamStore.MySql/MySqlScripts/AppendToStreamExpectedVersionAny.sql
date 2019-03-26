@@ -9,10 +9,10 @@ CREATE PROCEDURE append_to_stream_expected_version_any(_stream_id CHAR(42),
                                                        _json_data LONGTEXT,
                                                        _json_metadata LONGTEXT,
                                                        OUT _current_version INT,
-                                                       OUT _current_position LONG)
+                                                       OUT _current_position LONG,
+                                                       OUT _message_exists BOOLEAN)
 BEGIN
     DECLARE _stream_id_internal INT;
-    DECLARE _message_exists BOOLEAN;
     DECLARE _stream_version INT;
     DECLARE _max_age INT;
     DECLARE _max_count INT;

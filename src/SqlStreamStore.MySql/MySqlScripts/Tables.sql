@@ -11,6 +11,8 @@ CREATE TABLE IF NOT EXISTS streams
     CONSTRAINT uq_streams_id UNIQUE KEY (id),
     CONSTRAINT ck_version_gte_negative_one CHECK (version >= -1)
 ) ENGINE = InnoDB
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci
     COMMENT '{ "version": 1 }';
 
 CREATE TABLE IF NOT EXISTS messages
@@ -28,4 +30,6 @@ CREATE TABLE IF NOT EXISTS messages
     CONSTRAINT uq_messages_stream_id_internal_and_stream_version UNIQUE KEY (stream_id_internal, stream_version),
     CONSTRAINT uq_stream_id_internal_and_message_id UNIQUE KEY (stream_id_internal, message_id),
     CONSTRAINT ck_stream_version_gte_zero CHECK (stream_version >= 0)
-) ENGINE = InnoDB;
+) ENGINE = InnoDB
+  CHARACTER SET utf8mb4
+  COLLATE utf8mb4_unicode_ci;

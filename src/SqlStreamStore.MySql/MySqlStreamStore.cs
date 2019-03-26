@@ -130,6 +130,19 @@
             }
         }
 
+        protected override void Dispose(bool disposing)
+        {
+            if(disposing)
+            {
+                if(_streamStoreNotifier.IsValueCreated)
+                {
+                    _streamStoreNotifier.Value.Dispose();
+                }
+            }
+
+            base.Dispose(disposing);
+        }
+
         internal async Task<int> TryScavenge(
             StreamIdInfo streamId,
             CancellationToken cancellationToken)

@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
+    using System.Threading;
     using System.Threading.Tasks;
     using global::MySql.Data.MySqlClient;
     using Shouldly;
@@ -19,7 +20,7 @@
         { }
 
         protected override async Task<IStreamStoreFixture> CreateFixture()
-            => await MySqlStreamStoreFixture.Create(testOutputHelper: TestOutputHelper);
+            => await MySqlStreamStoreFixture.Create(TestOutputHelper);
 
         [Fact]
         public async Task Can_use_multiple_databases()
@@ -42,6 +43,20 @@
             }
         }
 
+        [Fact]
+        public async Task when_try_scavenge_fails_returns_negative_one()
+        {
+            using (var fixture = await MySqlStreamStoreFixture.Create(TestOutputHelper))
+            {
+                var cts = new CancellationTokenSource();
+
+                cts.Cancel();
+
+                var result = await fixture.Store.TryScavenge(new StreamIdInfo("stream-1"), cts.Token);
+
+                result.ShouldBe(-1);
+            }
+        }
         [Fact]
         public async Task Can_call_initialize_repeatably()
         {

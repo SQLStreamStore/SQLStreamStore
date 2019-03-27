@@ -83,7 +83,16 @@ namespace SqlStreamStore
                 await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
             }
 
-            await TryScavenge(streamId, cancellationToken).NotOnCapturedContext();
+            if(_settings.ScavengeAsynchronously)
+            {
+#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+                Task.Run(() => TryScavenge(streamId, cancellationToken), cancellationToken);
+#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
+            }
+            else
+            {
+                await TryScavenge(streamId, cancellationToken).NotOnCapturedContext();
+            }
 
             return appendResult;
         }

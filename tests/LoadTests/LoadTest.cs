@@ -60,6 +60,24 @@
                         streamStore = await fixture.GetPostgresStreamStore(true);
                         disposable = fixture;
                     })
+                .Add("MySql (Docker)",
+                    async ct =>
+                    {
+                        var fixture = new MySqlStreamStoreDb();
+                        Console.WriteLine(fixture.ConnectionString);
+                        streamStore = await fixture.GetMySqlStreamStore(true);
+                        disposable = fixture;
+                    })
+                .Add("MySql (Server)",
+                    async ct =>
+                    {
+                        Console.Write("Enter the connection string: ");
+                        var connectionString = Console.ReadLine();
+                        var fixture = new MySqlStreamStoreDb(connectionString);
+                        Console.WriteLine(fixture.ConnectionString);
+                        streamStore = await fixture.GetMySqlStreamStore(true);
+                        disposable = fixture;
+                    })
                 .Display(cancellationToken);
 
             return (

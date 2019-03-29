@@ -7,23 +7,22 @@
 
 | Abstract | Extensible | Status | Identifiable | Custom Properties | Additional Properties | Defined In |
 |----------|------------|--------|--------------|-------------------|-----------------------|------------|
-| Can be instantiated | No | Experimental | No | Forbidden | Permitted | [append.schema.json](append.schema.json) |
+| Can be instantiated | No | Experimental | No | Forbidden | Forbidden | [append.schema.json](append.schema.json) |
 
 # Append to Stream Properties
 
 | Property | Type | Required | Defined by |
 |----------|------|----------|------------|
-| [jsonData](#jsondata) | `object` | Optional | Append to Stream (this schema) |
-| [jsonMetadata](#jsonmetadata) | `string` | Optional | Append to Stream (this schema) |
+| [jsonData](#jsondata) | `object` | **Required** | Append to Stream (this schema) |
+| [jsonMetadata](#jsonmetadata) | `object` | Optional | Append to Stream (this schema) |
 | [messageId](#messageid) | `string` | **Required** | Append to Stream (this schema) |
 | [type](#type) | `string` | **Required** | Append to Stream (this schema) |
-| `*` | any | Additional | this schema *allows* additional properties |
 
 ## jsonData
 
 
 `jsonData`
-* is optional
+* is **required**
 * type: `object`
 * defined in this schema
 
@@ -46,13 +45,17 @@
 
 `jsonMetadata`
 * is optional
-* type: `string`
+* type: `object`
 * defined in this schema
 
 ### jsonMetadata Type
 
 
-`string`
+`object` with following properties:
+
+
+| Property | Type | Required |
+|----------|------|----------|
 
 
 

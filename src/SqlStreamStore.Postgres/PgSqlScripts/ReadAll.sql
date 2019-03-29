@@ -11,8 +11,8 @@ CREATE OR REPLACE FUNCTION __schema__.read_all(
     "position"     BIGINT,
     create_utc     TIMESTAMP,
     "type"         VARCHAR(128),
-    json_metadata  VARCHAR,
-    json_data      VARCHAR,
+    json_metadata  JSONB,
+    json_data      JSONB,
     max_age        INT
   )
 AS $F$

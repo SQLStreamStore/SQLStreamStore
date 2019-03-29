@@ -107,8 +107,8 @@
             });
         }
 
-        // Deadlocks appear to be a fact of life when there is high contention on a table regardless of 
-        // transaction isolation settings. 
+        // Deadlocks appear to be a fact of life when there is high contention on a table regardless of
+        // transaction isolation settings.
         private static async Task<T> RetryOnDeadLock<T>(Func<Task<T>> operation)
         {
             int maxRetries = 2; //TODO too much? too little? configurable?
@@ -181,8 +181,8 @@
                         return new MsSqlAppendResult(maxCount, currentVersion, currentPosition);
                     }
                 }
-                
-                // Check for unique constraint violation on 
+
+                // Check for unique constraint violation on
                 // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
                 catch(SqlException ex)
                     when(ex.IsUniqueConstraintViolationOnIndex("IX_Messages_StreamIdInternal_Id"))
@@ -211,6 +211,8 @@
                     {
                         throw new WrongExpectedVersionException(
                             ErrorMessages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, ExpectedVersion.Any),
+                            sqlStreamId.IdOriginal,
+                            ExpectedVersion.Any,
                             ex);
                     }
 
@@ -220,6 +222,8 @@
                         {
                             throw new WrongExpectedVersionException(
                                 ErrorMessages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, ExpectedVersion.Any),
+                                sqlStreamId.IdOriginal,
+                                ExpectedVersion.Any,
                                 ex);
                         }
                     }
@@ -232,6 +236,8 @@
                 {
                     throw new WrongExpectedVersionException(
                         ErrorMessages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, ExpectedVersion.Any),
+                        sqlStreamId.IdOriginal,
+                        ExpectedVersion.Any,
                         ex);
                 }
             }
@@ -288,7 +294,7 @@
                 }
                 catch(SqlException ex)
                 {
-                    // Check for unique constraint violation on 
+                    // Check for unique constraint violation on
                     // https://technet.microsoft.com/en-us/library/aa258747%28v=sql.80%29.aspx
                     if(ex.IsUniqueConstraintViolationOnIndex("IX_Streams_Id"))
                     {
@@ -308,8 +314,9 @@
                         if(messages.Length > page.Messages.Length)
                         {
                             throw new WrongExpectedVersionException(
-                                ErrorMessages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal,
-                                    ExpectedVersion.NoStream),
+                                ErrorMessages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, ExpectedVersion.NoStream),
+                                sqlStreamId.IdOriginal,
+                                ExpectedVersion.NoStream,
                                 ex);
                         }
 
@@ -318,8 +325,9 @@
                             if(messages[i].MessageId != page.Messages[i].MessageId)
                             {
                                 throw new WrongExpectedVersionException(
-                                    ErrorMessages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal,
-                                        ExpectedVersion.NoStream),
+                                    ErrorMessages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, ExpectedVersion.NoStream),
+                                    sqlStreamId.IdOriginal,
+                                    ExpectedVersion.NoStream,
                                     ex);
                             }
                         }
@@ -333,8 +341,9 @@
                     if(ex.IsUniqueConstraintViolation())
                     {
                         throw new WrongExpectedVersionException(
-                            ErrorMessages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal,
-                                ExpectedVersion.NoStream),
+                            ErrorMessages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, ExpectedVersion.NoStream),
+                            sqlStreamId.IdOriginal,
+                            ExpectedVersion.NoStream,
                             ex);
                     }
 
@@ -409,6 +418,8 @@
                             {
                                 throw new WrongExpectedVersionException(
                                     ErrorMessages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, expectedVersion),
+                                    sqlStreamId.IdOriginal,
+                                    expectedVersion,
                                     ex);
                             }
 
@@ -419,13 +430,15 @@
                                 {
                                     throw new WrongExpectedVersionException(
                                         ErrorMessages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, expectedVersion),
+                                        sqlStreamId.IdOriginal,
+                                        expectedVersion,
                                         ex);
                                 }
                             }
 
                             return new MsSqlAppendResult(
-                                null, 
-                                page.LastStreamVersion, 
+                                null,
+                                page.LastStreamVersion,
                                 page.LastStreamPosition);
                         }
                     }
@@ -433,6 +446,8 @@
                     {
                         throw new WrongExpectedVersionException(
                             ErrorMessages.AppendFailedWrongExpectedVersion(sqlStreamId.IdOriginal, expectedVersion),
+                            sqlStreamId.IdOriginal,
+                            expectedVersion,
                             ex);
                     }
                     throw;

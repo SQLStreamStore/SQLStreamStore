@@ -11,6 +11,7 @@ namespace SqlStreamStore.HAL
         {
             public const string TextMarkdown = "text/markdown";
             public const string HalJson = "application/hal+json";
+            public const string JsonHyperSchema = "application/schema+json";
             public const string Any = "*/*";
         }
 

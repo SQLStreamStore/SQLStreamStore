@@ -1,5 +1,5 @@
 docker build --tag sss-build .
-docker run --rm --name sss-build ^
+docker run --rm -it --name sss-build ^
  -v /var/run/docker.sock:/var/run/docker.sock ^
  -v %cd%/artifacts:/artifacts ^
  -v %cd%/.git:/.git ^

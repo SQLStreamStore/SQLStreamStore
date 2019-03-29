@@ -91,8 +91,10 @@ namespace SqlStreamStore
                             if(ex.Message.StartsWith("WrongExpectedVersion"))
                             {
                                 throw new WrongExpectedVersionException(
-                                    ErrorMessages.DeleteStreamFailedWrongExpectedVersion(
-                                        streamIdInfo.SqlStreamId.IdOriginal, expectedVersion), ex);
+                                    ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamIdInfo.SqlStreamId.IdOriginal, expectedVersion),
+                                    streamIdInfo.SqlStreamId.IdOriginal,
+                                    expectedVersion,
+                                    ex);
                             }
                             throw;
                         }

@@ -61,9 +61,9 @@
                     await transaction.RollbackAsync(cancellationToken).NotOnCapturedContext();
 
                     throw new WrongExpectedVersionException(
-                        ErrorMessages.DeleteStreamFailedWrongExpectedVersion(
-                            streamId.IdOriginal,
-                            expectedVersion),
+                        ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamId.IdOriginal, expectedVersion),
+                        streamId.IdOriginal,
+                        expectedVersion,
                         ex);
                 }
             }

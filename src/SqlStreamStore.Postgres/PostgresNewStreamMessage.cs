@@ -16,7 +16,7 @@
                 MessageId = message.MessageId,
                 Type = message.Type,
                 JsonData = message.JsonData,
-                JsonMetadata = message.JsonMetadata
+                JsonMetadata = string.IsNullOrEmpty(message.JsonMetadata) ? null : message.JsonMetadata,
             };
     }
 }

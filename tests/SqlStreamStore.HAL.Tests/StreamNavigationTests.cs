@@ -26,14 +26,14 @@
 
         public static IEnumerable<object[]> GetNoMessagesPagingCases()
         {
-            yield return new object[] { "stream", string.Empty, HttpStatusCode.OK };
-            yield return new object[] { $"streams/{StreamId}", "../", HttpStatusCode.NotFound };
+            yield return new object[] { "stream", HttpStatusCode.OK };
+            yield return new object[] { $"streams/{StreamId}", HttpStatusCode.NotFound };
         }
 
         private static bool IsAllStream(string path) => path == "stream";
 
         [Theory, MemberData(nameof(GetNoMessagesPagingCases))]
-        public async Task read_head_link_no_messages(string path, string root, HttpStatusCode statusCode)
+        public async Task read_head_link_no_messages(string path, HttpStatusCode statusCode)
         {
             using(var response = await _fixture.HttpClient.GetAsync(path))
             {
@@ -65,12 +65,12 @@
 
         public static IEnumerable<object[]> GetPagingCases()
         {
-            yield return new object[] { "stream", string.Empty };
-            yield return new object[] { $"streams/{StreamId}", "../" };
+            yield return new object[] { "stream" };
+            yield return new object[] { $"streams/{StreamId}" };
         }
 
         [Theory, MemberData(nameof(GetPagingCases))]
-        public async Task read_head_link_when_multiple_pages(string path, string root)
+        public async Task read_head_link_when_multiple_pages(string path)
         {
             var result = await _fixture.WriteNMessages(StreamId, 30);
 
@@ -104,7 +104,7 @@
         }
 
         [Theory, MemberData(nameof(GetPagingCases))]
-        public async Task read_first_link(string path, string root)
+        public async Task read_first_link(string path)
         {
             var result = await _fixture.WriteNMessages(StreamId, 10);
 
@@ -137,7 +137,7 @@
         }
 
         [Theory, MemberData(nameof(GetPagingCases))]
-        public async Task read_first_link_when_multiple_pages(string path, string root)
+        public async Task read_first_link_when_multiple_pages(string path)
         {
             await _fixture.WriteNMessages(StreamId, 30);
 

@@ -44,7 +44,7 @@ namespace SqlStreamStore.HAL
             
             _links.Add((rel, href, title));
 
-            s_log.Debug($"Added link {_links[_links.Count - 1]} to response for request {_path}");
+            s_log.Debug("Added link {link} to response for request {path}", _links[_links.Count - 1], _path);
             return this;
         }
 

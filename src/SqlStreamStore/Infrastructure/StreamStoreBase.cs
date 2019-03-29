@@ -29,7 +29,7 @@ namespace SqlStreamStore.Infrastructure
             GetUtcNow getUtcNow,
             string logName)
             : base(metadataMaxAgeCacheExpiry, metadataMaxAgeCacheMaxSize, getUtcNow, logName)
-        {}
+        { }
 
         /// <summary>
         ///     Initialized an new instance of a <see cref="StreamStoreBase"/>
@@ -38,29 +38,37 @@ namespace SqlStreamStore.Infrastructure
         /// <param name="logName"></param>
         protected StreamStoreBase(GetUtcNow getUtcNow, string logName)
             : base(getUtcNow, logName)
-        {}
+        { }
 
         /// <inheritdoc />
-        public Task<AppendResult> AppendToStream(StreamId streamId, int expectedVersion, NewStreamMessage[] messages, CancellationToken cancellationToken = default)
+        public Task<AppendResult> AppendToStream(
+            StreamId streamId,
+            int expectedVersion,
+            NewStreamMessage[] messages,
+            CancellationToken cancellationToken = default)
         {
             Ensure.That(streamId.Value, nameof(streamId)).DoesNotStartWith("$");
             Ensure.That(messages, nameof(messages)).IsNotNull();
 
-            if (Logger.IsDebugEnabled())
-            {
-                Logger.DebugFormat("AppendToStream {streamId} with expected version {expectedVersion} and " +
-                                   "{messageCount} messages.", streamId, expectedVersion, messages.Length);
-            }
-            if (messages.Length == 0 && expectedVersion >= 0)
+            Logger.Debug(
+                "AppendToStream {streamId} with expected version {expectedVersion} and {messageCount} messages.",
+                streamId,
+                expectedVersion,
+                messages.Length);
+
+            if(messages.Length == 0 && expectedVersion >= 0)
             {
                 // If there is an expected version then nothing to do...
                 return CreateAppendResultAtHeadPosition(expectedVersion, cancellationToken);
             }
+
             // ... expectedVersion.NoStream and ExpectedVersion.Any may create an empty stream though
             return AppendToStreamInternal(streamId, expectedVersion, messages, cancellationToken);
         }
 
-        private async Task<AppendResult> CreateAppendResultAtHeadPosition(int expectedVersion, CancellationToken cancellationToken)
+        private async Task<AppendResult> CreateAppendResultAtHeadPosition(
+            int expectedVersion,
+            CancellationToken cancellationToken)
         {
             var position = await ReadHeadPosition(cancellationToken);
             return new AppendResult(expectedVersion, position);
@@ -74,10 +82,9 @@ namespace SqlStreamStore.Infrastructure
         {
             Ensure.That(streamId.Value, nameof(streamId)).DoesNotStartWith("$");
 
-            if (Logger.IsDebugEnabled())
-            {
-                Logger.DebugFormat("DeleteStream {streamId} with expected version {expectedVersion}.", streamId, expectedVersion);
-            }
+            Logger.Debug("DeleteStream {streamId} with expected version {expectedVersion}.",
+                streamId,
+                expectedVersion);
 
             return DeleteStreamInternal(streamId, expectedVersion, cancellationToken);
         }
@@ -90,10 +97,7 @@ namespace SqlStreamStore.Infrastructure
         {
             Ensure.That(streamId.Value, nameof(streamId)).DoesNotStartWith("$");
 
-            if (Logger.IsDebugEnabled())
-            {
-                Logger.DebugFormat("DeleteMessage {streamId} with messageId {messageId}", streamId, messageId);
-            }
+            Logger.DebugFormat("DeleteMessage {streamId} with messageId {messageId}", streamId, messageId);
 
             return DeleteEventInternal(streamId, messageId, cancellationToken);
         }
@@ -116,12 +120,12 @@ namespace SqlStreamStore.Infrastructure
             Ensure.That(expectedStreamMetadataVersion, nameof(expectedStreamMetadataVersion))
                 .IsGte(ExpectedVersion.NoStream);
 
-            if (Logger.IsDebugEnabled())
-            {
-                Logger.DebugFormat("SetStreamMetadata {streamId} with expected metadata version " +
-                                   "{expectedStreamMetadataVersion}, max age {maxAge} and max count {maxCount}.",
-                                   streamId, expectedStreamMetadataVersion, maxAge, maxCount);
-            }
+            Logger.Debug(
+                "SetStreamMetadata {streamId} with expected metadata version {expectedStreamMetadataVersion}, max age {maxAge} and max count {maxCount}.",
+                streamId,
+                expectedStreamMetadataVersion,
+                maxAge,
+                maxCount);
 
             return SetStreamMetadataInternal(
                 streamId,
@@ -161,12 +165,12 @@ namespace SqlStreamStore.Infrastructure
             CancellationToken cancellationToken);
 
         protected abstract Task<SetStreamMetadataResult> SetStreamMetadataInternal(
-           string streamId,
-           int expectedStreamMetadataVersion,
-           int? maxAge,
-           int? maxCount,
-           string metadataJson,
-           CancellationToken cancellationToken);
+            string streamId,
+            int expectedStreamMetadataVersion,
+            int? maxAge,
+            int? maxCount,
+            string metadataJson,
+            CancellationToken cancellationToken);
 
         protected override void Dispose(bool disposing)
         {
@@ -174,11 +178,10 @@ namespace SqlStreamStore.Infrastructure
             {
                 _taskQueue.Dispose();
             }
+
             base.Dispose(disposing);
         }
 
 #pragma warning restore CS1591 // Missing XML comment for publicly visible type or member
-
     }
-
 }

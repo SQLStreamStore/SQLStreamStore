@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 docker build --tag sss-build .
-docker run --rm --name sss-build \
+docker run --rm -it --name sss-build \
  -v /var/run/docker.sock:/var/run/docker.sock \
  -v $PWD/artifacts:/artifacts \
  -v $PWD/.git:/.git \

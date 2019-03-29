@@ -5,13 +5,12 @@
     <Description>HTTP Server for SQL Stream Store</Description>
     <AssemblyTitle>Stream Store - HAL Server</AssemblyTitle>    
     <DebugSymbols>true</DebugSymbols>
-    <NoWarn>1701;1702;1705;1591</NoWarn>
     <LangVersion>latest</LangVersion>
     <CrossGenDuringPublish>false</CrossGenDuringPublish>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Halcyon" Version="2.5.1" />
-    <PackageReference Include="LibLog" Version="5.0.4" PrivateAssets="All" />
+    <PackageReference Include="LibLog" Version="5.0.6" PrivateAssets="All" />
     <PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.2.0" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
   </ItemGroup>

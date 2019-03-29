@@ -4,7 +4,8 @@
   "type": "object",
   "required": [
     "messageId",
-    "type"
+    "type",
+    "jsonData"
   ],
   "properties": {
     "messageId": {
@@ -34,5 +35,6 @@
         "rows": 30
       }
     }
-  }
+  },
+  "additionalProperties": false
 }

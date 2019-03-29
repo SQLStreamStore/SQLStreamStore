@@ -58,9 +58,9 @@
                             await transaction.RollbackAsync(cancellationToken).NotOnCapturedContext();
 
                             throw new WrongExpectedVersionException(
-                                ErrorMessages.AppendFailedWrongExpectedVersion(
-                                    streamIdInfo.PostgresqlStreamId.IdOriginal,
-                                    expectedVersion),
+                                ErrorMessages.AppendFailedWrongExpectedVersion(streamIdInfo.PostgresqlStreamId.IdOriginal, expectedVersion),
+                                streamIdInfo.PostgresqlStreamId.IdOriginal,
+                                expectedVersion,
                                 ex);
                         }
                     }

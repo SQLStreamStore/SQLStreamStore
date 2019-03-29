@@ -37,8 +37,8 @@ CREATE TABLE IF NOT EXISTS __schema__.messages (
   message_id         UUID         NOT NULL,
   created_utc        TIMESTAMP    NOT NULL,
   type               VARCHAR(128) NOT NULL,
-  json_data          VARCHAR      NOT NULL,
-  json_metadata      VARCHAR,
+  json_data          JSONB      NOT NULL,
+  json_metadata      JSONB,
   CONSTRAINT pk_messages PRIMARY KEY (position),
   CONSTRAINT fk_messages_stream FOREIGN KEY (stream_id_internal) REFERENCES __schema__.streams (id_internal),
   CONSTRAINT uq_messages_stream_id_internal_and_stream_version UNIQUE (stream_id_internal, stream_version),
@@ -54,8 +54,8 @@ BEGIN
   CREATE TYPE __schema__.new_stream_message AS (
     message_id    UUID,
     "type"        VARCHAR(128),
-    json_data     VARCHAR,
-    json_metadata VARCHAR);
+    json_data     JSONB,
+    json_metadata JSONB);
   EXCEPTION
   WHEN duplicate_object
     THEN null;

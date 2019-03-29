@@ -28,7 +28,7 @@ namespace SqlStreamStore
         private readonly InterlockedBoolean _signallingToSubscribers = new InterlockedBoolean();
         private readonly IList<string> _streamIds = new List<string>();
         private int _currentPosition;
-        private static readonly ReadNextStreamPage s_readNextNotFound = 
+        private static readonly ReadNextStreamPage s_readNextNotFound =
             (_, ct) => throw new InvalidOperationException("Cannot read next page of non-exisitent stream");
 
         public InMemoryStreamStore(GetUtcNow getUtcNow = null, string logName = null)
@@ -147,7 +147,9 @@ namespace SqlStreamStore
             if (!_streams.TryGetValue(streamId, out inMemoryStream))
             {
                 throw new WrongExpectedVersionException(
-                    ErrorMessages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
+                    ErrorMessages.AppendFailedWrongExpectedVersion(streamId, expectedVersion),
+                    streamId,
+                    expectedVersion);
             }
             inMemoryStream.AppendToStream(expectedVersion, messages);
             return new AppendResult(inMemoryStream.CurrentVersion, inMemoryStream.CurrentPosition);
@@ -265,7 +267,9 @@ namespace SqlStreamStore
                 if (expectedVersion >= 0)
                 {
                     throw new WrongExpectedVersionException(
-                        ErrorMessages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
+                        ErrorMessages.AppendFailedWrongExpectedVersion(streamId, expectedVersion),
+                        streamId,
+                        expectedVersion);
                 }
                 return;
             }
@@ -273,7 +277,9 @@ namespace SqlStreamStore
                 _streams[streamId].Messages.Last().StreamVersion != expectedVersion)
             {
                 throw new WrongExpectedVersionException(
-                        ErrorMessages.AppendFailedWrongExpectedVersion(streamId, expectedVersion));
+                        ErrorMessages.AppendFailedWrongExpectedVersion(streamId, expectedVersion),
+                        streamId,
+                        expectedVersion);
             }
             InMemoryStream inMemoryStream = _streams[streamId];
             _streams.Remove(streamId);
@@ -486,7 +492,7 @@ namespace SqlStreamStore
                         PageReadStatus.StreamNotFound,
                         start,
                         -1,
-                        -1, 
+                        -1,
                         -1,
                         ReadDirection.Forward,
                         true,
@@ -552,7 +558,7 @@ namespace SqlStreamStore
                     PageReadStatus.Success,
                     start,
                     nextStreamVersion,
-                    lastStreamVersion, 
+                    lastStreamVersion,
                     stream.CurrentPosition,
                     ReadDirection.Forward,
                     endOfStream,
@@ -576,14 +582,13 @@ namespace SqlStreamStore
 
             using (_lock.UseReadLock())
             {
-                InMemoryStream stream;
-                if (!_streams.TryGetValue(streamId, out stream))
+                if (!_streams.TryGetValue(streamId, out var stream))
                 {
                     var notFound = new ReadStreamPage(streamId,
                         PageReadStatus.StreamNotFound,
                         fromVersionInclusive,
                         -1,
-                        -1, 
+                        -1,
                         -1,
                         ReadDirection.Backward,
                         true,
@@ -627,11 +632,11 @@ namespace SqlStreamStore
                     count--;
                 }
 
-                var lastStreamVersion = stream.Messages.Count > 0 
+                var lastStreamVersion = stream.Messages.Count > 0
                     ? stream.Messages[stream.Messages.Count - 1].StreamVersion
                     : StreamVersion.End;
-                var nextStreamVersion = messages.Count > 0 
-                    ? messages[messages.Count - 1].StreamVersion - 1 
+                var nextStreamVersion = messages.Count > 0
+                    ? messages[messages.Count - 1].StreamVersion - 1
                     : StreamVersion.End;
                 var endOfStream = nextStreamVersion < 0;
 
@@ -640,7 +645,7 @@ namespace SqlStreamStore
                     PageReadStatus.Success,
                     fromVersionInclusive,
                     nextStreamVersion,
-                    lastStreamVersion, 
+                    lastStreamVersion,
                     stream.CurrentPosition,
                     ReadDirection.Backward,
                     endOfStream,
@@ -732,7 +737,7 @@ namespace SqlStreamStore
                 default:
                     throw Pattern.Unrecognized(nameof(pattern));
             }
-            
+
             using(_lock.UseReadLock())
             {
                 var streamIds = _streamIds
@@ -742,9 +747,9 @@ namespace SqlStreamStore
                     .ToArray();
 
                 var nextContinuationToken = streamIds.Length == 0
-                    ? 0 
-                    : _streamIds.IndexOf(streamIds[streamIds.Length - 1]) + 1; 
-                
+                    ? 0
+                    : _streamIds.IndexOf(streamIds[streamIds.Length - 1]) + 1;
+
                 return Task.FromResult(new ListStreamsPage(
                     nextContinuationToken.ToString(),
                     streamIds,

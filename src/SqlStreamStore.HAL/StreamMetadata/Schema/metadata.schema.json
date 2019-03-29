@@ -19,5 +19,6 @@
         "rows": 30
       }
     }
-  }
+  },
+  "additionalProperties": false
 }

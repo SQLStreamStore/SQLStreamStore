@@ -2,6 +2,8 @@ namespace SqlStreamStore.HAL.Docs
 {
     using System;
     using System.Linq;
+    using System.Net.Http.Headers;
+    using Microsoft.Extensions.Primitives;
 
     internal class DocsResource : IResource
     {
@@ -18,10 +20,19 @@ namespace SqlStreamStore.HAL.Docs
             _resources = resources;
         }
 
-        public Response Get(string rel) => (from resource in _resources
-                let documentationStream = resource.Schema?.GetDocumentation(rel)
+        public Response Get(string rel, StringValues acceptHeader) => (from resource in _resources
+                from accept in acceptHeader
+                let mediaTypeWithQuality = ParseAcceptHeader(accept)
+                where mediaTypeWithQuality != null
+                orderby mediaTypeWithQuality.Quality ?? 1.0 descending
+                let documentationStream = resource.Schema?.GetDocumentation(rel, mediaTypeWithQuality.MediaType)
                 where documentationStream != null
                 select new MarkdownResponse(documentationStream))
             .FirstOrDefault();
+
+        private static MediaTypeWithQualityHeaderValue ParseAcceptHeader(string accept)
+            => MediaTypeWithQualityHeaderValue.TryParse(accept, out var mediaTypeWithQuality)
+                ? mediaTypeWithQuality
+                : null;
     }
 }

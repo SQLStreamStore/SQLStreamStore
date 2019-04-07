@@ -7,15 +7,16 @@
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class HeadersTests : IDisposable
     {
         private const string StreamId = "a-stream";
         private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
 
-        public HeadersTests()
+        public HeadersTests(ITestOutputHelper output)
         {
-            _fixture = new SqlStreamStoreHalMiddlewareFixture();
+            _fixture = new SqlStreamStoreHalMiddlewareFixture(output);
         }
 
         public void Dispose() => _fixture.Dispose();

@@ -77,7 +77,16 @@ namespace SqlStreamStore.HAL.StreamMessage
         }
 
         public async Task<Response> Delete(
-            DeleteStreamMessageOperation operation,
+            DeleteStreamMessageOperationByMessageId operation,
+            CancellationToken cancellationToken)
+        {
+            await operation.Invoke(_streamStore, cancellationToken);
+
+            return NoContentResponse.Instance;
+        }
+
+        public async Task<Response> Delete(
+            DeleteStreamMessageByVersionOperation operation,
             CancellationToken cancellationToken)
         {
             await operation.Invoke(_streamStore, cancellationToken);

@@ -8,15 +8,16 @@
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class StreamDeleteTests : IDisposable
     {
         private const string StreamId = "a-stream";
         private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
 
-        public StreamDeleteTests()
+        public StreamDeleteTests(ITestOutputHelper output)
         {
-            _fixture = new SqlStreamStoreHalMiddlewareFixture();
+            _fixture = new SqlStreamStoreHalMiddlewareFixture(output);
         }
 
         [Theory, InlineData(ExpectedVersion.Any), InlineData(0), InlineData(null)]

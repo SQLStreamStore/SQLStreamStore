@@ -11,15 +11,16 @@
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class StreamAppendTests : IDisposable
     {
         private const string StreamId = "a-stream";
         private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
 
-        public StreamAppendTests()
+        public StreamAppendTests(ITestOutputHelper output)
         {
-            _fixture = new SqlStreamStoreHalMiddlewareFixture();
+            _fixture = new SqlStreamStoreHalMiddlewareFixture(output);
         }
 
         public static IEnumerable<object[]> AppendCases()

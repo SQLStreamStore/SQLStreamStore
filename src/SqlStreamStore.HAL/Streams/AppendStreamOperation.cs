@@ -6,49 +6,50 @@ namespace SqlStreamStore.HAL.Streams
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Routing;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
     using SqlStreamStore.Streams;
 
     internal class AppendStreamOperation : IStreamStoreOperation<AppendResult>
     {
-        public static async Task<AppendStreamOperation> Create(HttpRequest request, CancellationToken ct)
+        public static async Task<AppendStreamOperation> Create(HttpContext context)
         {
+            var request = context.Request;
             using(var reader = new JsonTextReader(new StreamReader(request.Body))
             {
                 CloseInput = false
             })
             {
-                var body = await JToken.LoadAsync(reader, ct);
+                var body = await JToken.LoadAsync(reader, context.RequestAborted);
 
                 switch(body)
                 {
                     case JArray json:
-                        return new AppendStreamOperation(request, json);
+                        return new AppendStreamOperation(request.HttpContext, json);
                     case JObject json:
-                        return new AppendStreamOperation(request, json);
+                        return new AppendStreamOperation(json, request.HttpContext);
                     default:
                         throw new InvalidAppendRequestException("Invalid json detected.");
                 }
             }
         }
 
-        private AppendStreamOperation(HttpRequest request)
+        private AppendStreamOperation(HttpContext context)
         {
-            StreamId = request.Path.Value.Remove(0, 2 + Constants.Streams.Stream.Length);
-
-            ExpectedVersion = request.GetExpectedVersion();
+            StreamId = context.GetRouteData().GetStreamId();
+            ExpectedVersion = context.Request.GetExpectedVersion();
         }
 
-        private AppendStreamOperation(HttpRequest request, JArray body)
-            : this(request)
+        private AppendStreamOperation(HttpContext context, JArray body)
+            : this(context)
         {
-            Path = request.Path;
+            Path = context.Request.Path;
             NewStreamMessages = body.Select(ParseNewStreamMessage).ToArray();
         }
 
-        private AppendStreamOperation(HttpRequest request, JObject body)
-            : this(request, new JArray { body })
+        private AppendStreamOperation(JObject body, HttpContext context)
+            : this(context, new JArray { body })
         { }
 
         private static NewStreamMessageDto ParseNewStreamMessage(JToken newStreamMessage, int index)

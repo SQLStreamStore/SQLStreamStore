@@ -14,7 +14,7 @@ namespace SqlStreamStore.HAL
         {
             var allowed = ResourceMethods.Discover(resource);
 
-            var allowedMethodsHeaderValue = allowed.Aggregate(
+            var allowedMethodsHeaderValue = allowed.Distinct().Aggregate(
                 StringValues.Empty,
                 (previous, method) => StringValues.Concat(previous, method.Method));
 

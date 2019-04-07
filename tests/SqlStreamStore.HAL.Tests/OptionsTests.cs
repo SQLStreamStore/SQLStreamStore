@@ -8,14 +8,15 @@ namespace SqlStreamStore.HAL.Tests
     using System.Threading.Tasks;
     using Shouldly;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class OptionsTests : IDisposable
     {
         private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
 
-        public OptionsTests()
+        public OptionsTests(ITestOutputHelper output)
         {
-            _fixture = new SqlStreamStoreHalMiddlewareFixture();
+            _fixture = new SqlStreamStoreHalMiddlewareFixture(output);
         }
 
         public void Dispose() => _fixture.Dispose();

@@ -10,10 +10,12 @@ namespace SqlStreamStore.HAL.AllStream
         private readonly long _fromPositionInclusive;
         private readonly int _maxCount;
 
-        public ReadAllStreamOperation(HttpRequest request)
+        public ReadAllStreamOperation(HttpContext context)
         {
-            Path = request.Path;
+            var request = context.Request;
             
+            Path = request.Path;
+
             EmbedPayload = request.Query.TryGetValueCaseInsensitive('e', out var embedPayload)
                            && embedPayload == "1";
 

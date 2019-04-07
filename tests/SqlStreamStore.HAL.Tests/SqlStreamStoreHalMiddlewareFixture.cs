@@ -17,10 +17,13 @@
         public HttpClient HttpClient { get; }
 
         private readonly TestServer _server;
+        private readonly IDisposable _logCapture;
 
         public SqlStreamStoreHalMiddlewareFixture(ITestOutputHelper output, bool followRedirects = false)
         {
             StreamStore = new InMemoryStreamStore();
+
+            _logCapture = LoggingHelper.Capture(output);
 
             _server = new TestServer(
                 new WebHostBuilder()
@@ -45,6 +48,7 @@
             StreamStore?.Dispose();
             HttpClient?.Dispose();
             _server?.Dispose();
+            _logCapture?.Dispose();
         }
 
         public Task<AppendResult> WriteNMessages(string streamId, int n)

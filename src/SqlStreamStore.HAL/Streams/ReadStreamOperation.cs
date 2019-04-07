@@ -3,6 +3,7 @@ namespace SqlStreamStore.HAL.Streams
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Routing;
     using SqlStreamStore.Streams;
 
     internal class ReadStreamOperation : IStreamStoreOperation<ReadStreamPage>
@@ -10,15 +11,14 @@ namespace SqlStreamStore.HAL.Streams
         private readonly int _fromVersionInclusive;
         private readonly int _maxCount;
 
-        public ReadStreamOperation(HttpRequest request)
+        public ReadStreamOperation(HttpContext context)
         {
+            var request = context.Request;
             Path = request.Path;
 
-            StreamId = request.Path.Value.Remove(0, 2 + Constants.Streams.Stream.Length);
-
+            StreamId = context.GetRouteData().GetStreamId();
             EmbedPayload = request.Query.TryGetValueCaseInsensitive('e', out var embedPayload)
                            && embedPayload == "1";
-
             ReadDirection = request.Query.TryGetValueCaseInsensitive('d', out var readDirection)
                             && readDirection == "f" || readDirection == "F"
                 ? Constants.ReadDirection.Forwards

@@ -13,32 +13,28 @@ namespace SqlStreamStore.HAL.StreamBrowser
         public string PatternType { get; }
         public PathString Path { get; }
 
-        public ListStreamsOperation(HttpRequest request)
+        public ListStreamsOperation(HttpContext context)
         {
+            var request = context.Request;
             Path = request.Path;
             if(request.Query.TryGetValueCaseInsensitive('t', out var patternType))
             {
                 PatternType = patternType;
             }
 
-            if(!request.Query.TryGetValueCaseInsensitive('p', out var pattern))
+            request.Query.TryGetValueCaseInsensitive('p', out var pattern);
+
+            switch(PatternType)
             {
-                Pattern = Pattern.Anything();
-            }
-            else
-            {
-                switch(PatternType)
-                {
-                    case "s":
-                        Pattern = Pattern.StartsWith(pattern);
-                        break;
-                    case "e":
-                        Pattern = Pattern.EndsWith(pattern);
-                        break;
-                    default:
-                        Pattern = Pattern.Anything();
-                        break;
-                }
+                case "s":
+                    Pattern = Pattern.StartsWith(pattern);
+                    break;
+                case "e":
+                    Pattern = Pattern.EndsWith(pattern);
+                    break;
+                default:
+                    Pattern = Pattern.Anything();
+                    break;
             }
 
             if(request.Query.TryGetValueCaseInsensitive('c', out var continuationToken))

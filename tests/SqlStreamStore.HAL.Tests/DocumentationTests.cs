@@ -13,6 +13,7 @@ namespace SqlStreamStore.HAL.Tests
     using SqlStreamStore.HAL.StreamMetadata;
     using SqlStreamStore.HAL.Streams;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class DocumentationTests : IDisposable
     {
@@ -35,9 +36,9 @@ namespace SqlStreamStore.HAL.Tests
 
         private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
 
-        public DocumentationTests()
+        public DocumentationTests(ITestOutputHelper output)
         {
-            _fixture = new SqlStreamStoreHalMiddlewareFixture();
+            _fixture = new SqlStreamStoreHalMiddlewareFixture(output);
         }
 
         public static IEnumerable<object[]> DocumentationCases()

@@ -7,12 +7,13 @@
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class StreamMessageTests : IDisposable
     {
-        public StreamMessageTests()
+        public StreamMessageTests(ITestOutputHelper output)
         {
-            _fixture = new SqlStreamStoreHalMiddlewareFixture();
+            _fixture = new SqlStreamStoreHalMiddlewareFixture(output);
         }
 
         public void Dispose() => _fixture.Dispose();

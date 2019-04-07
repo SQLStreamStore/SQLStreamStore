@@ -4,14 +4,15 @@ namespace SqlStreamStore.HAL.AllStreamMessage
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Routing;
     using SqlStreamStore.Streams;
 
     internal class ReadAllStreamMessageOperation : IStreamStoreOperation<StreamMessage>
     {
-        public ReadAllStreamMessageOperation(HttpRequest request)
+        public ReadAllStreamMessageOperation(HttpContext context)
         {
-            Path = request.Path;
-            Position = long.Parse(request.Path.Value.Remove(0, 2 + Constants.Streams.All.Length));
+            Path = context.Request.Path;
+            Position = context.GetRouteData().GetPosition();
         }
 
         public long Position { get; }

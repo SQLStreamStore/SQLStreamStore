@@ -4,19 +4,19 @@ namespace SqlStreamStore.HAL.StreamMessage
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Routing;
     using SqlStreamStore.Streams;
 
     internal class ReadStreamMessageByStreamVersionOperation : IStreamStoreOperation<StreamMessage>
     {
-        public ReadStreamMessageByStreamVersionOperation(HttpRequest request)
+        public ReadStreamMessageByStreamVersionOperation(HttpContext context)
         {
+            var request = context.Request;
+
             Path = request.Path;
-            
-            var pieces = request.Path.Value.Split('/').Reverse().Take(2).ToArray();
 
-            StreamId = pieces.LastOrDefault();
-
-            StreamVersion = int.Parse(pieces.First());
+            StreamId = context.GetRouteData().GetStreamId();
+            StreamVersion = context.GetRouteData().GetStreamVersion();
         }
 
         public PathString Path { get; }

@@ -6,12 +6,13 @@ namespace SqlStreamStore.HAL.Tests
     using Microsoft.AspNetCore.Http;
     using Shouldly;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class AllStreamMessageTests : IDisposable
     {
-        public AllStreamMessageTests()
+        public AllStreamMessageTests(ITestOutputHelper output)
         {
-            _fixture = new SqlStreamStoreHalMiddlewareFixture();
+            _fixture = new SqlStreamStoreHalMiddlewareFixture(output);
         }
 
         public void Dispose() => _fixture.Dispose();

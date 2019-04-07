@@ -4,34 +4,36 @@ namespace SqlStreamStore.HAL.StreamMetadata
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Routing;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
 
     internal class SetStreamMetadataOperation : IStreamStoreOperation<Unit>
     {
-        public static async Task<SetStreamMetadataOperation> Create(HttpRequest request, CancellationToken ct)
+        public static async Task<SetStreamMetadataOperation> Create(HttpContext context)
         {
-            using(var reader = new JsonTextReader(new StreamReader(request.Body))
+            using(var reader = new JsonTextReader(new StreamReader(context.Request.Body))
             {
                 CloseInput = false
             })
             {
-                var body = await JObject.LoadAsync(reader, ct);
-                
-                return new SetStreamMetadataOperation(request, body);
+                var body = await JObject.LoadAsync(reader, context.RequestAborted);
+
+                return new SetStreamMetadataOperation(context, body);
             }
         }
 
-        private SetStreamMetadataOperation(HttpRequest request, JObject body)
+        private SetStreamMetadataOperation(HttpContext context, JObject body)
         {
+            var request = context.Request;
             Path = request.Path;
-            StreamId = request.Path.Value.Split('/')[2];
+            StreamId = context.GetRouteData().GetStreamId();
             ExpectedVersion = request.GetExpectedVersion();
             MaxAge = body.Value<int?>("maxAge");
             MaxCount = body.Value<int?>("maxCount");
             MetadataJson = body.Value<JObject>("metadataJson");
         }
-        
+
         public PathString Path { get; }
         public string StreamId { get; }
         public int ExpectedVersion { get; }

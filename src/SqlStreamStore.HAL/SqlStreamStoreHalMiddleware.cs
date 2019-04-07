@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Routing;
     using SqlStreamStore.HAL.AllStream;
     using SqlStreamStore.HAL.AllStreamMessage;
     using SqlStreamStore.HAL.Docs;
@@ -82,14 +83,15 @@
                 .UseExceptionHandling()
                 .Use(CaseSensitiveQueryStrings)
                 .Use(HeadRequests)
-                .UseDocs(documentation)
-                .UseIndex(index)
-                .UseAllStream(allStream)
-                .UseAllStreamMessage(allStreamMessages)
-                .UseStreamBrowser(streamBrowser)
-                .UseStreams(streams)
-                .UseStreamMetadata(streamMetadata)
-                .UseStreamMessages(streamMessages);
+                .UseRouter(router => router
+                    .MapMiddlewareRoute("docs/{doc}", inner => inner.UseDocs(documentation))
+                    .MapMiddlewareRoute("stream", inner => inner.UseAllStream(allStream))
+                    .MapMiddlewareRoute("stream/{position:long}", inner => inner.UseAllStreamMessage(allStreamMessages))
+                    .MapMiddlewareRoute("streams", inner => inner.UseStreamBrowser(streamBrowser))
+                    .MapMiddlewareRoute("streams/{streamId}", inner => inner.UseStreams(streams))
+                    .MapMiddlewareRoute("streams/{streamId}/metadata", inner => inner.UseStreamMetadata(streamMetadata))
+                    .MapMiddlewareRoute("streams/{streamId}/{p}", inner => inner.UseStreamMessages(streamMessages))
+                    .MapMiddlewareRoute("", inner => inner.UseIndex(index)));
         }
 
         private class OptionalHeadRequestWrapper : IDisposable

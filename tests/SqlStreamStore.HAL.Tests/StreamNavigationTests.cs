@@ -8,6 +8,7 @@
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class StreamNavigationTests : IDisposable
     {
@@ -17,9 +18,9 @@
 
         private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
 
-        public StreamNavigationTests()
+        public StreamNavigationTests(ITestOutputHelper output)
         {
-            _fixture = new SqlStreamStoreHalMiddlewareFixture(true);
+            _fixture = new SqlStreamStoreHalMiddlewareFixture(output, true);
         }
 
         public void Dispose() => _fixture.Dispose();

@@ -7,15 +7,16 @@
     using System.Threading.Tasks;
     using Shouldly;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class CanonicalUrlTests
     {
         private const string StreamId = "a-stream";
         private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
 
-        public CanonicalUrlTests()
+        public CanonicalUrlTests(ITestOutputHelper output)
         {
-            _fixture = new SqlStreamStoreHalMiddlewareFixture();
+            _fixture = new SqlStreamStoreHalMiddlewareFixture(output);
         }
 
         private static IEnumerable<string> GetQueryStrings(bool forward, bool prefetch)

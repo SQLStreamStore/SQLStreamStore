@@ -10,6 +10,7 @@
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class StreamMetadataTests
     {
@@ -17,9 +18,9 @@
 
         private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
 
-        public StreamMetadataTests()
+        public StreamMetadataTests(ITestOutputHelper output)
         {
-            _fixture = new SqlStreamStoreHalMiddlewareFixture();
+            _fixture = new SqlStreamStoreHalMiddlewareFixture(output);
         }
 
         [Fact]

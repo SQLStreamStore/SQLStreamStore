@@ -16,6 +16,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\SqlStreamStore.MsSql\SqlStreamStore.MsSql.csproj" />
+    <ProjectReference Include="..\..\src\SqlStreamStore.MySql\SqlStreamStore.MySql.csproj" />
     <ProjectReference Include="..\..\src\SqlStreamStore.Postgres\SqlStreamStore.Postgres.csproj" />
     <ProjectReference Include="..\SqlStreamStore.TestUtils\SqlStreamStore.TestUtils.csproj" />
     <ProjectReference Include="..\..\src\SqlStreamStore\SqlStreamStore.csproj" />

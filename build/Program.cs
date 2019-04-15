@@ -50,6 +50,7 @@ namespace build
                 ForEach(
                     "SqlStreamStore",
                     "SqlStreamStore.MsSql",
+                    "SqlStreamStore.MySql",
                     "SqlStreamStore.Postgres",
                     "SqlStreamStore.HAL",
                     "SqlStreamStore.Http"),

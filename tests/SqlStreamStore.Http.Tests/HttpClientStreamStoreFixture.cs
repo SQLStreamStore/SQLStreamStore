@@ -1,6 +1,8 @@
 namespace SqlStreamStore
 {
     using System;
+    using System.Linq;
+    using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
@@ -16,8 +18,12 @@ namespace SqlStreamStore
         {
             _inMemoryStreamStore = new InMemoryStreamStore(() => GetUtcNow());
 
+            var random = new Random();
+
+            var basePath = $"/{Enumerable.Range(0, random.Next(0, 3)).Select(_ => Guid.NewGuid())}";
+
             var webHostBuilder = new WebHostBuilder()
-                .Configure(builder => builder.UseSqlStreamStoreHal(_inMemoryStreamStore))
+                .Configure(builder => builder.Map(basePath, inner => inner.UseSqlStreamStoreHal(_inMemoryStreamStore)))
                 .ConfigureServices(services => services.AddRouting());
 
             _server = new TestServer(webHostBuilder);
@@ -32,7 +38,10 @@ namespace SqlStreamStore
                 {
                     GetUtcNow = () => GetUtcNow(),
                     HttpMessageHandler = handler,
-                    BaseAddress = new UriBuilder().Uri
+                    BaseAddress = new UriBuilder
+                    {
+                        Path = basePath.Length == 1 ? basePath : $"{basePath}/"
+                    }.Uri
                 });
         }
 

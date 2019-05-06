@@ -67,7 +67,7 @@
         public async Task<long> ReadHeadPosition(CancellationToken cancellationToken = default)
         {
             var client = CreateClient();
-            var response = await client.Client.HeadAsync(LinkFormatter.AllHead, cancellationToken);
+            var response = await client.Client.HeadAsync(Constants.Streams.All, cancellationToken);
 
             response.EnsureSuccessStatusCode();
 

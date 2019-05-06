@@ -21,7 +21,7 @@ namespace SqlStreamStore
                 Constants.ReadDirection.Backwards);
 
         public static string Stream(StreamId streamId)
-            => $"{Constants.Streams.Stream}/{streamId}";
+            => $"{Constants.Paths.Streams}/{streamId}";
 
         public static string StreamByMessageId(StreamId streamId, Guid messageId)
             => $"{Stream(streamId)}/{messageId}";
@@ -41,13 +41,13 @@ namespace SqlStreamStore
             => ReadStream(streamId, fromVersionInclusive, maxCount, prefetchJsonData, Constants.ReadDirection.Backwards);
 
         public static string ListStreams(Pattern pattern, int maxCount)
-            => $"{Constants.Streams.Stream}?p={pattern.Value}&t={GetPatternTypeArgumentName(pattern)}&m={maxCount}";
+            => $"{Constants.Paths.Streams}?p={pattern.Value}&t={GetPatternTypeArgumentName(pattern)}&m={maxCount}";
 
         public static string ListStreams(Pattern pattern, int maxCount, string continuationToken)
             => $"{ListStreams(pattern, maxCount)}&c={continuationToken}";
 
         private static string ReadAll(long fromPositionInclusive, int maxCount, bool prefetchJsonData, int direction)
-            => $"{Constants.Streams.All}?{GetStreamQueryString(fromPositionInclusive, maxCount, prefetchJsonData, direction)}";
+            => $"{Constants.Paths.AllStream}?{GetStreamQueryString(fromPositionInclusive, maxCount, prefetchJsonData, direction)}";
 
         private static string ReadStream(
             StreamId streamId,

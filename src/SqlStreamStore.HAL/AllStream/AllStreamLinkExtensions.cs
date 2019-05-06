@@ -11,13 +11,13 @@ namespace SqlStreamStore.HAL.AllStream
             ReadAllStreamOperation operation)
         {
             var first = Links.FormatForwardLink(
-                Constants.Streams.All,
+                Constants.Paths.AllStream,
                 operation.MaxCount,
                 Position.Start,
                 operation.EmbedPayload);
 
             var last = Links.FormatBackwardLink(
-                Constants.Streams.All,
+                Constants.Paths.AllStream,
                 operation.MaxCount,
                 Position.End,
                 operation.EmbedPayload);
@@ -29,7 +29,7 @@ namespace SqlStreamStore.HAL.AllStream
                 links.Add(
                     Constants.Relations.Previous,
                     Links.FormatBackwardLink(
-                        Constants.Streams.All,
+                        Constants.Paths.AllStream,
                         operation.MaxCount,
                         page.Messages.Min(m => m.Position) - 1,
                         operation.EmbedPayload));
@@ -42,7 +42,7 @@ namespace SqlStreamStore.HAL.AllStream
                 links.Add(
                     Constants.Relations.Next,
                     Links.FormatForwardLink(
-                        Constants.Streams.All,
+                        Constants.Paths.AllStream,
                         operation.MaxCount,
                         page.Messages.Max(m => m.Position) + 1,
                         operation.EmbedPayload));

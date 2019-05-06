@@ -50,7 +50,7 @@ namespace SqlStreamStore.HAL.Index
                     .Index().Self()
                     .Find()
                     .Browse()
-                    .Add(Constants.Relations.Feed, Constants.Streams.All)));
+                    .Add(Constants.Relations.Feed, Constants.Paths.AllStream)));
 
         public override string ToString() => _data.ToString(Formatting.None);
     }

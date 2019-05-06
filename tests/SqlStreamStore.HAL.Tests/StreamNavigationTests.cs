@@ -174,7 +174,7 @@
 
             var page = await _fixture.StreamStore.ReadStreamForwards(StreamId, StreamVersion.Start, 10, false);
 
-            using(var response = await _fixture.HttpClient.GetAsync($"/{Constants.Streams.Stream}/a-stream"))
+            using(var response = await _fixture.HttpClient.GetAsync($"/{Constants.Paths.Streams}/a-stream"))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.OK);
 

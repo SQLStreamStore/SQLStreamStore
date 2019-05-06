@@ -48,7 +48,7 @@ namespace SqlStreamStore.HAL.Streams
                     : Constants.MaxCount
                 : Constants.MaxCount;
 
-            var baseAddress = $"streams/{StreamId}";
+            var baseAddress = $"{Constants.Paths.Streams}/{StreamId}";
 
             Self = ReadDirection == Constants.ReadDirection.Forwards
                 ? Links.FormatForwardLink(baseAddress, MaxCount, FromVersionInclusive, EmbedPayload)

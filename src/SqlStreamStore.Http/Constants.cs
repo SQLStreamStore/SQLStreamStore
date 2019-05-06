@@ -63,11 +63,12 @@ namespace SqlStreamStore
             public const string Browse = StreamStorePrefix + ":feed-browser";
         }
 
-        public static class Streams
+        public static class Paths
         {
-            public const string Stream = "streams";
-            public const string All = "stream";
+            public const string Streams = "streams";
+            public const string AllStream = "stream";
             public const string Metadata = "metadata";
+            public const string Docs = "docs";
         }
 
         public static class ReadDirection

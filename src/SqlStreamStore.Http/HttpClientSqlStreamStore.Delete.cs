@@ -52,13 +52,13 @@ namespace SqlStreamStore
                     new Link
                     {
                         Href = LinkFormatter.StreamByMessageId(streamId, messageId),
-                        Rel = Constants.Relations.DeleteStreamMessage
+                        Rel = Constants.Relations.DeleteMessage
                     }
                 }
             });
 
             client = await client.Delete(
-                Constants.Relations.DeleteStreamMessage,
+                Constants.Relations.DeleteMessage,
                 null,
                 null,
                 cancellationToken: cancellationToken);

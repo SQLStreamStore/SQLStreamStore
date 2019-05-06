@@ -40,7 +40,7 @@ namespace SqlStreamStore.HAL.StreamBrowser
                             .AddLinks(
                                 Links
                                     .FromOperation(operation)
-                                    .Add(Constants.Relations.Feed, $"{Constants.Streams.Stream}/{streamId}", streamId)
+                                    .Add(Constants.Relations.Feed, $"{Constants.Paths.Streams}/{streamId}", streamId)
                                     .Self()))));
         }
     }

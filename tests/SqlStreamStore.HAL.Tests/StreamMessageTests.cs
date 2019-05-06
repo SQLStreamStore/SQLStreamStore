@@ -25,7 +25,7 @@
         {
             var writeResult = await _fixture.WriteNMessages("a-stream", 1);
 
-            using(var response = await _fixture.HttpClient.GetAsync($"/{Constants.Streams.Stream}/a-stream/0"))
+            using(var response = await _fixture.HttpClient.GetAsync($"/{Constants.Paths.Streams}/a-stream/0"))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.OK);
                 response.Headers.ETag.ShouldBe(new EntityTagHeaderValue($@"""{writeResult.CurrentVersion}"""));
@@ -48,7 +48,7 @@
         [Fact]
         public async Task read_single_message_does_not_exist_stream()
         {
-            using(var response = await _fixture.HttpClient.GetAsync($"/{Constants.Streams.Stream}/a-stream/0"))
+            using(var response = await _fixture.HttpClient.GetAsync($"/{Constants.Paths.Streams}/a-stream/0"))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
                 response.Headers.ETag.ShouldBeNull();
@@ -72,14 +72,14 @@
         {
             var writeResult = await _fixture.WriteNMessages("a-stream", 1);
 
-            using(var response = await _fixture.HttpClient.DeleteAsync($"/{Constants.Streams.Stream}/a-stream/0"))
+            using(var response = await _fixture.HttpClient.DeleteAsync($"/{Constants.Paths.Streams}/a-stream/0"))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
                 response.Content.Headers.ContentLength.HasValue.ShouldBeTrue();
                 response.Content.Headers.ContentLength.Value.ShouldBe(0);
             }
 
-            using(var response = await _fixture.HttpClient.GetAsync($"/{Constants.Streams.Stream}/a-stream/0"))
+            using(var response = await _fixture.HttpClient.GetAsync($"/{Constants.Paths.Streams}/a-stream/0"))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
                 response.Headers.ETag.ShouldBeNull();
@@ -95,14 +95,14 @@
 
             var messageId = page.Messages[0].MessageId;
 
-            using(var response = await _fixture.HttpClient.DeleteAsync($"/{Constants.Streams.Stream}/a-stream/{messageId}"))
+            using(var response = await _fixture.HttpClient.DeleteAsync($"/{Constants.Paths.Streams}/a-stream/{messageId}"))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
                 response.Content.Headers.ContentLength.HasValue.ShouldBeTrue();
                 response.Content.Headers.ContentLength.Value.ShouldBe(0);
             }
 
-            using(var response = await _fixture.HttpClient.GetAsync($"/{Constants.Streams.Stream}/a-stream/0"))
+            using(var response = await _fixture.HttpClient.GetAsync($"/{Constants.Paths.Streams}/a-stream/0"))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
                 response.Headers.ETag.ShouldBeNull();

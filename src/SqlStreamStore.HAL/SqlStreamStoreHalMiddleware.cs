@@ -84,14 +84,14 @@
                 .Use(CaseSensitiveQueryStrings)
                 .Use(HeadRequests)
                 .UseRouter(router => router
-                    .MapMiddlewareRoute("docs/{doc}", inner => inner.UseDocs(documentation))
-                    .MapMiddlewareRoute("stream", inner => inner.UseAllStream(allStream))
-                    .MapMiddlewareRoute("stream/{position:long}", inner => inner.UseAllStreamMessage(allStreamMessages))
-                    .MapMiddlewareRoute("streams", inner => inner.UseStreamBrowser(streamBrowser))
-                    .MapMiddlewareRoute("streams/{streamId}", inner => inner.UseStreams(streams))
-                    .MapMiddlewareRoute("streams/{streamId}/metadata", inner => inner.UseStreamMetadata(streamMetadata))
-                    .MapMiddlewareRoute("streams/{streamId}/{p}", inner => inner.UseStreamMessages(streamMessages))
-                    .MapMiddlewareRoute("", inner => inner.UseIndex(index)));
+                    .MapMiddlewareRoute($"{Constants.Paths.Docs}/{{doc}}", inner => inner.UseDocs(documentation))
+                    .MapMiddlewareRoute(Constants.Paths.AllStream, inner => inner.UseAllStream(allStream))
+                    .MapMiddlewareRoute($"{Constants.Paths.AllStream}/{{position:long}}", inner => inner.UseAllStreamMessage(allStreamMessages))
+                    .MapMiddlewareRoute(Constants.Paths.Streams, inner => inner.UseStreamBrowser(streamBrowser))
+                    .MapMiddlewareRoute($"{Constants.Paths.Streams}/{{streamId}}", inner => inner.UseStreams(streams))
+                    .MapMiddlewareRoute($"{Constants.Paths.Streams}/{{streamId}}/{Constants.Paths.Metadata}", inner => inner.UseStreamMetadata(streamMetadata))
+                    .MapMiddlewareRoute($"{Constants.Paths.Streams}/{{streamId}}/{{p}}", inner => inner.UseStreamMessages(streamMessages))
+                    .MapMiddlewareRoute(string.Empty, inner => inner.UseIndex(index)));
         }
 
         private class OptionalHeadRequestWrapper : IDisposable

@@ -57,7 +57,7 @@
             (string streamId, string path, string root)[] streams =
             {
                 (StreamId, $"streams/{StreamId}", "../"),
-                (Constants.Streams.All, Constants.Streams.All, string.Empty)
+                (Constants.Paths.AllStream, Constants.Paths.AllStream, string.Empty)
             };
 
             return

@@ -75,7 +75,7 @@ namespace SqlStreamStore.HAL
 
             links[_links.Count] = new Link(
                 Constants.Relations.Curies,
-                Resolve("docs/{rel}"),
+                Resolve($"{Constants.Paths.Docs}/{{rel}}"),
                 "Documentation",
                 replaceParameters: false)
             {

@@ -7,7 +7,7 @@ namespace SqlStreamStore.HAL.Streams
     {
         public static Links StreamsNavigation(this Links links, ReadStreamPage page, ReadStreamOperation operation)
         {
-            var baseAddress = $"streams/{operation.StreamId}";
+            var baseAddress = $"{Constants.Paths.Streams}/{operation.StreamId}";
 
             var first = Links.FormatForwardLink(
                 baseAddress,

@@ -1,33 +1,82 @@
 namespace SqlStreamStore
 {
+    using System.Linq;
+    using System.Reflection;
+    using SqlStreamStore.Streams;
+
     internal static class Constants
     {
-        public static class Direction
+        public static class MediaTypes
         {
-            public const int Forwards = 1;
-            public const int Backwards = -1;
+            public const string TextMarkdown = "text/markdown";
+            public const string HalJson = "application/hal+json";
+            public const string JsonHyperSchema = "application/schema+json";
+            public const string Any = "*/*";
         }
 
         public static class Headers
         {
-            public const string HeadPosition = "SSS-HeadPosition";
+            public static readonly int MinimumExpectedVersion = (from fieldInfo in typeof(ExpectedVersion)
+                    .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
+                where fieldInfo.IsLiteral
+                      && !fieldInfo.IsInitOnly
+                      && fieldInfo.FieldType == typeof(int)
+                select (int) fieldInfo.GetRawConstantValue()).Min();
+
+            public const string Authorization = "Authorization";
+            public const string Allowed = "Allowed";
             public const string ExpectedVersion = "SSS-ExpectedVersion";
+            public const string HeadPosition = "SSS-HeadPosition";
+            public const string Location = "Location";
+            public const string ETag = "ETag";
+            public const string IfNoneMatch = "If-None-Match";
+            public const string CacheControl = "Cache-Control";
+            public const string ContentType = "Content-Type";
+            public const string Accept = "Accept";
+            public const string XRequestedWith = "X-Requested-With";
+
+            public static class AccessControl
+            {
+                public const string AllowOrigin = "Access-Control-Allow-Origin";
+                public const string AllowHeaders = "Access-Control-Allow-Headers";
+                public const string AllowMethods = "Access-Control-Allow-Methods";
+            }
         }
 
         public static class Relations
         {
+            public const string StreamStorePrefix = "streamStore";
+            public const string Curies = "curies";
             public const string Self = "self";
             public const string First = "first";
             public const string Previous = "previous";
             public const string Next = "next";
             public const string Last = "last";
-            public const string Index = "streamStore:index";
-            public const string Feed = "streamStore:feed";
-            public const string Message = "streamStore:message";
-            public const string Metadata = "streamStore:metadata";
-            public const string AppendToStream = "streamStore:append";
-            public const string DeleteStreamMessage = "streamStore:delete-message";
-            public const string DeleteStream = "streamStore:delete-stream";
+            public const string Index = StreamStorePrefix + ":index";
+            public const string Feed = StreamStorePrefix + ":feed";
+            public const string Message = StreamStorePrefix + ":message";
+            public const string Metadata = StreamStorePrefix + ":metadata";
+            public const string AppendToStream = StreamStorePrefix + ":append";
+            public const string DeleteStream = StreamStorePrefix + ":delete-stream";
+            public const string DeleteMessage = StreamStorePrefix + ":delete-message";
+            public const string Find = StreamStorePrefix + ":find";
+            public const string Browse = StreamStorePrefix + ":feed-browser";
         }
+
+        public static class Paths
+        {
+            public const string Streams = "streams";
+            public const string AllStream = "stream";
+            public const string Metadata = "metadata";
+            public const string Docs = "docs";
+        }
+
+        public static class ReadDirection
+        {
+            public const int Forwards = 1;
+            public const int Backwards = -1;
+        }
+
+        public const int MaxCount = 20;
     }
 }

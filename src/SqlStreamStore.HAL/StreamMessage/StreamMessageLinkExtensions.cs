@@ -37,6 +37,6 @@ namespace SqlStreamStore.HAL.StreamMessage
         }
 
         private static string StreamId(ReadStreamMessageByStreamVersionOperation operation)
-            => $"streams/{operation.StreamId}";
+            => $"{Constants.Paths.Streams}/{operation.StreamId}";
     }
 }

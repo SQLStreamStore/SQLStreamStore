@@ -347,6 +347,30 @@
             streamMessagesPage.Messages.Length.ShouldBe(0);
             streamMessagesPage.IsEnd.ShouldBeTrue();
         }
+        
+        [Theory, Trait("Category", "ReadStream")]
+        [InlineData("stream/1")]
+        [InlineData("stream%1")]
+        public async Task when_read_stream_forwards_with_url_encodable_stream(string streamId)
+        {
+            await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1));
+
+            var result = await store.ReadStreamForwards(streamId, StreamVersion.Start, 1);
+            
+            Assert.Equal(streamId, result.Messages[0].StreamId);
+        }
+
+        [Theory, Trait("Category", "ReadStream")]
+        [InlineData("stream/1")]
+        [InlineData("stream%1")]
+        public async Task when_read_stream_backwards_with_url_encodable_stream(string streamId)
+        {
+            await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1));
+
+            var result = await store.ReadStreamBackwards(streamId, StreamVersion.End, 1);
+            
+            Assert.Equal(streamId, result.Messages[0].StreamId);
+        }
 
         // ReSharper disable once UnusedMethodReturnValue.Global
         public static IEnumerable<object[]> GetReadStreamForwardsTheories()

@@ -69,11 +69,12 @@
             await store.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1));
         }
 
-        [Fact, Trait("Category", "StreamMetadata")]
-        public async Task Can_set_and_get_stream_metadata_after_stream_is_created()
+        [Theory, Trait("Category", "StreamMetadata")]
+        [InlineData("stream")]
+        [InlineData("stream/1")]
+        [InlineData("stream%1")]
+        public async Task Can_set_and_get_stream_metadata_after_stream_is_created(string streamId)
         {
-            const string streamId = "stream-1";
-
             await store
                 .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessageSequence(1, 4));
 

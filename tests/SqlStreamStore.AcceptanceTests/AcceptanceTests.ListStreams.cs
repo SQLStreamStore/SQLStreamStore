@@ -9,10 +9,12 @@ namespace SqlStreamStore
 
     public partial class AcceptanceTests
     {
-        [Fact]
-        public async Task Can_list_streams()
+        [Theory]
+        [InlineData("stream")]
+        [InlineData("stream/1")]
+        [InlineData("stream%1")]
+        public async Task Can_list_streams(string streamIdPrefix)
         {
-            const string streamIdPrefix = "stream";
 
             for(var i = 0; i < 30; i++)
             {
@@ -36,11 +38,12 @@ namespace SqlStreamStore
             page.StreamIds.Length.ShouldBe(0);
         }
 
-        [Fact]
-        public async Task Can_list_streams_starting_with()
+        [Theory]
+        [InlineData("stream")]
+        [InlineData("stream/1")]
+        [InlineData("stream%1")]
+        public async Task Can_list_streams_starting_with(string streamIdPrefix)
         {
-            const string streamIdPrefix = "stream";
-
             for(var i = 0; i < 30; i++)
             {
                 await store.AppendToStream(
@@ -68,11 +71,12 @@ namespace SqlStreamStore
             page.StreamIds.Length.ShouldBe(0);
         }
 
-        [Fact]
-        public async Task Can_list_streams_ending_with()
+        [Theory]
+        [InlineData("stream")]
+        [InlineData("stream/1")]
+        [InlineData("stream%1")]
+        public async Task Can_list_streams_ending_with(string streamIdPostfix)
         {
-            const string streamIdPostfix = "stream";
-
             for(var i = 0; i < 30; i++)
             {
                 await store.AppendToStream(

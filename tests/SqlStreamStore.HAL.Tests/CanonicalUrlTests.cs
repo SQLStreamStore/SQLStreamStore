@@ -94,13 +94,13 @@
                 from forward in bools
                 let format = formatters[forward]
                 let canonicalUri = new Uri(
-                    format(StreamId, StreamVersion.Start, 20, prefetch),
+                    $"../{format(StreamId, StreamVersion.Start, 20, prefetch)}",
                     UriKind.Relative)
                 from queryString in GetQueryStrings(forward, prefetch)
                 // query strings are supposed to be case sensitive!!
                 //.Concat(new[] { $"d={(forward ? 'F' : 'B')}&M=20&P=0{(prefetch ? "&E" : string.Empty)}" })
                 where !canonicalUri.OriginalString.EndsWith($"?{queryString}")
-                select ($"../{LinkFormatter.Stream(StreamId)}?{queryString}", canonicalUri);
+                select ($"{LinkFormatter.Stream(StreamId)}?{queryString}", canonicalUri);
         }
         
         public static IEnumerable<object[]> NonCanonicalUriCases()

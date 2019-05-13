@@ -26,7 +26,7 @@
     {
         private static ILog s_Log = LogProvider.GetLogger(typeof(SqlStreamStoreHalMiddleware));
 
-        private static MidFunc CaseSensitiveQueryStrings => (context, next) =>
+        private static MidFunc Rfc1738 = (context, next) =>
         {
             if(context.Request.QueryString != QueryString.Empty)
             {
@@ -81,16 +81,19 @@
 
             return builder
                 .UseExceptionHandling()
-                .Use(CaseSensitiveQueryStrings)
+                .Use(Rfc1738)
                 .Use(HeadRequests)
                 .UseRouter(router => router
                     .MapMiddlewareRoute($"{Constants.Paths.Docs}/{{doc}}", inner => inner.UseDocs(documentation))
                     .MapMiddlewareRoute(Constants.Paths.AllStream, inner => inner.UseAllStream(allStream))
-                    .MapMiddlewareRoute($"{Constants.Paths.AllStream}/{{position:long}}", inner => inner.UseAllStreamMessage(allStreamMessages))
+                    .MapMiddlewareRoute($"{Constants.Paths.AllStream}/{{position:long}}",
+                        inner => inner.UseAllStreamMessage(allStreamMessages))
                     .MapMiddlewareRoute(Constants.Paths.Streams, inner => inner.UseStreamBrowser(streamBrowser))
                     .MapMiddlewareRoute($"{Constants.Paths.Streams}/{{streamId}}", inner => inner.UseStreams(streams))
-                    .MapMiddlewareRoute($"{Constants.Paths.Streams}/{{streamId}}/{Constants.Paths.Metadata}", inner => inner.UseStreamMetadata(streamMetadata))
-                    .MapMiddlewareRoute($"{Constants.Paths.Streams}/{{streamId}}/{{p}}", inner => inner.UseStreamMessages(streamMessages))
+                    .MapMiddlewareRoute($"{Constants.Paths.Streams}/{{streamId}}/{Constants.Paths.Metadata}",
+                        inner => inner.UseStreamMetadata(streamMetadata))
+                    .MapMiddlewareRoute($"{Constants.Paths.Streams}/{{streamId}}/{{p}}",
+                        inner => inner.UseStreamMessages(streamMessages))
                     .MapMiddlewareRoute(string.Empty, inner => inner.UseIndex(index)));
         }
 

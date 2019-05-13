@@ -51,7 +51,7 @@ namespace SqlStreamStore
                 {
                     new Link
                     {
-                        Href = LinkFormatter.StreamByMessageId(streamId, messageId),
+                        Href = LinkFormatter.StreamMessageByMessageId(streamId, messageId),
                         Rel = Constants.Relations.DeleteMessage
                     }
                 }

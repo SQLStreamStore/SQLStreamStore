@@ -9,7 +9,9 @@ namespace SqlStreamStore.HAL.StreamMetadata
             => links.StreamMetadataNavigation(operation.StreamId);
 
         private static Links StreamMetadataNavigation(this Links links, string streamId)
-            => links.Add(Constants.Relations.Metadata, $"{Constants.Paths.Streams}/{streamId}/{Constants.Paths.Metadata}").Self()
-                .Add(Constants.Relations.Feed, $"{Constants.Paths.Streams}/{streamId}", streamId);
+            => links
+                .Add(Constants.Relations.Metadata, LinkFormatter.StreamMetadata(streamId))
+                .Self()
+                .Add(Constants.Relations.Feed, LinkFormatter.Stream(streamId), streamId);
     }
 }

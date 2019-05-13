@@ -1,18 +1,20 @@
 namespace SqlStreamStore
 {
     using System;
-    using System.Collections.Generic;
+    using System.Text;
     using SqlStreamStore.Streams;
 
+    // ReSharper disable UnusedMember.Global
     internal static class LinkFormatter
     {
+        public static string AllStream() => Constants.Paths.AllStream;
         public static string ReadAllForwards(long fromPositionInclusive, int maxCount, bool prefetchJsonData)
             => ReadAll(
                 fromPositionInclusive,
                 maxCount,
                 prefetchJsonData,
                 Constants.ReadDirection.Forwards);
-        
+
         public static string ReadAllBackwards(long fromPositionInclusive, int maxCount, bool prefetchJsonData)
             => ReadAll(
                 fromPositionInclusive,
@@ -21,10 +23,16 @@ namespace SqlStreamStore
                 Constants.ReadDirection.Backwards);
 
         public static string Stream(StreamId streamId)
-            => $"{Constants.Paths.Streams}/{streamId}";
+            => Stream(new EncodedStreamId(streamId));
 
-        public static string StreamByMessageId(StreamId streamId, Guid messageId)
+        public static string StreamMessageByMessageId(StreamId streamId, Guid messageId)
             => $"{Stream(streamId)}/{messageId}";
+
+        public static string StreamMessageByStreamVersion(StreamId streamId, int streamVersion)
+            => $"{Stream(streamId)}/{streamVersion}";
+
+        public static string AllStreamMessageByPosition(long position)
+            => $"{Constants.Paths.AllStream}/{position}";
 
         public static string ReadStreamForwards(
             StreamId streamId,
@@ -38,7 +46,11 @@ namespace SqlStreamStore
             int fromVersionInclusive,
             int maxCount,
             bool prefetchJsonData)
-            => ReadStream(streamId, fromVersionInclusive, maxCount, prefetchJsonData, Constants.ReadDirection.Backwards);
+            => ReadStream(streamId,
+                fromVersionInclusive,
+                maxCount,
+                prefetchJsonData,
+                Constants.ReadDirection.Backwards);
 
         public static string ListStreams(Pattern pattern, int maxCount)
             => $"{Constants.Paths.Streams}?p={pattern.Value}&t={GetPatternTypeArgumentName(pattern)}&m={maxCount}";
@@ -46,8 +58,29 @@ namespace SqlStreamStore
         public static string ListStreams(Pattern pattern, int maxCount, string continuationToken)
             => $"{ListStreams(pattern, maxCount)}&c={continuationToken}";
 
+        public static string Docs(string rel)
+            => $"{Constants.Paths.Docs}/{rel}";
+
+        public static string StreamMetadata(StreamId streamId)
+            => $"{Stream(streamId)}/{Constants.Paths.Metadata}";
+
+        public static string Index() => string.Empty;
+
+        public static string DocsTemplate()
+            => $"{Constants.Paths.Docs}/{{rel}}";
+
+        public static string FindStreamTemplate()
+            => $"{Constants.Paths.Streams}/{{streamId}}";
+
+        public static string BrowseStreamsTemplate()
+            => $"{Constants.Paths.Streams}{{?p,t,m}}";
+
+        private static string Stream(EncodedStreamId encodedStreamId)
+            => $"{Constants.Paths.Streams}/{encodedStreamId}";
+
         private static string ReadAll(long fromPositionInclusive, int maxCount, bool prefetchJsonData, int direction)
-            => $"{Constants.Paths.AllStream}?{GetStreamQueryString(fromPositionInclusive, maxCount, prefetchJsonData, direction)}";
+            =>
+                $"{Constants.Paths.AllStream}?{GetStreamQueryString(fromPositionInclusive, maxCount, prefetchJsonData, direction)}";
 
         private static string ReadStream(
             StreamId streamId,
@@ -57,21 +90,21 @@ namespace SqlStreamStore
             int direction) =>
             $"{Stream(streamId)}?{GetStreamQueryString(fromVersionInclusive, maxCount, prefetchJsonData, direction)}";
 
-        private static string GetStreamQueryString(long positionOrVersion, int maxCount, bool prefetchJsonData, int direction)
+        private static string GetStreamQueryString(
+            long positionOrVersion,
+            int maxCount,
+            bool prefetchJsonData,
+            int direction)
         {
-            var queryString = new Dictionary<string, string>
-            {
-                ["d"] = direction == Constants.ReadDirection.Forwards ? "f" : "b",
-                ["p"] = $"{positionOrVersion}",
-                ["m"] = $"{maxCount}"
-            };
+            var builder = new StringBuilder()
+                .Append("d=").Append(direction == Constants.ReadDirection.Forwards ? "f" : "b")
+                .Append("&p=").Append(positionOrVersion)
+                .Append("&m=").Append(maxCount);
 
-            if(prefetchJsonData)
-            {
-                queryString["e"] = "1";
-            }
-            
-            return queryString.ToUrlFormEncoded();
+            return (prefetchJsonData
+                    ? builder.Append("&e=1")
+                    : builder)
+                .ToString();
         }
 
         private static string GetPatternTypeArgumentName(Pattern pattern)
@@ -87,4 +120,5 @@ namespace SqlStreamStore
             }
         }
     }
+    // ReSharper restore UnusedMember.Global
 }

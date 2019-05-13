@@ -45,18 +45,16 @@ namespace SqlStreamStore.HAL.AllStream
                 : Constants.MaxCount;
 
             Self = ReadDirection == Constants.ReadDirection.Forwards
-                ? Links.FormatForwardLink(
-                    Constants.Paths.AllStream,
-                    MaxCount,
+                ? LinkFormatter.ReadAllForwards(
                     FromPositionInclusive,
+                    MaxCount,
                     EmbedPayload)
-                : Links.FormatBackwardLink(
-                    Constants.Paths.AllStream,
-                    MaxCount,
+                : LinkFormatter.ReadAllBackwards(
                     FromPositionInclusive,
+                    MaxCount,
                     EmbedPayload);
 
-            IsUriCanonical = Self.Remove(0, Constants.Paths.AllStream.Length)
+            IsUriCanonical = Self.Remove(0, LinkFormatter.AllStream().Length)
                              == request.QueryString.ToUriComponent();
         }
 

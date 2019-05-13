@@ -6,11 +6,23 @@
     using System.Net;
     using System.Threading.Tasks;
     using Shouldly;
+    using SqlStreamStore.Streams;
     using Xunit;
     using Xunit.Abstractions;
 
     public class CanonicalUrlTests
     {
+        delegate string FormatAllStreamLink(
+            long fromPosition,
+            int maxCount,
+            bool prefetchJsonData);
+
+        delegate string FormatStreamLink(
+            StreamId streamId,
+            int fromVersionInclusive,
+            int maxCount,
+            bool prefetchJsonData);
+        
         private const string StreamId = "a-stream";
         private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
 
@@ -43,40 +55,56 @@
                 from set in GetPermutations(parameters, 4)
                 select string.Join('&', set.Where(x => x != null));
         }
-
-        private static IEnumerable<(string, Uri)> NonCanonical()
+        
+        private static IEnumerable<(string, Uri)> NonCanonicalAll()
         {
             var bools = new[] { true, false };
          
-            var formatters = new Dictionary<bool, Func<string, int, long, bool, string>>
+            var formatters = new Dictionary<bool, FormatAllStreamLink>
             {
-                [true] = Links.FormatForwardLink,
-                [false] = Links.FormatBackwardLink
-            };
-
-            (string streamId, string path, string root)[] streams =
-            {
-                (StreamId, $"streams/{StreamId}", "../"),
-                (Constants.Paths.AllStream, Constants.Paths.AllStream, string.Empty)
+                [true] = LinkFormatter.ReadAllForwards,
+                [false] = LinkFormatter.ReadAllBackwards
             };
 
             return
-                from _ in streams
                 from prefetch in bools
                 from forward in bools
                 let format = formatters[forward]
                 let canonicalUri = new Uri(
-                    format($"{_.root}{_.path}", 20, 0, prefetch),
+                    format(Position.Start, 20, prefetch),
                     UriKind.Relative)
                 from queryString in GetQueryStrings(forward, prefetch)
                     // query strings are supposed to be case sensitive!!
                     //.Concat(new[] { $"d={(forward ? 'F' : 'B')}&M=20&P=0{(prefetch ? "&E" : string.Empty)}" })
                 where !canonicalUri.OriginalString.EndsWith($"?{queryString}")
-                select ($"{_.path}?{queryString}", canonicalUri);
+                select ($"{Constants.Paths.AllStream}?{queryString}", canonicalUri);
         }
+        private static IEnumerable<(string, Uri)> NonCanonicalStream()
+        {
+            var bools = new[] { true, false };
+         
+            var formatters = new Dictionary<bool, FormatStreamLink>
+            {
+                [true] = LinkFormatter.ReadStreamForwards,
+                [false] = LinkFormatter.ReadStreamBackwards
+            };
 
+            return
+                from prefetch in bools
+                from forward in bools
+                let format = formatters[forward]
+                let canonicalUri = new Uri(
+                    format(StreamId, StreamVersion.Start, 20, prefetch),
+                    UriKind.Relative)
+                from queryString in GetQueryStrings(forward, prefetch)
+                // query strings are supposed to be case sensitive!!
+                //.Concat(new[] { $"d={(forward ? 'F' : 'B')}&M=20&P=0{(prefetch ? "&E" : string.Empty)}" })
+                where !canonicalUri.OriginalString.EndsWith($"?{queryString}")
+                select ($"../{LinkFormatter.Stream(StreamId)}?{queryString}", canonicalUri);
+        }
+        
         public static IEnumerable<object[]> NonCanonicalUriCases()
-            => NonCanonical()
+            => NonCanonicalAll().Concat(NonCanonicalStream())
                 .Select(x => new object[] { x.Item1, x.Item2 })
                 .ToArray();
 

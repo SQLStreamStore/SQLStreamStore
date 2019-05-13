@@ -12,7 +12,7 @@
             }
             if (param.Value.StartsWith(s))
             {
-                throw ExceptionFactory.CreateForParamValidation(param, $"Must not start with{s}");
+                throw ExceptionFactory.CreateForParamValidation(param, $"Must not start with {s}");
             }
             return param;
         }

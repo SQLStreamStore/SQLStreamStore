@@ -21,4 +21,7 @@
     <ProjectReference Include="..\SqlStreamStore.MsSql\SqlStreamStore.MsSql.csproj" />
     <ProjectReference Include="..\SqlStreamStore.Postgres\SqlStreamStore.Postgres.csproj" />
   </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\SqlStreamStore.Http.Common\**\*.cs" />
+  </ItemGroup>
 </Project>

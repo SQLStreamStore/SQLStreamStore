@@ -48,18 +48,18 @@ namespace SqlStreamStore.HAL.Streams
                     : Constants.MaxCount
                 : Constants.MaxCount;
 
-            var baseAddress = $"{Constants.Paths.Streams}/{StreamId}";
+            var baseAddress = LinkFormatter.Stream(StreamId);
 
             Self = ReadDirection == Constants.ReadDirection.Forwards
-                ? Links.FormatForwardLink(baseAddress, MaxCount, FromVersionInclusive, EmbedPayload)
-                : Links.FormatBackwardLink(baseAddress, MaxCount, FromVersionInclusive, EmbedPayload);
+                ? LinkFormatter.ReadStreamForwards(StreamId, FromVersionInclusive, MaxCount, EmbedPayload)
+                : LinkFormatter.ReadStreamBackwards(StreamId, FromVersionInclusive, MaxCount, EmbedPayload);
 
             IsUriCanonical = Self.Remove(0, baseAddress.Length)
                              == request.QueryString.ToUriComponent();
         }
 
         public PathString Path { get; }
-        public long FromVersionInclusive => _fromVersionInclusive;
+        public int FromVersionInclusive => _fromVersionInclusive;
         public int MaxCount => _maxCount;
         public bool EmbedPayload { get; }
         public int ReadDirection { get; }

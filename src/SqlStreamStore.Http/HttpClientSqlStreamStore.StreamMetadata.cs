@@ -34,7 +34,7 @@ namespace SqlStreamStore
                 ThrowOnError(client);
             }
 
-            client = await client.GetAsync(client.Current.First(), "streamStore:metadata");
+            client = await client.GetAsync(client.Current.First(), Constants.Relations.Metadata);
 
             var resource = client.Current.First();
 
@@ -67,7 +67,7 @@ namespace SqlStreamStore
                 ThrowOnError(client);
             }
 
-            client = await client.GetAsync(client.Current.First(), "streamStore:metadata");
+            client = await client.GetAsync(client.Current.First(), Constants.Relations.Metadata);
 
             if(client.StatusCode != HttpStatusCode.NotFound)
             {
@@ -85,7 +85,8 @@ namespace SqlStreamStore
                 metadata["metadataJson"] = TryParseMetadataJson(metadataJson);
             }
 
-            client = await client.Post("self",
+            client = await client.Post(
+                Constants.Relations.Self,
                 metadata,
                 null,
                 null,

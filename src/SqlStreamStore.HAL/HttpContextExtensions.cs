@@ -5,7 +5,6 @@ namespace SqlStreamStore.HAL
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
-    using Microsoft.AspNetCore.Routing;
     using SqlStreamStore.Streams;
 
     internal static class HttpContextExtensions
@@ -82,29 +81,5 @@ namespace SqlStreamStore.HAL
                 value => MediaTypeWithQualityHeaderValue.TryParse(value, out var header)
                     ? header.MediaType
                     : null);
-    }
-
-    internal static class RouteDataExtensions
-    {
-        public static string GetStreamId(this RouteData routeData)
-            => routeData.Values["streamId"]?.ToString();
-
-        public static long GetPosition(this RouteData routeData)
-            => long.TryParse(routeData.Values["position"]?.ToString(), out var value)
-                ? value
-                : default;
-
-        public static int GetStreamVersion(this RouteData routeData)
-            => int.TryParse(routeData.Values["p"]?.ToString(), out var value)
-                ? value
-                : default;
-
-        public static Guid GetMessageId(this RouteData routeData)
-            => Guid.TryParse(routeData.Values["p"]?.ToString(), out var value)
-                ? value
-                : default;
-
-        public static string GetDoc(this RouteData routeData)
-            => routeData.Values["doc"]?.ToString();
     }
 }

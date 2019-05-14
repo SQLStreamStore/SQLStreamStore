@@ -20,7 +20,8 @@ namespace SqlStreamStore
 
             var random = new Random();
 
-            var basePath = $"/{Enumerable.Range(0, random.Next(0, 3)).Select(_ => Guid.NewGuid())}";
+            var segments = Enumerable.Range(0, random.Next(1, 3)).Select(_ => Guid.NewGuid()).ToArray();
+            var basePath = $"/{string.Join("/", segments)}";
 
             var webHostBuilder = new WebHostBuilder()
                 .Configure(builder => builder.Map(basePath, inner => inner.UseSqlStreamStoreHal(_inMemoryStreamStore)))

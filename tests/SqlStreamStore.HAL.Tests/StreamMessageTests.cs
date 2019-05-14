@@ -18,7 +18,6 @@
 
         public void Dispose() => _fixture.Dispose();
         private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
-        private const string HeadOfStream = "streams/a-stream?d=b&m=20&p=-1&e=0";
 
         [Fact]
         public async Task read_single_message_stream()
@@ -40,7 +39,7 @@
                     .Add(Constants.Relations.First, "streams/a-stream/0")
                     .Add(Constants.Relations.Next, "streams/a-stream/1")
                     .Add(Constants.Relations.Last, "streams/a-stream/-1")
-                    .Add(Constants.Relations.Feed, HeadOfStream, "a-stream")
+                    .Add(Constants.Relations.Feed, "streams/a-stream?d=b&p=-1&m=20", "a-stream")
                     .Add(Constants.Relations.Message, "streams/a-stream/0", "a-stream@0"));
             }
         }
@@ -62,7 +61,7 @@
                     .Add(Constants.Relations.Self, "streams/a-stream/0", "a-stream@0")
                     .Add(Constants.Relations.First, "streams/a-stream/0")
                     .Add(Constants.Relations.Last, "streams/a-stream/-1")
-                    .Add(Constants.Relations.Feed, HeadOfStream, "a-stream")
+                    .Add(Constants.Relations.Feed, "streams/a-stream?d=b&p=-1&m=20", "a-stream")
                     .Add(Constants.Relations.Message, "streams/a-stream/0", "a-stream@0"));
             }
         }

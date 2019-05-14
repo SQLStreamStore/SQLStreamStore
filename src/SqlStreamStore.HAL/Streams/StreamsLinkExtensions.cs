@@ -7,18 +7,16 @@ namespace SqlStreamStore.HAL.Streams
     {
         public static Links StreamsNavigation(this Links links, ReadStreamPage page, ReadStreamOperation operation)
         {
-            var baseAddress = $"{Constants.Paths.Streams}/{operation.StreamId}";
-
-            var first = Links.FormatForwardLink(
-                baseAddress,
-                operation.MaxCount,
+            var first = LinkFormatter.ReadStreamForwards(
+                operation.StreamId,
                 StreamVersion.Start,
+                operation.MaxCount,
                 operation.EmbedPayload);
 
-            var last = Links.FormatBackwardLink(
-                baseAddress,
-                operation.MaxCount,
+            var last = LinkFormatter.ReadStreamBackwards(
+                operation.StreamId,
                 StreamVersion.End,
+                operation.MaxCount,
                 operation.EmbedPayload);
 
             links.Add(Constants.Relations.First, first);
@@ -27,10 +25,10 @@ namespace SqlStreamStore.HAL.Streams
             {
                 links.Add(
                     Constants.Relations.Previous,
-                    Links.FormatBackwardLink(
-                        baseAddress,
-                        operation.MaxCount,
+                    LinkFormatter.ReadStreamBackwards(
+                        operation.StreamId,
                         page.Messages.Min(m => m.StreamVersion) - 1,
+                        operation.MaxCount,
                         operation.EmbedPayload));
             }
 
@@ -40,16 +38,15 @@ namespace SqlStreamStore.HAL.Streams
             {
                 links.Add(
                     Constants.Relations.Next,
-                    Links.FormatForwardLink(
-                        baseAddress,
-                        operation.MaxCount,
+                    LinkFormatter.ReadStreamForwards(
+                        operation.StreamId,
                         page.Messages.Max(m => m.StreamVersion) + 1,
+                        operation.MaxCount,
                         operation.EmbedPayload));
             }
 
             links.Add(Constants.Relations.Last, last)
-                .Add(Constants.Relations.Metadata,
-                    $"{baseAddress}/metadata");
+                .Add(Constants.Relations.Metadata, LinkFormatter.StreamMetadata(operation.StreamId));
 
             return links;
         }

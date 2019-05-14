@@ -664,5 +664,51 @@
             exception.ShouldBeOfType<WrongExpectedVersionException>(
                 ErrorMessages.AppendFailedWrongExpectedVersion(streamId, 10));
         }
+        
+        [Theory, Trait("Category", "AppendStream")]
+        [InlineData("stream/id")]
+        [InlineData("stream%id")]
+        public async Task When_append_to_stream_with_url_encodable_characters_and_expected_version_no_stream_then_should_have_expected_result(string streamId)
+        {
+            var result = await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+
+            result.CurrentVersion.ShouldBe(2);
+            result.CurrentPosition.ShouldBeGreaterThanOrEqualTo(fixture.MinPosition + 2L);
+        }
+        
+        [Theory, Trait("Category", "AppendStream")]
+        [InlineData("stream/id")]
+        [InlineData("stream%id")]
+        public async Task When_append_to_stream_with_url_encodable_characters_and_expected_version_any_then_should_have_expected_result(string streamId)
+        {
+            var result = await store.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1, 2, 3));
+
+            result.CurrentVersion.ShouldBe(2);
+            result.CurrentPosition.ShouldBeGreaterThanOrEqualTo(fixture.MinPosition + 2L);
+        }
+
+        [Theory, Trait("Category", "AppendStream")]
+        [InlineData("stream/id")]
+        [InlineData("stream%id")]
+        public async Task When_append_to_stream_with_url_encodable_characters_and_expected_version_empty_stream_then_should_have_expected_result(string streamId)
+        {
+            await store.AppendToStream(streamId, ExpectedVersion.NoStream, Array.Empty<NewStreamMessage>());
+            var result = await store.AppendToStream(streamId, ExpectedVersion.EmptyStream, CreateNewStreamMessages(1, 2, 3));
+
+            result.CurrentVersion.ShouldBe(2);
+            result.CurrentPosition.ShouldBeGreaterThanOrEqualTo(fixture.MinPosition + 2L);
+        }
+        
+        [Theory, Trait("Category", "AppendStream")]
+        [InlineData("stream/id")]
+        [InlineData("stream%id")]
+        public async Task When_append_to_stream_with_url_encodable_characters_and_expected_version_then_should_have_expected_result(string streamId)
+        {
+            await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1));
+            var result = await store.AppendToStream(streamId, 0, CreateNewStreamMessages(2, 3));
+
+            result.CurrentVersion.ShouldBe(2);
+            result.CurrentPosition.ShouldBeGreaterThanOrEqualTo(fixture.MinPosition + 2L);
+        }
     }
 }

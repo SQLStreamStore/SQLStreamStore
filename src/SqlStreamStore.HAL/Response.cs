@@ -11,11 +11,7 @@
         public int StatusCode { get; }
         public IDictionary<string, string[]> Headers { get; }
 
-        protected Response(int statusCode)
-            : this(statusCode, null)
-        { }
-
-        protected Response(int statusCode, string mediaType)
+        protected Response(int statusCode, string mediaType = null)
         {
             StatusCode = statusCode;
             Headers = new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)

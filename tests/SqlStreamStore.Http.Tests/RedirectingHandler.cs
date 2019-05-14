@@ -102,9 +102,9 @@ namespace SqlStreamStore
             {
                 var buffer = await request.Content.ReadAsByteArrayAsync();
                 requestBody = new ByteArrayContent(buffer);
-                foreach(var header in request.Content.Headers)
+                foreach(var (key, value) in request.Content.Headers)
                 {
-                    requestBody.Headers.Add(header.Key, header.Value);
+                    requestBody.Headers.Add(key, value);
                 }
             }
 

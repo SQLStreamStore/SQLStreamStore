@@ -75,7 +75,7 @@ namespace SqlStreamStore.HAL
 
             links[_links.Count] = new Link(
                 Constants.Relations.Curies,
-                Resolve($"{Constants.Paths.Docs}/{{rel}}"),
+                Resolve(LinkFormatter.DocsTemplate()),
                 "Documentation",
                 replaceParameters: false)
             {
@@ -99,9 +99,7 @@ namespace SqlStreamStore.HAL
             bool prefetch)
             => $"{baseAddress}?d={direction}&m={maxCount}&p={position}&e={(prefetch ? 1 : 0)}";
 
-        public static string FormatForwardLink(string baseAddress, int maxCount, long position, bool prefetch)
-            => FormatLink(baseAddress, "f", maxCount, position, prefetch);
-
+        [Obsolete("", true)]
         public static string FormatBackwardLink(string baseAddress, int maxCount, long position, bool prefetch)
             => FormatLink(baseAddress, "b", maxCount, position, prefetch);
     }

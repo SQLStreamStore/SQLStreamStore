@@ -37,7 +37,7 @@
             using(var response = await _fixture.HttpClient.SendAsync(
                 new HttpRequestMessage(
                     method,
-                    Links.FormatBackwardLink("/stream", 20, Position.End, true))))
+                    LinkFormatter.ReadAllBackwards(Position.End, 20, true))))
             {
                 response.IsSuccessStatusCode.ShouldBeTrue();
 

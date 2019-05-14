@@ -48,7 +48,7 @@ namespace SqlStreamStore.HAL.Streams
                 .Index()
                 .Find()
                 .Browse()
-                .Add(Constants.Relations.Feed, $"{Constants.Paths.Streams}/{operation.StreamId}").Self();
+                .Add(Constants.Relations.Feed, LinkFormatter.Stream(operation.StreamId)).Self();
 
             var response = new HalJsonResponse(
                 new HALResponse(result)
@@ -59,7 +59,7 @@ namespace SqlStreamStore.HAL.Streams
             if(response.StatusCode == 201)
             {
                 response.Headers[Constants.Headers.Location] =
-                    new[] { $"{_relativePathToRoot}{Constants.Paths.Streams}/{operation.StreamId}" };
+                    new[] { $"{_relativePathToRoot}{LinkFormatter.Stream(operation.StreamId)}" };
             }
 
             return response;
@@ -117,12 +117,14 @@ namespace SqlStreamStore.HAL.Streams
                                         .FromOperation(operation)
                                         .Add(
                                             Constants.Relations.Message,
-                                            $"{Constants.Paths.Streams}/{message.StreamId}/{message.StreamVersion}",
+                                            LinkFormatter.StreamMessageByStreamVersion(
+                                                message.StreamId,
+                                                message.StreamVersion),
                                             $"{message.StreamId}@{message.StreamVersion}")
                                         .Self()
                                         .Add(
                                             Constants.Relations.Feed,
-                                            $"{Constants.Paths.Streams}/{message.StreamId}",
+                                            LinkFormatter.Stream(message.StreamId),
                                             message.StreamId)))),
                 page.Status == PageReadStatus.StreamNotFound ? 404 : 200);
 

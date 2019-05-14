@@ -121,5 +121,16 @@
             page.LastStreamVersion.ShouldBe(1);
             page.NextStreamVersion.ShouldBe(2);
         }
+
+        [Theory, Trait("Category", "DeleteEvent")]
+        [InlineData("stream/id")]
+        [InlineData("stream%id")]
+        public async Task When_delete_stream_message_with_url_encodable_characters_then_should_not_throw(string streamId)
+        {
+            var newStreamMessages = CreateNewStreamMessages(1);
+            await store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamMessages);
+
+            await store.DeleteMessage(streamId, newStreamMessages[0].MessageId);
+        }
     }
 }

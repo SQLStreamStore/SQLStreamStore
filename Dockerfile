@@ -1,4 +1,4 @@
-FROM microsoft/dotnet:2.2.100-sdk-stretch AS build
+FROM mcr.microsoft.com/dotnet/core/sdk:2.2.204-stretch AS build
 
 WORKDIR /repo
 

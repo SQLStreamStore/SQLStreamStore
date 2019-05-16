@@ -34,7 +34,7 @@
             {
                 ContainerName = "sql-stream-store-tests-mssql",
                 Env = new[] { "ACCEPT_EULA=Y", $"SA_PASSWORD={Password}" },
-                DataDirectories = new[] { "/var/opt/mssql" }
+                DataDirectories = new[] { "/var/opt/mssql/data" }
             };
         }
 

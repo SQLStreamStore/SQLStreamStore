@@ -34,7 +34,7 @@ namespace SqlStreamStore.Postgres
         };
 
         public PostgresDockerDatabaseManager(
-            ITestOutputHelper testOutputHelper, 
+            ITestOutputHelper testOutputHelper,
             string databaseName,
             int tcpPort = 5432)
             : base(testOutputHelper, databaseName)
@@ -50,7 +50,8 @@ namespace SqlStreamStore.Postgres
                 })
             {
                 ContainerName = ContainerName,
-                Cmd = new []{ "-N" ,"500" }
+                Cmd = new[] { "-N", "500" },
+                DataDirectories = new[] { "/var/lib/postgresql/data" }
             };
         }
 

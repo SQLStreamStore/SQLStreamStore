@@ -33,7 +33,8 @@
                 ports)
             {
                 ContainerName = "sql-stream-store-tests-mssql",
-                Env = new[] { "ACCEPT_EULA=Y", $"SA_PASSWORD={Password}" }
+                Env = new[] { "ACCEPT_EULA=Y", $"SA_PASSWORD={Password}" },
+                DataDirectories = new[] { "/var/opt/mssql" }
             };
         }
 
@@ -41,7 +42,8 @@
             => new SqlConnection(CreateConnectionStringBuilder().ConnectionString);
 
         public SqlConnectionStringBuilder CreateConnectionStringBuilder()
-            => new SqlConnectionStringBuilder($"server=localhost,{Port};User Id=sa;Password={Password};Initial Catalog=master");
+            => new SqlConnectionStringBuilder(
+                $"server=localhost,{Port};User Id=sa;Password={Password};Initial Catalog=master");
 
         public async Task CreateDatabase(CancellationToken cancellationToken = default)
         {
@@ -74,14 +76,15 @@ ALTER DATABASE [{_databaseName}] SET MULTI_USER";
         {
             try
             {
-                using (var connection = CreateConnection())
+                using(var connection = CreateConnection())
                 {
                     await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
                     return true;
                 }
             }
-            catch (Exception) { }
+            catch(Exception)
+            { }
 
             return false;
         }

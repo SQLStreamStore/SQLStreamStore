@@ -14,6 +14,7 @@ namespace SqlStreamStore
         private const string UnixPipe = "unix:///var/run/docker.sock";
         private const string WindowsPipe = "npipe://./pipe/docker_engine";
         private static readonly Uri s_dockerUri = new Uri(Environment.OSVersion.IsWindows() ? WindowsPipe : UnixPipe);
+
         private static readonly DockerClientConfiguration s_dockerClientConfiguration =
             new DockerClientConfiguration(s_dockerUri);
 
@@ -24,7 +25,7 @@ namespace SqlStreamStore
         private readonly IDockerClient _dockerClient;
         private string ImageWithTag => $"{_image}:{_tag}";
 
-      public DockerContainer(
+        public DockerContainer(
             string image,
             string tag,
             Func<CancellationToken, Task<bool>> healthCheck,
@@ -43,14 +44,17 @@ namespace SqlStreamStore
 
         public string[] Cmd { get; set; } = Array.Empty<string>();
 
+        public string[] DataDirectories { get; set; } = Array.Empty<string>();
+
         public async Task TryStart(CancellationToken cancellationToken = default)
         {
             var images = await _dockerClient.Images.ListImagesAsync(new ImagesListParameters
-            {
-                MatchName = ImageWithTag
-            }, cancellationToken).NotOnCapturedContext();
+                {
+                    MatchName = ImageWithTag
+                },
+                cancellationToken).NotOnCapturedContext();
 
-            if (images.Count == 0)
+            if(images.Count == 0)
             {
                 // No image found. Pulling latest ..
                 var imagesCreateParameters = new ImagesCreateParameters
@@ -74,16 +78,16 @@ namespace SqlStreamStore
         private async Task<string> FindContainer(CancellationToken cancellationToken)
         {
             var containers = await _dockerClient.Containers.ListContainersAsync(new ContainersListParameters
-            {
-                All = true,
-                Filters = new Dictionary<string, IDictionary<string, bool>>
                 {
-                    ["name"] = new Dictionary<string, bool>
+                    All = true,
+                    Filters = new Dictionary<string, IDictionary<string, bool>>
                     {
-                        [ContainerName] = true
+                        ["name"] = new Dictionary<string, bool>
+                        {
+                            [ContainerName] = true
+                        }
                     }
-                }
-            },
+                },
                 cancellationToken).NotOnCapturedContext();
 
             return containers
@@ -95,7 +99,7 @@ namespace SqlStreamStore
         {
             var portBindings = _ports.ToDictionary(
                 pair => $"{pair.Key}/tcp",
-                pair => (IList<PortBinding>)new List<PortBinding>
+                pair => (IList<PortBinding>) new List<PortBinding>
                 {
                     new PortBinding
                     {
@@ -113,6 +117,7 @@ namespace SqlStreamStore
                 {
                     PortBindings = portBindings,
                     AutoRemove = true,
+                    Tmpfs = DataDirectories.ToDictionary(d => d, _ => "rw")
                 },
                 Cmd = Cmd
             };
@@ -132,7 +137,7 @@ namespace SqlStreamStore
                 new ContainerStartParameters(),
                 cancellationToken).NotOnCapturedContext();
 
-            while (!await _healthCheck(cancellationToken).NotOnCapturedContext())
+            while(!await _healthCheck(cancellationToken).NotOnCapturedContext())
             {
                 await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken).NotOnCapturedContext();
             }

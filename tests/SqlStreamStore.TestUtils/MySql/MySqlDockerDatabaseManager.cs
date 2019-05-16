@@ -49,7 +49,8 @@ namespace SqlStreamStore.MySql
                 Env = new[]
                 {
                     "MYSQL_ALLOW_EMPTY_PASSWORD=1"
-                }
+                },
+                DataDirectories = new[] { "/var/lib/mysql" }
             };
         }
 

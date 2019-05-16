@@ -34,19 +34,7 @@
             : base(settings.GetUtcNow, settings.LogName)
         {
             _settings = settings;
-            _createConnection = () =>
-            {
-                var connection = _settings.ConnectionFactory(_settings.ConnectionString);
-
-                connection.StateChange += ConnectionOnStateChange;
-
-                return connection;
-
-                void ConnectionOnStateChange(object sender, StateChangeEventArgs e)
-                {
-                    Logger.Info(e.ToString);
-                }
-            };
+            _createConnection = () => _settings.ConnectionFactory(_settings.ConnectionString);
             _streamStoreNotifier = new Lazy<IStreamStoreNotifier>(() =>
             {
                 if(_settings.CreateStreamStoreNotifier == null)

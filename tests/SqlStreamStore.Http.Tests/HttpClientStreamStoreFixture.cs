@@ -5,7 +5,6 @@ namespace SqlStreamStore
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.TestHost;
-    using Microsoft.Extensions.DependencyInjection;
     using SqlStreamStore.HAL;
     using SqlStreamStore.Infrastructure;
 
@@ -24,8 +23,8 @@ namespace SqlStreamStore
             var basePath = $"/{string.Join("/", segments)}";
 
             var webHostBuilder = new WebHostBuilder()
-                .Configure(builder => builder.Map(basePath, inner => inner.UseSqlStreamStoreHal(_inMemoryStreamStore)))
-                .ConfigureServices(services => services.AddRouting());
+                .ConfigureServices(services => services.AddSqlStreamStoreHal())
+                .Configure(builder => builder.Map(basePath, inner => inner.UseSqlStreamStoreHal(_inMemoryStreamStore)));
 
             _server = new TestServer(webHostBuilder);
 

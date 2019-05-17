@@ -7,6 +7,7 @@
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Routing;
+    using Microsoft.Extensions.DependencyInjection;
     using SqlStreamStore.HAL.AllStream;
     using SqlStreamStore.HAL.AllStreamMessage;
     using SqlStreamStore.HAL.Docs;
@@ -95,6 +96,15 @@
                     .MapMiddlewareRoute($"{Constants.Paths.Streams}/{{streamId}}/{{p}}",
                         inner => inner.UseStreamMessages(streamMessages))
                     .MapMiddlewareRoute(string.Empty, inner => inner.UseIndex(index)));
+
+        public static IServiceCollection AddSqlStreamStoreHal(this IServiceCollection serviceCollection)
+        {
+            if(serviceCollection == null)
+            {
+                throw new ArgumentNullException(nameof(serviceCollection));
+            }
+
+            return serviceCollection.AddRouting();
         }
 
         private class OptionalHeadRequestWrapper : IDisposable

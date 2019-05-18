@@ -19,7 +19,7 @@
 
         public IServiceProvider ConfigureServices(IServiceCollection services) 
             => services
-                .AddRouting()
+                .AddSqlStreamStoreHal()
                 .BuildServiceProvider();
 
         public void Configure(IApplicationBuilder app) => app

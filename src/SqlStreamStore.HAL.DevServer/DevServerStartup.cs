@@ -27,7 +27,7 @@
 
         public IServiceProvider ConfigureServices(IServiceCollection services) => services
             .AddResponseCompression(options => options.MimeTypes = new[] { "application/hal+json" })
-            .AddRouting()
+            .AddSqlStreamStoreHal()
             .BuildServiceProvider();
 
         public void Configure(IApplicationBuilder app) => app

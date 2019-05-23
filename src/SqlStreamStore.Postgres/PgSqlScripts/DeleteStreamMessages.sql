@@ -1,6 +1,7 @@
 CREATE OR REPLACE FUNCTION __schema__.delete_stream_messages(
   _stream_id                  CHAR(42),
   _message_ids                UUID [],
+  _deletion_tracking_disabled BOOLEAN,
   _deleted_stream_id          CHAR(42),
   _deleted_stream_id_original VARCHAR(1000),
   _created_utc                TIMESTAMP,
@@ -29,7 +30,7 @@ BEGIN
   FROM deleted
       INTO _deleted_count;
 
-  IF _deleted_count > 0
+  IF (_deletion_tracking_disabled = FALSE AND _deleted_count > 0) 
   THEN
     PERFORM __schema__.append_to_stream(
               _deleted_stream_id,

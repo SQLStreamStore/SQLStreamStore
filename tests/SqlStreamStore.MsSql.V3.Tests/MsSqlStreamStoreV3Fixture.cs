@@ -10,10 +10,10 @@ namespace SqlStreamStore
         private readonly bool _createSchema;
         public readonly string ConnectionString;
         private readonly string _schema;
-        private readonly bool _disableDeletionTracking;
         private readonly bool _deleteDatabaseOnDispose;
         private readonly string _databaseName;
         private readonly DockerMsSqlServerDatabase _databaseInstance;
+        private readonly MsSqlStreamStoreV3Settings _settings;
 
         private MsSqlStreamStoreV3Fixture(
             string schema,
@@ -22,7 +22,6 @@ namespace SqlStreamStore
             bool createSchema = true)
         {
             _schema = schema;
-            _disableDeletionTracking = disableDeletionTracking;
             _deleteDatabaseOnDispose = deleteDatabaseOnDispose;
             _createSchema = createSchema;
             _databaseName = $"sss-v3-{Guid.NewGuid():n}";
@@ -32,6 +31,13 @@ namespace SqlStreamStore
             connectionStringBuilder.MultipleActiveResultSets = true;
             connectionStringBuilder.InitialCatalog = _databaseName;
             ConnectionString = connectionStringBuilder.ToString();
+
+            _settings = new MsSqlStreamStoreV3Settings(ConnectionString)
+            {
+                Schema = _schema,
+                GetUtcNow = () => GetUtcNow(),
+                DisableDeletionTracking = disableDeletionTracking
+            };
         }
 
         IStreamStore IStreamStoreFixture.Store => Store;
@@ -44,17 +50,17 @@ namespace SqlStreamStore
 
         public int MaxSubscriptionCount { get; set; } = 500;
 
+        public bool DisableDeletionTracking
+        {
+            get => _settings.DisableDeletionTracking;
+            set => _settings.DisableDeletionTracking = value;
+        }
+
         private async Task Init()
         {
             await _databaseInstance.CreateDatabase();
-            var settings = new MsSqlStreamStoreV3Settings(ConnectionString)
-            {
-                Schema = _schema,
-                GetUtcNow = () => GetUtcNow(),
-                DisableDeletionTracking = _disableDeletionTracking
-            };
-            Store = new MsSqlStreamStoreV3(settings);
-            if (_createSchema)
+            Store = new MsSqlStreamStoreV3(_settings);
+            if(_createSchema)
             {
                 await Store.CreateSchemaIfNotExists();
             }
@@ -78,19 +84,23 @@ namespace SqlStreamStore
         {
             Store?.Dispose();
 
-            if (!_deleteDatabaseOnDispose)
+            if(!_deleteDatabaseOnDispose)
             {
                 return;
             }
+
             SqlConnection.ClearAllPools();
-            using (var connection = _databaseInstance.CreateConnection())
+            using(var connection = _databaseInstance.CreateConnection())
             {
                 connection.Open();
-                using (var command = new SqlCommand($"ALTER DATABASE [{_databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connection))
+                using(var command =
+                    new SqlCommand($"ALTER DATABASE [{_databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE",
+                        connection))
                 {
                     command.ExecuteNonQuery();
                 }
-                using (var command = new SqlCommand($"DROP DATABASE [{_databaseName}]", connection))
+
+                using(var command = new SqlCommand($"DROP DATABASE [{_databaseName}]", connection))
                 {
                     command.ExecuteNonQuery();
                 }

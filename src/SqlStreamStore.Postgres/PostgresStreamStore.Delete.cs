@@ -48,9 +48,10 @@
                 Parameters.StreamId(streamId),
                 Parameters.ExpectedVersion(expectedVersion),
                 Parameters.CreatedUtc(_settings.GetUtcNow?.Invoke()),
-                Parameters.DeletedStreamId,
-                Parameters.DeletedStreamIdOriginal,
-                Parameters.DeletedStreamMessage(streamId)))
+                Parameters.DeletionTrackingDisabled(_settings.DisableDeletionTracking),
+                _settings.DisableDeletionTracking ? Parameters.Empty() : Parameters.DeletedStreamId,
+                _settings.DisableDeletionTracking ? Parameters.Empty() : Parameters.DeletedStreamIdOriginal,
+                _settings.DisableDeletionTracking ? Parameters.Empty() : Parameters.DeletedStreamMessage(streamId)))
             {
                 try
                 {
@@ -96,10 +97,13 @@
                 transaction,
                 Parameters.StreamId(streamIdInfo.PostgresqlStreamId),
                 Parameters.MessageIds(eventIds),
-                Parameters.DeletedStreamId,
-                Parameters.DeletedStreamIdOriginal,
+                Parameters.DeletionTrackingDisabled(_settings.DisableDeletionTracking),
+                _settings.DisableDeletionTracking ? Parameters.Empty() : Parameters.DeletedStreamId,
+                _settings.DisableDeletionTracking ? Parameters.Empty() : Parameters.DeletedStreamIdOriginal,
                 Parameters.CreatedUtc(_settings.GetUtcNow?.Invoke()),
-                Parameters.DeletedMessages(streamIdInfo.PostgresqlStreamId, eventIds)))
+                _settings.DisableDeletionTracking
+                    ? Parameters.Empty()
+                    : Parameters.DeletedMessages(streamIdInfo.PostgresqlStreamId, eventIds)))
             {
                 await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
             }

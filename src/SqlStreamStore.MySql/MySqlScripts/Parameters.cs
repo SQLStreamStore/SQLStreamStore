@@ -200,6 +200,22 @@ namespace SqlStreamStore.MySqlScripts
                 Direction = ParameterDirection.Output
             };
 
+        public static MySqlParameter DeletionTrackingDisabled(bool value)
+            => new MySqlParameter
+            {
+                MySqlDbType = MySqlDbType.Bool,
+                ParameterName = "_deletion_tracking_disabled",
+                Value = value
+            };
+
+        public static MySqlParameter Empty(this MySqlParameter parameter)
+            => new MySqlParameter
+            {
+                ParameterName = parameter.ParameterName,
+                MySqlDbType = MySqlDbType.Null,
+                Value = DBNull.Value
+            };
+
         private static MySqlParameter StreamIdInternal(MySqlStreamId streamId, string parameterName)
             => new MySqlParameter
             {

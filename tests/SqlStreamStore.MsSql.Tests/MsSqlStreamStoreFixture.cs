@@ -13,6 +13,7 @@ namespace SqlStreamStore
         private readonly bool _deleteDatabaseOnDispose;
         private readonly string _databaseName;
         private readonly DockerMsSqlServerDatabase _databaseInstance;
+        private readonly MsSqlStreamStoreSettings _settings;
 
         private MsSqlStreamStoreFixture(
             string schema,
@@ -29,6 +30,11 @@ namespace SqlStreamStore
             connectionStringBuilder.MultipleActiveResultSets = true;
             connectionStringBuilder.InitialCatalog = _databaseName;
             ConnectionString = connectionStringBuilder.ToString();
+            _settings = new MsSqlStreamStoreSettings(ConnectionString)
+            {
+                Schema = _schema,
+                GetUtcNow = () => GetUtcNow(),
+            };
         }
 
         public MsSqlStreamStore Store { get; private set; }
@@ -39,17 +45,18 @@ namespace SqlStreamStore
 
         public int MaxSubscriptionCount { get; set; } = 500;
 
+        public bool DisableDeletionTracking
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
+
         IStreamStore IStreamStoreFixture.Store => Store;
 
         private async Task Init(bool createV1Schema = false)
         {
             await _databaseInstance.CreateDatabase();
-            var settings = new MsSqlStreamStoreSettings(ConnectionString)
-            {
-                Schema = _schema,
-                GetUtcNow = () => GetUtcNow(),
-            };
-            Store = new MsSqlStreamStore(settings);
+            Store = new MsSqlStreamStore(_settings);
             if (_createSchema)
             {
                 if(createV1Schema)

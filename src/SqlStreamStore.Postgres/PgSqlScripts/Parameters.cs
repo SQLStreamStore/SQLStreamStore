@@ -251,5 +251,22 @@
                 NpgsqlDbType = NpgsqlDbType.Varchar
             };
         }
+
+        public static NpgsqlParameter DeletionTrackingDisabled(bool deletionTrackingDisabled)
+        {
+            return new NpgsqlParameter<bool>
+            {
+                TypedValue = deletionTrackingDisabled,
+                NpgsqlDbType = NpgsqlDbType.Boolean
+            };
+        }
+
+        public static NpgsqlParameter Empty()
+        {
+            return new NpgsqlParameter<DBNull>
+            {
+                TypedValue = DBNull.Value
+            };
+        }
     }
 }

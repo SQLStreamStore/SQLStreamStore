@@ -3,6 +3,7 @@ DROP PROCEDURE IF EXISTS delete_stream;
 CREATE PROCEDURE delete_stream(_stream_id CHAR(42),
                                _expected_version INT,
                                _created_utc TIMESTAMP(6),
+                               _deletion_tracking_disabled BOOLEAN,
                                _deleted_stream_id CHAR(42),
                                _deleted_stream_id_original NVARCHAR(1000),
                                _deleted_metadata_stream_id CHAR(42),
@@ -55,24 +56,27 @@ BEGIN
 
         DELETE FROM streams WHERE streams.id = _stream_id;
 
-        SELECT ROW_COUNT() INTO _affected;
-
-        IF _affected > 0
+        IF _deletion_tracking_disabled = FALSE
         THEN
-            CALL append_to_stream_expected_version_any
-                (
-                    _deleted_stream_id,
-                    _deleted_stream_id_original,
-                    _deleted_metadata_stream_id,
-                    _created_utc,
-                    _deleted_stream_message_message_id,
-                    _deleted_stream_message_type,
-                    _deleted_stream_message_json_data,
-                    NULL,
-                    _,
-                    __,
-                    ___);
+            SELECT ROW_COUNT() INTO _affected;
 
+            IF _affected > 0
+            THEN
+                CALL append_to_stream_expected_version_any
+                    (
+                        _deleted_stream_id,
+                        _deleted_stream_id_original,
+                        _deleted_metadata_stream_id,
+                        _created_utc,
+                        _deleted_stream_message_message_id,
+                        _deleted_stream_message_type,
+                        _deleted_stream_message_json_data,
+                        NULL,
+                        _,
+                        __,
+                        ___);
+
+            END IF;
         END IF;
     END;
 

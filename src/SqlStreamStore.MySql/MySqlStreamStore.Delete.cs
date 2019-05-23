@@ -44,18 +44,30 @@ namespace SqlStreamStore
         {
             var deletedStreamMessage = Deleted.CreateStreamDeletedMessage(streamId.IdOriginal);
 
+            var deletedStreamId = Parameters.DeletedStreamId();
+            var deletedStreamIdOriginal = Parameters.DeletedStreamIdOriginal();
+            var deletedMetadataStreamId = Parameters.DeletedMetadataStreamId();
+            var deletedStreamMessageMessageId = Parameters.DeletedStreamMessageMessageId(deletedStreamMessage);
+            var deletedStreamMessageType = Parameters.DeletedStreamMessageType(deletedStreamMessage);
+            var deletedStreamMessageJsonData = Parameters.DeletedStreamMessageJsonData(deletedStreamMessage);
+
             using(var command = BuildStoredProcedureCall(
                 _schema.DeleteStream,
                 transaction,
                 Parameters.StreamId(streamId),
                 Parameters.ExpectedVersion(expectedVersion),
                 Parameters.CreatedUtc(_settings.GetUtcNow?.Invoke()),
-                Parameters.DeletedStreamId(),
-                Parameters.DeletedStreamIdOriginal(),
-                Parameters.DeletedMetadataStreamId(),
-                Parameters.DeletedStreamMessageMessageId(deletedStreamMessage),
-                Parameters.DeletedStreamMessageType(deletedStreamMessage),
-                Parameters.DeletedStreamMessageJsonData(deletedStreamMessage)))
+                Parameters.DeletionTrackingDisabled(_settings.DisableDeletionTracking),
+                _settings.DisableDeletionTracking ? deletedStreamId.Empty() : deletedStreamId,
+                _settings.DisableDeletionTracking ? deletedStreamIdOriginal.Empty() : deletedStreamIdOriginal,
+                _settings.DisableDeletionTracking ? deletedMetadataStreamId.Empty() : deletedMetadataStreamId,
+                _settings.DisableDeletionTracking
+                    ? deletedStreamMessageMessageId.Empty()
+                    : deletedStreamMessageMessageId,
+                _settings.DisableDeletionTracking ? deletedStreamMessageType.Empty() : deletedStreamMessageType,
+                _settings.DisableDeletionTracking
+                    ? deletedStreamMessageJsonData.Empty()
+                    : deletedStreamMessageJsonData))
             {
                 try
                 {
@@ -100,18 +112,26 @@ namespace SqlStreamStore
                 streamIdInfo.MySqlStreamId.IdOriginal,
                 eventId);
 
+            var deletedStreamId = Parameters.DeletedStreamId();
+            var deletedStreamIdOriginal = Parameters.DeletedStreamIdOriginal();
+            var deletedMetadataStreamId = Parameters.DeletedMetadataStreamId();
+            var deletedMessageMessageId = Parameters.DeletedMessageMessageId(deletedMessageMessage);
+            var deletedMessageType = Parameters.DeletedMessageType(deletedMessageMessage);
+            var deletedMessageJsonData = Parameters.DeletedMessageJsonData(deletedMessageMessage);
+
             using(var command = BuildStoredProcedureCall(
                 _schema.DeleteStreamMessage,
                 transaction,
                 Parameters.StreamId(streamIdInfo.MySqlStreamId),
                 Parameters.MessageId(eventId),
-                Parameters.DeletedStreamId(),
-                Parameters.DeletedStreamIdOriginal(),
-                Parameters.DeletedMetadataStreamId(),
                 Parameters.CreatedUtc(_settings.GetUtcNow?.Invoke()),
-                Parameters.DeletedMessageMessageId(deletedMessageMessage),
-                Parameters.DeletedMessageType(deletedMessageMessage),
-                Parameters.DeletedMessageJsonData(deletedMessageMessage)))
+                Parameters.DeletionTrackingDisabled(_settings.DisableDeletionTracking),
+                _settings.DisableDeletionTracking ? deletedStreamId.Empty() : deletedStreamId,
+                _settings.DisableDeletionTracking ? deletedStreamIdOriginal.Empty() : deletedStreamIdOriginal,
+                _settings.DisableDeletionTracking ? deletedMetadataStreamId.Empty() : deletedMetadataStreamId,
+                _settings.DisableDeletionTracking ? deletedMessageMessageId.Empty() : deletedMessageMessageId,
+                _settings.DisableDeletionTracking ? deletedMessageType.Empty() : deletedMessageType,
+                _settings.DisableDeletionTracking ? deletedMessageJsonData.Empty() : deletedMessageJsonData))
             {
                 await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
             }

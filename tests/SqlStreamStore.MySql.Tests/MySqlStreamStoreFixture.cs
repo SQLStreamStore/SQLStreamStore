@@ -11,6 +11,7 @@ namespace SqlStreamStore
         private readonly string _databaseName;
         private readonly bool _createSchema;
         private readonly MySqlDatabaseManager _databaseManager;
+        private readonly MySqlStreamStoreSettings _settings;
 
         public string DatabaseName => _databaseName;
 
@@ -23,9 +24,20 @@ namespace SqlStreamStore
             _databaseManager = new MySqlDockerDatabaseManager(
                 testOutputHelper,
                 _databaseName);
+            _settings = new MySqlStreamStoreSettings(ConnectionString)
+            {
+                GetUtcNow = () => GetUtcNow(),
+                ScavengeAsynchronously = false
+            };
         }
 
         IStreamStore IStreamStoreFixture.Store => Store;
+
+        public bool DisableDeletionTracking
+        {
+            get => _settings.DisableDeletionTracking;
+            set => _settings.DisableDeletionTracking = value;
+        }
 
         public MySqlStreamStore Store { get; private set; }
 
@@ -40,13 +52,8 @@ namespace SqlStreamStore
         private async Task Init()
         {
             await _databaseManager.CreateDatabase();
-            var settings = new MySqlStreamStoreSettings(ConnectionString)
-            {
-                GetUtcNow = () => GetUtcNow(),
-                ScavengeAsynchronously = false
-            };
 
-            Store = new MySqlStreamStore(settings);
+            Store = new MySqlStreamStore(_settings);
 
             if(_createSchema)
             {

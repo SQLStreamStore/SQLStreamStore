@@ -1,5 +1,6 @@
 namespace SqlStreamStore.InMemory
 {
+    using System;
     using SqlStreamStore.Infrastructure;
 
     public class InMemoryStreamStoreFixture : IStreamStoreFixture
@@ -21,5 +22,11 @@ namespace SqlStreamStore.InMemory
         public long MinPosition { get; set; } = 0;
 
         public int MaxSubscriptionCount { get; set; } = 500;
+
+        public bool DisableDeletionTracking
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
     }
 }

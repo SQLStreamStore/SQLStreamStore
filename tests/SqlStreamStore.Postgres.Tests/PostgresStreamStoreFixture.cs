@@ -11,6 +11,7 @@ namespace SqlStreamStore
         private readonly string _schema;
         private readonly bool _createSchema;
         private readonly PostgresDatabaseManager _databaseManager;
+        private readonly PostgresStreamStoreSettings _settings;
 
         private PostgresStreamStoreFixture(
             string schema,
@@ -20,9 +21,16 @@ namespace SqlStreamStore
             _schema = schema;
             _createSchema = createSchema;
             _databaseManager = new PostgresDockerDatabaseManager(
-                testOutputHelper, 
+                testOutputHelper,
                 $"test_{Guid.NewGuid():n}");
+            _settings = new PostgresStreamStoreSettings(ConnectionString)
+            {
+                Schema = _schema,
+                GetUtcNow = () => GetUtcNow(),
+                ScavengeAsynchronously = false
+            };
         }
+
 
         IStreamStore IStreamStoreFixture.Store => Store;
 
@@ -36,17 +44,17 @@ namespace SqlStreamStore
 
         public int MaxSubscriptionCount { get; set; } = 100;
 
+        public bool DisableDeletionTracking
+        {
+            get => _settings.DisableDeletionTracking;
+            set => _settings.DisableDeletionTracking = value;
+        }
+
         private async Task Init()
         {
             await _databaseManager.CreateDatabase();
-            var settings = new PostgresStreamStoreSettings(ConnectionString)
-            {
-                Schema = _schema,
-                GetUtcNow = () => GetUtcNow(),
-                ScavengeAsynchronously = false
-            };
 
-            Store = new PostgresStreamStore(settings);
+            Store = new PostgresStreamStore(_settings);
 
             if(_createSchema)
             {

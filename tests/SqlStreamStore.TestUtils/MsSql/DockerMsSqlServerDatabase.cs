@@ -60,7 +60,7 @@
 
             var policy = Policy
                 .Handle<SqlException>()
-                .WaitAndRetryAsync(3, i => TimeSpan.FromSeconds(1));
+                .WaitAndRetryAsync(5, i => TimeSpan.FromSeconds(Math.Pow(2, i)));
 
             await policy.ExecuteAsync(async () =>
             {

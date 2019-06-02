@@ -13,8 +13,8 @@
         private readonly string _databaseName;
         private readonly DockerContainer _sqlServerContainer;
         private const string Password = "!Passw0rd";
-        private const string Image = "microsoft/mssql-server-linux";
-        private const string Tag = "2017-CU9";
+        private const string Image = "mcr.microsoft.com/mssql/server";
+        private const string Tag = "2017-CU11-ubuntu";
         private const int Port = 11433;
 
         public DockerMsSqlServerDatabase(string databaseName)
@@ -33,8 +33,17 @@
                 ports)
             {
                 ContainerName = "sql-stream-store-tests-mssql",
-                Env = new[] { "ACCEPT_EULA=Y", $"SA_PASSWORD={Password}" },
-                DataDirectories = new[] { "/var/opt/mssql/data" }
+                Env = new[]
+                {
+                    "ACCEPT_EULA=Y",
+                    $"SA_PASSWORD={Password}",
+                    "LD_PRELOAD=/opt/nodirect_open.so"
+                },
+                DataDirectories = new[] { "/var/opt/mssql/data" },
+                Volumes =
+                {
+                    [$"{AppDomain.CurrentDomain.BaseDirectory}/MsSql/nodirect_open.so"] = "/opt/nodirect_open.so"
+                }
             };
         }
 

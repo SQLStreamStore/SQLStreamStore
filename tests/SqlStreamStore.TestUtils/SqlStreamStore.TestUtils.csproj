@@ -24,4 +24,10 @@
     <ProjectReference Include="..\..\src\SqlStreamStore\SqlStreamStore.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="MsSql\nodirect_open.so">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
 </Project>

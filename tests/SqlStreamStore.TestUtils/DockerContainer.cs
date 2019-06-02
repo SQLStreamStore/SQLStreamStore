@@ -46,6 +46,8 @@ namespace SqlStreamStore
 
         public string[] DataDirectories { get; set; } = Array.Empty<string>();
 
+        public IDictionary<string, string> Volumes = new Dictionary<string, string>();
+
         public async Task TryStart(CancellationToken cancellationToken = default)
         {
             var images = await _dockerClient.Images.ListImagesAsync(new ImagesListParameters
@@ -117,7 +119,13 @@ namespace SqlStreamStore
                 {
                     PortBindings = portBindings,
                     AutoRemove = true,
-                    Tmpfs = DataDirectories.ToDictionary(d => d, _ => "rw")
+                    Tmpfs = DataDirectories.ToDictionary(d => d, _ => "rw"),
+                    Mounts = Volumes.Select(_ => new Mount
+                    {
+                        Source = _.Key,
+                        Target = _.Value,
+                        Type = "bind"
+                    }).ToList()
                 },
                 Cmd = Cmd
             };

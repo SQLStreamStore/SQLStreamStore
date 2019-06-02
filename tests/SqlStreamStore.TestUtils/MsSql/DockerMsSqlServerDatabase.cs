@@ -66,19 +66,26 @@
             {
                 using(var connection = CreateConnection())
                 {
-                    await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                    try
+                    {
+                        await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                    var createCommand = $@"CREATE DATABASE [{_databaseName}]
+                        var createCommand = $@"CREATE DATABASE [{_databaseName}]
 ALTER DATABASE [{_databaseName}] SET SINGLE_USER
 ALTER DATABASE [{_databaseName}] SET COMPATIBILITY_LEVEL=110
 ALTER DATABASE [{_databaseName}] SET MULTI_USER";
 
-                    using(var command = new SqlCommand(createCommand, connection))
+                        using(var command = new SqlCommand(createCommand, connection))
+                        {
+                            await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                        }
+                    }
+                    finally
                     {
-                        await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                        SqlConnection.ClearPool(connection);
                     }
                 }
-            });
+            }).NotOnCapturedContext();
         }
 
         private async Task<bool> HealthCheck(CancellationToken cancellationToken)

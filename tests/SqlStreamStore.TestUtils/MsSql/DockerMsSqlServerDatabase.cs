@@ -66,23 +66,11 @@
             {
                 using(var connection = CreateConnection())
                 {
-                    try
-                    {
-                        await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                    await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                        var createCommand = $@"CREATE DATABASE [{_databaseName}]
-ALTER DATABASE [{_databaseName}] SET SINGLE_USER
-ALTER DATABASE [{_databaseName}] SET COMPATIBILITY_LEVEL=110
-ALTER DATABASE [{_databaseName}] SET MULTI_USER";
-
-                        using(var command = new SqlCommand(createCommand, connection))
-                        {
-                            await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
-                        }
-                    }
-                    finally
+                    using(var command = new SqlCommand($@"CREATE DATABASE [{_databaseName}]", connection))
                     {
-                        SqlConnection.ClearPool(connection);
+                        await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
                     }
                 }
             }).NotOnCapturedContext();

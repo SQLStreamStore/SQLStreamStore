@@ -14,7 +14,7 @@
         private readonly DockerContainer _sqlServerContainer;
         private const string Password = "!Passw0rd";
         private const string Image = "mcr.microsoft.com/mssql/server";
-        private const string Tag = "2017-CU11-ubuntu";
+        private const string Tag = "2017-CU14-ubuntu";
         private const int Port = 11433;
 
         public DockerMsSqlServerDatabase(string databaseName)

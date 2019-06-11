@@ -16,6 +16,8 @@ namespace SqlStreamStore
             string streamId,
             CancellationToken cancellationToken = default)
         {
+            GuardAgainstDisposed();
+
             var client = CreateClient(new Resource
             {
                 Links =
@@ -49,6 +51,8 @@ namespace SqlStreamStore
             string metadataJson = null,
             CancellationToken cancellationToken = default)
         {
+            GuardAgainstDisposed();
+
             var client = CreateClient(new Resource
             {
                 Links =

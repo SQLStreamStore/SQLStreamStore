@@ -13,7 +13,10 @@ namespace SqlStreamStore
             HasCaughtUp hasCaughtUp = null,
             bool prefetchJsonData = true,
             string name = null)
-            => new StreamSubscription(
+        {
+            GuardAgainstDisposed();
+
+            return new StreamSubscription(
                 streamId,
                 continueAfterVersion,
                 this,
@@ -23,6 +26,7 @@ namespace SqlStreamStore
                 hasCaughtUp,
                 prefetchJsonData,
                 name);
+        }
 
         public IAllStreamSubscription SubscribeToAll(
             long? continueAfterPosition,
@@ -31,7 +35,10 @@ namespace SqlStreamStore
             HasCaughtUp hasCaughtUp = null,
             bool prefetchJsonData = true,
             string name = null)
-            => new AllStreamSubscription(
+        {
+            GuardAgainstDisposed();
+
+            return new AllStreamSubscription(
                 continueAfterPosition,
                 this,
                 _streamStoreNotifier.Value,
@@ -40,5 +47,6 @@ namespace SqlStreamStore
                 hasCaughtUp,
                 prefetchJsonData,
                 name);
+        }
     }
 }

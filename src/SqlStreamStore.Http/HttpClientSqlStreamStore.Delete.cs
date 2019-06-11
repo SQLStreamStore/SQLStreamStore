@@ -15,6 +15,8 @@ namespace SqlStreamStore
             int expectedVersion = ExpectedVersion.Any,
             CancellationToken cancellationToken = default)
         {
+            GuardAgainstDisposed();
+
             var client = CreateClient(new Resource
             {
                 Links =
@@ -45,6 +47,8 @@ namespace SqlStreamStore
             Guid messageId,
             CancellationToken cancellationToken = default)
         {
+            GuardAgainstDisposed();
+
             var client = CreateClient(new Resource
             {
                 Links =
@@ -63,7 +67,7 @@ namespace SqlStreamStore
                 null,
                 cancellationToken: cancellationToken);
 
-            ThrowOnError(client);            
+            ThrowOnError(client);
         }
     }
 }

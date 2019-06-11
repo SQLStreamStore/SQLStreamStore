@@ -16,6 +16,7 @@ namespace SqlStreamStore
             NewStreamMessage[] messages,
             CancellationToken cancellationToken = default)
         {
+            GuardAgainstDisposed();
             var client = CreateClient(new Resource
             {
                 Links =
@@ -27,7 +28,7 @@ namespace SqlStreamStore
                     }
                 }
             });
-            
+
             client = await client.Post(
                 Constants.Relations.AppendToStream,
                 messages,

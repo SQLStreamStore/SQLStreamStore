@@ -14,7 +14,7 @@
     using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
 
-    public partial class HttpClientSqlStreamStore : IStreamStore
+    public sealed partial class HttpClientSqlStreamStore : IStreamStore
     {
         private static readonly JsonSerializer s_serializer = JsonSerializer.Create(new JsonSerializerSettings
         {
@@ -28,6 +28,7 @@
 
         private readonly Lazy<IStreamStoreNotifier> _streamStoreNotifier;
         private readonly HttpClientSqlStreamStoreSettings _settings;
+        private bool _disposed;
 
         public HttpClientSqlStreamStore(HttpClientSqlStreamStoreSettings settings)
         {
@@ -46,11 +47,14 @@
 
         public void Dispose()
         {
+            _disposed = true;
             OnDispose?.Invoke();
         }
 
         public async Task<long> ReadHeadPosition(CancellationToken cancellationToken = default)
         {
+            GuardAgainstDisposed();
+
             var client = CreateClient();
             var response = await client.Client.HeadAsync(LinkFormatter.AllStream(), cancellationToken);
 
@@ -132,6 +136,14 @@
             client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/hal+json"));
 
             return client;
+        }
+
+        private void GuardAgainstDisposed()
+        {
+            if(_disposed)
+            {
+                throw new ObjectDisposedException(nameof(HttpClientSqlStreamStore));
+            }
         }
     }
 }

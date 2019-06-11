@@ -28,6 +28,8 @@ namespace SqlStreamStore
         {
             Ensure.That(maxCount).IsGt(0);
 
+            GuardAgainstDisposed();
+
             Task<ListStreamsPage> ListNext(string @continue, CancellationToken ct)
                 => ListStreams(pattern, maxCount, @continue, ct);
 

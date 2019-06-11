@@ -15,6 +15,8 @@ namespace SqlStreamStore
             bool prefetchJsonData = true,
             CancellationToken cancellationToken = default)
         {
+            GuardAgainstDisposed();
+
             var client = CreateClient();
 
             client = await client.RootAsync(
@@ -30,6 +32,8 @@ namespace SqlStreamStore
             bool prefetchJsonData = true,
             CancellationToken cancellationToken = default)
         {
+            GuardAgainstDisposed();
+
             var client = CreateClient();
 
             client = await client.RootAsync(

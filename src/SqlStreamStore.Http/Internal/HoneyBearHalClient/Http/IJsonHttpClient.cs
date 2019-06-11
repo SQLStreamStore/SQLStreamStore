@@ -1,5 +1,6 @@
 namespace SqlStreamStore.Internal.HoneyBearHalClient.Http
 {
+    using System;
     using System.Collections.Generic;
     using System.Net.Http;
     using System.Threading;
@@ -7,8 +8,7 @@ namespace SqlStreamStore.Internal.HoneyBearHalClient.Http
 
     internal interface IJsonHttpClient
     {
-        HttpClient HttpClient { get; }
-        
+        Uri BaseAddress { get; }
         Task<HttpResponseMessage> GetAsync(string uri, CancellationToken cancellationToken = default);
 
         Task<HttpResponseMessage> HeadAsync(string uri, CancellationToken cancellationToken = default);

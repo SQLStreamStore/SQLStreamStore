@@ -2,20 +2,24 @@
 {
     using System;
     using System.Net.Http;
+    using Microsoft.Extensions.DependencyInjection;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Subscriptions;
 
     public class HttpClientSqlStreamStoreSettings
     {
+        private static readonly Lazy<Func<HttpClient>> s_defaultHttpClientFactory = new Lazy<Func<HttpClient>>(() =>
+        {
+            var serviceProvider = new ServiceCollection()
+                .AddHttpClient(nameof(HttpClientSqlStreamStore)).Services
+                .BuildServiceProvider();
+
+            return serviceProvider.GetService<IHttpClientFactory>().CreateClient;
+        }); 
         /// <summary>
         /// The root uri of the server. Must end with "/".
         /// </summary>
         public Uri BaseAddress { get; set; }
-
-        /// <summary>
-        ///     The Http Message Handler. Override this for testing.
-        /// </summary>
-        public HttpMessageHandler HttpMessageHandler { get; set; } = new HttpClientHandler();
 
         public CreateStreamStoreNotifier CreateStreamStoreNotifier { get; set; } =
             store => new PollingStreamStoreNotifier(store);
@@ -31,5 +35,9 @@
         /// </summary>
         public string LogName { get; set; } = nameof(HttpClientSqlStreamStore);
 
+        /// <summary>
+        /// The HttpClient Factory
+        /// </summary>
+        public Func<HttpClient> CreateHttpClient { get; set; } = s_defaultHttpClientFactory.Value;
     }
 }

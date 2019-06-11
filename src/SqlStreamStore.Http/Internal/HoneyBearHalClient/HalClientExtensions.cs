@@ -40,7 +40,7 @@
                     (result.Content.Headers.ContentLength == 0
                         ? new Resource()
                         : await result.Content.ReadResource())
-                    .WithBaseAddress(new Uri(client.Client.HttpClient.BaseAddress, uri))
+                    .WithBaseAddress(new Uri(client.Client.BaseAddress, uri))
                 };
 
             return new HalClient(client, current, result.StatusCode);

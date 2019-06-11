@@ -6,6 +6,7 @@ namespace SqlStreamStore
     using System.Threading;
     using System.Threading.Tasks;
     using Newtonsoft.Json.Linq;
+    using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Internal.HoneyBearHalClient;
     using SqlStreamStore.Internal.HoneyBearHalClient.Models;
     using SqlStreamStore.Streams;
@@ -16,6 +17,8 @@ namespace SqlStreamStore
             string streamId,
             CancellationToken cancellationToken = default)
         {
+            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace();
+
             GuardAgainstDisposed();
 
             var client = CreateClient(new Resource

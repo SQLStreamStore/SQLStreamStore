@@ -4,6 +4,7 @@ namespace SqlStreamStore
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Internal.HoneyBearHalClient;
     using SqlStreamStore.Internal.HoneyBearHalClient.Models;
     using SqlStreamStore.Streams;
@@ -15,6 +16,8 @@ namespace SqlStreamStore
             int expectedVersion = ExpectedVersion.Any,
             CancellationToken cancellationToken = default)
         {
+            Ensure.That(expectedVersion, nameof(expectedVersion)).IsGte(ExpectedVersion.Any);
+
             GuardAgainstDisposed();
 
             var client = CreateClient(new Resource

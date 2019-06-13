@@ -2,6 +2,7 @@ namespace SqlStreamStore
 {
     using System;
     using System.Linq;
+    using System.Net.Http;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.TestHost;
@@ -37,11 +38,11 @@ namespace SqlStreamStore
                 new HttpClientSqlStreamStoreSettings
                 {
                     GetUtcNow = () => GetUtcNow(),
-                    HttpMessageHandler = handler,
                     BaseAddress = new UriBuilder
                     {
                         Path = basePath.Length == 1 ? basePath : $"{basePath}/"
-                    }.Uri
+                    }.Uri,
+                    CreateHttpClient = () => new HttpClient(handler, false)
                 });
         }
 

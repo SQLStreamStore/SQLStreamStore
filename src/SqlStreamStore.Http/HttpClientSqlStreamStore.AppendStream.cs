@@ -4,6 +4,7 @@ namespace SqlStreamStore
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+    using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Internal.HoneyBearHalClient;
     using SqlStreamStore.Internal.HoneyBearHalClient.Models;
     using SqlStreamStore.Streams;
@@ -16,6 +17,11 @@ namespace SqlStreamStore
             NewStreamMessage[] messages,
             CancellationToken cancellationToken = default)
         {
+            Ensure.That(expectedVersion, nameof(expectedVersion)).IsGte(ExpectedVersion.NoStream);
+            Ensure.That(messages, nameof(messages)).IsNotNull();
+
+            GuardAgainstDisposed();
+
             var client = CreateClient(new Resource
             {
                 Links =
@@ -27,7 +33,7 @@ namespace SqlStreamStore
                     }
                 }
             });
-            
+
             client = await client.Post(
                 Constants.Relations.AppendToStream,
                 messages,

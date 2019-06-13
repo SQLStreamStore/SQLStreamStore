@@ -14,7 +14,7 @@
     using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
 
-    public partial class HttpClientSqlStreamStore : IStreamStore
+    public sealed partial class HttpClientSqlStreamStore : IStreamStore
     {
         private static readonly JsonSerializer s_serializer = JsonSerializer.Create(new JsonSerializerSettings
         {
@@ -26,27 +26,13 @@
             }
         });
 
-        private readonly HttpClient _httpClient;
         private readonly Lazy<IStreamStoreNotifier> _streamStoreNotifier;
+        private readonly HttpClientSqlStreamStoreSettings _settings;
+        private bool _disposed;
 
         public HttpClientSqlStreamStore(HttpClientSqlStreamStoreSettings settings)
         {
-            if(settings.BaseAddress == null)
-            {
-                throw new ArgumentNullException(nameof(settings.BaseAddress));
-            }
-
-            if(!settings.BaseAddress.ToString().EndsWith("/"))
-            {
-                throw new ArgumentException("BaseAddress must end with /", nameof(settings.BaseAddress));
-            }
-
-            _httpClient = new HttpClient(settings.HttpMessageHandler)
-            {
-                BaseAddress = settings.BaseAddress,
-                DefaultRequestHeaders = { Accept = { new MediaTypeWithQualityHeaderValue("application/hal+json") } }
-            };
-            
+            _settings = settings;
             _streamStoreNotifier = new Lazy<IStreamStoreNotifier>(() =>
             {
                 if(settings.CreateStreamStoreNotifier == null)
@@ -54,18 +40,21 @@
                     throw new InvalidOperationException(
                         "Cannot create notifier because supplied createStreamStoreNotifier was null");
                 }
+
                 return settings.CreateStreamStoreNotifier.Invoke(this);
             });
         }
 
         public void Dispose()
         {
+            _disposed = true;
             OnDispose?.Invoke();
-            _httpClient?.Dispose();
         }
 
         public async Task<long> ReadHeadPosition(CancellationToken cancellationToken = default)
         {
+            GuardAgainstDisposed();
+
             var client = CreateClient();
             var response = await client.Client.HeadAsync(LinkFormatter.AllStream(), cancellationToken);
 
@@ -102,9 +91,9 @@
         private IHalClient CreateClient(IResource resource) =>
             new HalClient(
                 CreateClient(),
-                new[] { resource.WithBaseAddress(_httpClient.BaseAddress) });
+                new[] { resource.WithBaseAddress(_settings.BaseAddress) });
 
-        private IHalClient CreateClient() => new HalClient(_httpClient, s_serializer);
+        private IHalClient CreateClient() => new HalClient(CreateHttpClient, s_serializer, _settings.BaseAddress);
 
         private static StreamMessage[] Convert(IResource[] streamMessages, IHalClient client, bool prefetch = false)
             => Array.ConvertAll(
@@ -126,5 +115,35 @@
             CancellationToken cancellationToken)
             => (await client.GetAsync(streamMessage, Constants.Relations.Self, cancellationToken))
                 .Current.FirstOrDefault()?.Data<HttpStreamMessage>()?.Payload?.ToString();
+
+        private HttpClient CreateHttpClient()
+        {
+            var baseAddress = _settings.BaseAddress;
+
+            if(baseAddress == null)
+            {
+                throw new ArgumentNullException(nameof(baseAddress));
+            }
+
+            if(!baseAddress.ToString().EndsWith("/"))
+            {
+                throw new ArgumentException("BaseAddress must end with /", nameof(baseAddress));
+            }
+
+            var client = _settings.CreateHttpClient();
+
+            client.BaseAddress = baseAddress;
+            client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/hal+json"));
+
+            return client;
+        }
+
+        private void GuardAgainstDisposed()
+        {
+            if(_disposed)
+            {
+                throw new ObjectDisposedException(nameof(HttpClientSqlStreamStore));
+            }
+        }
     }
 }

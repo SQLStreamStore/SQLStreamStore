@@ -11,15 +11,16 @@
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class StreamAppendTests : IDisposable
     {
         private const string StreamId = "a-stream";
         private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
 
-        public StreamAppendTests()
+        public StreamAppendTests(ITestOutputHelper output)
         {
-            _fixture = new SqlStreamStoreHalMiddlewareFixture();
+            _fixture = new SqlStreamStoreHalMiddlewareFixture(output);
         }
 
         public static IEnumerable<object[]> AppendCases()
@@ -66,7 +67,7 @@
                     new[] { messageId1, messageId2 })
             };
 
-            var location = new Uri($"../{Constants.Streams.Stream}/{StreamId}", UriKind.Relative);
+            var location = new Uri($"../{Constants.Paths.Streams}/{StreamId}", UriKind.Relative);
 
             foreach(var (body, messageIds) in bodies)
             {
@@ -113,7 +114,7 @@
             HttpStatusCode statusCode,
             Uri location)
         {
-            var request = new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Streams.Stream}/{StreamId}")
+            var request = new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Paths.Streams}/{StreamId}")
             {
                 Content = new StringContent(body.ToString())
             };
@@ -160,7 +161,7 @@
             for(var i = 0; i < expectedVersions.Length - 1; i++)
             {
                 using(await _fixture.HttpClient.SendAsync(
-                    new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Streams.Stream}/{StreamId}")
+                    new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Paths.Streams}/{StreamId}")
                     {
                         Headers =
                         {
@@ -184,7 +185,7 @@
             }
 
             using(var response = await _fixture.HttpClient.SendAsync(
-                new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Streams.Stream}/{StreamId}")
+                new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Paths.Streams}/{StreamId}")
                 {
                     Headers =
                     {
@@ -268,7 +269,7 @@
         public async Task malformed_request_body(string malformedRequest)
         {
             using(var response = await _fixture.HttpClient.SendAsync(
-                new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Streams.Stream}/{StreamId}")
+                new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Paths.Streams}/{StreamId}")
                 {
                     Content = new StringContent(malformedRequest)
                     {
@@ -297,7 +298,7 @@
         public async Task bad_expected_version(int badExpectedVersion)
         {
             using(var response = await _fixture.HttpClient.SendAsync(
-                new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Streams.Stream}/{StreamId}")
+                new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Paths.Streams}/{StreamId}")
                 {
                     Headers =
                     {

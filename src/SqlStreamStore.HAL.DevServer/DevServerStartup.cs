@@ -6,7 +6,6 @@
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.DependencyInjection;
-    using Serilog;
     using MidFunc = System.Func<
         Microsoft.AspNetCore.Http.HttpContext,
         System.Func<System.Threading.Tasks.Task>,
@@ -28,26 +27,14 @@
 
         public IServiceProvider ConfigureServices(IServiceCollection services) => services
             .AddResponseCompression(options => options.MimeTypes = new[] { "application/hal+json" })
+            .AddSqlStreamStoreHal()
             .BuildServiceProvider();
 
         public void Configure(IApplicationBuilder app) => app
             .UseResponseCompression()
             .Use(VaryAccept)
-            .Use(CatchAndDisplayErrors)
             .UseSqlStreamStoreBrowser()
             .UseSqlStreamStoreHal(_streamStore, _options);
-
-        private static MidFunc CatchAndDisplayErrors => async (context, next) =>
-        {
-            try
-            {
-                await next();
-            }
-            catch(Exception ex)
-            {
-                Log.Warning(ex, "Error during request.");
-            }
-        };
 
         private static MidFunc VaryAccept => (context, next) =>
         {

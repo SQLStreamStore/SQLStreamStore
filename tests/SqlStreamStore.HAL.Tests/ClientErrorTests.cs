@@ -11,6 +11,7 @@ namespace SqlStreamStore.HAL.Tests
     using System.Threading.Tasks;
     using Shouldly;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class ClientErrorTests : IDisposable
     {
@@ -43,27 +44,20 @@ namespace SqlStreamStore.HAL.Tests
                     HttpMethod.Get,
                     HttpMethod.Head
                 }),
-                ($"/{Constants.Streams.Stream}/a-stream", new[] { s_TextMarkdown, s_TextPlain }, new[]
+                ($"/{Constants.Paths.Streams}/a-stream", new[] { s_TextMarkdown, s_TextPlain }, new[]
                 {
                     HttpMethod.Get,
                     HttpMethod.Head,
                     HttpMethod.Post,
                     HttpMethod.Delete
                 }),
-                ($"/{Constants.Streams.Stream}/a-stream/0", new[] { s_TextMarkdown, s_TextPlain }, new[]
+                ($"/{Constants.Paths.Streams}/a-stream/0", new[] { s_TextMarkdown, s_TextPlain }, new[]
                 {
                     HttpMethod.Get,
                     HttpMethod.Head,
                     HttpMethod.Delete
                 }),
-                ($"/{Constants.Streams.Stream}/a-stream/{Guid.Empty}", new[] { s_TextMarkdown, s_TextPlain }, new[]
-                {
-                    HttpMethod.Get,
-                    HttpMethod.Head,
-                    HttpMethod.Delete
-                }),
-
-                ($"/{Constants.Streams.Stream}/a-stream/metadata", new[] { s_TextMarkdown, s_TextPlain }, new[]
+                ($"/{Constants.Paths.Streams}/a-stream/metadata", new[] { s_TextMarkdown, s_TextPlain }, new[]
                 {
                     HttpMethod.Get,
                     HttpMethod.Head,
@@ -79,9 +73,9 @@ namespace SqlStreamStore.HAL.Tests
 
         private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
 
-        public ClientErrorTests()
+        public ClientErrorTests(ITestOutputHelper output)
         {
-            _fixture = new SqlStreamStoreHalMiddlewareFixture();
+            _fixture = new SqlStreamStoreHalMiddlewareFixture(output);
         }
 
         public static IEnumerable<object[]> MethodNotAllowedCases()

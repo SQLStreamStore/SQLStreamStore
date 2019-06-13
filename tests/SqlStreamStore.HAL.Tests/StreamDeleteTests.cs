@@ -8,15 +8,16 @@
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class StreamDeleteTests : IDisposable
     {
         private const string StreamId = "a-stream";
         private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
 
-        public StreamDeleteTests()
+        public StreamDeleteTests(ITestOutputHelper output)
         {
-            _fixture = new SqlStreamStoreHalMiddlewareFixture();
+            _fixture = new SqlStreamStoreHalMiddlewareFixture(output);
         }
 
         [Theory, InlineData(ExpectedVersion.Any), InlineData(0), InlineData(null)]
@@ -24,7 +25,7 @@
         {
             await _fixture.WriteNMessages(StreamId, 1);
 
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"/{Constants.Streams.Stream}/{StreamId}");
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"/{Constants.Paths.Streams}/{StreamId}");
             
             if(expectedVersion.HasValue)
             {
@@ -47,7 +48,7 @@
         public async Task wrong_expected_version(int expectedVersion)
         {
             await _fixture.WriteNMessages(StreamId, 1);
-            var request = new HttpRequestMessage(HttpMethod.Delete, $"/{Constants.Streams.Stream}/{StreamId}")
+            var request = new HttpRequestMessage(HttpMethod.Delete, $"/{Constants.Paths.Streams}/{StreamId}")
             {
                 Headers =
                 {

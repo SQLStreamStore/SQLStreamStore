@@ -144,5 +144,16 @@
             exception.ShouldBeOfType<WrongExpectedVersionException>(
                     ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamId, 100));
         }
+
+        [Theory, Trait("Category", "DeleteStream")]
+        [InlineData("stream/id")]
+        [InlineData("stream%id")]
+        public async Task When_delete_stream_with_url_encodable_characters_then_should_not_throw(string streamId)
+        {
+            var newStreamMessages = CreateNewStreamMessages(1);
+            await store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamMessages);
+
+            await store.DeleteStream(streamId);
+        }
     }
 }

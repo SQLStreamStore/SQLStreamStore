@@ -1,8 +1,7 @@
-namespace SqlStreamStore.HAL
+namespace SqlStreamStore
 {
     using System.Linq;
     using System.Reflection;
-    using Microsoft.AspNetCore.Http;
     using SqlStreamStore.Streams;
 
     internal static class Constants
@@ -17,7 +16,7 @@ namespace SqlStreamStore.HAL
 
         public static class Headers
         {
-            public static int MinimumExpectedVersion = (from fieldInfo in typeof(ExpectedVersion)
+            public static readonly int MinimumExpectedVersion = (from fieldInfo in typeof(ExpectedVersion)
                     .GetFields(BindingFlags.Public | BindingFlags.Static | BindingFlags.FlattenHierarchy)
                 where fieldInfo.IsLiteral
                       && !fieldInfo.IsInitOnly
@@ -64,16 +63,12 @@ namespace SqlStreamStore.HAL
             public const string Browse = StreamStorePrefix + ":feed-browser";
         }
 
-        public static class Streams
+        public static class Paths
         {
-            public const string Stream = "streams";
-            public const string All = "stream";
+            public const string Streams = "streams";
+            public const string AllStream = "stream";
             public const string Metadata = "metadata";
-
-            public static PathString AllStreamPath = new PathString($"/{All}");
-            public static PathString StreamsPath = new PathString($"/{Stream}");
-            public static PathString IndexPath = new PathString("/");
-            public static PathString StreamBrowserPath = StreamsPath;
+            public const string Docs = "docs";
         }
 
         public static class ReadDirection

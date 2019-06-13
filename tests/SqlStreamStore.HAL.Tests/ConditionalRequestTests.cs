@@ -8,14 +8,15 @@ namespace SqlStreamStore.HAL.Tests
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class ConditionalRequestTests : IDisposable
     {
         private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
 
-        public ConditionalRequestTests()
+        public ConditionalRequestTests(ITestOutputHelper output)
         {
-            _fixture = new SqlStreamStoreHalMiddlewareFixture(true);
+            _fixture = new SqlStreamStoreHalMiddlewareFixture(output, true);
         }
 
         public static IEnumerable<object[]> IfNoneMatchCases()
@@ -30,13 +31,13 @@ namespace SqlStreamStore.HAL.Tests
             };
             yield return new object[]
             {
-                $"/{Constants.Streams.Stream}/{streamId}",
+                $"/{Constants.Paths.Streams}/{streamId}",
                 new Func<IStreamStore, Task>(
                     streamStore => streamStore.AppendToStream(streamId, ExpectedVersion.NoStream, message))
             };
             yield return new object[]
             {
-                $"/{Constants.Streams.Stream}/{streamId}/metadata",
+                $"/{Constants.Paths.Streams}/{streamId}/metadata",
                 new Func<IStreamStore, Task>(
                     streamStore => streamStore.SetStreamMetadata(streamId, ExpectedVersion.NoStream, 1))
             };

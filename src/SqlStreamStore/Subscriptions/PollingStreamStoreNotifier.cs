@@ -65,7 +65,7 @@
                 }
                 catch(Exception ex)
                 {
-                    s_logger.ErrorException($"Exception occurred polling stream store for messages. " +
+                    s_logger.ErrorException("Exception occurred polling stream store for messages. " +
                                             $"HeadPosition: {headPosition}", ex);
                 }
 

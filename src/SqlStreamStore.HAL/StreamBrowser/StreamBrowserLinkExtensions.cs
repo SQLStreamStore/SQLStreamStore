@@ -13,25 +13,22 @@ namespace SqlStreamStore.HAL.StreamBrowser
             {
                 links.Add(
                     Constants.Relations.Next,
-                    FormatLink(operation, listStreamsPage.ContinuationToken));
+                    LinkFormatter.ListStreams(operation.Pattern, operation.MaxCount, operation.ContinuationToken));
             }
 
             if(listStreamsPage.ContinuationToken != null)
             {
                 links.Add(
                     Constants.Relations.Next,
-                    FormatLink(operation, listStreamsPage.ContinuationToken));
+                    LinkFormatter.ListStreams(operation.Pattern, operation.MaxCount, operation.ContinuationToken));
             }
 
 
             return links
                 .Add(
                     Constants.Relations.Browse,
-                    FormatLink(operation, listStreamsPage.ContinuationToken))
+                    LinkFormatter.ListStreams(operation.Pattern, operation.MaxCount, operation.ContinuationToken))
                 .Self();
         }
-
-        private static string FormatLink(ListStreamsOperation operation, string continuationToken) =>
-            $"streams?p={operation.Pattern.Value}&t={operation.PatternType}&c={continuationToken}&m={operation.MaxCount}";
     }
 }

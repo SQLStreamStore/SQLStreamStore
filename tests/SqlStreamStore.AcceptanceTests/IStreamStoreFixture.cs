@@ -12,5 +12,7 @@ namespace SqlStreamStore
         long MinPosition { get; set; }
 
         int MaxSubscriptionCount { get; set; }
+
+        bool DisableDeletionTracking { get; set; }
     }
 }

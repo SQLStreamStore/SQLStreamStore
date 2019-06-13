@@ -10,6 +10,7 @@
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class StreamMetadataTests
     {
@@ -17,9 +18,9 @@
 
         private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
 
-        public StreamMetadataTests()
+        public StreamMetadataTests(ITestOutputHelper output)
         {
-            _fixture = new SqlStreamStoreHalMiddlewareFixture();
+            _fixture = new SqlStreamStoreHalMiddlewareFixture(output);
         }
 
         [Fact]
@@ -27,7 +28,7 @@
         {
             using(var response =
                 await _fixture.HttpClient.SendAsync(
-                    new HttpRequestMessage(HttpMethod.Get, $"/{Constants.Streams.Stream}/{StreamId}/metadata")))
+                    new HttpRequestMessage(HttpMethod.Get, $"/{Constants.Paths.Streams}/{StreamId}/metadata")))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.NotFound);
                 response.Headers.ETag.ShouldBe(new EntityTagHeaderValue($@"""{ExpectedVersion.EmptyStream}"""));
@@ -54,7 +55,7 @@
         public async Task get_metadata_when_metadata_stream_does_exist()
         {
             using(await _fixture.HttpClient.SendAsync(
-                new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Streams.Stream}/{StreamId}/metadata")
+                new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Paths.Streams}/{StreamId}/metadata")
                 {
                     Content = new StringContent(JObject.FromObject(new
                     {
@@ -74,7 +75,7 @@
                 }))
             using(var response =
                 await _fixture.HttpClient.SendAsync(
-                    new HttpRequestMessage(HttpMethod.Get, $"/{Constants.Streams.Stream}/{StreamId}/metadata")))
+                    new HttpRequestMessage(HttpMethod.Get, $"/{Constants.Paths.Streams}/{StreamId}/metadata")))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.OK);
                 response.Headers.ETag.ShouldBe(new EntityTagHeaderValue(@"""0"""));
@@ -106,7 +107,7 @@
         public async Task set_metadata()
         {
             using(var response = await _fixture.HttpClient.SendAsync(
-                new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Streams.Stream}/{StreamId}/metadata")
+                new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Paths.Streams}/{StreamId}/metadata")
                 {
                     Content = new StringContent(JObject.FromObject(new
                     {
@@ -165,7 +166,7 @@
             for(var i = 0; i < expectedVersions.Length - 1; i++)
             {
                 using(await _fixture.HttpClient.SendAsync(
-                    new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Streams.Stream}/{StreamId}/metadata")
+                    new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Paths.Streams}/{StreamId}/metadata")
                     {
                         Headers =
                         {
@@ -191,7 +192,7 @@
             }
 
             using(var response = await _fixture.HttpClient.SendAsync(
-                new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Streams.Stream}/{StreamId}/metadata")
+                new HttpRequestMessage(HttpMethod.Post, $"/{Constants.Paths.Streams}/{StreamId}/metadata")
                 {
                     Headers =
                     {

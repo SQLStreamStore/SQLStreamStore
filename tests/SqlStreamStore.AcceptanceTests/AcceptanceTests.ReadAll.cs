@@ -231,5 +231,29 @@
             allMessagesPage.FromPosition.ShouldBe(expectedFromPosition);
             allMessagesPage.NextPosition.ShouldBe(expectedNextPosition);
         }
+
+        [Theory, Trait("Category", "ReadAll")]
+        [InlineData("stream/1")]
+        [InlineData("stream%1")]
+        public async Task when_read_all_forwards_with_url_encodable_stream(string streamId)
+        {
+            await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1));
+
+            var result = await store.ReadAllForwards(Position.Start, 1);
+            
+            Assert.Equal(streamId, result.Messages[0].StreamId);
+        }
+
+        [Theory, Trait("Category", "ReadAll")]
+        [InlineData("stream/1")]
+        [InlineData("stream%1")]
+        public async Task when_read_all_backwards_with_url_encodable_stream(string streamId)
+        {
+            await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1));
+
+            var result = await store.ReadAllBackwards(Position.End, 1);
+            
+            Assert.Equal(streamId, result.Messages[0].StreamId);
+        }
     }
 }

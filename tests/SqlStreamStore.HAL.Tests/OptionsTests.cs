@@ -8,14 +8,15 @@ namespace SqlStreamStore.HAL.Tests
     using System.Threading.Tasks;
     using Shouldly;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class OptionsTests : IDisposable
     {
         private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
 
-        public OptionsTests()
+        public OptionsTests(ITestOutputHelper output)
         {
-            _fixture = new SqlStreamStoreHalMiddlewareFixture();
+            _fixture = new SqlStreamStoreHalMiddlewareFixture(output);
         }
 
         public void Dispose() => _fixture.Dispose();
@@ -36,25 +37,25 @@ namespace SqlStreamStore.HAL.Tests
 
             yield return new object[]
             {
-                $"/{Constants.Streams.Stream}/a-stream",
+                $"/{Constants.Paths.Streams}/a-stream",
                 new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Options, HttpMethod.Delete, HttpMethod.Post }
             };
 
             yield return new object[]
             {
-                $"/{Constants.Streams.Stream}/a-stream/0",
+                $"/{Constants.Paths.Streams}/a-stream/0",
                 new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Delete, HttpMethod.Options }
             };
 
             yield return new object[]
             {
-                $"/{Constants.Streams.Stream}/a-stream/{Guid.Empty}",
+                $"/{Constants.Paths.Streams}/a-stream/{Guid.Empty}",
                 new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Delete, HttpMethod.Options }
             };
 
             yield return new object[]
             {
-                $"/{Constants.Streams.Stream}/a-stream/metadata",
+                $"/{Constants.Paths.Streams}/a-stream/metadata",
                 new[] { HttpMethod.Get, HttpMethod.Head, HttpMethod.Post, HttpMethod.Options }
             };
 

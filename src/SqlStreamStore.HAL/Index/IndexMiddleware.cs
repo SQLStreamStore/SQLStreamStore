@@ -13,17 +13,8 @@ namespace SqlStreamStore.HAL.Index
 
     internal static class IndexMiddleware
     {
-        public static IApplicationBuilder UseIndex(this IApplicationBuilder builder, IndexResource index)
-            => builder.MapWhen(
-                IsMatch,
-                Configure(index));
-
-        private static bool IsMatch(HttpContext context)
-            => context.Request.Path == Constants.Streams.IndexPath;
-
-        private static Action<IApplicationBuilder> Configure(IndexResource index)
-            => builder => builder
-                .UseMiddlewareLogging(typeof(IndexMiddleware))
+        public static IApplicationBuilder UseIndex(this IApplicationBuilder app, IndexResource index)
+            => app.UseMiddlewareLogging(typeof(IndexMiddleware))
                 .MapWhen(HttpMethod.Get, inner => inner.UseAccept(Constants.MediaTypes.HalJson).Use(Index(index)))
                 .UseAllowedMethods(index);
 

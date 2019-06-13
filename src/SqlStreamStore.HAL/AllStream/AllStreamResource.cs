@@ -69,12 +69,12 @@
                                         .FromOperation(operation)
                                         .Add(
                                             Constants.Relations.Message,
-                                            $"streams/{message.StreamId}/{message.StreamVersion}",
+                                            LinkFormatter.StreamMessageByStreamVersion(message.StreamId, message.StreamVersion),
                                             $"{message.StreamId}@{message.StreamVersion}")
                                         .Self()
                                         .Add(
                                             Constants.Relations.Feed,
-                                            $"streams/{message.StreamId}",
+                                            LinkFormatter.Stream(message.StreamId),
                                             message.StreamId)))));
 
             if(operation.FromPositionInclusive == Position.End)

@@ -37,7 +37,7 @@ namespace SqlStreamStore.HAL.DevServer
             var provider = Environment.GetEnvironmentVariable(SQLSTREAMSTORE_PROVIDER)?.ToLowerInvariant()
                            ?? inmemory;
 
-            Log.Information($"Creating stream store for provider '{provider}'");
+            Log.Information("Creating stream store for provider {provider}.", provider);
 
             if(!s_factories.TryGetValue(provider, out var factory))
             {

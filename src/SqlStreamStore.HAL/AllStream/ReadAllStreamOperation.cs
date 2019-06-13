@@ -10,10 +10,12 @@ namespace SqlStreamStore.HAL.AllStream
         private readonly long _fromPositionInclusive;
         private readonly int _maxCount;
 
-        public ReadAllStreamOperation(HttpRequest request)
+        public ReadAllStreamOperation(HttpContext context)
         {
-            Path = request.Path;
+            var request = context.Request;
             
+            Path = request.Path;
+
             EmbedPayload = request.Query.TryGetValueCaseInsensitive('e', out var embedPayload)
                            && embedPayload == "1";
 
@@ -43,18 +45,16 @@ namespace SqlStreamStore.HAL.AllStream
                 : Constants.MaxCount;
 
             Self = ReadDirection == Constants.ReadDirection.Forwards
-                ? Links.FormatForwardLink(
-                    Constants.Streams.All,
-                    MaxCount,
+                ? LinkFormatter.ReadAllForwards(
                     FromPositionInclusive,
+                    MaxCount,
                     EmbedPayload)
-                : Links.FormatBackwardLink(
-                    Constants.Streams.All,
-                    MaxCount,
+                : LinkFormatter.ReadAllBackwards(
                     FromPositionInclusive,
+                    MaxCount,
                     EmbedPayload);
 
-            IsUriCanonical = Self.Remove(0, Constants.Streams.All.Length)
+            IsUriCanonical = Self.Remove(0, LinkFormatter.AllStream().Length)
                              == request.QueryString.ToUriComponent();
         }
 

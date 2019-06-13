@@ -8,18 +8,19 @@
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class StreamNavigationTests : IDisposable
     {
-        private const string FirstLinkQuery = "d=f&m=20&p=0&e=0";
-        private const string LastLinkQuery = "d=b&m=20&p=-1&e=0";
+        private const string FirstLinkQuery = "d=f&p=0&m=20";
+        private const string LastLinkQuery = "d=b&p=-1&m=20";
         private const string StreamId = "a-stream";
 
         private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
 
-        public StreamNavigationTests()
+        public StreamNavigationTests(ITestOutputHelper output)
         {
-            _fixture = new SqlStreamStoreHalMiddlewareFixture(true);
+            _fixture = new SqlStreamStoreHalMiddlewareFixture(output, true);
         }
 
         public void Dispose() => _fixture.Dispose();
@@ -90,7 +91,7 @@
                     .Find()
                     .Add(Constants.Relations.Self, $"{path}?{LastLinkQuery}", !IsAllStream(path) ? StreamId : null)
                     .Add(Constants.Relations.Last, $"{path}?{LastLinkQuery}")
-                    .Add(Constants.Relations.Previous, $"{path}?d=b&m=20&p=9&e=0")
+                    .Add(Constants.Relations.Previous, $"{path}?d=b&p=9&m=20")
                     .Add(Constants.Relations.First, $"{path}?{FirstLinkQuery}")
                     .Add(Constants.Relations.Feed, $"{path}?{LastLinkQuery}", !IsAllStream(path) ? StreamId : null);
 
@@ -153,7 +154,7 @@
                     .Find()
                     .Add(Constants.Relations.Self, $"{path}?{FirstLinkQuery}", !IsAllStream(path) ? StreamId : null)
                     .Add(Constants.Relations.Last, $"{path}?{LastLinkQuery}")
-                    .Add(Constants.Relations.Next, $"{path}?d=f&m=20&p=20&e=0")
+                    .Add(Constants.Relations.Next, $"{path}?d=f&p=20&m=20")
                     .Add(Constants.Relations.First, $"{path}?{FirstLinkQuery}")
                     .Add(Constants.Relations.Feed, $"{path}?{FirstLinkQuery}", !IsAllStream(path) ? StreamId : null);
 
@@ -173,7 +174,7 @@
 
             var page = await _fixture.StreamStore.ReadStreamForwards(StreamId, StreamVersion.Start, 10, false);
 
-            using(var response = await _fixture.HttpClient.GetAsync($"/{Constants.Streams.Stream}/a-stream"))
+            using(var response = await _fixture.HttpClient.GetAsync($"/{Constants.Paths.Streams}/a-stream"))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.OK);
 

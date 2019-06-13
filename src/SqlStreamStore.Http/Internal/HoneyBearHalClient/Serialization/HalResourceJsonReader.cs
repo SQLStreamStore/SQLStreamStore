@@ -15,9 +15,7 @@
         public static async Task<IResource> ReadResource(
             JsonReader reader,
             CancellationToken cancellationToken = default)
-        {
-            return new JResource(await JObject.LoadAsync(reader, cancellationToken));
-        }
+            => new JResource(await JObject.LoadAsync(reader, cancellationToken));
 
         private class JResource : IResource
         {

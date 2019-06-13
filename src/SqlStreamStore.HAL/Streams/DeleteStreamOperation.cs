@@ -3,14 +3,15 @@ namespace SqlStreamStore.HAL.Streams
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Routing;
 
     internal class DeleteStreamOperation : IStreamStoreOperation<Unit>
     {
-        public DeleteStreamOperation(HttpRequest request)
+        public DeleteStreamOperation(HttpContext context)
         {
-            Path = request.Path;
-            StreamId = request.Path.Value.Remove(0, 2 + Constants.Streams.Stream.Length);
-            ExpectedVersion = request.GetExpectedVersion();
+            Path = context.Request.Path;
+            StreamId = context.GetRouteData().GetStreamId();
+            ExpectedVersion = context.Request.GetExpectedVersion();
         }
 
         public string StreamId { get; }

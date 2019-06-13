@@ -2,6 +2,7 @@ CREATE OR REPLACE FUNCTION __schema__.delete_stream(
   _stream_id                  CHAR(42),
   _expected_version           INT,
   _created_utc                TIMESTAMP,
+  _deletion_tracking_disabled BOOLEAN,
   _deleted_stream_id          CHAR(42),
   _deleted_stream_id_original VARCHAR(1000),
   _deleted_stream_message     __schema__.new_stream_message)
@@ -47,6 +48,11 @@ BEGIN
   DELETE FROM __schema__.messages WHERE __schema__.messages.stream_id_internal = _stream_id_internal;
 
   DELETE FROM __schema__.streams WHERE __schema__.streams.id = _stream_id;
+
+  IF (_deletion_tracking_disabled = TRUE)
+      THEN
+      RETURN;
+  END IF;
 
   GET DIAGNOSTICS _affected = ROW_COUNT;
 

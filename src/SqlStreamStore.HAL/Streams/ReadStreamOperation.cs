@@ -3,6 +3,7 @@ namespace SqlStreamStore.HAL.Streams
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Routing;
     using SqlStreamStore.Streams;
 
     internal class ReadStreamOperation : IStreamStoreOperation<ReadStreamPage>
@@ -10,15 +11,14 @@ namespace SqlStreamStore.HAL.Streams
         private readonly int _fromVersionInclusive;
         private readonly int _maxCount;
 
-        public ReadStreamOperation(HttpRequest request)
+        public ReadStreamOperation(HttpContext context)
         {
+            var request = context.Request;
             Path = request.Path;
 
-            StreamId = request.Path.Value.Remove(0, 2 + Constants.Streams.Stream.Length);
-
+            StreamId = context.GetRouteData().GetStreamId();
             EmbedPayload = request.Query.TryGetValueCaseInsensitive('e', out var embedPayload)
                            && embedPayload == "1";
-
             ReadDirection = request.Query.TryGetValueCaseInsensitive('d', out var readDirection)
                             && readDirection == "f" || readDirection == "F"
                 ? Constants.ReadDirection.Forwards
@@ -48,18 +48,18 @@ namespace SqlStreamStore.HAL.Streams
                     : Constants.MaxCount
                 : Constants.MaxCount;
 
-            var baseAddress = $"streams/{StreamId}";
+            var baseAddress = LinkFormatter.Stream(StreamId);
 
             Self = ReadDirection == Constants.ReadDirection.Forwards
-                ? Links.FormatForwardLink(baseAddress, MaxCount, FromVersionInclusive, EmbedPayload)
-                : Links.FormatBackwardLink(baseAddress, MaxCount, FromVersionInclusive, EmbedPayload);
+                ? LinkFormatter.ReadStreamForwards(StreamId, FromVersionInclusive, MaxCount, EmbedPayload)
+                : LinkFormatter.ReadStreamBackwards(StreamId, FromVersionInclusive, MaxCount, EmbedPayload);
 
             IsUriCanonical = Self.Remove(0, baseAddress.Length)
                              == request.QueryString.ToUriComponent();
         }
 
         public PathString Path { get; }
-        public long FromVersionInclusive => _fromVersionInclusive;
+        public int FromVersionInclusive => _fromVersionInclusive;
         public int MaxCount => _maxCount;
         public bool EmbedPayload { get; }
         public int ReadDirection { get; }

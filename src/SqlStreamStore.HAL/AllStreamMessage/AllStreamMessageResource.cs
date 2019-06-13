@@ -32,14 +32,14 @@
                 .Browse()
                 .Add(
                     Constants.Relations.Message,
-                    $"stream/{message.Position}",
-                    $"{message.StreamId}@{message.StreamVersion}").Self()
+                    LinkFormatter.AllStreamMessageByPosition(message.Position),
+                    $"{message.StreamId}@{message.StreamVersion}")
+                .Self()
                 .Add(
                     Constants.Relations.Feed,
-                    Links.FormatBackwardLink(
-                        Constants.Streams.All,
-                        Constants.MaxCount,
+                    LinkFormatter.ReadAllBackwards(
                         Position.End,
+                        Constants.MaxCount,
                         false));
 
             if(message.MessageId == Guid.Empty)

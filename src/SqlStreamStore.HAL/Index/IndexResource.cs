@@ -22,8 +22,9 @@ namespace SqlStreamStore.HAL.Index
             {
                 streamStore = GetVersion(streamStoreType)
             });
-            versions[serverAssembly?.GetName().Name?.Split('.').LastOrDefault() ?? "Server"] = GetVersion(serverAssembly);
-            
+            versions[serverAssembly?.GetName().Name?.Split('.').LastOrDefault() ?? "Server"] =
+                GetVersion(serverAssembly);
+
             _data = JObject.FromObject(new
             {
                 provider = streamStoreTypeName.Substring(0, streamStoreTypeName.Length - "StreamStore".Length),
@@ -49,7 +50,7 @@ namespace SqlStreamStore.HAL.Index
                     .Index().Self()
                     .Find()
                     .Browse()
-                    .Add(Constants.Relations.Feed, Constants.Streams.All)));
+                    .Add(Constants.Relations.Feed, LinkFormatter.AllStream())));
 
         public override string ToString() => _data.ToString(Formatting.None);
     }

@@ -9,6 +9,7 @@
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
     using SqlStreamStore.Streams;
+    using Xunit.Abstractions;
 
     internal class SqlStreamStoreHalMiddlewareFixture : IDisposable
     {
@@ -16,14 +17,17 @@
         public HttpClient HttpClient { get; }
 
         private readonly TestServer _server;
+        private readonly IDisposable _logCapture;
 
-        public SqlStreamStoreHalMiddlewareFixture(bool followRedirects = false)
+        public SqlStreamStoreHalMiddlewareFixture(ITestOutputHelper output, bool followRedirects = false)
         {
             StreamStore = new InMemoryStreamStore();
 
+            _logCapture = LoggingHelper.Capture(output);
+
             _server = new TestServer(
                 new WebHostBuilder()
-                    .ConfigureServices(services => services.AddSingleton<IStartup>(new TestStartup(StreamStore)))
+                    .ConfigureServices(services => services.AddSingleton<IStartup>(new TestStartup(StreamStore, output)))
                     .UseSetting(WebHostDefaults.ApplicationKey, "WHY"));
 
             var handler = _server.CreateHandler();
@@ -44,6 +48,7 @@
             StreamStore?.Dispose();
             HttpClient?.Dispose();
             _server?.Dispose();
+            _logCapture?.Dispose();
         }
 
         public Task<AppendResult> WriteNMessages(string streamId, int n)

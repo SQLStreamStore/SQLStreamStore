@@ -7,15 +7,16 @@
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
+    using Xunit.Abstractions;
 
     public class HeadersTests : IDisposable
     {
         private const string StreamId = "a-stream";
         private readonly SqlStreamStoreHalMiddlewareFixture _fixture;
 
-        public HeadersTests()
+        public HeadersTests(ITestOutputHelper output)
         {
-            _fixture = new SqlStreamStoreHalMiddlewareFixture();
+            _fixture = new SqlStreamStoreHalMiddlewareFixture(output);
         }
 
         public void Dispose() => _fixture.Dispose();
@@ -36,7 +37,7 @@
             using(var response = await _fixture.HttpClient.SendAsync(
                 new HttpRequestMessage(
                     method,
-                    Links.FormatBackwardLink("/stream", 20, Position.End, true))))
+                    LinkFormatter.ReadAllBackwards(Position.End, 20, true))))
             {
                 response.IsSuccessStatusCode.ShouldBeTrue();
 

@@ -1,6 +1,9 @@
 namespace SqlStreamStore
 {
     using System;
+    using System.Linq;
+    using System.Net.Http;
+    using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.TestHost;
     using SqlStreamStore.HAL;
@@ -15,8 +18,14 @@ namespace SqlStreamStore
         {
             _inMemoryStreamStore = new InMemoryStreamStore(() => GetUtcNow());
 
+            var random = new Random();
+
+            var segments = Enumerable.Range(0, random.Next(1, 3)).Select(_ => Guid.NewGuid()).ToArray();
+            var basePath = $"/{string.Join("/", segments)}";
+
             var webHostBuilder = new WebHostBuilder()
-                .Configure(builder => builder.UseSqlStreamStoreHal(_inMemoryStreamStore));
+                .ConfigureServices(services => services.AddSqlStreamStoreHal())
+                .Configure(builder => builder.Map(basePath, inner => inner.UseSqlStreamStoreHal(_inMemoryStreamStore)));
 
             _server = new TestServer(webHostBuilder);
 
@@ -29,8 +38,11 @@ namespace SqlStreamStore
                 new HttpClientSqlStreamStoreSettings
                 {
                     GetUtcNow = () => GetUtcNow(),
-                    HttpMessageHandler = handler,
-                    BaseAddress = new UriBuilder().Uri
+                    BaseAddress = new UriBuilder
+                    {
+                        Path = basePath.Length == 1 ? basePath : $"{basePath}/"
+                    }.Uri,
+                    CreateHttpClient = () => new HttpClient(handler, false)
                 });
         }
 
@@ -48,5 +60,11 @@ namespace SqlStreamStore
         public long MinPosition { get; set; } = 0;
 
         public int MaxSubscriptionCount { get; set; } = 500;
+
+        public bool DisableDeletionTracking
+        {
+            get => throw new NotSupportedException();
+            set => throw new NotSupportedException();
+        }
     }
 }

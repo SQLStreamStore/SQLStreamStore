@@ -1,5 +1,6 @@
 ﻿namespace SqlStreamStore.Internal.HoneyBearHalClient
 {
+    using System;
     using System.Collections.Generic;
     using System.Linq;
     using System.Net;
@@ -16,9 +17,9 @@
         
         public HttpStatusCode? StatusCode { get; }
 
-        public HalClient(HttpClient client, JsonSerializer serializer)
+        public HalClient(Func<HttpClient> clientFactory, JsonSerializer serializer, Uri baseAddress)
         {
-            Client = new JsonHttpClient(client, serializer);
+            Client = new JsonHttpClient(clientFactory, serializer, baseAddress);
         }
 
         /// <summary>

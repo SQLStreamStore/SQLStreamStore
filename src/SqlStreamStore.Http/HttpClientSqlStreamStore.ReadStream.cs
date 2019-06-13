@@ -4,6 +4,7 @@ namespace SqlStreamStore
     using System.Net;
     using System.Threading;
     using System.Threading.Tasks;
+    using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Internal.HoneyBearHalClient;
     using SqlStreamStore.Internal.HoneyBearHalClient.Models;
     using SqlStreamStore.Streams;
@@ -17,6 +18,11 @@ namespace SqlStreamStore
             bool prefetchJsonData = true,
             CancellationToken cancellationToken = default)
         {
+            Ensure.That(fromVersionInclusive, nameof(fromVersionInclusive)).IsGte(0);
+            Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
+
+            GuardAgainstDisposed();
+
             var client = CreateClient();
 
             client = await client.RootAsync(
@@ -37,6 +43,11 @@ namespace SqlStreamStore
             bool prefetchJsonData = true,
             CancellationToken cancellationToken = default)
         {
+            Ensure.That(fromVersionInclusive, nameof(fromVersionInclusive)).IsGte(-1);
+            Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
+
+            GuardAgainstDisposed();
+
             var client = CreateClient();
 
             client = await client.RootAsync(

@@ -3,14 +3,15 @@ namespace SqlStreamStore.HAL.StreamMetadata
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Routing;
     using SqlStreamStore.Streams;
 
     internal class GetStreamMetadataOperation : IStreamStoreOperation<StreamMetadataResult>
     {
-        public GetStreamMetadataOperation(HttpRequest request)
+        public GetStreamMetadataOperation(HttpContext context)
         {
-            Path = request.Path;
-            StreamId = request.Path.Value.Split('/')[2];
+            Path = context.Request.Path;
+            StreamId = context.GetRouteData().GetStreamId();
         }
 
         public string StreamId { get; }

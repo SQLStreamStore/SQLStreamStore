@@ -9,34 +9,41 @@ namespace SqlStreamStore.HAL.StreamMessage
             StreamMessage message,
             ReadStreamMessageByStreamVersionOperation operation)
         {
-            links.Add(Constants.Relations.First, $"{StreamId(operation)}/0");
+            links.Add(
+                Constants.Relations.First,
+                LinkFormatter.StreamMessageByStreamVersion(operation.StreamId, 0));
 
             if(operation.StreamVersion > 0)
             {
-                links.Add(Constants.Relations.Previous, $"{StreamId(operation)}/{operation.StreamVersion - 1}");
+                links.Add(
+                    Constants.Relations.Previous,
+                    LinkFormatter.StreamMessageByStreamVersion(operation.StreamId, operation.StreamVersion - 1));
             }
 
             if(message.StreamId != default)
             {
-                links.Add(Constants.Relations.Next, $"{StreamId(operation)}/{operation.StreamVersion + 1}");
+                links.Add(
+                    Constants.Relations.Next, 
+                    LinkFormatter.StreamMessageByStreamVersion(operation.StreamId, operation.StreamVersion + 1));
             }
 
-            return links.Add(Constants.Relations.Last, $"{StreamId(operation)}/-1")
+            return links
+                .Add(
+                    Constants.Relations.Last,
+                    LinkFormatter.StreamMessageByStreamVersion(operation.StreamId, -1))
                 .Add(
                     Constants.Relations.Feed,
-                    Links.FormatBackwardLink(
-                        StreamId(operation),
-                        Constants.MaxCount,
+                    LinkFormatter.ReadStreamBackwards(
+                        operation.StreamId,
                         StreamVersion.End,
+                        Constants.MaxCount,
                         false),
                     operation.StreamId)
                 .Add(
                     Constants.Relations.Message,
-                    $"{StreamId(operation)}/{operation.StreamVersion}",
-                    $"{operation.StreamId}@{operation.StreamVersion}").Self();
+                    LinkFormatter.StreamMessageByStreamVersion(operation.StreamId, operation.StreamVersion),
+                    $"{operation.StreamId}@{operation.StreamVersion}")
+                .Self();
         }
-
-        private static string StreamId(ReadStreamMessageByStreamVersionOperation operation)
-            => $"streams/{operation.StreamId}";
     }
 }

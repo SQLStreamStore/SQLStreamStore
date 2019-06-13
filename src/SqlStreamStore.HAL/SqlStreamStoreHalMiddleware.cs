@@ -6,6 +6,8 @@
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Http;
+    using Microsoft.AspNetCore.Routing;
+    using Microsoft.Extensions.DependencyInjection;
     using SqlStreamStore.HAL.AllStream;
     using SqlStreamStore.HAL.AllStreamMessage;
     using SqlStreamStore.HAL.Docs;
@@ -25,7 +27,7 @@
     {
         private static ILog s_Log = LogProvider.GetLogger(typeof(SqlStreamStoreHalMiddleware));
 
-        private static MidFunc CaseSensitiveQueryStrings => (context, next) =>
+        private static MidFunc Rfc1738 = (context, next) =>
         {
             if(context.Request.QueryString != QueryString.Empty)
             {
@@ -80,16 +82,43 @@
 
             return builder
                 .UseExceptionHandling()
-                .Use(CaseSensitiveQueryStrings)
+                .Use(Rfc1738)
                 .Use(HeadRequests)
-                .UseDocs(documentation)
-                .UseIndex(index)
-                .UseAllStream(allStream)
-                .UseAllStreamMessage(allStreamMessages)
-                .UseStreamBrowser(streamBrowser)
-                .UseStreams(streams)
-                .UseStreamMetadata(streamMetadata)
-                .UseStreamMessages(streamMessages);
+                .UseRouter(router => router
+                    .MapMiddlewareRoute(
+                        $"{Constants.Paths.Docs}/{{doc}}",
+                        inner => inner.UseDocs(documentation))
+                    .MapMiddlewareRoute(
+                        Constants.Paths.AllStream,
+                        inner => inner.UseAllStream(allStream))
+                    .MapMiddlewareRoute(
+                        $"{Constants.Paths.AllStream}/{{position:long}}",
+                        inner => inner.UseAllStreamMessage(allStreamMessages))
+                    .MapMiddlewareRoute(
+                        Constants.Paths.Streams,
+                        inner => inner.UseStreamBrowser(streamBrowser))
+                    .MapMiddlewareRoute(
+                        $"{Constants.Paths.Streams}/{{streamId}}",
+                        inner => inner.UseStreams(streams))
+                    .MapMiddlewareRoute(
+                        $"{Constants.Paths.Streams}/{{streamId}}/{Constants.Paths.Metadata}",
+                        inner => inner.UseStreamMetadata(streamMetadata))
+                    .MapMiddlewareRoute(
+                        $"{Constants.Paths.Streams}/{{streamId}}/{{p}}",
+                        inner => inner.UseStreamMessages(streamMessages))
+                    .MapMiddlewareRoute(
+                        string.Empty,
+                        inner => inner.UseIndex(index)));
+        }
+
+        public static IServiceCollection AddSqlStreamStoreHal(this IServiceCollection serviceCollection)
+        {
+            if(serviceCollection == null)
+            {
+                throw new ArgumentNullException(nameof(serviceCollection));
+            }
+
+            return serviceCollection.AddRouting();
         }
 
         private class OptionalHeadRequestWrapper : IDisposable

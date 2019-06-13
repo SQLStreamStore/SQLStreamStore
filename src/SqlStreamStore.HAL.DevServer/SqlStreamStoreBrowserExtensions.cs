@@ -34,9 +34,9 @@ namespace SqlStreamStore.HAL.DevServer
         private static MidFunc ForwardWebsockets(HttpClient httpClient) => (context, next)
             => context.WebSockets.IsWebSocketRequest
                 ? ForwardWebsocketToClientDevServer(context)
-                : (context.Request.Path.StartsWithSegments(new PathString("/sockjs-node"))
+                : context.Request.Path.StartsWithSegments(new PathString("/sockjs-node"))
                     ? ForwardToClientDevServer(httpClient, context)
-                    : next());
+                    : next();
 
 
         private static MidFunc ForwardStaticFiles(HttpClient httpClient) => (context, next)
@@ -100,12 +100,12 @@ namespace SqlStreamStore.HAL.DevServer
                     Query = context.Request.QueryString.ToUriComponent()
                 }.Uri);
 
-            foreach(var header in context.Request.Headers)
+            foreach(var (key, value) in context.Request.Headers)
             {
-                var values = header.Value.ToArray();
+                var values = value.ToArray();
 
-                request.Headers.TryAddWithoutValidation(header.Key, values);
-                request.Content?.Headers.TryAddWithoutValidation(header.Key, values);
+                request.Headers.TryAddWithoutValidation(key, values);
+                request.Content?.Headers.TryAddWithoutValidation(key, values);
             }
 
             return request;
@@ -118,7 +118,7 @@ namespace SqlStreamStore.HAL.DevServer
                     ? header.MediaType
                     : null);
 
-        static async Task ForwardWebsocketToClientDevServer(HttpContext context)
+        private static async Task ForwardWebsocketToClientDevServer(HttpContext context)
         {
             var socket = await context.WebSockets.AcceptWebSocketAsync();
 

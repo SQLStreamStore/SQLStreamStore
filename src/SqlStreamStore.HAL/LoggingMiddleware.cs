@@ -14,7 +14,7 @@ namespace SqlStreamStore.HAL
             
             Task MiddlewareLogging(HttpContext context, Func<Task> next)
             {
-                log.Info($"Middleware Used: {middlewareType.FullName}; Request: {context.TraceIdentifier}");
+                log.Debug("Middleware: {middleware}; Connection Id: {connectionId}", middlewareType, context.Connection.Id);
                 return next();
             }
 

@@ -69,10 +69,7 @@ namespace SqlStreamStore.HAL.Streams
         {
             if(!operation.IsUriCanonical)
             {
-                return new HalJsonResponse(new HALResponse(null), 308)
-                {
-                    Headers = { [Constants.Headers.Location] = new[] { $"../{operation.Self}" } }
-                };
+                return new PermanentRedirectResponse($"../{operation.Self}");
             }
 
             var page = await operation.Invoke(_streamStore, cancellationToken);

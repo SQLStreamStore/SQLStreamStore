@@ -20,7 +20,7 @@ namespace SqlStreamStore.HAL.StreamMessage.MessageId
 
         private static MidFunc DeleteStreamMessage(StreamMessageResource streamMessages) => async (context, next) =>
         {
-            var operation = new DeleteStreamMessageOperationByMessageId(context);
+            var operation = new DeleteStreamMessageByMessageIdOperation(context);
 
             var response = await streamMessages.Delete(operation, context.RequestAborted);
 

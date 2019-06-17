@@ -48,13 +48,7 @@ namespace SqlStreamStore.HAL.StreamMessage
 
             if(operation.StreamVersion == StreamVersion.End)
             {
-                return new HalJsonResponse(new HALResponse(new object()), 307)
-                {
-                    Headers =
-                    {
-                        [Constants.Headers.Location] = new[] { $"{message.StreamVersion}" }
-                    }
-                };
+                return new TemporaryRedirectResponse($"{message.StreamVersion}");
             }
 
             var payload = await message.GetJsonData(cancellationToken);

@@ -1,5 +1,6 @@
 namespace SqlStreamStore.HAL.StreamMessage
 {
+    using SqlStreamStore.HAL.StreamMessage.Version;
     using SqlStreamStore.Streams;
 
     internal static class StreamMessageLinkExtensions

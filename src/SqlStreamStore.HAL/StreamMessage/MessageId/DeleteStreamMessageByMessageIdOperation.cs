@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HAL.StreamMessage
+namespace SqlStreamStore.HAL.StreamMessage.MessageId
 {
     using System;
     using System.Threading;
@@ -6,9 +6,9 @@ namespace SqlStreamStore.HAL.StreamMessage
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Routing;
 
-    internal class DeleteStreamMessageOperationByMessageId : IStreamStoreOperation<Unit>
+    internal class DeleteStreamMessageByMessageIdOperation : IStreamStoreOperation<Unit>
     {
-        public DeleteStreamMessageOperationByMessageId(HttpContext context)
+        public DeleteStreamMessageByMessageIdOperation(HttpContext context)
         {
             Path = context.Request.Path;
 

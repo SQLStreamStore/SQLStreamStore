@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>netcoreapp2.2</TargetFramework>
+    <TargetFramework>netcoreapp3.0</TargetFramework>
     <AssemblyName>SqlStreamStore.MsSql.V3.Tests</AssemblyName>
     <PackageId>SqlStreamStore.MsSql.V3.Tests</PackageId>
     <RootNamespace>SqlStreamStore</RootNamespace>

@@ -1,6 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.0</TargetFrameworks>
     <DefineConstants>$(DefineConstants);LIBLOG_PORTABLE</DefineConstants>
     <Description>HTTP Server for SQL Stream Store</Description>
     <AssemblyTitle>Stream Store - HAL Server</AssemblyTitle>    

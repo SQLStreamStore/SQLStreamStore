@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore.HAL
+﻿namespace SqlStreamStore
 {
     using System;
     using System.IO;
@@ -8,15 +8,15 @@
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Routing;
     using Microsoft.Extensions.DependencyInjection;
-    using SqlStreamStore.HAL.AllStream;
-    using SqlStreamStore.HAL.AllStreamMessage;
-    using SqlStreamStore.HAL.Docs;
-    using SqlStreamStore.HAL.Index;
-    using SqlStreamStore.HAL.Logging;
-    using SqlStreamStore.HAL.StreamBrowser;
-    using SqlStreamStore.HAL.StreamMessage;
-    using SqlStreamStore.HAL.StreamMetadata;
-    using SqlStreamStore.HAL.Streams;
+    using SqlStreamStore.AllStream;
+    using SqlStreamStore.AllStreamMessage;
+    using SqlStreamStore.Docs;
+    using SqlStreamStore.Index;
+    using SqlStreamStore.Logging;
+    using SqlStreamStore.StreamBrowser;
+    using SqlStreamStore.StreamMessages;
+    using SqlStreamStore.StreamMetadata;
+    using SqlStreamStore.Streams;
     using MidFunc = System.Func<
         Microsoft.AspNetCore.Http.HttpContext,
         System.Func<System.Threading.Tasks.Task>,

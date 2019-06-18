@@ -3,7 +3,8 @@
     using System;
     using System.Data.SqlClient;
     using System.Threading.Tasks;
-    using SqlStreamStore;
+    using SqlStreamStore.TestUtils.MsSql;
+    using SqlStreamStore.V1;
 
     public class MsSqlStreamStoreDbV3 : IDisposable
     {

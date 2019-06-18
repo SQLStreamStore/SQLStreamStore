@@ -1,10 +1,9 @@
-namespace SqlStreamStore.HAL.Streams
+namespace SqlStreamStore.Streams
 {
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Routing;
-    using SqlStreamStore.Streams;
 
     internal class ReadStreamOperation : IStreamStoreOperation<ReadStreamPage>
     {

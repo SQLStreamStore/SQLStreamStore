@@ -8,6 +8,7 @@
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <NoWarn>1591</NoWarn>
     <LangVersion>latest</LangVersion>
+    <RootNamespace>SqlStreamStore</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.2.0" />

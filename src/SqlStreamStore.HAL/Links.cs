@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HAL
+namespace SqlStreamStore
 {
     using System;
     using System.Collections.Generic;
@@ -6,7 +6,7 @@ namespace SqlStreamStore.HAL
     using System.Net.Http;
     using Halcyon.HAL;
     using Microsoft.AspNetCore.Http;
-    using SqlStreamStore.HAL.Logging;
+    using SqlStreamStore.Logging;
 
     internal class Links
     {

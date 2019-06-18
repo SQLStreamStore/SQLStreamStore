@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HAL.AllStreamMessage
+namespace SqlStreamStore.AllStreamMessage
 {
     using System.Net.Http;
     using Microsoft.AspNetCore.Builder;

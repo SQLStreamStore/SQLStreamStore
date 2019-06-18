@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HAL.Streams
+namespace SqlStreamStore.Streams
 {
     using System.Threading;
     using System.Threading.Tasks;

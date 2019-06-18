@@ -1,0 +1,40 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "Append to Stream",
+  "type": "object",
+  "required": [
+    "messageId",
+    "type",
+    "jsonData"
+  ],
+  "properties": {
+    "messageId": {
+      "type": "string",
+      "pattern": "^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$",
+      "x-schema-form": {
+        "key": "messageId",
+        "type": "uuid"
+      }
+    },
+    "type": {
+      "type": "string"
+    },
+    "jsonData": {
+      "type": "object",
+      "x-schema-form": {
+        "key": "jsonData",
+        "type": "textarea",
+        "rows": 30
+      }
+    },
+    "jsonMetadata": {
+      "type": "object",
+      "x-schema-form": {
+        "key": "jsonMetadata",
+        "type": "textarea",
+        "rows": 30
+      }
+    }
+  },
+  "additionalProperties": false
+}

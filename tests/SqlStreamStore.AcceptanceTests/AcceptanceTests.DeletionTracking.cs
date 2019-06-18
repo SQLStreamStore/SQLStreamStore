@@ -2,9 +2,9 @@ namespace SqlStreamStore
 {
     using System.Threading.Tasks;
     using Shouldly;
-    using SqlStreamStore.Streams;
+    using SqlStreamStore.V1.Streams;
     using Xunit;
-    using static Streams.Deleted;
+    using static V1.Streams.Deleted;
 
     partial class AcceptanceTests
     {

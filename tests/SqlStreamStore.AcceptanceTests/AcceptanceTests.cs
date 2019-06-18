@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using Shouldly;
     using SqlStreamStore.Streams;
+    using SqlStreamStore.TestUtils;
     using Xunit;
     using Xunit.Abstractions;
 

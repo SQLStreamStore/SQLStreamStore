@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HAL.Index
+namespace SqlStreamStore.Index
 {
     using System;
     using System.Net.Http;

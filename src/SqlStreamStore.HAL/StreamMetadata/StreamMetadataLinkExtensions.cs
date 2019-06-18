@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HAL.StreamMetadata
+namespace SqlStreamStore.StreamMetadata
 {
     internal static class StreamMetadataLinkExtensions
     {

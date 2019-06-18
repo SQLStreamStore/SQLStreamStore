@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore
+﻿namespace SqlStreamStore.TestUtils.MsSql
 {
     using System;
     using System.Collections.Generic;
@@ -6,7 +6,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Polly;
-    using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.V1.Infrastructure;
 
     public class DockerMsSqlServerDatabase
     {

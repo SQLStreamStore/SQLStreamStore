@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HAL.AllStream
+namespace SqlStreamStore.AllStream
 {
     using System.Net.Http;
     using Microsoft.AspNetCore.Builder;

@@ -1,10 +1,9 @@
-namespace SqlStreamStore.HAL.StreamBrowser
+namespace SqlStreamStore.StreamBrowser
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Halcyon.HAL;
-    using SqlStreamStore.HAL.StreamBrowser;
 
     internal class StreamBrowserResource : IResource
     {

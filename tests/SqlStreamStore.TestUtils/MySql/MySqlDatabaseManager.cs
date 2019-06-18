@@ -1,4 +1,4 @@
-namespace SqlStreamStore.MySql
+namespace SqlStreamStore.TestUtils.MySql
 {
     using System;
     using System.Collections.Generic;
@@ -6,7 +6,7 @@ namespace SqlStreamStore.MySql
     using System.Threading.Tasks;
     using global::MySql.Data.MySqlClient;
     using MySqlConnector.Logging;
-    using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.V1.Infrastructure;
     using Xunit.Abstractions;
 
     public abstract class MySqlDatabaseManager

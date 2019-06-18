@@ -1,4 +1,4 @@
-namespace SqlStreamStore
+namespace SqlStreamStore.TestUtils
 {
     using System;
     using System.Collections.Generic;
@@ -7,7 +7,7 @@ namespace SqlStreamStore
     using System.Threading.Tasks;
     using Docker.DotNet;
     using Docker.DotNet.Models;
-    using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.V1.Infrastructure;
 
     public class DockerContainer
     {

@@ -5,7 +5,7 @@
     <RootNamespace>SqlStreamStore</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" />
+    <Compile Include="..\SqlStreamStore.AcceptanceTests\**\*.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\SqlStreamStore.MySql\SqlStreamStore.MySql.csproj" />

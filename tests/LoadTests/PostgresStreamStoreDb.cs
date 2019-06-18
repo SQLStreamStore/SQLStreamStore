@@ -2,8 +2,8 @@
 {
     using System;
     using System.Threading.Tasks;
-    using SqlStreamStore;
-    using SqlStreamStore.Postgres;
+    using SqlStreamStore.TestUtils.Postgres;
+    using SqlStreamStore.V1;
     using Xunit.Abstractions;
 
     public class PostgresStreamStoreDb : IDisposable

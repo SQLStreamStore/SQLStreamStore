@@ -1,8 +1,8 @@
-﻿using System;
-using System.Threading.Tasks;
-
-namespace SqlStreamStore
+﻿namespace SqlStreamStore.TestUtils
 {
+    using System;
+    using System.Threading.Tasks;
+
     public static class TaskExtensions
     {
         public static async Task<T> WithTimeout<T>(this Task<T> task, int timeout = 10000) =>

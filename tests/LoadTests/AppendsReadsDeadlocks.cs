@@ -7,8 +7,8 @@
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using SqlStreamStore;
-    using SqlStreamStore.Streams;
+    using SqlStreamStore.V1;
+    using SqlStreamStore.V1.Streams;
 
     public class AppendsReadsDeadlocks : LoadTest
     {

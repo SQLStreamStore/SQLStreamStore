@@ -1,8 +1,7 @@
-﻿namespace SqlStreamStore.HAL.Streams
+﻿namespace SqlStreamStore.Streams
 {
     using System;
     using Newtonsoft.Json.Linq;
-    using SqlStreamStore.Streams;
 
     internal class NewStreamMessageDto
     {

@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HAL.StreamBrowser
+namespace SqlStreamStore.StreamBrowser
 {
     using System.Net.Http;
     using Microsoft.AspNetCore.Builder;

@@ -7,9 +7,10 @@
     <NoWarn>$(NoWarn);CS0618</NoWarn>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" />
+    <Compile Include="..\SqlStreamStore.AcceptanceTests\**\*.cs" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="..\SqlStreamStore.MsSql.Tests\V1\MsSqlStreamStoreFixture.cs" Link="V1\MsSqlStreamStoreFixture.cs" />
     <Compile Include="..\SqlStreamStore.MsSql.Tests\MsSqlStreamStoreFixture.cs" Link="MsSqlStreamStoreFixture.cs" />
   </ItemGroup>
   <ItemGroup>

@@ -4,7 +4,7 @@
     using System.Data.SqlClient;
     using System.Threading.Tasks;
     using MartinCostello.SqlLocalDb;
-    using SqlStreamStore;
+    using SqlStreamStore.V1;
 
     public class SqlLocalDb : IDisposable
     {

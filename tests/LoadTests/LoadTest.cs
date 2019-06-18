@@ -4,7 +4,8 @@
     using System.Threading;
     using System.Threading.Tasks;
     using EasyConsole;
-    using SqlStreamStore;
+    using SqlStreamStore.V1;
+    using SqlStreamStore.V1.InMemory;
 
     public abstract class LoadTest
     {

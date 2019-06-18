@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HAL.StreamBrowser
+namespace SqlStreamStore.StreamBrowser
 {
     using System.Threading;
     using System.Threading.Tasks;

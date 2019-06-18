@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HAL.Docs
+namespace SqlStreamStore.Docs
 {
     using System;
     using System.Linq;

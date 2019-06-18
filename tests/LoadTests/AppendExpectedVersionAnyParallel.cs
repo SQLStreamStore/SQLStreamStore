@@ -7,8 +7,8 @@
     using System.Threading.Tasks;
     using EasyConsole;
     using Serilog;
-    using SqlStreamStore;
-    using SqlStreamStore.Streams;
+    using SqlStreamStore.V1;
+    using SqlStreamStore.V1.Streams;
 
     public class AppendExpectedVersionAnyParallel : LoadTest
     {

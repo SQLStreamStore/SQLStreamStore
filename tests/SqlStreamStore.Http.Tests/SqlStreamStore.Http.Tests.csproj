@@ -8,22 +8,25 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" Exclude="..\SqlStreamStore.AcceptanceTests\AcceptanceTests.StreamLimits.cs;..\SqlStreamStore.AcceptanceTests\AcceptanceTests.DeletionTracking.cs" />
+    <Compile
+      Include="..\SqlStreamStore.AcceptanceTests\**\*.cs"
+      Exclude="..\SqlStreamStore.AcceptanceTests\V1\AcceptanceTests.StreamLimits.cs;..\SqlStreamStore.AcceptanceTests\V1\AcceptanceTests.DeletionTracking.cs"
+    />
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="SqlStreamStore.Http.Tests.v3.ncrunchproject" />
+    <None Remove="SqlStreamStore.Http.Tests.v3.ncrunchproject"/>
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SqlStreamStore.HAL\SqlStreamStore.HAL.csproj" />
-    <ProjectReference Include="..\..\src\SqlStreamStore.Http\SqlStreamStore.Http.csproj" />
-    <ProjectReference Include="..\SqlStreamStore.TestUtils\SqlStreamStore.TestUtils.csproj" />
-    <ProjectReference Include="..\..\src\SqlStreamStore\SqlStreamStore.csproj" />
+    <ProjectReference Include="..\..\src\SqlStreamStore.HAL\SqlStreamStore.HAL.csproj"/>
+    <ProjectReference Include="..\..\src\SqlStreamStore.Http\SqlStreamStore.Http.csproj"/>
+    <ProjectReference Include="..\SqlStreamStore.TestUtils\SqlStreamStore.TestUtils.csproj"/>
+    <ProjectReference Include="..\..\src\SqlStreamStore\SqlStreamStore.csproj"/>
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.2.0" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="2.2.0"/>
     <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>

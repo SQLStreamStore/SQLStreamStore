@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore.HAL.Tests
+﻿namespace SqlStreamStore
 {
     using System;
     using System.Collections.Generic;

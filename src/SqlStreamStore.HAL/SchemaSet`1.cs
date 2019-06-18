@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HAL
+namespace SqlStreamStore
 {
     internal class SchemaSet<TResource> : SchemaSet where TResource : IResource
     {

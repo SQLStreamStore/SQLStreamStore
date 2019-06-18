@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HAL.Tests
+namespace SqlStreamStore
 {
     using System;
     using System.Collections.Generic;
@@ -9,9 +9,9 @@ namespace SqlStreamStore.HAL.Tests
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
     using Shouldly;
-    using SqlStreamStore.HAL.StreamMessage;
-    using SqlStreamStore.HAL.StreamMetadata;
-    using SqlStreamStore.HAL.Streams;
+    using SqlStreamStore.StreamMessages;
+    using SqlStreamStore.StreamMetadata;
+    using SqlStreamStore.Streams;
     using Xunit;
     using Xunit.Abstractions;
 

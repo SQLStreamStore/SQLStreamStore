@@ -1,11 +1,11 @@
-namespace SqlStreamStore.Postgres
+namespace SqlStreamStore.TestUtils.Postgres
 {
     using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Npgsql;
     using Npgsql.Logging;
-    using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.V1.Infrastructure;
     using Xunit.Abstractions;
 
     public abstract class PostgresDatabaseManager

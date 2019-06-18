@@ -1,11 +1,10 @@
-namespace SqlStreamStore.HAL.Streams
+namespace SqlStreamStore.Streams
 {
     using System;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Halcyon.HAL;
-    using SqlStreamStore.Streams;
 
     internal class StreamResource : IResource
     {

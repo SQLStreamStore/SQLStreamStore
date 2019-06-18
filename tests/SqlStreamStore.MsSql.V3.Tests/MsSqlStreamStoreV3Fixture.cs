@@ -4,6 +4,7 @@ namespace SqlStreamStore
     using System.Data.SqlClient;
     using System.Threading.Tasks;
     using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.TestUtils.MsSql;
 
     public sealed class MsSqlStreamStoreV3Fixture : IStreamStoreFixture
     {

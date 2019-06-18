@@ -1,7 +1,6 @@
-namespace SqlStreamStore.HAL.Streams
+namespace SqlStreamStore.Streams
 {
     using System.Linq;
-    using SqlStreamStore.Streams;
 
     internal static class StreamsLinkExtensions
     {

@@ -1,4 +1,4 @@
-namespace SqlStreamStore.MySql
+namespace SqlStreamStore.TestUtils.MySql
 {
     using global::MySql.Data.MySqlClient;
     using Xunit.Abstractions;

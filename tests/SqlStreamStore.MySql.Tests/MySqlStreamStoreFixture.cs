@@ -3,7 +3,7 @@ namespace SqlStreamStore
     using System;
     using System.Threading.Tasks;
     using SqlStreamStore.Infrastructure;
-    using SqlStreamStore.MySql;
+    using SqlStreamStore.TestUtils.MySql;
     using Xunit.Abstractions;
 
     public class MySqlStreamStoreFixture : IStreamStoreFixture

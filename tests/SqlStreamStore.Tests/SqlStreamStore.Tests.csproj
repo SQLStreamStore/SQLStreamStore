@@ -5,7 +5,9 @@
     <RootNamespace>SqlStreamStore</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" Exclude="..\SqlStreamStore.AcceptanceTests\AcceptanceTests.DeletionTracking.cs" LinkBase="InMemory" />
+    <Compile
+      Include="..\SqlStreamStore.AcceptanceTests\**\*.cs"
+      Exclude="..\SqlStreamStore.AcceptanceTests\V1\AcceptanceTests.DeletionTracking.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SqlStreamStore.TestUtils\SqlStreamStore.TestUtils.csproj" />

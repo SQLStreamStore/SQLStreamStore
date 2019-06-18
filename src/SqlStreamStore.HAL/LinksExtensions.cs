@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HAL
+namespace SqlStreamStore
 {
     internal static class LinksExtensions
     {

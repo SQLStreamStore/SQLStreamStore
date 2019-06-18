@@ -6,7 +6,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Primitives;
 
-namespace SqlStreamStore.HAL
+namespace SqlStreamStore
 {
     internal static class AllowedMethodsMiddleware
     {

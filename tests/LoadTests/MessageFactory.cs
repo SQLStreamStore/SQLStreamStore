@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Generic;
     using System.Linq;
-    using SqlStreamStore.Streams;
+    using SqlStreamStore.V1.Streams;
 
     internal static class MessageFactory
     {

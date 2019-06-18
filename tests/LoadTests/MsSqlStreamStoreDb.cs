@@ -5,8 +5,9 @@
     using System.Data.SqlClient;
     using System.Threading;
     using System.Threading.Tasks;
-    using SqlStreamStore;
-    using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.TestUtils;
+    using SqlStreamStore.V1;
+    using SqlStreamStore.V1.Infrastructure;
 
     public class MsSqlStreamStoreDb : IDisposable
     {

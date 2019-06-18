@@ -1,10 +1,10 @@
-namespace SqlStreamStore.HAL
+namespace SqlStreamStore
 {
     using System;
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Builder;
     using Microsoft.AspNetCore.Http;
-    using SqlStreamStore.HAL.Logging;
+    using SqlStreamStore.Logging;
 
     internal static class LoggingMiddleware
     {

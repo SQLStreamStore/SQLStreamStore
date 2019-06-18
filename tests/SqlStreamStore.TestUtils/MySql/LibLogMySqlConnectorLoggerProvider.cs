@@ -1,4 +1,4 @@
-namespace SqlStreamStore.MySql
+namespace SqlStreamStore.TestUtils.MySql
 {
     using System;
     using System.Collections.Generic;

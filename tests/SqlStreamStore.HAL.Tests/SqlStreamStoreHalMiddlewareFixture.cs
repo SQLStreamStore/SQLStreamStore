@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore.HAL.Tests
+﻿namespace SqlStreamStore
 {
     using System;
     using System.Linq;
@@ -9,6 +9,7 @@
     using Microsoft.AspNetCore.TestHost;
     using Microsoft.Extensions.DependencyInjection;
     using SqlStreamStore.Streams;
+    using SqlStreamStore.TestUtils;
     using Xunit.Abstractions;
 
     internal class SqlStreamStoreHalMiddlewareFixture : IDisposable

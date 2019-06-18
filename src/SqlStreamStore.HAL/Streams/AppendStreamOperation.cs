@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HAL.Streams
+namespace SqlStreamStore.Streams
 {
     using System;
     using System.IO;
@@ -9,7 +9,6 @@ namespace SqlStreamStore.HAL.Streams
     using Microsoft.AspNetCore.Routing;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
-    using SqlStreamStore.Streams;
 
     internal class AppendStreamOperation : IStreamStoreOperation<AppendResult>
     {

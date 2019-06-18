@@ -1,4 +1,4 @@
-namespace SqlStreamStore.Postgres
+namespace SqlStreamStore.TestUtils.Postgres
 {
     using Npgsql;
     using Xunit.Abstractions;

@@ -7,8 +7,8 @@
     using System.Threading;
     using System.Threading.Tasks;
     using EasyConsole;
-    using SqlStreamStore;
-    using SqlStreamStore.Streams;
+    using SqlStreamStore.V1;
+    using SqlStreamStore.V1.Streams;
 
     public class TestGaps : LoadTest
     {

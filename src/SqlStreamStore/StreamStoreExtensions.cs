@@ -29,7 +29,7 @@
         ///     An <see cref="ReadAllPage"/> presenting the result of the read. If all messages read have expired
         ///     then the message collection MAY be empty.
         /// </returns>
-        public static Task<ReadAllPage> ReadAllForwards(
+        public static ReadAllResult ReadAllForwards(
             this IReadonlyStreamStore readonlyStreamStore,
             long fromPositionInclusive,
             int maxCount,
@@ -61,7 +61,7 @@
         ///     An <see cref="ReadAllPage"/> presenting the result of the read. If all messages read have expired
         ///     then the message collection MAY be empty.
         /// </returns>
-        public static Task<ReadAllPage> ReadAllBackwards(
+        public static ReadAllResult ReadAllBackwards(
             this IReadonlyStreamStore readonlyStreamStore,
             long fromPositionInclusive,
             int maxCount,

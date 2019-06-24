@@ -48,13 +48,51 @@
             => LoggingHelper.Capture(testOutputHelper);
 
         [Fact]
-        public async Task When_dispose_and_read_then_should_throw()
+        public async Task When_dispose_and_read_all_forwards_then_should_throw()
         {
             store.Dispose();
 
-            Func<Task> act = () => store.ReadAllForwards(Position.Start, 10);
+            Action act = () => store.ReadAllForwards(Position.Start, 10);
 
-            await act.ShouldThrowAsync<ObjectDisposedException>();
+            act.ShouldThrow<ObjectDisposedException>();
+        }
+
+        [Fact]
+        public async Task When_dispose_during_enumeration_of_read_all_forwards_should_throw()
+        {
+            await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(10));
+            var result = store.ReadAllForwards(Position.Start, 10);
+            var enumerator = result.GetAsyncEnumerator();
+            await enumerator.MoveNextAsync();
+            store.Dispose();
+
+            Func<Task> act = async () => await enumerator.MoveNextAsync();
+
+            act.ShouldThrow<ObjectDisposedException>();
+        }
+
+        [Fact]
+        public async Task When_dispose_and_read_all_backwards_then_should_throw()
+        {
+            store.Dispose();
+
+            Action act = () => store.ReadAllBackwards(Position.End, 10);
+
+            act.ShouldThrow<ObjectDisposedException>();
+        }
+
+        [Fact]
+        public async Task When_dispose_during_enumeration_of_read_all_backwards_should_throw()
+        {
+            await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(10));
+            var result = store.ReadAllBackwards(Position.Start, 10);
+            var enumerator = result.GetAsyncEnumerator();
+            await enumerator.MoveNextAsync();
+            store.Dispose();
+
+            Func<Task> act = async () => await enumerator.MoveNextAsync();
+
+            act.ShouldThrow<ObjectDisposedException>();
         }
 
         [Fact]

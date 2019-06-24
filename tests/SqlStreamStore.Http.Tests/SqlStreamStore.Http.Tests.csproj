@@ -10,7 +10,7 @@
   <ItemGroup>
     <Compile
       Include="..\SqlStreamStore.AcceptanceTests\**\*.cs"
-      Exclude="..\SqlStreamStore.AcceptanceTests\V1\AcceptanceTests.StreamLimits.cs;..\SqlStreamStore.AcceptanceTests\V1\AcceptanceTests.DeletionTracking.cs"
+      Exclude="..\SqlStreamStore.AcceptanceTests\**\AcceptanceTests.StreamLimits.cs;..\SqlStreamStore.AcceptanceTests\**\AcceptanceTests.DeletionTracking.cs;"
     />
   </ItemGroup>
 

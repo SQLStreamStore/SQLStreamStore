@@ -33,11 +33,15 @@
 
             var page = await operation.Invoke(_streamStore, cancellationToken);
 
-            var streamMessages = page.Messages.OrderByDescending(m => m.Position).ToArray();
+            var streamMessages = await page
+                .Take(operation.MaxCount)
+                .ToArrayAsync(cancellationToken); // can't avoid the extra allocation here. An OrderByDescending here will pull down the entire store. 
+
+            var orderedStreamMessages = streamMessages.OrderByDescending(m => m.Position).ToArray();
 
             var payloads = await Task.WhenAll(
                 Array.ConvertAll(
-                    streamMessages,
+                    orderedStreamMessages,
                     message => operation.EmbedPayload
                         ? message.GetJsonData(cancellationToken)
                         : SkippedPayload.Instance));
@@ -55,10 +59,10 @@
                             .Index()
                             .Find()
                             .Browse()
-                            .AllStreamNavigation(page, operation))
+                            .AllStreamNavigation(page, orderedStreamMessages, operation))
                     .AddEmbeddedCollection(
                         Constants.Relations.Message,
-                        streamMessages.Zip(
+                        orderedStreamMessages.Zip(
                             payloads,
                             (message, payload) => new StreamMessageHALResponse(message, payload)
                                 .AddLinks(
@@ -66,7 +70,8 @@
                                         .FromOperation(operation)
                                         .Add(
                                             Constants.Relations.Message,
-                                            LinkFormatter.StreamMessageByStreamVersion(message.StreamId, message.StreamVersion),
+                                            LinkFormatter.StreamMessageByStreamVersion(message.StreamId,
+                                                message.StreamVersion),
                                             $"{message.StreamId}@{message.StreamVersion}")
                                         .Self()
                                         .Add(
@@ -76,14 +81,14 @@
 
             if(operation.FromPositionInclusive == Position.End)
             {
-                var headPosition = streamMessages.Length > 0
+                var headPosition = orderedStreamMessages.Length > 0
                     ? streamMessages[0].Position
                     : Position.End;
 
                 response.Headers[Constants.Headers.HeadPosition] = new[] { $"{headPosition}" };
             }
 
-            if(page.TryGetETag(operation.FromPositionInclusive, out var eTag))
+            if(page.TryGetETag(streamMessages, operation.FromPositionInclusive, out var eTag))
             {
                 response.Headers.Add(eTag);
                 response.Headers.Add(CacheControl.NoCache);

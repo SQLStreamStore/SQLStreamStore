@@ -1,5 +1,6 @@
 ﻿namespace SqlStreamStore.Streams
 {
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -57,7 +58,7 @@
             IsEnd = isEnd;
             Direction = direction;
             _readNext = readNext;
-            Messages = messages ?? new StreamMessage[0];
+            Messages = messages ?? Array.Empty<StreamMessage>();
         }
 
         /// <inheritdoc />

@@ -36,7 +36,6 @@ namespace SqlStreamStore
             return new AllStreamSubscription(
                 fromPosition,
                 this,
-                GetStoreObservable,
                 streamMessageReceived,
                 subscriptionDropped,
                 hasCaughtUp,

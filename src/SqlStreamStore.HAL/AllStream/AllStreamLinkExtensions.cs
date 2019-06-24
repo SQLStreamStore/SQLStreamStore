@@ -7,7 +7,8 @@ namespace SqlStreamStore.AllStream
     {
         public static Links AllStreamNavigation(
             this Links links,
-            ReadAllPage page,
+            ReadAllResult page,
+            StreamMessage[] messages,
             ReadAllStreamOperation operation)
         {
             var first = LinkFormatter.ReadAllForwards(
@@ -27,7 +28,7 @@ namespace SqlStreamStore.AllStream
                 links.Add(
                     Constants.Relations.Previous,
                     LinkFormatter.ReadAllBackwards(
-                        page.Messages.Min(m => m.Position) - 1,
+                        messages.Min(m => m.Position) - 1,
                         operation.MaxCount,
                         operation.EmbedPayload));
             }
@@ -39,7 +40,7 @@ namespace SqlStreamStore.AllStream
                 links.Add(
                     Constants.Relations.Next,
                     LinkFormatter.ReadAllForwards(
-                        page.Messages.Max(m => m.Position) + 1,
+                        messages.Max(m => m.Position) + 1,
                         operation.MaxCount,
                         operation.EmbedPayload));
             }

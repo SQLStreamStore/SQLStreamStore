@@ -5,7 +5,7 @@ namespace SqlStreamStore.AllStream
     using Microsoft.AspNetCore.Http;
     using SqlStreamStore.Streams;
 
-    internal class ReadAllStreamOperation : IStreamStoreOperation<ReadAllPage>
+    internal class ReadAllStreamOperation : IStreamStoreOperation<ReadAllResult>
     {
         private readonly long _fromPositionInclusive;
         private readonly int _maxCount;
@@ -13,7 +13,7 @@ namespace SqlStreamStore.AllStream
         public ReadAllStreamOperation(HttpContext context)
         {
             var request = context.Request;
-            
+
             Path = request.Path;
 
             EmbedPayload = request.Query.TryGetValueCaseInsensitive('e', out var embedPayload)
@@ -66,9 +66,9 @@ namespace SqlStreamStore.AllStream
         public bool IsUriCanonical { get; }
         public PathString Path { get; }
 
-        public Task<ReadAllPage> Invoke(IStreamStore streamStore, CancellationToken ct)
-            => ReadDirection == Constants.ReadDirection.Forwards
+        public Task<ReadAllResult> Invoke(IStreamStore streamStore, CancellationToken ct)
+            => Task.FromResult(ReadDirection == Constants.ReadDirection.Forwards
                 ? streamStore.ReadAllForwards(_fromPositionInclusive, _maxCount, EmbedPayload, ct)
-                : streamStore.ReadAllBackwards(_fromPositionInclusive, _maxCount, EmbedPayload, ct);
+                : streamStore.ReadAllBackwards(_fromPositionInclusive, _maxCount, EmbedPayload, ct));
     }
 }

@@ -1,5 +1,7 @@
 namespace SqlStreamStore
 {
+    using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -8,9 +10,10 @@ namespace SqlStreamStore
     using SqlStreamStore.Internal.HoneyBearHalClient.Models;
     using SqlStreamStore.Streams;
 
+
     partial class HttpClientSqlStreamStore
     {
-        public async Task<ReadAllPage> ReadAllForwards(
+        public ReadAllResult ReadAllForwards(
             long fromPositionInclusive,
             int maxCount,
             bool prefetchJsonData = true,
@@ -23,14 +26,19 @@ namespace SqlStreamStore
 
             var client = CreateClient();
 
-            client = await client.RootAsync(
-                LinkFormatter.ReadAllForwards(fromPositionInclusive, maxCount, prefetchJsonData),
-                cancellationToken);
+            var reader = new AllStreamForwardsReader(
+                client,
+                fromPositionInclusive,
+                maxCount,
+                prefetchJsonData);
 
-            return ReadAllForwardsInternal(client, prefetchJsonData);
+            IAsyncEnumerable<StreamMessage> NoOp(StreamMessage[] messages, CancellationToken ct)
+                => messages.ToAsyncEnumerable();
+
+            return new ReadAllResult(reader.Read, NoOp, cancellationToken);
         }
 
-        public async Task<ReadAllPage> ReadAllBackwards(
+        public ReadAllResult ReadAllBackwards(
             long fromPositionInclusive,
             int maxCount,
             bool prefetchJsonData = true,
@@ -43,64 +51,115 @@ namespace SqlStreamStore
 
             var client = CreateClient();
 
-            client = await client.RootAsync(
-                LinkFormatter.ReadAllBackwards(fromPositionInclusive, maxCount, prefetchJsonData),
-                cancellationToken);
+            var reader = new AllStreamBackwardsReader(
+                client,
+                fromPositionInclusive,
+                maxCount,
+                prefetchJsonData);
 
-            return ReadAllBackwardsInternal(client, prefetchJsonData);
+            IAsyncEnumerable<StreamMessage> NoOp(StreamMessage[] messages, CancellationToken ct)
+                => messages.ToAsyncEnumerable();
+
+            return new ReadAllResult(reader.Read, NoOp, cancellationToken);
         }
 
-        private static ReadAllPage ReadAllForwardsInternal(IHalClient client, bool prefetch)
+        private abstract class AllStreamReader
         {
-            var resource = client.Current.First();
+            private IHalClient _client;
+            private readonly long _fromPositionInclusive;
+            private readonly int _pageSize;
+            private readonly bool _prefetchJsonData;
+            private readonly Func<long, int, bool, string> _formatLink;
+            private IResource _resource;
+            private readonly ReadDirection _readDirection;
 
-            var pageInfo = resource.Data<HalReadAllPage>();
+            protected AllStreamReader(
+                IHalClient client,
+                long fromPositionInclusive,
+                int pageSize,
+                bool prefetchJsonData,
+                ReadDirection readDirection,
+                Func<long, int, bool, string> formatLink)
+            {
+                _client = client;
+                _fromPositionInclusive = fromPositionInclusive;
+                _pageSize = pageSize;
+                _prefetchJsonData = prefetchJsonData;
+                _formatLink = formatLink;
+                _readDirection = readDirection;
+            }
 
-            var streamMessages = Convert(
-                resource.Embedded
-                    .Where(r => r.Rel == Constants.Relations.Message)
-                    .Reverse()
-                    .ToArray(),
-                client,
-                prefetch);
+            public async Task<ReadAllPage> Read(CancellationToken cancellationToken)
+            {
+                _client = await _client.RootAsync(
+                    _formatLink(_fromPositionInclusive, _pageSize, _prefetchJsonData),
+                    cancellationToken);
 
-            var readAllPage = new ReadAllPage(
-                pageInfo.FromPosition,
-                pageInfo.NextPosition,
-                pageInfo.IsEnd,
-                ReadDirection.Forward,
-                async (position, token) => ReadAllForwardsInternal(
-                    await client.GetAsync(resource, Constants.Relations.Next),
-                    prefetch),
-                streamMessages);
+                return ReadInternal();
+            }
 
-            return readAllPage;
+            private async Task<ReadAllPage> ReadNext(long _, CancellationToken cancellationToken)
+            {
+                _client = await _client.GetAsync(_resource, Constants.Relations.Previous, cancellationToken);
+
+                return ReadInternal();
+            }
+
+            private ReadAllPage ReadInternal()
+            {
+                _resource = _client.Current.First();
+
+                var pageInfo = _resource.Data<HalReadAllPage>();
+
+                var streamMessages = Convert(
+                    _resource.Embedded
+                        .Where(r => r.Rel == Constants.Relations.Message)
+                        .ToArray(),
+                    _client,
+                    _prefetchJsonData);
+
+                return new ReadAllPage(
+                    pageInfo.FromPosition,
+                    pageInfo.NextPosition,
+                    pageInfo.IsEnd,
+                    _readDirection,
+                    ReadNext,
+                    streamMessages);
+            }
         }
 
-        private static ReadAllPage ReadAllBackwardsInternal(IHalClient client, bool prefetch)
+        private class AllStreamBackwardsReader : AllStreamReader
         {
-            var resource = client.Current.First();
+            public AllStreamBackwardsReader(
+                IHalClient client,
+                long fromPositionInclusive,
+                int pageSize,
+                bool prefetchJsonData)
+                : base(
+                    client,
+                    fromPositionInclusive,
+                    pageSize,
+                    prefetchJsonData,
+                    ReadDirection.Backward,
+                    LinkFormatter.ReadAllBackwards)
+            { }
+        }
 
-            var pageInfo = resource.Data<HalReadAllPage>();
-
-            var streamMessages = Convert(
-                resource.Embedded
-                    .Where(r => r.Rel == Constants.Relations.Message)
-                    .ToArray(),
-                client,
-                prefetch);
-
-            var readAllPage = new ReadAllPage(
-                pageInfo.FromPosition,
-                pageInfo.NextPosition,
-                pageInfo.IsEnd,
-                ReadDirection.Backward,
-                async (position, cancellationToken) => ReadAllBackwardsInternal(
-                    await client.GetAsync(resource, Constants.Relations.Previous, cancellationToken),
-                    prefetch),
-                streamMessages);
-
-            return readAllPage;
+        private class AllStreamForwardsReader : AllStreamReader
+        {
+            public AllStreamForwardsReader(
+                IHalClient client,
+                long fromPositionInclusive,
+                int pageSize,
+                bool prefetchJsonData)
+                : base(
+                    client,
+                    fromPositionInclusive,
+                    pageSize,
+                    prefetchJsonData,
+                    ReadDirection.Forward,
+                    LinkFormatter.ReadAllForwards)
+            { }
         }
     }
 }

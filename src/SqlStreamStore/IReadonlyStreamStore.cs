@@ -29,10 +29,10 @@
         ///     The cancellation instruction.
         /// </param>
         /// <returns>
-        ///     An <see cref="ReadAllPage"/> presenting the result of the read. If all messages read have expired
+        ///     An <see cref="ReadAllResult"/> presenting the result of the read. If all messages read have expired
         ///     then the message collection MAY be empty.
         /// </returns>
-        Task<ReadAllPage> ReadAllForwards(
+        ReadAllResult ReadAllForwards(
             long fromPositionInclusive,
             int maxCount,
             bool prefetchJsonData = true,
@@ -56,10 +56,10 @@
         ///     The cancellation instruction.
         /// </param>
         /// <returns>
-        ///     An <see cref="ReadAllPage"/> presenting the result of the read. If all messages read have expired
+        ///     An <see cref="ReadAllResult"/> presenting the result of the read. If all messages read have expired
         ///     then the message collection MAY be empty.
         /// </returns>
-        Task<ReadAllPage> ReadAllBackwards(
+        ReadAllResult ReadAllBackwards(
             long fromPositionInclusive,
             int maxCount,
             bool prefetchJsonData = true,

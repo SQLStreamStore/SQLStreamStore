@@ -50,9 +50,9 @@
             await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
             await store.DeleteStream(streamId);
 
-            var page = await store.ReadAllForwards(Position.Start, 10);
+            var page = store.ReadAllForwards(Position.Start, 10);
 
-            page.Messages.Any(message => message.StreamId == streamId).ShouldBeFalse();
+            (await page.AnyAsync(message => message.StreamId == streamId)).ShouldBeFalse();
         }
 
         [Fact, Trait("Category", "DeleteStream")]
@@ -104,9 +104,9 @@
             await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
             await store.DeleteStream(streamId);
 
-            var allMessagesPage = await store.ReadAllForwards(Position.Start, 10);
+            var allMessagesPage = store.ReadAllForwards(Position.Start, 10);
 
-            allMessagesPage.Messages.Any(message => message.StreamId == streamId).ShouldBeFalse();
+            (await allMessagesPage.AnyAsync(message => message.StreamId == streamId)).ShouldBeFalse();
         }
 
         [Fact, Trait("Category", "DeleteStream")]

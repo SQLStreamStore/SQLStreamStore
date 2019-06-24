@@ -1,6 +1,5 @@
 ﻿namespace SqlStreamStore
 {
-    using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
     using Newtonsoft.Json.Linq;
@@ -13,7 +12,6 @@
         [Fact, Trait("Category", "ReadAll")]
         public async Task Can_read_all_forwards()
         {
-            
             await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
             await store.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
             var expectedMessages = new[]
@@ -26,21 +24,13 @@
                 ExpectedStreamMessage("stream-2", 6, 2, fixture.GetUtcNow())
             };
 
-            var page = await store.ReadAllForwards(Position.Start, 4);
-            List<StreamMessage> messages = new List<StreamMessage>(page.Messages);
-            int count = 0;
-            while(!page.IsEnd && count <20) //should not take more than 20 iterations.
-            {
-                page = await page.ReadNext();
-                messages.AddRange(page.Messages);
-                count++;
-            }
+            var page = store.ReadAllForwards(Position.Start, 4);
+            var messages = await page.ToListAsync();
 
-            count.ShouldBeLessThan(20);
-            page.Direction.ShouldBe(ReadDirection.Forward);
+            page.ReadDirection.ShouldBe(ReadDirection.Forward);
             page.IsEnd.ShouldBeTrue();
 
-            for (int i = 0; i < messages.Count; i++)
+            for(int i = 0; i < messages.Count; i++)
             {
                 var message = messages[i];
                 var expectedMessage = expectedMessages[i];
@@ -89,11 +79,12 @@
         {
             await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
 
-            var page = await store.ReadAllForwards(Position.Start, 4, prefetchJsonData: false);
+            var page = store.ReadAllForwards(Position.Start, 4, prefetchJsonData: false);
 
             await store.DeleteStream("stream-1");
 
-            foreach (var streamMessage in page.Messages)
+            await foreach(var streamMessage in page.Where(x => !x.StreamId.StartsWith("$"))
+            ) // could be the deleted message
             {
                 (await streamMessage.GetJsonData()).ShouldBeNull();
             }
@@ -114,18 +105,10 @@
                 ExpectedStreamMessage("stream-2", 6, 2, fixture.GetUtcNow())
             }.Reverse().ToArray();
 
-            var page = await store.ReadAllBackwards(Position.End, 4);
-            List<StreamMessage> messages = new List<StreamMessage>(page.Messages);
-            int count = 0;
-            while (!page.IsEnd && count < 20) //should not take more than 20 iterations.
-            {
-                page = await store.ReadAllBackwards(page.NextPosition, 10);
-                messages.AddRange(page.Messages);
-                count++;
-            }
+            var page = store.ReadAllBackwards(Position.End, 4);
+            var messages = await page.ToListAsync();
 
-            count.ShouldBeLessThan(20);
-            page.Direction.ShouldBe(ReadDirection.Backward);
+            page.ReadDirection.ShouldBe(ReadDirection.Backward);
             page.IsEnd.ShouldBeTrue();
 
             messages.Count.ShouldBe(expectedMessages.Length);
@@ -175,8 +158,8 @@
         }*/
 
         [Theory, Trait("Category", "ReadAll")]
-        [InlineData(3, 0, 3, 3, 0, 3)]  // Read entire store
-        [InlineData(3, 0, 4, 3, 0, 3)]  // Read entire store
+        [InlineData(3, 0, 3, 3, 0, 3)] // Read entire store
+        [InlineData(3, 0, 4, 3, 0, 3)] // Read entire store
         [InlineData(3, 0, 2, 2, 0, 2)]
         [InlineData(3, 1, 2, 2, 1, 3)]
         [InlineData(3, 2, 1, 1, 2, 3)]
@@ -194,9 +177,9 @@
                 ExpectedVersion.NoStream,
                 CreateNewStreamMessageSequence(1, numberOfSeedMessages));
 
-            var page = await store.ReadAllForwards(fromPosition, maxCount);
+            var page = store.ReadAllForwards(fromPosition, maxCount);
 
-            page.Messages.Length.ShouldBe(expectedCount);
+            (await page.Take(expectedCount).CountAsync()).ShouldBe(expectedCount);
             page.FromPosition.ShouldBe(expectedFromPosition);
             page.NextPosition.ShouldBe(expectedNextPosition);
         }
@@ -225,9 +208,9 @@
                     CreateNewStreamMessageSequence(1, numberOfSeedMessages));
             }
 
-            var allMessagesPage = await store.ReadAllBackwards(fromPosition, maxCount);
+            var allMessagesPage = store.ReadAllBackwards(fromPosition, maxCount);
 
-            allMessagesPage.Messages.Length.ShouldBe(expectedCount);
+            (await allMessagesPage.Take(expectedCount).CountAsync()).ShouldBe(expectedCount);
             allMessagesPage.FromPosition.ShouldBe(expectedFromPosition);
             allMessagesPage.NextPosition.ShouldBe(expectedNextPosition);
         }
@@ -235,25 +218,29 @@
         [Theory, Trait("Category", "ReadAll")]
         [InlineData("stream/1")]
         [InlineData("stream%1")]
-        public async Task when_read_all_forwards_with_url_encodable_stream(string streamId)
+        public async Task when_read_all_forwards_with_url_encodable_stream(string expectedStreamId)
         {
-            await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1));
+            await store.AppendToStream(expectedStreamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1));
 
-            var result = await store.ReadAllForwards(Position.Start, 1);
-            
-            Assert.Equal(streamId, result.Messages[0].StreamId);
+            var result = store.ReadAllForwards(Position.Start, 1);
+
+            var streamId = await result.Select(message => message.StreamId).FirstOrDefaultAsync();
+
+            Assert.Equal(expectedStreamId, streamId);
         }
 
         [Theory, Trait("Category", "ReadAll")]
         [InlineData("stream/1")]
         [InlineData("stream%1")]
-        public async Task when_read_all_backwards_with_url_encodable_stream(string streamId)
+        public async Task when_read_all_backwards_with_url_encodable_stream(string expectedStreamId)
         {
-            await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1));
+            await store.AppendToStream(expectedStreamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1));
 
-            var result = await store.ReadAllBackwards(Position.End, 1);
-            
-            Assert.Equal(streamId, result.Messages[0].StreamId);
+            var result = store.ReadAllBackwards(Position.End, 1);
+
+            var streamId = await result.Select(message => message.StreamId).FirstOrDefaultAsync();
+
+            Assert.Equal(expectedStreamId, streamId);
         }
     }
 }

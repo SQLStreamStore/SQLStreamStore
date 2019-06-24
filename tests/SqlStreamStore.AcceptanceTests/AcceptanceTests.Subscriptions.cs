@@ -221,8 +221,8 @@
                 await subscription.Started;
                 await AppendMessages(store, streamId1, 2);
 
-                var allMessagesPage = await store.ReadAllForwards(0, 30);
-                foreach(var streamMessage in allMessagesPage.Messages)
+                var allMessagesPage = store.ReadAllForwards(0, 30);
+                await foreach(var streamMessage in allMessagesPage)
                 {
                     TestOutputHelper.WriteLine(streamMessage.ToString());
                 }
@@ -654,7 +654,7 @@
             var streamId = "stream-1";
             await AppendMessages(store, streamId, 30);
             var caughtUp = new TaskCompletionSource<bool>();
-            var subscription = store.SubscribeToAll(
+            using var subscription = store.SubscribeToAll(
                 Position.None,
                 (_, __, ___) => Task.CompletedTask,
                 hasCaughtUp: b =>
@@ -666,7 +666,6 @@
                 });
             subscription.MaxCountPerRead = 10;
             await caughtUp.Task.WithTimeout(5000);
-            subscription.Dispose();
         }
 
         [Fact, Trait("Category", "Subscriptions")]
@@ -676,27 +675,29 @@
             await AppendMessages(store, streamId, 30);
             var caughtUp = new TaskCompletionSource<bool>();
             var numberOfCaughtUps = 0;
-            var subscription = store.SubscribeToAll(
+            using var subscription = store.SubscribeToAll(
                 Position.None,
                 (_, __, ___) => Task.CompletedTask,
                 hasCaughtUp: b =>
                 {
+                    caughtUp.TrySetResult(b);
                     if(b)
                     {
-                        if(++numberOfCaughtUps > 2)
+                        if(++numberOfCaughtUps > 1)
                         {
-                            caughtUp.SetException(
-                                new Exception("Should not raise hasCaughtUp more than twice."));
+                            caughtUp.SetException(new Exception("Should not raise hasCaughtUp(true) more than once."));
                         }
+                    }
+                    else
+                    {
+                        caughtUp.SetException(new Exception("Should not raise hasCaughtUp(false) at all."));
                     }
                 });
             subscription.MaxCountPerRead = 10;
 
-            Func<Task> act = async () => await caughtUp.Task.WithTimeout(1000);
+            var result = await caughtUp.Task.WithTimeout();
 
-            await act.ShouldThrowAsync<TimeoutException>();
-
-            subscription.Dispose();
+            result.ShouldBe(true);
         }
 
         [Fact, Trait("Category", "Subscriptions")]

@@ -11,7 +11,8 @@ namespace SqlStreamStore
     {
         [Theory, Trait("Category", "StreamMetadata"),
          InlineData(ExpectedVersion.NoStream), InlineData(ExpectedVersion.Any)]
-        public async Task When_stream_has_max_count_and_append_exceeds_then_should_maintain_max_count(int expectedVersion)
+        public async Task When_stream_has_max_count_and_append_exceeds_then_should_maintain_max_count(
+            int expectedVersion)
         {
             const string streamId = "stream-1";
             const int maxCount = 2;
@@ -27,7 +28,8 @@ namespace SqlStreamStore
 
         [Theory, Trait("Category", "StreamMetadata"),
          InlineData(ExpectedVersion.EmptyStream)]
-        public async Task When_empty_stream_has_max_count_and_append_exceeds_then_should_maintain_max_count(int expectedVersion)
+        public async Task When_empty_stream_has_max_count_and_append_exceeds_then_should_maintain_max_count(
+            int expectedVersion)
         {
             const string streamId = "stream-1";
             const int maxCount = 2;
@@ -99,7 +101,8 @@ namespace SqlStreamStore
         }
 
         [Fact, Trait("Category", "StreamMetadata")]
-        public async Task When_streams_have_expired_messages_and_read_all_forwards_then_should_not_get_expired_messages()
+        public async Task
+            When_streams_have_expired_messages_and_read_all_forwards_then_should_not_get_expired_messages()
         {
             var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
             fixture.GetUtcNow = () => currentUtc;
@@ -124,15 +127,17 @@ namespace SqlStreamStore
                 .SetStreamMetadata(streamId2, maxAge: 30, metadataJson: "meta");
 
             // Act
-            var allMessagesPage = await store.ReadAllForwards(Position.Start, 20);
+            var result = store.ReadAllBackwards(Position.End, 20);
+            var messages = await result.ToArrayAsync();
 
             // Assert
-            allMessagesPage.Messages.Count(message => message.StreamId == streamId1).ShouldBe(2);
-            allMessagesPage.Messages.Count(message => message.StreamId == streamId2).ShouldBe(4);
+            messages.Count(message => message.StreamId == streamId1).ShouldBe(2);
+            messages.Count(message => message.StreamId == streamId2).ShouldBe(4);
         }
 
         [Fact, Trait("Category", "StreamMetadata")]
-        public async Task When_streams_have_expired_messages_and_read_all_backwards_then_should_not_get_expired_messages()
+        public async Task
+            When_streams_have_expired_messages_and_read_all_backwards_then_should_not_get_expired_messages()
         {
             var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
             fixture.GetUtcNow = () => currentUtc;
@@ -158,11 +163,12 @@ namespace SqlStreamStore
                 .SetStreamMetadata(streamId2, maxAge: 30, metadataJson: "meta");
 
             // Act
-            var allMessagesPage = await store.ReadAllBackwards(Position.End, 20);
+            var result = store.ReadAllBackwards(Position.End, 20);
+            var messages = await result.ToArrayAsync();
 
             // Assert
-            allMessagesPage.Messages.Count(message => message.StreamId == streamId1).ShouldBe(2);
-            allMessagesPage.Messages.Count(message => message.StreamId == streamId2).ShouldBe(4);
+            messages.Count(message => message.StreamId == streamId1).ShouldBe(2);
+            messages.Count(message => message.StreamId == streamId2).ShouldBe(4);
         }
     }
 }

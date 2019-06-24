@@ -34,7 +34,6 @@ namespace SqlStreamStore
             => new AllStreamSubscription(
                 fromPosition,
                 this,
-                GetStoreObservable,
                 streamMessageReceived,
                 subscriptionDropped,
                 hasCaughtUp,

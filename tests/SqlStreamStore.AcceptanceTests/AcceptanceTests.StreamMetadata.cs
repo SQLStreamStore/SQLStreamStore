@@ -104,10 +104,10 @@
 
             await store.DeleteStream(streamId);
 
-            var allMessagesPage = await store.ReadAllForwards(Position.Start, 10);
-            var streamDeletedMessages = allMessagesPage.Messages
+            var allMessagesPage = store.ReadAllForwards(Position.Start, 10);
+            var streamDeletedMessages = await allMessagesPage
                 .Where(m => m.Type == Deleted.StreamDeletedMessageType)
-                .ToArray();
+                .ToArrayAsync();
             streamDeletedMessages.Length.ShouldBe(2);
 
             var streamDeleted1 = await streamDeletedMessages[0].GetJsonDataAs<Deleted.StreamDeleted>();

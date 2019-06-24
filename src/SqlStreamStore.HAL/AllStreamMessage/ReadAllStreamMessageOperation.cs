@@ -18,11 +18,10 @@ namespace SqlStreamStore.AllStreamMessage
         public long Position { get; }
         public PathString Path { get; }
 
-        public async Task<StreamMessage> Invoke(IStreamStore streamStore, CancellationToken ct)
-        {
-            var page = await streamStore.ReadAllForwards(Position, 1, true, ct);
-
-            return page.Messages.Where(m => m.Position == Position).FirstOrDefault();
-        }
+        public Task<StreamMessage> Invoke(IStreamStore streamStore, CancellationToken ct)
+            => streamStore.ReadAllForwards(Position, 1, true, ct)
+                .Where(m => m.Position == Position)
+                .FirstOrDefaultAsync(ct)
+                .AsTask();
     }
 }

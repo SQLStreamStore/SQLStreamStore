@@ -23,23 +23,23 @@ namespace SqlStreamStore
             return false;
         }
 
-        public static bool TryGetETag(this ReadAllPage page, long fromPosition, out ETag eTag)
+        public static bool TryGetETag(this ReadAllResult page, StreamMessage[] messages, long fromPosition, out ETag eTag)
         {
-            if(page.Direction == ReadDirection.Backward && fromPosition == Position.End)
+            if(page.ReadDirection == ReadDirection.Backward && fromPosition == Position.End)
             {
-                eTag = ETag.FromPosition(page.Messages.Length > 0 ? page.Messages[0].Position : Position.End);
+                eTag = ETag.FromPosition(messages.Length > 0 ? messages[0].Position : Position.End);
                 return true;
             }
 
-            if(page.IsEnd && page.Direction == ReadDirection.Forward)
+            if(page.IsEnd && page.ReadDirection == ReadDirection.Forward)
             {
-                eTag = ETag.FromPosition(page.Messages.Length > 0 ? page.Messages[page.Messages.Length - 1].Position : Position.End);
+                eTag = ETag.FromPosition(messages.Length > 0 ? messages[messages.Length - 1].Position : Position.End);
                 return true;
             }
 
-            if(page.IsEnd && page.Direction == ReadDirection.Backward)
+            if(page.IsEnd && page.ReadDirection == ReadDirection.Backward)
             {
-                eTag = ETag.FromPosition(page.Messages.Length > 0 ? page.Messages[0].Position : Position.End);
+                eTag = ETag.FromPosition(messages.Length > 0 ? messages[0].Position : Position.End);
                 return true;
             }
 

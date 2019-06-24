@@ -703,7 +703,6 @@ namespace SqlStreamStore
             return new AllStreamSubscription(
                 fromPosition,
                 this,
-                _subscriptions,
                 streamMessageReceived,
                 subscriptionDropped,
                 hasCaughtUp,

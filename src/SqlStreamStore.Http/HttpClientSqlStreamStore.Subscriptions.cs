@@ -41,7 +41,6 @@ namespace SqlStreamStore
             return new AllStreamSubscription(
                 continueAfterPosition,
                 this,
-                _streamStoreNotifier.Value,
                 streamMessageReceived,
                 subscriptionDropped,
                 hasCaughtUp,

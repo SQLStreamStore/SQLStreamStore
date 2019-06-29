@@ -31,6 +31,12 @@ namespace SqlStreamStore
         private static readonly ReadNextStreamPage s_readNextNotFound =
             (_, ct) => throw new InvalidOperationException("Cannot read next page of non-exisitent stream");
 
+
+        /// <summary>
+        ///     Initializes a new instance of <see cref="InMemoryStreamStore"/>
+        /// </summary>
+        /// <param name="getUtcNow">Optional. A delegate to ge the current UTC now. Used to define generate timestamps.</param>
+        /// <param name="logName">Optional. The name of the logger generated log messages will use.</param>
         public InMemoryStreamStore(GetUtcNow getUtcNow = null, string logName = null)
             : base(TimeSpan.FromMinutes(1), 10000, getUtcNow, logName ?? nameof(InMemoryStreamStore))
         {

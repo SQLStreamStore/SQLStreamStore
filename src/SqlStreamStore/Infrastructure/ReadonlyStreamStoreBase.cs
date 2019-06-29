@@ -106,7 +106,7 @@ namespace SqlStreamStore.Infrastructure
             return new ReadAllResult(Read, FilterExpired, _disposed.Token);
         }
 
-        public async Task<ReadStreamPage> ReadStreamForwards(
+        public ReadStreamResult ReadStreamForwards(
             StreamId streamId,
             int fromVersionInclusive,
             int maxCount,
@@ -125,18 +125,22 @@ namespace SqlStreamStore.Infrastructure
                 fromVersionInclusive,
                 maxCount);
 
-            ReadNextStreamPage readNext = (nextVersion, ct) =>
-                ReadStreamForwards(streamId, nextVersion, maxCount, prefetchJsonData, ct);
-            var page = await ReadStreamForwardsInternal(streamId,
-                fromVersionInclusive,
-                maxCount,
-                prefetchJsonData,
-                readNext,
-                cancellationToken);
-            return await FilterExpired(page, readNext, cancellationToken);
+            Task<ReadStreamPage> Read(CancellationToken ct)
+                => ReadStreamForwardsInternal(
+                    streamId,
+                    fromVersionInclusive,
+                    maxCount,
+                    prefetchJsonData,
+                    ReadNext,
+                    cancellationToken);
+
+            Task<ReadStreamPage> ReadNext(int nextVersion, CancellationToken ct)
+                => ReadStreamForwardsInternal(streamId, nextVersion, maxCount, prefetchJsonData, ReadNext, ct);
+
+            return new ReadStreamResult(Read, FilterExpired, _disposed.Token);
         }
 
-        public async Task<ReadStreamPage> ReadStreamBackwards(
+        public ReadStreamResult ReadStreamBackwards(
             StreamId streamId,
             int fromVersionInclusive,
             int maxCount,
@@ -155,15 +159,19 @@ namespace SqlStreamStore.Infrastructure
                 fromVersionInclusive,
                 maxCount);
 
-            ReadNextStreamPage readNext =
-                (nextVersion, ct) => ReadStreamBackwards(streamId, nextVersion, maxCount, prefetchJsonData, ct);
-            var page = await ReadStreamBackwardsInternal(streamId,
-                fromVersionInclusive,
-                maxCount,
-                prefetchJsonData,
-                readNext,
-                cancellationToken);
-            return await FilterExpired(page, readNext, cancellationToken);
+            Task<ReadStreamPage> Read(CancellationToken ct)
+                => ReadStreamBackwardsInternal(
+                    streamId,
+                    fromVersionInclusive,
+                    maxCount,
+                    prefetchJsonData,
+                    ReadNext,
+                    cancellationToken);
+
+            Task<ReadStreamPage> ReadNext(int nextVersion, CancellationToken ct)
+                => ReadStreamBackwardsInternal(streamId, nextVersion, maxCount, prefetchJsonData, ReadNext, ct);
+
+            return new ReadStreamResult(Read, FilterExpired, _disposed.Token);
         }
 
         public IStreamSubscription SubscribeToStream(
@@ -331,8 +339,7 @@ namespace SqlStreamStore.Infrastructure
             CancellationToken cancellationToken);
 
         protected virtual void Dispose(bool disposing)
-        {
-        }
+        { }
 
         protected void GuardAgainstDisposed()
         {
@@ -389,13 +396,14 @@ namespace SqlStreamStore.Infrastructure
                 valid.ToArray());
         }
 
+
         private async IAsyncEnumerable<StreamMessage> FilterExpired(
-            ReadAllPage readAllPage,
+            StreamMessage[] streamMessages,
             CancellationToken cancellationToken)
         {
             if(_disableMetadataCache)
             {
-                foreach(var message in readAllPage.Messages)
+                foreach(var message in streamMessages)
                 {
                     yield return message;
                 }
@@ -404,7 +412,7 @@ namespace SqlStreamStore.Infrastructure
             }
 
             var currentUtc = GetUtcNow();
-            foreach(var streamMessage in readAllPage.Messages)
+            foreach(var streamMessage in streamMessages)
             {
                 if(streamMessage.StreamId.StartsWith("$"))
                 {

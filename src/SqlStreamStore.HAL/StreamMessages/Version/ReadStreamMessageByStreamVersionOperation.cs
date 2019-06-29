@@ -23,9 +23,12 @@ namespace SqlStreamStore.StreamMessages.Version
         public int StreamVersion { get; }
         public string StreamId { get; }
 
-        public async Task<StreamMessage> Invoke(IStreamStore streamStore, CancellationToken ct)
-            => (await streamStore.ReadStreamBackwards(StreamId, StreamVersion, 1, true, ct))
-                .Messages.FirstOrDefault(message => StreamVersion == SqlStreamStore.Streams.StreamVersion.End
-                                                    || message.StreamVersion == StreamVersion);
+        public Task<StreamMessage> Invoke(IStreamStore streamStore, CancellationToken ct)
+            => streamStore
+                .ReadStreamBackwards(StreamId, StreamVersion, 1, true, ct)
+                .FirstOrDefaultAsync(message => StreamVersion == SqlStreamStore.Streams.StreamVersion.End
+                                                || message.StreamVersion == StreamVersion,
+                    ct)
+                .AsTask();
     }
 }

@@ -1,7 +1,6 @@
 namespace SqlStreamStore
 {
     using System;
-    using System.Collections.Generic;
     using System.Threading.Tasks;
     using System.Linq;
     using Shouldly;
@@ -13,64 +12,19 @@ namespace SqlStreamStore
         [Fact]
         public async Task Given_large_message_stream_can_be_read_back_in_pages()
         {
-            var eventsToWrite = CreateNewMessages();
+            const string streamId = "stream-1";
+            const int eventCount = 7500;
 
-            await store.AppendToStream("stream-1", ExpectedVersion.NoStream, eventsToWrite);
+            var eventsToWrite = Enumerable.Range(0, eventCount)
+                .Select(i => new NewStreamMessage(Guid.NewGuid(), $"message-{i}", "{}", $"{i}"))
+                .ToArray();
 
-            var readEvents = await new PagedStreamStore(store).GetAsync("stream-1");
+            await store.AppendToStream(streamId, ExpectedVersion.NoStream, eventsToWrite);
+            var result = store.ReadStreamForwards(streamId, StreamVersion.Start, 10, false);
 
-            readEvents.Count().ShouldBe(eventsToWrite.Length);
-        }
+            var readEvents = await result.ToArrayAsync();
 
-        private static NewStreamMessage[] CreateNewMessages()
-        {
-            var eventsToWrite = new List<NewStreamMessage>();
-            var largeStreamCount = 7500;
-            for (int i = 0; i < largeStreamCount; i++)
-            {
-                var envelope = new NewStreamMessage(Guid.NewGuid(), $"message-{i}", "{}", $"{i}");
-
-                eventsToWrite.Add(envelope);
-            }
-
-            return eventsToWrite.ToArray();
-        }
-    }
-
-    public class PagedStreamStore
-    {
-        private readonly IStreamStore _streamStore;
-
-        public PagedStreamStore(IStreamStore streamStore)
-        {
-            _streamStore = streamStore;
-        }
-
-        public async Task<IEnumerable<StreamMessage>> GetAsync(string streamName)
-        {
-            var start = 0;
-            const int BatchSize = 500;
-
-            ReadStreamPage page;
-            var events = new List<StreamMessage>();
-
-            do
-            {
-                page = await _streamStore.ReadStreamForwards(streamName, start, BatchSize);
-
-                if (page.Status == PageReadStatus.StreamNotFound)
-                {
-                    throw new Exception("Stream not found");
-                }
-
-                events.AddRange(
-                    page.Messages);
-
-                start = page.NextStreamVersion;
-            }
-            while (!page.IsEnd);
-
-            return events;
+            readEvents.Length.ShouldBe(eventsToWrite.Length);
         }
     }
 }

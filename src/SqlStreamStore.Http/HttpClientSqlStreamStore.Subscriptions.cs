@@ -20,7 +20,6 @@ namespace SqlStreamStore
                 streamId,
                 continueAfterVersion,
                 this,
-                _streamStoreNotifier.Value,
                 streamMessageReceived,
                 subscriptionDropped,
                 hasCaughtUp,

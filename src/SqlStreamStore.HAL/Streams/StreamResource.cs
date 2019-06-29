@@ -71,13 +71,15 @@ namespace SqlStreamStore.Streams
                 return new PermanentRedirectResponse($"../{operation.Self}");
             }
 
-            var page = await operation.Invoke(_streamStore, cancellationToken);
+            var result = await operation.Invoke(_streamStore, cancellationToken);
 
-            var streamMessages = page.Messages.OrderByDescending(m => m.Position).ToArray();
+            var streamMessages = await result.ToArrayAsync(cancellationToken);
+
+            var orderedStreamMessages = streamMessages.OrderByDescending(m => m.Position).ToArray();
 
             var payloads = await Task.WhenAll(
                 Array.ConvertAll(
-                    streamMessages,
+                    orderedStreamMessages,
                     message => operation.EmbedPayload
                         ? message.GetJsonData(cancellationToken)
                         : SkippedPayload.Instance));
@@ -85,18 +87,18 @@ namespace SqlStreamStore.Streams
             var response = new HalJsonResponse(
                 new HALResponse(new
                     {
-                        page.LastStreamVersion,
-                        page.LastStreamPosition,
-                        page.FromStreamVersion,
-                        page.NextStreamVersion,
-                        page.IsEnd
+                        result.LastStreamVersion,
+                        result.LastStreamPosition,
+                        result.FromStreamVersion,
+                        result.NextStreamVersion,
+                        result.IsEnd
                     })
                     .AddLinks(Links
                         .FromOperation(operation)
                         .Index()
                         .Find()
                         .Browse()
-                        .StreamsNavigation(page, operation))
+                        .StreamsNavigation(result, orderedStreamMessages, operation))
                     .AddEmbeddedResource(
                         Constants.Relations.AppendToStream,
                         append)
@@ -105,7 +107,7 @@ namespace SqlStreamStore.Streams
                         delete)
                     .AddEmbeddedCollection(
                         Constants.Relations.Message,
-                        streamMessages.Zip(
+                        orderedStreamMessages.Zip(
                             payloads,
                             (message, payload) => new StreamMessageHALResponse(message, payload)
                                 .AddLinks(
@@ -122,9 +124,9 @@ namespace SqlStreamStore.Streams
                                             Constants.Relations.Feed,
                                             LinkFormatter.Stream(message.StreamId),
                                             message.StreamId)))),
-                page.Status == PageReadStatus.StreamNotFound ? 404 : 200);
+                result.Status == PageReadStatus.StreamNotFound ? 404 : 200);
 
-            if(page.TryGetETag(out var eTag))
+            if(result.TryGetETag(out var eTag))
             {
                 response.Headers.Add(eTag);
             }

@@ -7,7 +7,6 @@
     <DebugSymbols>true</DebugSymbols>
     <GenerateRuntimeConfigurationFiles>true</GenerateRuntimeConfigurationFiles>
     <NoWarn>1591</NoWarn>
-    <LangVersion>latest</LangVersion>
     <RootNamespace>SqlStreamStore</RootNamespace>
   </PropertyGroup>
   <ItemGroup>

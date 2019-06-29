@@ -172,17 +172,19 @@
         {
             await _fixture.WriteNMessages(StreamId, 30);
 
-            var page = await _fixture.StreamStore.ReadStreamForwards(StreamId, StreamVersion.Start, 10, false);
+            var result = _fixture.StreamStore.ReadStreamForwards(StreamId, StreamVersion.Start, 10, false);
 
-            using(var response = await _fixture.HttpClient.GetAsync($"/{Constants.Paths.Streams}/a-stream"))
-            {
-                response.StatusCode.ShouldBe(HttpStatusCode.OK);
+            await using var enumerator = result.GetAsyncEnumerator();
+            await enumerator.MoveNextAsync();
 
-                var resource = await response.AsHal();
+            using var response = await _fixture.HttpClient.GetAsync($"/{Constants.Paths.Streams}/a-stream");
 
-                ((int) resource.State.lastStreamVersion).ShouldBe(page.LastStreamVersion);
-                ((long) resource.State.lastStreamPosition).ShouldBe(page.LastStreamPosition);
-            }
+            response.StatusCode.ShouldBe(HttpStatusCode.OK);
+
+            var resource = await response.AsHal();
+
+            ((int) resource.State.lastStreamVersion).ShouldBe(result.LastStreamVersion);
+            ((long) resource.State.lastStreamPosition).ShouldBe(result.LastStreamPosition);
         }
     }
 }

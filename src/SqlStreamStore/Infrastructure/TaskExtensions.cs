@@ -23,5 +23,21 @@
         {
             return task.ConfigureAwait(false);
         }
+
+        /// <summary>
+        /// ConfigureAwait(false)
+        /// </summary>
+        public static ConfiguredValueTaskAwaitable NotOnCapturedContext(this ValueTask task)
+        {
+            return task.ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// ConfigureAwait(false)
+        /// </summary>
+        public static ConfiguredValueTaskAwaitable<T> NotOnCapturedContext<T>(this ValueTask<T> task)
+        {
+            return task.ConfigureAwait(false);
+        }
     }
 }

@@ -93,10 +93,10 @@
         ///     The cancellation instruction.
         /// </param>
         /// <returns>
-        ///     An <see cref="ReadStreamPage"/> represent the result of the operation. If all the messages read
+        ///     An <see cref="ReadStreamResult"/> represent the result of the operation. If all the messages read
         ///     have expired then the message collection MAY be empty.
         /// </returns>
-        public static Task<ReadStreamPage> ReadStreamForwards(
+        public static ReadStreamResult ReadStreamForwards(
             this IReadonlyStreamStore readonlyStreamStore,
             string streamId,
             int fromVersionInclusive,
@@ -130,10 +130,10 @@
         ///     The cancellation instruction.
         /// </param>
         /// <returns>
-        ///     An <see cref="ReadStreamPage"/> represent the result of the operation. If all the messages read
+        ///     An <see cref="ReadStreamResult"/> represent the result of the operation. If all the messages read
         ///     have expired then the message collection MAY be empty.
         /// </returns>
-        public static Task<ReadStreamPage> ReadStreamBackwards(
+        public static ReadStreamResult ReadStreamBackwards(
             this IReadonlyStreamStore readonlyStreamStore,
             string streamId,
             int fromVersionInclusive,

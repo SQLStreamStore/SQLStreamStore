@@ -15,7 +15,6 @@ namespace SqlStreamStore
         [InlineData("stream%1")]
         public async Task Can_list_streams(string streamIdPrefix)
         {
-
             for(var i = 0; i < 30; i++)
             {
                 await store.AppendToStream(

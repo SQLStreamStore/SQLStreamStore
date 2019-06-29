@@ -1,6 +1,7 @@
 ﻿namespace SqlStreamStore
 {
     using System;
+    using System.Linq;
     using System.Net;
     using System.Net.Http.Headers;
     using System.Threading.Tasks;
@@ -90,11 +91,11 @@
         {
             var writeResult = await _fixture.WriteNMessages("a-stream", 1);
 
-            var page = await _fixture.StreamStore.ReadStreamForwards("a-stream", StreamVersion.Start, 1);
+            var result = _fixture.StreamStore.ReadStreamForwards("a-stream", StreamVersion.Start, 1);
 
-            var messageId = page.Messages[0].MessageId;
+            var message = await result.FirstOrDefaultAsync();
 
-            using(var response = await _fixture.HttpClient.DeleteAsync($"/{Constants.Paths.Streams}/a-stream/{messageId}"))
+            using(var response = await _fixture.HttpClient.DeleteAsync($"/{Constants.Paths.Streams}/a-stream/{message.MessageId}"))
             {
                 response.StatusCode.ShouldBe(HttpStatusCode.NoContent);
                 response.Content.Headers.ContentLength.HasValue.ShouldBeTrue();

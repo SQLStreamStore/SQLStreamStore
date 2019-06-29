@@ -89,7 +89,7 @@
         ///     An <see cref="ReadStreamPage"/> represent the result of the operation. If all the messages read
         ///     have expired then the message collection MAY be empty.
         /// </returns>
-        Task<ReadStreamPage> ReadStreamForwards(
+        ReadStreamResult ReadStreamForwards(
             StreamId streamId,
             int fromVersionInclusive,
             int maxCount,
@@ -120,7 +120,7 @@
         ///     An <see cref="ReadStreamPage"/> represent the result of the operation. If all the messages read
         ///     have expired then the message collection MAY be empty.
         /// </returns>
-        Task<ReadStreamPage> ReadStreamBackwards(
+        ReadStreamResult ReadStreamBackwards(
             StreamId streamId,
             int fromVersionInclusive,
             int maxCount,

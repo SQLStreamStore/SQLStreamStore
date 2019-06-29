@@ -130,16 +130,16 @@
                 response.Headers.Location.ShouldBe(location);
             }
 
-            var page = await _fixture.StreamStore.ReadStreamForwards(StreamId, 0, int.MaxValue);
+            var result = _fixture.StreamStore.ReadStreamForwards(StreamId, 0, int.MaxValue);
 
-            page.Status.ShouldBe(PageReadStatus.Success);
-            page.Messages.Length.ShouldBe(messageIds.Length);
+            var messages = await result.ToArrayAsync();
             for(var i = 0; i < messageIds.Length; i++)
             {
-                page.Messages[i].MessageId.ShouldBe(messageIds[i]);
-                page.Messages[i].Type.ShouldBe("type");
-                JToken.DeepEquals(JObject.Parse(await page.Messages[i].GetJsonData()), jsonData).ShouldBeTrue();
-                JToken.DeepEquals(JObject.Parse(page.Messages[i].JsonMetadata), jsonMetadata).ShouldBeTrue();
+                var message = messages[i];
+                message.MessageId.ShouldBe(messageIds[i]);
+                message.Type.ShouldBe("type");
+                JToken.DeepEquals(JObject.Parse(await message.GetJsonData()), jsonData).ShouldBeTrue();
+                JToken.DeepEquals(JObject.Parse(message.JsonMetadata), jsonMetadata).ShouldBeTrue();
             }
         }
 
@@ -189,7 +189,7 @@
                 {
                     Headers =
                     {
-                        { Constants.Headers.ExpectedVersion, $"{expectedVersions[expectedVersions.Length - 1]}" }
+                        { Constants.Headers.ExpectedVersion, $"{expectedVersions[^1]}" }
                     },
                     Content = new StringContent(JObject.FromObject(new
                     {
@@ -211,10 +211,10 @@
                     Constants.MediaTypes.HalJson));
             }
 
-            var page = await _fixture.StreamStore.ReadStreamForwards(StreamId, 0, int.MaxValue);
+            var result = _fixture.StreamStore.ReadStreamForwards(StreamId, 0, int.MaxValue);
 
-            page.Status.ShouldBe(PageReadStatus.Success);
-            page.Messages.Length.ShouldBe(expectedVersions.Length - 1);
+            var messages = await result.ToArrayAsync();
+            messages.Length.ShouldBe(expectedVersions.Length - 1);
         }
 
         private static IEnumerable<string> MalformedRequests()
@@ -302,7 +302,7 @@
                 {
                     Headers =
                     {
-                        {Constants.Headers.ExpectedVersion, $"{badExpectedVersion}"}
+                        { Constants.Headers.ExpectedVersion, $"{badExpectedVersion}" }
                     },
                     Content = new StringContent(JObject.FromObject(new
                     {

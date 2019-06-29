@@ -17,7 +17,6 @@ namespace SqlStreamStore
                 streamId,
                 startVersion,
                 this,
-                GetStoreObservable,
                 streamMessageReceived,
                 subscriptionDropped,
                 hasCaughtUp,

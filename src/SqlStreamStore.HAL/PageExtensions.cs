@@ -4,7 +4,7 @@ namespace SqlStreamStore
 
     internal static class PageExtensions
     {
-        public static bool TryGetETag(this ReadStreamPage page, out ETag eTag)
+        public static bool TryGetETag(this ReadStreamResult page, out ETag eTag)
         {
             if(page.IsEnd)
             {

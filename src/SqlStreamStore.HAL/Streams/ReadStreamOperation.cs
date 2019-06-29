@@ -5,7 +5,7 @@ namespace SqlStreamStore.Streams
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Routing;
 
-    internal class ReadStreamOperation : IStreamStoreOperation<ReadStreamPage>
+    internal class ReadStreamOperation : IStreamStoreOperation<ReadStreamResult>
     {
         private readonly int _fromVersionInclusive;
         private readonly int _maxCount;
@@ -66,9 +66,9 @@ namespace SqlStreamStore.Streams
         public string Self { get; }
         public bool IsUriCanonical { get; }
 
-        public Task<ReadStreamPage> Invoke(IStreamStore streamStore, CancellationToken ct)
-            => ReadDirection == Constants.ReadDirection.Forwards
+        public Task<ReadStreamResult> Invoke(IStreamStore streamStore, CancellationToken ct)
+            => Task.FromResult(ReadDirection == Constants.ReadDirection.Forwards
                 ? streamStore.ReadStreamForwards(StreamId, _fromVersionInclusive, _maxCount, EmbedPayload, ct)
-                : streamStore.ReadStreamBackwards(StreamId, _fromVersionInclusive, _maxCount, EmbedPayload, ct);
+                : streamStore.ReadStreamBackwards(StreamId, _fromVersionInclusive, _maxCount, EmbedPayload, ct));
     }
 }

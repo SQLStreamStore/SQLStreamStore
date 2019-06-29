@@ -4,7 +4,11 @@ namespace SqlStreamStore.Streams
 
     internal static class StreamsLinkExtensions
     {
-        public static Links StreamsNavigation(this Links links, ReadStreamPage page, ReadStreamOperation operation)
+        public static Links StreamsNavigation(
+            this Links links,
+            ReadStreamResult result,
+            StreamMessage[] messages,
+            ReadStreamOperation operation)
         {
             var first = LinkFormatter.ReadStreamForwards(
                 operation.StreamId,
@@ -20,26 +24,26 @@ namespace SqlStreamStore.Streams
 
             links.Add(Constants.Relations.First, first);
 
-            if(operation.Self != first && !page.IsEnd)
+            if(operation.Self != first && !result.IsEnd)
             {
                 links.Add(
                     Constants.Relations.Previous,
                     LinkFormatter.ReadStreamBackwards(
                         operation.StreamId,
-                        page.Messages.Min(m => m.StreamVersion) - 1,
+                        messages.Min(m => m.StreamVersion) - 1,
                         operation.MaxCount,
                         operation.EmbedPayload));
             }
 
             links.Add(Constants.Relations.Feed, operation.Self, operation.StreamId).Self();
 
-            if(operation.Self != last && !page.IsEnd)
+            if(operation.Self != last && !result.IsEnd)
             {
                 links.Add(
                     Constants.Relations.Next,
                     LinkFormatter.ReadStreamForwards(
                         operation.StreamId,
-                        page.Messages.Max(m => m.StreamVersion) + 1,
+                        messages.Max(m => m.StreamVersion) + 1,
                         operation.MaxCount,
                         operation.EmbedPayload));
             }

@@ -220,10 +220,10 @@
                     Constants.MediaTypes.HalJson));
             }
 
-            var page = await _fixture.StreamStore.ReadStreamForwards($"$${StreamId}", 0, int.MaxValue);
+            var result = _fixture.StreamStore.ReadStreamForwards($"$${StreamId}", 0, int.MaxValue);
 
-            page.Status.ShouldBe(PageReadStatus.Success);
-            page.Messages.Length.ShouldBe(expectedVersions.Length - 1);
+            var messages = await result.ToArrayAsync();
+            messages.Length.ShouldBe(expectedVersions.Length - 1);
         }
     }
 }

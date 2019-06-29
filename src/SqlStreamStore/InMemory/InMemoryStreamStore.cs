@@ -678,7 +678,6 @@ namespace SqlStreamStore
                 streamId,
                 startVersion,
                 this,
-                _subscriptions,
                 streamMessageReceived,
                 subscriptionDropped,
                 hasCaughtUp,

@@ -1,5 +1,7 @@
 namespace SqlStreamStore
 {
+    using System;
+    using System.Collections.Generic;
     using System.Linq;
     using System.Net;
     using System.Threading;
@@ -11,7 +13,7 @@ namespace SqlStreamStore
 
     partial class HttpClientSqlStreamStore
     {
-        public async Task<ReadStreamPage> ReadStreamForwards(
+        public ReadStreamResult ReadStreamForwards(
             StreamId streamId,
             int fromVersionInclusive,
             int maxCount,
@@ -25,18 +27,20 @@ namespace SqlStreamStore
 
             var client = CreateClient();
 
-            client = await client.RootAsync(
-                LinkFormatter.ReadStreamForwards(streamId, fromVersionInclusive, maxCount, prefetchJsonData),
-                cancellationToken);
-
-            return ReadStreamForwardsInternal(
+            var reader = new StreamForwardsReader(
                 client,
                 streamId,
                 fromVersionInclusive,
+                maxCount,
                 prefetchJsonData);
+
+            IAsyncEnumerable<StreamMessage> NoOp(StreamMessage[] messages, CancellationToken ct)
+                => messages.ToAsyncEnumerable();
+
+            return new ReadStreamResult(reader.Read, NoOp, cancellationToken);
         }
 
-        public async Task<ReadStreamPage> ReadStreamBackwards(
+        public ReadStreamResult ReadStreamBackwards(
             StreamId streamId,
             int fromVersionInclusive,
             int maxCount,
@@ -50,128 +54,129 @@ namespace SqlStreamStore
 
             var client = CreateClient();
 
-            client = await client.RootAsync(
-                LinkFormatter.ReadStreamBackwards(streamId, fromVersionInclusive, maxCount, prefetchJsonData),
-                cancellationToken);
-
-            return ReadStreamBackwardsInternal(
+            var reader = new StreamBackwardsReader(
                 client,
                 streamId,
                 fromVersionInclusive,
+                maxCount,
                 prefetchJsonData);
+
+            IAsyncEnumerable<StreamMessage> NoOp(StreamMessage[] messages, CancellationToken ct)
+                => messages.ToAsyncEnumerable();
+
+            return new ReadStreamResult(reader.Read, NoOp, cancellationToken);
         }
 
-        private static ReadStreamPage ReadStreamForwardsInternal(
-            IHalClient client,
-            StreamId streamId,
-            int fromVersionInclusive,
-            bool prefetchJsonData)
+        private abstract class StreamReader
         {
-            var resource = client.Current.First();
+            private IHalClient _client;
+            private readonly StreamId _streamId;
+            private readonly int _fromVersionInclusive;
+            private readonly int _pageSize;
+            private readonly bool _prefetchJsonData;
+            private readonly Func<StreamId, int, int, bool, string> _formatLink;
+            private IResource _resource;
+            private readonly ReadDirection _readDirection;
 
-            if(client.StatusCode == HttpStatusCode.NotFound)
+            protected StreamReader(
+                IHalClient client,
+                StreamId streamId,
+                int fromVersionInclusive,
+                int pageSize,
+                bool prefetchJsonData,
+                ReadDirection readDirection,
+                Func<StreamId, int, int, bool, string> formatLink)
             {
-                return new ReadStreamPage(
-                    streamId,
-                    PageReadStatus.StreamNotFound,
-                    fromVersionInclusive,
-                    -1,
-                    -1,
-                    -1,
-                    ReadDirection.Forward,
-                    true);
+                _client = client;
+                _streamId = streamId;
+                _fromVersionInclusive = fromVersionInclusive;
+                _pageSize = pageSize;
+                _prefetchJsonData = prefetchJsonData;
+                _formatLink = formatLink;
+                _readDirection = readDirection;
             }
 
-            var pageInfo = resource.Data<HalReadPage>();
-
-            var streamMessages = Convert(
-                resource.Embedded
-                    .Where(r => r.Rel == Constants.Relations.Message)
-                    .Reverse()
-                    .ToArray(),
-                client,
-                prefetchJsonData);
-
-            var readStreamPage = new ReadStreamPage(
-                streamId,
-                PageReadStatus.Success,
-                pageInfo.FromStreamVersion,
-                pageInfo.NextStreamVersion,
-                pageInfo.LastStreamVersion,
-                pageInfo.LastStreamPosition,
-                ReadDirection.Forward,
-                pageInfo.IsEnd,
-                ReadNextStreamPage,
-                streamMessages);
-
-            return readStreamPage;
-
-            async Task<ReadStreamPage> ReadNextStreamPage(int nextVersion, CancellationToken ct)
-                => resource.Links.Any(link => link.Rel == Constants.Relations.Next)
-                    ? ReadStreamForwardsInternal(
-                        await client.GetAsync(resource, Constants.Relations.Next),
-                        streamId,
-                        pageInfo.LastStreamVersion,
-                        prefetchJsonData)
-                    : new ReadStreamPage(
-                        streamId,
-                        PageReadStatus.Success,
-                        pageInfo.LastStreamVersion,
-                        nextVersion,
-                        pageInfo.LastStreamVersion,
-                        pageInfo.LastStreamPosition,
-                        ReadDirection.Forward,
-                        true,
-                        ReadNextStreamPage);
-        }
-
-        private static ReadStreamPage ReadStreamBackwardsInternal(
-            IHalClient client,
-            StreamId streamId,
-            int fromVersionInclusive,
-            bool prefetchJsonData)
-        {
-            var resource = client.Current.First();
-
-            if(client.StatusCode == HttpStatusCode.NotFound)
+            public async Task<ReadStreamPage> Read(CancellationToken cancellationToken)
             {
-                return new ReadStreamPage(
-                    streamId,
-                    PageReadStatus.StreamNotFound,
-                    fromVersionInclusive,
-                    -1,
-                    -1,
-                    -1,
-                    ReadDirection.Backward,
-                    true);
+                _client = await _client.RootAsync(
+                    _formatLink(_streamId, _fromVersionInclusive, _pageSize, _prefetchJsonData),
+                    cancellationToken);
+
+                return ReadInternal();
             }
 
-            var pageInfo = resource.Data<HalReadPage>();
+            private async Task<ReadStreamPage> ReadNext(int _, CancellationToken cancellationToken)
+            {
+                _client = await _client.GetAsync(_resource, Constants.Relations.Previous, cancellationToken);
 
-            var streamMessages = Convert(
-                resource.Embedded
-                    .Where(r => r.Rel == Constants.Relations.Message)
-                    .ToArray(),
-                client,
-                prefetchJsonData);
+                return ReadInternal();
+            }
 
-            var readStreamPage = new ReadStreamPage(
-                streamId,
-                PageReadStatus.Success,
-                pageInfo.FromStreamVersion,
-                pageInfo.NextStreamVersion,
-                pageInfo.LastStreamVersion,
-                pageInfo.LastStreamPosition,
-                ReadDirection.Backward,
-                pageInfo.IsEnd,
-                async (nextVersion, token) => ReadStreamBackwardsInternal(
-                    await client.GetAsync(resource, Constants.Relations.Previous),
-                    streamId,
+            private ReadStreamPage ReadInternal()
+            {
+                _resource = _client.Current.First();
+
+                var pageInfo = _resource.Data<HalReadPage>();
+
+                var streamMessages = Convert(
+                    _resource.Embedded
+                        .Where(r => r.Rel == Constants.Relations.Message)
+                        .ToArray(),
+                    _client,
+                    _prefetchJsonData);
+
+                return new ReadStreamPage(
+                    _streamId,
+                    _client.StatusCode < HttpStatusCode.NotFound
+                        ? PageReadStatus.Success
+                        : PageReadStatus.StreamNotFound,
+                    pageInfo.FromStreamVersion,
+                    pageInfo.NextStreamVersion,
                     pageInfo.LastStreamVersion,
-                    prefetchJsonData),
-                streamMessages);
+                    pageInfo.LastStreamPosition,
+                    _readDirection,
+                    pageInfo.IsEnd,
+                    ReadNext,
+                    streamMessages);
+            }
+        }
 
-            return readStreamPage;
+        private class StreamBackwardsReader : StreamReader
+        {
+            public StreamBackwardsReader(
+                IHalClient client,
+                StreamId streamId,
+                int fromVersionInclusive,
+                int pageSize,
+                bool prefetchJsonData)
+                : base(
+                    client,
+                    streamId,
+                    fromVersionInclusive,
+                    pageSize,
+                    prefetchJsonData,
+                    ReadDirection.Backward,
+                    LinkFormatter.ReadStreamBackwards)
+            { }
+        }
+
+        private class StreamForwardsReader : StreamReader
+        {
+            public StreamForwardsReader(
+                IHalClient client,
+                StreamId streamId,
+                int fromVersionInclusive,
+                int pageSize,
+                bool prefetchJsonData)
+                : base(
+                    client,
+                    streamId,
+                    fromVersionInclusive,
+                    pageSize,
+                    prefetchJsonData,
+                    ReadDirection.Forward,
+                    LinkFormatter.ReadStreamForwards)
+            { }
         }
     }
 }

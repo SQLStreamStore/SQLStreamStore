@@ -20,10 +20,11 @@
 
             await store.DeleteMessage(streamId, idToDelete);
 
-            var streamMessagesPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 3);
+            var streamMessagesPage = store.ReadStreamForwards(streamId, StreamVersion.Start, 3);
+            var messages = await streamMessagesPage.ToArrayAsync();
 
-            streamMessagesPage.Messages.Length.ShouldBe(2);
-            streamMessagesPage.Messages.Any(e => e.MessageId == idToDelete).ShouldBeFalse();
+            messages.Length.ShouldBe(2);
+            messages.Any(e => e.MessageId == idToDelete).ShouldBeFalse();
         }
 
         [Fact, Trait("Category", "DeleteEvent")]
@@ -36,8 +37,9 @@
 
             await store.DeleteMessage(streamId, messageIdToDelete);
 
-            var page = await store.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
-            var message = page.Messages.Single();
+            var page = store.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
+
+            var message = await page.SingleAsync();
             var messageDeleted = await message.GetJsonDataAs<MessageDeleted>();
             message.Type.ShouldBe(MessageDeletedMessageType);
             messageDeleted.StreamId.ShouldBe(streamId);
@@ -54,8 +56,9 @@
 
             await store.DeleteMessage(streamId, Guid.NewGuid());
 
-            var page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 3);
-            page.Messages.Length.ShouldBe(3);
+            var page = store.ReadStreamForwards(streamId, StreamVersion.Start, 3);
+            var messages = await page.ToArrayAsync();
+            messages.Length.ShouldBe(3);
             var subsequentHead = await store.ReadHeadPosition();
             subsequentHead.ShouldBe(initialHead);
         }
@@ -64,15 +67,15 @@
         public async Task When_delete_last_message_in_stream_and_append_then_it_should_have_subsequent_version_number()
         {
             const string streamId = "stream";
-            var messages = CreateNewStreamMessages(1, 2, 3);
-            await store.AppendToStream(streamId, ExpectedVersion.NoStream, messages);
-            await store.DeleteMessage(streamId, messages.Last().MessageId);
+            var newStreamMessages = CreateNewStreamMessages(1, 2, 3);
+            await store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamMessages);
+            await store.DeleteMessage(streamId, newStreamMessages.Last().MessageId);
 
-            messages = CreateNewStreamMessages(4);
-            await store.AppendToStream(streamId, 2, messages);
+            await store.AppendToStream(streamId, 2, CreateNewStreamMessages(4));
 
-            var page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 3);
-            page.Messages.Length.ShouldBe(3);
+            var page = store.ReadStreamForwards(streamId, StreamVersion.Start, 3);
+            var messages = await page.ToArrayAsync();
+            messages.Length.ShouldBe(3);
             page.LastStreamVersion.ShouldBe(3);
         }
 
@@ -81,12 +84,13 @@
         {
             string streamId = "stream-1";
             await AppendMessages(store, streamId, 2);
-            var page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
-            await store.DeleteMessage(streamId, page.Messages.First().MessageId);
+            var page = store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+            var messages = await page.ToArrayAsync();
+            await store.DeleteMessage(streamId, messages.First().MessageId);
 
-            page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
-
-            page.Messages.Length.ShouldBe(1);
+            page = store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+            messages = await page.ToArrayAsync();
+            messages.Length.ShouldBe(1);
             page.LastStreamVersion.ShouldBe(1);
             page.NextStreamVersion.ShouldBe(2);
         }
@@ -96,12 +100,14 @@
         {
             string streamId = "stream-1";
             await AppendMessages(store, streamId, 1);
-            var page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
-            await store.DeleteMessage(streamId, page.Messages[0].MessageId);
+            var page = store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+            var messages = await page.ToArrayAsync();
+            await store.DeleteMessage(streamId, messages[0].MessageId);
 
-            page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+            page = store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+            messages = await page.ToArrayAsync();
 
-            page.Messages.Length.ShouldBe(0);
+            messages.Length.ShouldBe(0);
             page.LastStreamVersion.ShouldBe(0);
             page.NextStreamVersion.ShouldBe(1);
         }
@@ -111,13 +117,15 @@
         {
             string streamId = "stream-1";
             await AppendMessages(store, streamId, 2);
-            var page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
-            await store.DeleteMessage(streamId, page.Messages[0].MessageId);
-            await store.DeleteMessage(streamId, page.Messages[1].MessageId);
+            var page = store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+            var messages = await page.ToArrayAsync();
+            await store.DeleteMessage(streamId, messages[0].MessageId);
+            await store.DeleteMessage(streamId, messages[1].MessageId);
 
-            page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+            page = store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+            messages = await page.ToArrayAsync();
 
-            page.Messages.Length.ShouldBe(0);
+            messages.Length.ShouldBe(0);
             page.LastStreamVersion.ShouldBe(1);
             page.NextStreamVersion.ShouldBe(2);
         }
@@ -133,5 +141,5 @@
 
             await store.DeleteMessage(streamId, newStreamMessages[0].MessageId);
         }
-   }
+    }
 }

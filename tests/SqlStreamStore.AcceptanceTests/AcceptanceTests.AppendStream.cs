@@ -1,6 +1,7 @@
 ﻿namespace SqlStreamStore
 {
     using System;
+    using System.Linq;
     using System.Threading.Tasks;
     using Shouldly;
     using SqlStreamStore.Streams;
@@ -41,7 +42,8 @@
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_stream_second_time_with_no_stream_expected_and_same_messages_then_should_then_should_have_expected_result()
+        public async Task
+            When_append_stream_second_time_with_no_stream_expected_and_same_messages_then_should_then_should_have_expected_result()
         {
             // Idempotency
             const string streamId = "stream-1";
@@ -56,7 +58,8 @@
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_stream_second_time_with_no_stream_expected_and_additional_messages_then_should_throw()
+        public async Task
+            When_append_stream_second_time_with_no_stream_expected_and_additional_messages_then_should_throw()
         {
             // Idempotency
             const string streamId = "stream-1";
@@ -71,7 +74,8 @@
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_stream_second_time_with_no_stream_expected_and_same_inital_message_then_should_be_idempotent()
+        public async Task
+            When_append_stream_second_time_with_no_stream_expected_and_same_inital_message_then_should_be_idempotent()
         {
             // Idempotency
             const string streamId = "stream-1";
@@ -85,7 +89,8 @@
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_stream_second_time_with_no_stream_expected_and_same_inital_message_then_should_have_expected_result()
+        public async Task
+            When_append_stream_second_time_with_no_stream_expected_and_same_inital_message_then_should_have_expected_result()
         {
             // Idempotency
             const string streamId = "stream-1";
@@ -100,14 +105,15 @@
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_stream_second_time_with_no_stream_expected_and_different_inital_messages_then_should_throw()
+        public async Task
+            When_append_stream_second_time_with_no_stream_expected_and_different_inital_messages_then_should_throw()
         {
             const string streamId = "stream-1";
             await store
                 .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2));
 
             var exception = await Record.ExceptionAsync(() =>
-                    store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(2)));
+                store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(2)));
 
             exception.ShouldBeOfType<WrongExpectedVersionException>(
                 ErrorMessages.AppendFailedWrongExpectedVersion(streamId, ExpectedVersion.NoStream));
@@ -121,7 +127,7 @@
                 .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
 
             var exception = await Record.ExceptionAsync(() =>
-                    store.AppendToStream(streamId, 1, CreateNewStreamMessages(4, 5, 6)));
+                store.AppendToStream(streamId, 1, CreateNewStreamMessages(4, 5, 6)));
 
             exception.ShouldBeOfType<WrongExpectedVersionException>(
                 ErrorMessages.AppendFailedWrongExpectedVersion(streamId, 1));
@@ -146,32 +152,42 @@
         {
             const string streamId = "stream-1";
             var result1 = await store.AppendToStream(
-                streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                streamId,
+                ExpectedVersion.NoStream,
+                CreateNewStreamMessages(1, 2, 3));
 
             var result2 = await store.AppendToStream(
-                streamId, result1.CurrentVersion, CreateNewStreamMessages(4)[0]);
+                streamId,
+                result1.CurrentVersion,
+                CreateNewStreamMessages(4)[0]);
 
             result2.CurrentVersion.ShouldBe(3);
             result2.CurrentPosition.ShouldBeGreaterThan(result1.CurrentPosition);
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_stream_with_correct_expected_version_second_time_with_same_messages_then_should_not_throw()
+        public async Task
+            When_append_stream_with_correct_expected_version_second_time_with_same_messages_then_should_not_throw()
         {
             const string streamId = "stream-1";
             await store.AppendToStream(
-                streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                streamId,
+                ExpectedVersion.NoStream,
+                CreateNewStreamMessages(1, 2, 3));
             await store.AppendToStream(
-                streamId, 2, CreateNewStreamMessages(4, 5, 6));
+                streamId,
+                2,
+                CreateNewStreamMessages(4, 5, 6));
 
             var exception = await Record.ExceptionAsync(() =>
-                    store.AppendToStream(streamId, 2, CreateNewStreamMessages(4, 5, 6)));
+                store.AppendToStream(streamId, 2, CreateNewStreamMessages(4, 5, 6)));
 
             exception.ShouldBeNull();
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_multiple_messages_to_stream_with_correct_expected_version_second_time_with_same_messages_then_should_have_expected_result()
+        public async Task
+            When_append_multiple_messages_to_stream_with_correct_expected_version_second_time_with_same_messages_then_should_have_expected_result()
         {
             const string streamId = "stream-1";
             await store
@@ -179,14 +195,15 @@
             var result1 = await store.AppendToStream(streamId, 2, CreateNewStreamMessages(4, 5, 6));
 
             var result2 = await
-                    store.AppendToStream(streamId, 2, CreateNewStreamMessages(4, 5, 6));
+                store.AppendToStream(streamId, 2, CreateNewStreamMessages(4, 5, 6));
 
             result2.CurrentVersion.ShouldBe(5);
             result2.CurrentPosition.ShouldBe(result1.CurrentPosition);
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_single_message_to_stream_with_correct_expected_version_second_time_with_same_messages_then_should_have_expected_result()
+        public async Task
+            When_append_single_message_to_stream_with_correct_expected_version_second_time_with_same_messages_then_should_have_expected_result()
         {
             const string streamId = "stream-1";
             await store
@@ -194,29 +211,35 @@
             var result1 = await store.AppendToStream(streamId, 2, CreateNewStreamMessages(4)[0]);
 
             var result2 = await
-                    store.AppendToStream(streamId, 2, CreateNewStreamMessages(4)[0]);
+                store.AppendToStream(streamId, 2, CreateNewStreamMessages(4)[0]);
 
             result2.CurrentVersion.ShouldBe(3);
             result2.CurrentPosition.ShouldBe(result1.CurrentPosition);
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_stream_with_correct_expected_version_second_time_with_same_initial_messages_then_should_not_throw()
+        public async Task
+            When_append_stream_with_correct_expected_version_second_time_with_same_initial_messages_then_should_not_throw()
         {
             const string streamId = "stream-1";
             await store.AppendToStream(
-                streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                streamId,
+                ExpectedVersion.NoStream,
+                CreateNewStreamMessages(1, 2, 3));
             await store.AppendToStream(
-                streamId, 2, CreateNewStreamMessages(4, 5, 6));
+                streamId,
+                2,
+                CreateNewStreamMessages(4, 5, 6));
 
             var exception = await Record.ExceptionAsync(() =>
-                    store.AppendToStream(streamId, 2, CreateNewStreamMessages(4, 5)));
+                store.AppendToStream(streamId, 2, CreateNewStreamMessages(4, 5)));
 
             exception.ShouldBeNull();
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_multiple_messages_to_stream_with_correct_expected_version_second_time_with_same_initial_messages_then_should_have_expected_result()
+        public async Task
+            When_append_multiple_messages_to_stream_with_correct_expected_version_second_time_with_same_initial_messages_then_should_have_expected_result()
         {
             const string streamId = "stream-1";
             await store
@@ -224,14 +247,15 @@
             var result1 = await store.AppendToStream(streamId, 2, CreateNewStreamMessages(4, 5, 6));
 
             var result2 = await
-                    store.AppendToStream(streamId, 2, CreateNewStreamMessages(4, 5));
+                store.AppendToStream(streamId, 2, CreateNewStreamMessages(4, 5));
 
             result2.CurrentVersion.ShouldBe(5);
             result2.CurrentPosition.ShouldBe(result1.CurrentPosition);
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_single_message_to_stream_with_correct_expected_version_second_time_with_same_initial_messages_then_should_have_expected_result()
+        public async Task
+            When_append_single_message_to_stream_with_correct_expected_version_second_time_with_same_initial_messages_then_should_have_expected_result()
         {
             const string streamId = "stream-1";
             await store
@@ -239,23 +263,28 @@
             var result1 = await store.AppendToStream(streamId, 2, CreateNewStreamMessages(4)[0]);
 
             var result2 = await
-                    store.AppendToStream(streamId, 1, CreateNewStreamMessages(3)[0]);
+                store.AppendToStream(streamId, 1, CreateNewStreamMessages(3)[0]);
 
             result2.CurrentVersion.ShouldBe(3);
             result2.CurrentPosition.ShouldBe(result1.CurrentPosition);
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_stream_with_correct_expected_version_second_time_with_additional_messages_then_should_throw()
+        public async Task
+            When_append_stream_with_correct_expected_version_second_time_with_additional_messages_then_should_throw()
         {
             const string streamId = "stream-1";
             await store.AppendToStream(
-                streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                streamId,
+                ExpectedVersion.NoStream,
+                CreateNewStreamMessages(1, 2, 3));
             await store.AppendToStream(
-                streamId, 2, CreateNewStreamMessages(4, 5, 6));
+                streamId,
+                2,
+                CreateNewStreamMessages(4, 5, 6));
 
             var exception = await Record.ExceptionAsync(() =>
-                    store.AppendToStream(streamId, 2, CreateNewStreamMessages(4, 5, 6, 7)));
+                store.AppendToStream(streamId, 2, CreateNewStreamMessages(4, 5, 6, 7)));
 
             exception.ShouldBeOfType<WrongExpectedVersionException>(
                 ErrorMessages.AppendFailedWrongExpectedVersion(streamId, 2));
@@ -270,9 +299,9 @@
 
             result.CurrentVersion.ShouldBe(2);
 
-            var page = await store
-                .ReadStreamForwards(streamId, StreamVersion.Start, 4);
-            page.Messages.Length.ShouldBe(3);
+            var page = store.ReadStreamForwards(streamId, StreamVersion.Start, 4);
+            var messages = await page.ToArrayAsync();
+            messages.Length.ShouldBe(3);
         }
 
         [Fact, Trait("Category", "AppendStream")]
@@ -285,9 +314,10 @@
             result.CurrentVersion.ShouldBe(0);
             result.CurrentPosition.ShouldBeGreaterThanOrEqualTo(fixture.MinPosition);
 
-            var page = await store
-                .ReadStreamForwards(streamId, StreamVersion.Start, 2);
-            page.Messages.Length.ShouldBe(1);
+            var page = store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+            var messages = await page.ToArrayAsync();
+
+            messages.Length.ShouldBe(1);
         }
 
         [Fact, Trait("Category", "AppendStream")]
@@ -296,9 +326,10 @@
             const string streamId = "stream-1";
             await store.AppendToStream(streamId, ExpectedVersion.NoStream, new NewStreamMessage[0]);
 
-            var page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+            var page = store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+            var messages = await page.ToArrayAsync();
 
-            page.Messages.Length.ShouldBe(0);
+            messages.Length.ShouldBe(0);
         }
 
         [Fact, Trait("Category", "AppendStream")]
@@ -307,13 +338,15 @@
             const string streamId = "stream-1";
             await store.AppendToStream(streamId, ExpectedVersion.NoStream, new NewStreamMessage[0]);
 
-            var result = await store.AppendToStream(streamId, ExpectedVersion.EmptyStream, CreateNewStreamMessages(1, 2, 3));
+            var result =
+                await store.AppendToStream(streamId, ExpectedVersion.EmptyStream, CreateNewStreamMessages(1, 2, 3));
 
             result.CurrentVersion.ShouldBe(2);
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_stream_second_time_with_expected_version_any_and_all_messages_committed_then_should_be_idempotent_first_message()
+        public async Task
+            When_append_stream_second_time_with_expected_version_any_and_all_messages_committed_then_should_be_idempotent_first_message()
         {
             const string streamId = "stream-1";
 
@@ -323,13 +356,16 @@
             await store
                 .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1, 2, 3));
 
-            var page = await store
-                .ReadStreamForwards(streamId, StreamVersion.Start, 10);
-            page.Messages.Length.ShouldBe(3);
+            var page = store.ReadStreamForwards(streamId, StreamVersion.Start, 10);
+
+            var messages = await page.ToArrayAsync();
+
+            messages.Length.ShouldBe(3);
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_stream_with_expected_version_any_and_all_messages_committed_then_should_be_idempotent_subsequent_message()
+        public async Task
+            When_append_stream_with_expected_version_any_and_all_messages_committed_then_should_be_idempotent_subsequent_message()
         {
             const string streamId = "stream-1";
 
@@ -345,13 +381,17 @@
             await store
                 .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(2));
 
-            var page = await store
+            var page = store
                 .ReadStreamForwards(streamId, StreamVersion.Start, 10);
-            page.Messages.Length.ShouldBe(2);
+
+            var messages = await page.ToArrayAsync();
+
+            messages.Length.ShouldBe(2);
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_stream_second_time_with_expected_version_any_single_message_and_all_messages_committed_then_should_be_idempotent()
+        public async Task
+            When_append_stream_second_time_with_expected_version_any_single_message_and_all_messages_committed_then_should_be_idempotent()
         {
             const string streamId = "stream-1";
 
@@ -361,14 +401,17 @@
             await store
                 .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1));
 
-            var page = await store
-                .ReadStreamForwards(streamId, StreamVersion.Start, 10);
-            page.Messages.Length.ShouldBe(1);
+            var page = store.ReadStreamForwards(streamId, StreamVersion.Start, 10);
+
+            var messages = await page.ToArrayAsync();
+
+            messages.Length.ShouldBe(1);
         }
 
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_multiple_messages_to_stream_second_time_with_expected_version_any_and_all_messages_committed_then_should_have_expected_result()
+        public async Task
+            When_append_multiple_messages_to_stream_second_time_with_expected_version_any_and_all_messages_committed_then_should_have_expected_result()
         {
             const string streamId = "stream-1";
 
@@ -384,13 +427,16 @@
             result2.CurrentVersion.ShouldBe(2);
             result2.CurrentPosition.ShouldBe(result1.CurrentPosition);
 
-            var page = await store
-                .ReadStreamForwards(streamId, StreamVersion.Start, 10);
-            page.Messages.Length.ShouldBe(3);
+            var page = store.ReadStreamForwards(streamId, StreamVersion.Start, 10);
+
+            var messages = await page.ToArrayAsync();
+
+            messages.Length.ShouldBe(3);
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_single_message_to_stream_second_time_with_expected_version_any_and_all_messages_committed_then_should_have_expected_result()
+        public async Task
+            When_append_single_message_to_stream_second_time_with_expected_version_any_and_all_messages_committed_then_should_have_expected_result()
         {
             const string streamId = "stream-1";
 
@@ -406,13 +452,16 @@
             result2.CurrentVersion.ShouldBe(0);
             result2.CurrentPosition.ShouldBe(result1.CurrentPosition);
 
-            var page = await store
-                .ReadStreamForwards(streamId, StreamVersion.Start, 3);
-            page.Messages.Length.ShouldBe(1);
+            var page = store.ReadStreamForwards(streamId, StreamVersion.Start, 3);
+
+            var messages = await page.ToArrayAsync();
+
+            messages.Length.ShouldBe(1);
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_stream_with_expected_version_any_and_some_of_the_messages_previously_committed_then_should_be_idempotent()
+        public async Task
+            When_append_stream_with_expected_version_any_and_some_of_the_messages_previously_committed_then_should_be_idempotent()
         {
             const string streamId = "stream-1";
 
@@ -422,13 +471,16 @@
             await store
                 .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1, 2));
 
-            var page = await store
-                .ReadStreamForwards(streamId, StreamVersion.Start, 10);
-            page.Messages.Length.ShouldBe(3);
+            var page = store.ReadStreamForwards(streamId, StreamVersion.Start, 10);
+
+            var messages = await page.ToArrayAsync();
+
+            messages.Length.ShouldBe(3);
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_stream_with_expected_version_any_and_some_of_the_messages_previously_committed_but_out_of_order_then_should_throw()
+        public async Task
+            When_append_stream_with_expected_version_any_and_some_of_the_messages_previously_committed_but_out_of_order_then_should_throw()
         {
             const string streamId = "stream-1";
 
@@ -442,7 +494,8 @@
 
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_multiple_messages_to_stream_with_expected_version_any_and_some_of_the_messages_previously_committed_then_should_have_expected_result()
+        public async Task
+            When_append_multiple_messages_to_stream_with_expected_version_any_and_some_of_the_messages_previously_committed_then_should_have_expected_result()
         {
             const string streamId = "stream-1";
 
@@ -457,13 +510,16 @@
             result2.CurrentVersion.ShouldBe(2);
             result2.CurrentPosition.ShouldBe(result1.CurrentPosition);
 
-            var page = await store
-                .ReadStreamForwards(streamId, StreamVersion.Start, 10);
-            page.Messages.Length.ShouldBe(3);
+            var page = store.ReadStreamForwards(streamId, StreamVersion.Start, 10);
+
+            var messages = await page.ToArrayAsync();
+
+            messages.Length.ShouldBe(3);
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_single_message_to_stream_with_expected_version_any_and_some_of_the_messages_previously_committed_then_should_have_expected_result()
+        public async Task
+            When_append_single_message_to_stream_with_expected_version_any_and_some_of_the_messages_previously_committed_then_should_have_expected_result()
         {
             const string streamId = "stream-1";
 
@@ -478,9 +534,11 @@
             result2.CurrentVersion.ShouldBe(2);
             result2.CurrentPosition.ShouldBe(result1.CurrentPosition);
 
-            var page = await store
-                .ReadStreamForwards(streamId, StreamVersion.Start, 4);
-            page.Messages.Length.ShouldBe(3);
+            var page = store.ReadStreamForwards(streamId, StreamVersion.Start, 4);
+
+            var messages = await page.ToArrayAsync();
+
+            messages.Length.ShouldBe(3);
         }
 
         [Fact, Trait("Category", "AppendStream")]
@@ -494,13 +552,16 @@
             await store
                 .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(4, 5, 6));
 
-            var page = await store
-                .ReadStreamForwards(streamId, StreamVersion.Start, 10);
-            page.Messages.Length.ShouldBe(6);
+            var page = store.ReadStreamForwards(streamId, StreamVersion.Start, 10);
+
+            var messages = await page.ToArrayAsync();
+
+            messages.Length.ShouldBe(6);
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task Can_append_multiple_messages_to_stream_with_expected_version_any_and_none_of_the_messages_previously_committed_should_have_expected_results()
+        public async Task
+            Can_append_multiple_messages_to_stream_with_expected_version_any_and_none_of_the_messages_previously_committed_should_have_expected_results()
         {
             const string streamId = "stream-1";
 
@@ -514,14 +575,17 @@
             result2.CurrentVersion.ShouldBe(5);
             result2.CurrentPosition.ShouldBeGreaterThanOrEqualTo(result1.CurrentPosition + 3L);
 
-            var page = await store
-                .ReadStreamForwards(streamId, StreamVersion.Start, 10);
-            page.Messages.Length.ShouldBe(6);
+            var page = store.ReadStreamForwards(streamId, StreamVersion.Start, 10);
+
+            var messages = await page.ToArrayAsync();
+
+            messages.Length.ShouldBe(6);
         }
 
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task Can_append_single_message_to_stream_with_expected_version_any_and_none_of_the_messages_previously_committed_should_have_expected_results()
+        public async Task
+            Can_append_single_message_to_stream_with_expected_version_any_and_none_of_the_messages_previously_committed_should_have_expected_results()
         {
             const string streamId = "stream-1";
 
@@ -535,13 +599,16 @@
             result2.CurrentVersion.ShouldBe(3);
             result2.CurrentPosition.ShouldBeGreaterThanOrEqualTo(result1.CurrentPosition + 1L);
 
-            var page = await store
-                .ReadStreamForwards(streamId, StreamVersion.Start, 5);
-            page.Messages.Length.ShouldBe(4);
+            var page = store.ReadStreamForwards(streamId, StreamVersion.Start, 5);
+
+            var messages = await page.ToArrayAsync();
+
+            messages.Length.ShouldBe(4);
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task Can_append_message_to_stream_with_expected_version_any_and_none_of_the_messages_previously_committed_should_have_expected_results()
+        public async Task
+            Can_append_message_to_stream_with_expected_version_any_and_none_of_the_messages_previously_committed_should_have_expected_results()
         {
             const string streamId = "stream-1";
 
@@ -555,20 +622,23 @@
             result2.CurrentVersion.ShouldBe(3);
             result2.CurrentPosition.ShouldBeGreaterThanOrEqualTo(result1.CurrentPosition + 1L);
 
-            var page = await store
-                .ReadStreamForwards(streamId, StreamVersion.Start, 5);
-            page.Messages.Length.ShouldBe(4);
+            var page = store.ReadStreamForwards(streamId, StreamVersion.Start, 5);
+
+            var messages = await page.ToArrayAsync();
+
+            messages.Length.ShouldBe(4);
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_stream_with_expected_version_any_and_some_of_the_messages_previously_committed_and_with_additional_messages_then_should_throw()
+        public async Task
+            When_append_stream_with_expected_version_any_and_some_of_the_messages_previously_committed_and_with_additional_messages_then_should_throw()
         {
             const string streamId = "stream-1";
             await store
                 .AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1, 2, 3));
 
             var exception = await Record.ExceptionAsync(() =>
-                    store.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(2, 3, 4)));
+                store.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(2, 3, 4)));
 
             exception.ShouldBeOfType<WrongExpectedVersionException>(
                 ErrorMessages.AppendFailedWrongExpectedVersion(streamId, ExpectedVersion.Any));
@@ -588,7 +658,8 @@
         }
 
         [Fact, Trait("Category", "AppendStream")]
-        public async Task When_append_stream_with_expected_version_no_stream_and_no_messages_then_should_have_expected_result()
+        public async Task
+            When_append_stream_with_expected_version_no_stream_and_no_messages_then_should_have_expected_result()
         {
             const string streamId = "stream-1";
             var result = await store
@@ -606,7 +677,7 @@
                 .AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
 
             var exception = await Record.ExceptionAsync(() =>
-                    store.AppendToStream(streamId, 2, CreateNewStreamMessages(1)));
+                store.AppendToStream(streamId, 2, CreateNewStreamMessages(1)));
 
             exception.ShouldBeOfType<WrongExpectedVersionException>(
                 ErrorMessages.AppendFailedWrongExpectedVersion(streamId, 2));
@@ -615,12 +686,18 @@
         [Theory, Trait("Category", "AppendStream")]
         [InlineData(ExpectedVersion.NoStream)]
         [InlineData(ExpectedVersion.Any)]
-        public async Task When_append_to_non_existent_stream_with_empty_collection_of_messages_then_should_create_empty_stream(int expectedVersion)
+        public async Task
+            When_append_to_non_existent_stream_with_empty_collection_of_messages_then_should_create_empty_stream(
+                int expectedVersion)
         {
             const string streamId = "stream-1";
             await store.AppendToStream(streamId, expectedVersion, new NewStreamMessage[0]);
 
-            var page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 1);
+            var page = store.ReadStreamForwards(streamId, StreamVersion.Start, 1);
+
+            await using var enumerator = page.GetAsyncEnumerator();
+
+            await enumerator.MoveNextAsync();
 
             page.Status.ShouldBe(PageReadStatus.Success);
             page.FromStreamVersion.ShouldBe(0);
@@ -664,22 +741,27 @@
             exception.ShouldBeOfType<WrongExpectedVersionException>(
                 ErrorMessages.AppendFailedWrongExpectedVersion(streamId, 10));
         }
-        
+
         [Theory, Trait("Category", "AppendStream")]
         [InlineData("stream/id")]
         [InlineData("stream%id")]
-        public async Task When_append_to_stream_with_url_encodable_characters_and_expected_version_no_stream_then_should_have_expected_result(string streamId)
+        public async Task
+            When_append_to_stream_with_url_encodable_characters_and_expected_version_no_stream_then_should_have_expected_result(
+                string streamId)
         {
-            var result = await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+            var result =
+                await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
 
             result.CurrentVersion.ShouldBe(2);
             result.CurrentPosition.ShouldBeGreaterThanOrEqualTo(fixture.MinPosition + 2L);
         }
-        
+
         [Theory, Trait("Category", "AppendStream")]
         [InlineData("stream/id")]
         [InlineData("stream%id")]
-        public async Task When_append_to_stream_with_url_encodable_characters_and_expected_version_any_then_should_have_expected_result(string streamId)
+        public async Task
+            When_append_to_stream_with_url_encodable_characters_and_expected_version_any_then_should_have_expected_result(
+                string streamId)
         {
             var result = await store.AppendToStream(streamId, ExpectedVersion.Any, CreateNewStreamMessages(1, 2, 3));
 
@@ -690,19 +772,24 @@
         [Theory, Trait("Category", "AppendStream")]
         [InlineData("stream/id")]
         [InlineData("stream%id")]
-        public async Task When_append_to_stream_with_url_encodable_characters_and_expected_version_empty_stream_then_should_have_expected_result(string streamId)
+        public async Task
+            When_append_to_stream_with_url_encodable_characters_and_expected_version_empty_stream_then_should_have_expected_result(
+                string streamId)
         {
             await store.AppendToStream(streamId, ExpectedVersion.NoStream, Array.Empty<NewStreamMessage>());
-            var result = await store.AppendToStream(streamId, ExpectedVersion.EmptyStream, CreateNewStreamMessages(1, 2, 3));
+            var result =
+                await store.AppendToStream(streamId, ExpectedVersion.EmptyStream, CreateNewStreamMessages(1, 2, 3));
 
             result.CurrentVersion.ShouldBe(2);
             result.CurrentPosition.ShouldBeGreaterThanOrEqualTo(fixture.MinPosition + 2L);
         }
-        
+
         [Theory, Trait("Category", "AppendStream")]
         [InlineData("stream/id")]
         [InlineData("stream%id")]
-        public async Task When_append_to_stream_with_url_encodable_characters_and_expected_version_then_should_have_expected_result(string streamId)
+        public async Task
+            When_append_to_stream_with_url_encodable_characters_and_expected_version_then_should_have_expected_result(
+                string streamId)
         {
             await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1));
             var result = await store.AppendToStream(streamId, 0, CreateNewStreamMessages(2, 3));

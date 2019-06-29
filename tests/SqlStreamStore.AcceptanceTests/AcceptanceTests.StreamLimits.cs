@@ -21,9 +21,11 @@ namespace SqlStreamStore
             await store
                 .AppendToStream(streamId, expectedVersion, CreateNewStreamMessages(1, 2, 3, 4));
 
-            var streamMessagesPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 4);
+            var streamMessagesPage = store.ReadStreamForwards(streamId, StreamVersion.Start, 4);
 
-            streamMessagesPage.Messages.Length.ShouldBe(maxCount);
+            var messages = await streamMessagesPage.ToArrayAsync();
+
+            messages.Length.ShouldBe(maxCount);
         }
 
         [Theory, Trait("Category", "StreamMetadata"),
@@ -40,9 +42,11 @@ namespace SqlStreamStore
             await store
                 .AppendToStream(streamId, expectedVersion, CreateNewStreamMessages(1, 2, 3, 4));
 
-            var streamMessagesPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 4);
+            var streamMessagesPage = store.ReadStreamForwards(streamId, StreamVersion.Start, 4);
 
-            streamMessagesPage.Messages.Length.ShouldBe(maxCount);
+            var messages = await streamMessagesPage.ToArrayAsync();
+
+            messages.Length.ShouldBe(maxCount);
         }
 
         [Theory, InlineData(1, 1), InlineData(2, 2), InlineData(6, 4), Trait("Category", "StreamMetadata")]
@@ -57,9 +61,11 @@ namespace SqlStreamStore
             await store
                 .SetStreamMetadata(streamId, maxCount: maxCount, metadataJson: "meta");
 
-            var streamMessagesPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 4);
+            var streamMessagesPage = store.ReadStreamForwards(streamId, StreamVersion.Start, 4);
 
-            streamMessagesPage.Messages.Length.ShouldBe(expectedLength);
+            var messages = await streamMessagesPage.ToArrayAsync();
+
+            messages.Length.ShouldBe(expectedLength);
         }
 
         [Fact, Trait("Category", "StreamMetadata")]
@@ -76,9 +82,11 @@ namespace SqlStreamStore
             await store
                 .SetStreamMetadata(streamId, maxAge: 30, metadataJson: "meta");
 
-            var streamMessagesPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 8);
+            var streamMessagesPage = store.ReadStreamForwards(streamId, StreamVersion.Start, 8);
 
-            streamMessagesPage.Messages.Length.ShouldBe(4);
+            var messages = await streamMessagesPage.ToArrayAsync();
+
+            messages.Length.ShouldBe(4);
         }
 
         [Fact, Trait("Category", "StreamMetadata")]
@@ -95,9 +103,11 @@ namespace SqlStreamStore
             await store
                 .SetStreamMetadata(streamId, maxAge: 30, metadataJson: "meta");
 
-            var streamMessagesPage = await store.ReadStreamBackwards(streamId, StreamVersion.End, 8);
+            var streamMessagesPage = store.ReadStreamBackwards(streamId, StreamVersion.End, 8);
 
-            streamMessagesPage.Messages.Length.ShouldBe(4);
+            var messages = await streamMessagesPage.ToArrayAsync();
+
+            messages.Length.ShouldBe(4);
         }
 
         [Fact, Trait("Category", "StreamMetadata")]

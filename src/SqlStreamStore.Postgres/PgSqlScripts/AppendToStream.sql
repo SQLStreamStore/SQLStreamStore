@@ -44,7 +44,7 @@ BEGIN
 
     IF _success = 0 AND
        cardinality(_new_stream_messages) > 0 AND
-       (SELECT __schema__.streams.version FROM __schema__.streams WHERE _stream_id_internal = _stream_id_internal) > 0
+       (SELECT __schema__.streams.version FROM __schema__.streams WHERE __schema__.streams.id_internal = _stream_id_internal) > 0
     THEN
 
       RAISE EXCEPTION 'WrongExpectedVersion';

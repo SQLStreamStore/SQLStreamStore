@@ -93,16 +93,22 @@ namespace SqlStreamStore.MySql
                                 command.ExecuteNonQuery();
                             }
                         }
-                        catch(MySqlException ex) when(ex.Number == 1094) // unknown thread id. means there is nothing to do
-                        {
-                        }
+                        catch(MySqlException ex) when(ex.Number == 1094
+                        ) // unknown thread id. means there is nothing to do
+                        { }
                     }
                 }
+            }
+            catch(MySqlException ex)
+            {
+                TestOutputHelper.WriteLine(
+                    $@"Attempted to execute ""{$"DROP DATABASE {DatabaseName}"}"" but failed. Number: {ex.Number}; SqlState: {ex.SqlState} {ex}");
+                throw;
             }
             catch(Exception ex)
             {
                 TestOutputHelper.WriteLine(
-                    $@"Attempted to execute ""{$"DROP DATABASE {DatabaseName}"}"" but failed: {ex}");
+                    $@"Attempted to execute ""{$"DROP DATABASE {DatabaseName}"}"" but failed. {ex}");
                 throw;
             }
         }

@@ -86,11 +86,17 @@ namespace SqlStreamStore.MySql
 
                     foreach(var processId in processIds)
                     {
-                        using(var command = new MySqlCommand($"KILL {processId}", connection))
+                        try
                         {
-                            command.ExecuteNonQuery();
+                            using(var command = new MySqlCommand($"KILL {processId}", connection))
+                            {
+                                command.ExecuteNonQuery();
+                            }
                         }
-                    }                        
+                        catch(MySqlException ex) when(ex.Number == 1094) // unknown thread id. means there is nothing to do
+                        {
+                        }
+                    }
                 }
             }
             catch(Exception ex)

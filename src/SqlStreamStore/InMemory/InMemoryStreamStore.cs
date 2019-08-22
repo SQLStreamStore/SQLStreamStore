@@ -247,8 +247,7 @@ namespace SqlStreamStore
             }
         }
 
-        protected override
-            Task DeleteStreamInternal(
+        protected override Task DeleteStreamInternal(
             string streamId,
             int expectedVersion,
             CancellationToken cancellationToken)
@@ -727,18 +726,18 @@ namespace SqlStreamStore
             Ensure.That(listNextStreamsPage).IsNotNull();
             int.TryParse(continuationToken, out var index);
 
-            Func<string, bool> filter = default;
+            Func<string, bool> filter;
 
             switch(pattern)
             {
                 case Pattern.Any _:
-                    filter = s => true;
+                    filter = s => s != default;
                     break;
                 case Pattern.StartingWith p:
-                    filter = s => s?.StartsWith(p.Value) ?? false;
+                    filter = s => s != default && s.StartsWith(p.Value);
                     break;
                 case Pattern.EndingWith p:
-                    filter = s => s?.EndsWith(p.Value) ?? false;
+                    filter = s => s != default && s.EndsWith(p.Value);
                     break;
                 default:
                     throw Pattern.Unrecognized(nameof(pattern));

@@ -14,7 +14,7 @@
     <EmbeddedResource Include="MySqlScripts\*.sql" Exclude="bin\**;obj\**;packages\**;@(EmbeddedResource)" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="MySqlConnector" Version="0.51.0" />
+    <PackageReference Include="MySqlConnector" Version="0.59.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />

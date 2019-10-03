@@ -1,5 +1,6 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
+    <Authors>Yves Reynhout</Authors>
     <Description>A tool to generate the schema creation script of the various SQL based implementations.</Description>
     <AssemblyTitle>SQL Stream Store - Schema Creation Script Tool</AssemblyTitle>
     <OutputType>Exe</OutputType>

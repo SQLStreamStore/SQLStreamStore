@@ -17,6 +17,8 @@ COPY ./NuGet.Config ./
 
 RUN dotnet restore
 
+COPY ./assets ./assets/
+
 COPY ./src ./src/
 
 COPY ./tests ./tests/

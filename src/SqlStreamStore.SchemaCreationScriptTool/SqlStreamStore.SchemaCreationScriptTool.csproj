@@ -1,0 +1,30 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <Description>A tool to generate the schema creation script of the various SQL based implementations.</Description>
+    <AssemblyTitle>SQL Stream Store - Schema Creation Script Tool</AssemblyTitle>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AssemblyName>SqlStreamStore.SchemaCreationScriptTool</AssemblyName>
+    <PackageId>SqlStreamStore.SchemaCreationScriptTool</PackageId>
+    <PackAsTool>true</PackAsTool>
+    <PackageIcon>sqlstreamstore-logo.png</PackageIcon>
+    <ToolCommandName>sqlstreamstore-schema-creation-script</ToolCommandName>
+    <RootNamespace>SqlStreamStore.SchemaCreationScriptTool</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="..\..\assets\sqlstreamstore-logo.png" Pack="true" PackagePath="/" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SqlStreamStore.MsSql\SqlStreamStore.MsSql.csproj" />
+    <ProjectReference Include="..\SqlStreamStore.MySql\SqlStreamStore.MySql.csproj" />
+    <ProjectReference Include="..\SqlStreamStore.Postgres\SqlStreamStore.Postgres.csproj" />
+    <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Serilog" Version="2.8.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="3.1.1" />
+    <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="2.3.4" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.6.1" />
+  </ItemGroup>
+</Project>

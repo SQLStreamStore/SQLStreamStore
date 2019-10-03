@@ -35,6 +35,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.MySql", "src
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.MySql.Tests", "tests\SqlStreamStore.MySql.Tests\SqlStreamStore.MySql.Tests.csproj", "{69B2EE47-1F3C-4843-A471-C02F961CFEAC}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.SchemaCreationScriptTool", "src\SqlStreamStore.SchemaCreationScriptTool\SqlStreamStore.SchemaCreationScriptTool.csproj", "{6FF1749C-207F-4027-8B80-41AF1A3DECD8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -105,11 +107,17 @@ Global
 		{69B2EE47-1F3C-4843-A471-C02F961CFEAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{69B2EE47-1F3C-4843-A471-C02F961CFEAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{69B2EE47-1F3C-4843-A471-C02F961CFEAC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6FF1749C-207F-4027-8B80-41AF1A3DECD8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6FF1749C-207F-4027-8B80-41AF1A3DECD8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6FF1749C-207F-4027-8B80-41AF1A3DECD8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6FF1749C-207F-4027-8B80-41AF1A3DECD8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {0BED4931-978C-4A9F-9C46-28FEF55B30C2}
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
 	EndGlobalSection
 EndGlobal

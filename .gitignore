@@ -253,4 +253,6 @@ paket-files/
 #DotNetCore
 .dotnet
 /src/LoadTests/LoadTests.txt
+
+# VsCode
 .ionide

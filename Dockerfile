@@ -15,6 +15,8 @@ RUN for file in $(ls tests/*.csproj); do mkdir -p ./${file%.*}/ && mv $file ./${
 
 RUN dotnet restore
 
+COPY ./assets ./assets/
+
 COPY ./src ./src/
 
 COPY ./tests ./tests/

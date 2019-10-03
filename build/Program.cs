@@ -116,7 +116,8 @@ namespace build
                     "SqlStreamStore.MySql",
                     "SqlStreamStore.Postgres",
                     "SqlStreamStore.HAL",
-                    "SqlStreamStore.Http"),
+                    "SqlStreamStore.Http",
+                    "SqlStreamStore.SchemaCreationScriptTool"),
                 project => Run("dotnet", $"pack src/{project}/{project}.csproj -c Release -o {ArtifactsDir} --no-build"));
 
             Target(Publish, 

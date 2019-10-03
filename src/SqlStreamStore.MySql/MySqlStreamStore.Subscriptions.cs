@@ -13,7 +13,7 @@ namespace SqlStreamStore
             SubscriptionDropped subscriptionDropped,
             HasCaughtUp hasCaughtUp,
             bool prefetchJsonData,
-            string name) => new MySqlStreamSubscription(
+            string name) => new StreamSubscription(
             streamId,
             startVersion,
             this,
@@ -31,7 +31,7 @@ namespace SqlStreamStore
             HasCaughtUp hasCaughtUp,
             bool prefetchJsonData,
             string name)
-            => new MySqlAllStreamSubscription(
+            => new AllStreamSubscription(
                 fromPosition,
                 this,
                 GetStoreObservable,

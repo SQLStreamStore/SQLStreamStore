@@ -10,6 +10,7 @@ A stream store library for .NET that specifically targets SQL based implementati
 | [MySQL](https://www.nuget.org/packages/SqlStreamStore.MySql) / AWS Aurora | [![NuGet](https://img.shields.io/nuget/vpre/SqlStreamStore.MySql.svg?logo=nuget)](https://www.nuget.org/packages/SqlStreamStore.MySql) |
 | Sqlite | [_up for grabs_](https://github.com/SQLStreamStore/SqlStreamStore/issues/28) |
 | HTTP Wrapper API | On CI Feed |
+| [Schema Creation Script Tool](https://www.fuget.org/packages/SqlStreamStore.SchemaCreationScriptTool) | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.SchemaCreationScriptTool.svg?logo=nuget)](https://www.nuget.org/packages/SqlStreamStore.SchemaCreationScriptTool) |
 
 CI Packages available [on Feedz](https://f.feedz.io/logicality/streamstore-ci/nuget/index.json).
 

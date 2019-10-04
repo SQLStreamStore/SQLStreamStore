@@ -1,5 +1,6 @@
 ﻿namespace SqlStreamStore.SchemaCreationScriptTool
 {
+    using System;
     using System.ComponentModel.DataAnnotations;
     using System.Data.SqlClient;
     using System.IO;
@@ -22,6 +23,11 @@
         
         [Option("-s|--schema <SCHEMA>", "The optional database schema name (only applies to mssql and postgres)", CommandOptionType.SingleValue)]
         public string Schema { get; set; }
+
+        [Option("-cs|--create-schema",
+            "Indicates if the schema should be created as part of generation (only applies to mssql and postgres - defaults to false)",
+            CommandOptionType.NoValue)]
+        public bool CreateSchema { get; set; } = false;
 
         [Required]
         [Option("-o|--output <PATH>", "The file path to write the schema creation script to", CommandOptionType.SingleValue)]
@@ -54,7 +60,26 @@
                     {
                         mssqlV2Settings.Schema = Schema;
                     }
-                    File.WriteAllText(Output, new MsSqlStreamStore(mssqlV2Settings).GetSchemaCreationScript());
+
+                    if(CreateSchema)
+                    {
+                        var script = string.Join(
+                            Environment.NewLine,
+                            $@"IF NOT EXISTS (
+SELECT  schema_name
+FROM    information_schema.schemata
+WHERE   schema_name = '{Schema}' ) 
+
+BEGIN
+EXEC sp_executesql N'CREATE SCHEMA {Schema}'
+END",
+                            new MsSqlStreamStore(mssqlV2Settings).GetSchemaCreationScript());
+                        File.WriteAllText(Output, script);
+                    }
+                    else
+                    {
+                        File.WriteAllText(Output, new MsSqlStreamStore(mssqlV2Settings).GetSchemaCreationScript());    
+                    }
 #pragma warning restore 618
                     break;
                 case "mssqlv3": 
@@ -66,7 +91,26 @@
                     {
                         mssqlV3Settings.Schema = Schema;
                     }
-                    File.WriteAllText(Output, new MsSqlStreamStoreV3(mssqlV3Settings).GetSchemaCreationScript());
+                    if(CreateSchema)
+                    {
+                        var script = string.Join(
+                            Environment.NewLine,
+                            $@"IF NOT EXISTS (
+SELECT  schema_name
+FROM    information_schema.schemata
+WHERE   schema_name = '{Schema}' ) 
+
+BEGIN
+EXEC sp_executesql N'CREATE SCHEMA {Schema}'
+END",
+                            new MsSqlStreamStoreV3(mssqlV3Settings).GetSchemaCreationScript());
+                        File.WriteAllText(Output, script);
+                    }
+                    else
+                    {
+                        File.WriteAllText(Output, new MsSqlStreamStoreV3(mssqlV3Settings).GetSchemaCreationScript());
+                    }
+                    
                     break;
                 case "mysql": 
                     var mysqlSettings = new MySqlStreamStoreSettings(new MySqlConnectionStringBuilder
@@ -88,7 +132,20 @@
                     {
                         postgresSettings.Schema = Schema;
                     }
-                    File.WriteAllText(Output, new PostgresStreamStore(postgresSettings).GetSchemaCreationScript());
+
+                    if(CreateSchema)
+                    {
+                        var script = string.Join(
+                            Environment.NewLine,
+                            $"CREATE SCHEMA IF NOT EXISTS {Schema};",
+                            new PostgresStreamStore(postgresSettings).GetSchemaCreationScript()
+                        );
+                        File.WriteAllText(Output, script);
+                    }
+                    else
+                    {
+                        File.WriteAllText(Output, new PostgresStreamStore(postgresSettings).GetSchemaCreationScript());                        
+                    }
                     break;
                 default:
                     Log.Error("The SQL dialect was not recognized: {SQLDialect}", SQLDialect);

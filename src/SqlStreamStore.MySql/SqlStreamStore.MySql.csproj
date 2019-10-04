@@ -15,6 +15,7 @@
   <ItemGroup>
     <PackageReference Include="MySqlConnector" Version="0.67.0" />
     <PackageReference Include="MySqlConnector" Version="0.59.1" />
+    <PackageReference Include="MySqlConnector" Version="0.51.0" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />

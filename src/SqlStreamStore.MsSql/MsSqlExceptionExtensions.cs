@@ -1,6 +1,6 @@
 namespace SqlStreamStore
 {
-    using System.Data.SqlClient;
+    using Microsoft.Data.SqlClient;
 
     internal static class MsSqlExceptionExtensions
     {

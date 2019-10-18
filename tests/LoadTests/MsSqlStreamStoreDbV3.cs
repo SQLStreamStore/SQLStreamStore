@@ -1,8 +1,8 @@
 ﻿namespace LoadTests
 {
     using System;
-    using System.Data.SqlClient;
     using System.Threading.Tasks;
+    using Microsoft.Data.SqlClient;
     using SqlStreamStore;
 
     public class MsSqlStreamStoreDbV3 : IDisposable

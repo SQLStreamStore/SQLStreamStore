@@ -1,9 +1,9 @@
 ﻿namespace LoadTests
 {
     using System;
-    using System.Data.SqlClient;
     using System.Threading.Tasks;
     using MartinCostello.SqlLocalDb;
+    using Microsoft.Data.SqlClient;
     using SqlStreamStore;
 
     public class SqlLocalDb : IDisposable

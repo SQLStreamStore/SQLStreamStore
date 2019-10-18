@@ -2,12 +2,12 @@
 {
     using System;
     using System.Data;
-    using System.Data.SqlClient;
     using System.Linq;
     using System.Runtime.ExceptionServices;
     using System.Threading;
     using System.Threading.Tasks;
-    using Microsoft.SqlServer.Server;
+    using Microsoft.Data.SqlClient;
+    using Microsoft.Data.SqlClient.Server;
     using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Streams;
     using SqlStreamStore.Infrastructure;

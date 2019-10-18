@@ -2,11 +2,11 @@
 {
     using System;
     using System.Collections.Generic;
-    using System.Data.SqlClient;
     using System.Diagnostics;
     using System.Threading;
     using System.Threading.Tasks;
     using EasyConsole;
+    using Microsoft.Data.SqlClient;
     using SqlStreamStore;
     using SqlStreamStore.Streams;
 

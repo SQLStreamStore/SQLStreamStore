@@ -31,6 +31,12 @@ namespace SqlStreamStore
         private static readonly ReadNextStreamPage s_readNextNotFound =
             (_, ct) => throw new InvalidOperationException("Cannot read next page of non-exisitent stream");
 
+
+        /// <summary>
+        ///     Initializes a new instance of <see cref="InMemoryStreamStore"/>
+        /// </summary>
+        /// <param name="getUtcNow">Optional. A delegate to ge the current UTC now. Used to define generate timestamps.</param>
+        /// <param name="logName">Optional. The name of the logger generated log messages will use.</param>
         public InMemoryStreamStore(GetUtcNow getUtcNow = null, string logName = null)
             : base(TimeSpan.FromMinutes(1), 10000, getUtcNow, logName ?? nameof(InMemoryStreamStore))
         {
@@ -241,8 +247,7 @@ namespace SqlStreamStore
             }
         }
 
-        protected override
-            Task DeleteStreamInternal(
+        protected override Task DeleteStreamInternal(
             string streamId,
             int expectedVersion,
             CancellationToken cancellationToken)
@@ -721,18 +726,18 @@ namespace SqlStreamStore
             Ensure.That(listNextStreamsPage).IsNotNull();
             int.TryParse(continuationToken, out var index);
 
-            Func<string, bool> filter = default;
+            Func<string, bool> filter;
 
             switch(pattern)
             {
                 case Pattern.Any _:
-                    filter = s => true;
+                    filter = s => s != default;
                     break;
                 case Pattern.StartingWith p:
-                    filter = s => s?.StartsWith(p.Value) ?? false;
+                    filter = s => s != default && s.StartsWith(p.Value);
                     break;
                 case Pattern.EndingWith p:
-                    filter = s => s?.EndsWith(p.Value) ?? false;
+                    filter = s => s != default && s.EndsWith(p.Value);
                     break;
                 default:
                     throw Pattern.Unrecognized(nameof(pattern));

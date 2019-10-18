@@ -1,4 +1,4 @@
-namespace SqlStreamStore.HAL.StreamMessage
+namespace SqlStreamStore.HAL.StreamMessage.Version
 {
     using System.Linq;
     using System.Threading;

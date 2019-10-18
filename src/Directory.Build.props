@@ -6,7 +6,7 @@
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageTags>cqrs;event-sourcing;event-store;stream-store</PackageTags>
-    <NoWarn>$(NoWarn);1701;1702;1705;1591;NU5105</NoWarn>
+    <NoWarn>$(NoWarn);1701;1702;1705;1591</NoWarn>
     <LangVersion>latest</LangVersion>
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <MinVerMinimumMajorMinor>1.2</MinVerMinimumMajorMinor>
@@ -17,7 +17,7 @@
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="MinVer" Version="1.0.0-rc.1" PrivateAssets="All" />
+    <PackageReference Include="MinVer" Version="2.0.0-rc.1" PrivateAssets="All" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0-beta2-18618-05" PrivateAssets="All"/>
   </ItemGroup>
 </Project>

@@ -22,22 +22,29 @@ namespace SqlStreamStore
             ReadNextStreamPage readNext,
             CancellationToken cancellationToken)
         {
-            using(var connection = await OpenConnection(cancellationToken))
-            using(var transaction = await connection
-                .BeginTransactionAsync(cancellationToken)
-                .NotOnCapturedContext())
+            try
             {
-                var streamIdInfo = new StreamIdInfo(streamId);
+                using(var connection = await OpenConnection(cancellationToken))
+                using(var transaction = await connection
+                    .BeginTransactionAsync(cancellationToken)
+                    .NotOnCapturedContext())
+                {
+                    var streamIdInfo = new StreamIdInfo(streamId);
 
-                return await ReadStreamInternal(
-                    streamIdInfo.MySqlStreamId,
-                    start,
-                    count,
-                    ReadDirection.Forward,
-                    prefetch,
-                    readNext,
-                    transaction,
-                    cancellationToken);
+                    return await ReadStreamInternal(
+                        streamIdInfo.MySqlStreamId,
+                        start,
+                        count,
+                        ReadDirection.Forward,
+                        prefetch,
+                        readNext,
+                        transaction,
+                        cancellationToken);
+                }
+            }
+            catch(MySqlException exception) when(exception.InnerException is ObjectDisposedException disposedException)
+            {
+                throw new ObjectDisposedException(disposedException.Message, exception);
             }
         }
 
@@ -49,22 +56,29 @@ namespace SqlStreamStore
             ReadNextStreamPage readNext,
             CancellationToken cancellationToken)
         {
-            using(var connection = await OpenConnection(cancellationToken))
-            using(var transaction = await connection
-                .BeginTransactionAsync(cancellationToken)
-                .NotOnCapturedContext())
+            try
             {
-                var streamIdInfo = new StreamIdInfo(streamId);
+                using(var connection = await OpenConnection(cancellationToken))
+                using(var transaction = await connection
+                    .BeginTransactionAsync(cancellationToken)
+                    .NotOnCapturedContext())
+                {
+                    var streamIdInfo = new StreamIdInfo(streamId);
 
-                return await ReadStreamInternal(
-                    streamIdInfo.MySqlStreamId,
-                    fromVersionInclusive,
-                    count,
-                    ReadDirection.Backward,
-                    prefetch,
-                    readNext,
-                    transaction,
-                    cancellationToken);
+                    return await ReadStreamInternal(
+                        streamIdInfo.MySqlStreamId,
+                        fromVersionInclusive,
+                        count,
+                        ReadDirection.Backward,
+                        prefetch,
+                        readNext,
+                        transaction,
+                        cancellationToken);
+                }
+            }
+            catch(MySqlException exception) when(exception.InnerException is ObjectDisposedException disposedException)
+            {
+                throw new ObjectDisposedException(disposedException.Message, exception);
             }
         }
 
@@ -235,13 +249,22 @@ namespace SqlStreamStore
 
         protected override async Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken)
         {
-            using(var connection = await OpenConnection(cancellationToken))
-            using(var transaction = connection.BeginTransaction())
-            using(var command = BuildStoredProcedureCall(_schema.ReadAllHeadPosition, transaction))
+            try
             {
-                var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                using(var connection = await OpenConnection(cancellationToken))
+                using(var transaction = connection.BeginTransaction())
+                using(var command = BuildStoredProcedureCall(_schema.ReadAllHeadPosition, transaction))
+                {
+                    var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
 
-                return result == DBNull.Value ? Position.End : ConvertPosition.FromMySqlToStreamStore((long) result);
+                    return result == DBNull.Value
+                        ? Position.End
+                        : ConvertPosition.FromMySqlToStreamStore((long) result);
+                }
+            }
+            catch(MySqlException exception) when(exception.InnerException is ObjectDisposedException disposedException)
+            {
+                throw new ObjectDisposedException(disposedException.Message, exception);
             }
         }
     }

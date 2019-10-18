@@ -4,6 +4,8 @@ namespace SqlStreamStore.HAL.StreamMessage
     using System.Threading;
     using System.Threading.Tasks;
     using Halcyon.HAL;
+    using SqlStreamStore.HAL.StreamMessage.MessageId;
+    using SqlStreamStore.HAL.StreamMessage.Version;
     using SqlStreamStore.Streams;
 
     internal class StreamMessageResource : IResource
@@ -48,13 +50,7 @@ namespace SqlStreamStore.HAL.StreamMessage
 
             if(operation.StreamVersion == StreamVersion.End)
             {
-                return new HalJsonResponse(new HALResponse(new object()), 307)
-                {
-                    Headers =
-                    {
-                        [Constants.Headers.Location] = new[] { $"{message.StreamVersion}" }
-                    }
-                };
+                return new TemporaryRedirectResponse($"{message.StreamVersion}");
             }
 
             var payload = await message.GetJsonData(cancellationToken);
@@ -77,7 +73,7 @@ namespace SqlStreamStore.HAL.StreamMessage
         }
 
         public async Task<Response> Delete(
-            DeleteStreamMessageOperationByMessageId operation,
+            DeleteStreamMessageByMessageIdOperation operation,
             CancellationToken cancellationToken)
         {
             await operation.Invoke(_streamStore, cancellationToken);

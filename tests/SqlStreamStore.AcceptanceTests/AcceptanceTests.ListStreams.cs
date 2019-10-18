@@ -103,5 +103,19 @@ namespace SqlStreamStore
 
             page.StreamIds.Length.ShouldBe(0);
         }
+
+        [Fact]
+        public async Task When_list_streams_after_deletion_empty_results_should_not_be_returned()
+        {
+            await store.AppendToStream("stream-1", ExpectedVersion.Any, CreateNewStreamMessages(1));
+            await store.AppendToStream("stream-2", ExpectedVersion.Any, CreateNewStreamMessages(2));
+
+            await store.DeleteStream("stream-1");
+
+            var page = await store.ListStreams(Pattern.Anything());
+
+            page.StreamIds.ShouldNotContain((string) default);
+            page.StreamIds.ShouldNotContain("stream-1");
+        }
     }
 }

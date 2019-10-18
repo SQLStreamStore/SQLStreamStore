@@ -7,7 +7,7 @@ A stream store library for .NET that specifically targets SQL based implementati
 | [SqlStreamStore](https://www.fuget.org/packages/SqlStreamStore) (includes in-memory version for behaviour testing) | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg?logo=nuget)](https://www.nuget.org/packages/SqlStreamStore) |
 | [MS SQL Server](https://www.fuget.org/packages/SqlStreamStore.MsSql) / Azure SQL Database | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg?logo=nuget)](https://www.nuget.org/packages/SqlStreamStore.MsSql) |
 | [PostgreSQL](https://www.fuget.org/packages/SqlStreamStore.Postgres) / AWS Aurora | [![NuGet](https://img.shields.io/nuget/vpre/SqlStreamStore.Postgres.svg?logo=nuget)](https://www.nuget.org/packages/SqlStreamStore.Postgres) |
-| MySQL | [_up for grabs_](https://github.com/SQLStreamStore/SqlStreamStore/issues/29) |
+| [MySQL](https://www.fuget.org/packages/SqlStreamStore.MySql) / AWS Aurora | [![NuGet](https://img.shields.io/nuget/vpre/SqlStreamStore.MySql.svg?logo=nuget)](https://www.nuget.org/packages/SqlStreamStore.MySql) |
 | Sqlite | [_up for grabs_](https://github.com/SQLStreamStore/SqlStreamStore/issues/28) |
 | HTTP Wrapper API | On CI Feed |
 
@@ -24,7 +24,7 @@ CI Packages available [on MyGet](https://www.myget.org/gallery/sqlstreamstore)
 
 # Building
 
-Building requires Docker. Solution and tests are run on a linux container with .NET Core leveraging SQL Server and Postgres as sibling containers.
+Building requires Docker. Solution and tests are run on a linux container with .NET Core leveraging SQL Server, Postgres and MySQL as sibling containers.
 
  - Windows, run `.\build.cmd`
  - Linux, run `./build.sh`

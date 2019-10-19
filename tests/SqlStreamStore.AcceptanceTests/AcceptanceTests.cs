@@ -13,12 +13,7 @@
     {
         private const string DefaultJsonData = @"{ ""data"": ""data"" }";
         private const string DefaultJsonMetadata = @"{ ""meta"": ""data"" }";
-
         private readonly IDisposable _logCapture;
-        private IStreamStoreFixture _fixture;
-
-        protected ITestOutputHelper TestOutputHelper { get; }
-
         protected AcceptanceTests(ITestOutputHelper testOutputHelper)
         {
             TestOutputHelper = testOutputHelper;
@@ -27,16 +22,18 @@
 
         public async Task InitializeAsync()
         {
-            _fixture = await CreateFixture();
+            Fixture = await CreateFixture();
         }
 
-        protected IStreamStore store => _fixture.Store;
+        private IStreamStore Store => Fixture.Store;
 
-        protected IStreamStoreFixture fixture => _fixture;
+        protected IStreamStoreFixture Fixture { get; private set; }
+
+        protected ITestOutputHelper TestOutputHelper { get; }
 
         public Task DisposeAsync()
         {
-            _fixture.Dispose();
+            Fixture.Dispose();
             _logCapture.Dispose();
             return Task.CompletedTask;
         }
@@ -49,9 +46,9 @@
         [Fact]
         public async Task When_dispose_and_read_then_should_throw()
         {
-            store.Dispose();
+            Store.Dispose();
 
-            Func<Task> act = () => store.ReadAllForwards(Position.Start, 10);
+            Func<Task> act = () => Store.ReadAllForwards(Position.Start, 10);
 
             await act.ShouldThrowAsync<ObjectDisposedException>();
         }
@@ -59,9 +56,9 @@
         [Fact]
         public void Can_dispose_more_than_once()
         {
-            store.Dispose();
+            Store.Dispose();
 
-            Action act = store.Dispose;
+            Action act = Store.Dispose;
 
             act.ShouldNotThrow();
         }
@@ -71,7 +68,7 @@
             return CreateNewStreamMessages(DefaultJsonData, messageNumbers);
         }
 
-        public static NewStreamMessage[] CreateNewStreamMessages(string jsonData, params int[] messageNumbers)
+        private static NewStreamMessage[] CreateNewStreamMessages(string jsonData, params int[] messageNumbers)
         {
             return messageNumbers
                 .Select(number =>

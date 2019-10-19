@@ -16,11 +16,11 @@
         [MemberData(nameof(GetReadStreamForwardsTheories))]
         public async Task Can_read_streams_forwards_with_prefetch(ReadStreamTheory theory)
         {
-            await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-            await store.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
+            await Store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+            await Store.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
 
             var streamMessagesPage =
-                await store.ReadStreamForwards(theory.StreamId, theory.Start, theory.PageSize);
+                await Store.ReadStreamForwards(theory.StreamId, theory.Start, theory.PageSize);
 
             var expectedStreamMessagesPage = theory.ExpectedReadStreamPage;
             var expectedMessages = theory.ExpectedReadStreamPage.Messages.ToArray();
@@ -61,15 +61,15 @@
         [MemberData(nameof(GetReadStreamForwardsTheories))]
         public async Task Can_read_streams_forwards_without_prefetch(ReadStreamTheory theory)
         {
-            using (var fixture = GetFixture())
+            using (var Fixture = GetFixture())
             {
-                using (var store = await fixture.GetStreamStore())
+                using (var Store = await Fixture.GetStreamStore())
                 {
-                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-                    await store.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
+                    await Store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await Store.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
 
                     var streamMessagesPage =
-                        await store.ReadStreamForwards(theory.StreamId, theory.Start, theory.PageSize, false);
+                        await Store.ReadStreamForwards(theory.StreamId, theory.Start, theory.PageSize, false);
 
                     var expectedStreamMessagesPage = theory.ExpectedReadStreamPage;
                     var expectedMessages = theory.ExpectedReadStreamPage.Messages.ToArray();
@@ -105,13 +105,13 @@
         /*[Fact, Trait("Category", "ReadStream")]
         public async Task Can_read_whole_stream_forwards_without_prefetch()
         {
-            using (var fixture = GetFixture())
+            using (var Fixture = GetFixture())
             {
-                using (var store = await fixture.GetStreamStore())
+                using (var Store = await Fixture.GetStreamStore())
                 {
-                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await Store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
 
-                    var page = await store.ReadStreamForwards("stream-1", StreamVersion.Start, 5, prefetchJsonData: false);
+                    var page = await Store.ReadStreamForwards("stream-1", StreamVersion.Start, 5, prefetchJsonData: false);
 
                     foreach (var streamMessage in page.Messages)
                     {
@@ -126,9 +126,9 @@
         [Fact, Trait("Category", "ReadStream")]
         public async Task Can_read_next_page_past_end_of_stream()
         {
-            await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+            await Store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
 
-            var page = await store.ReadStreamForwards("stream-1", StreamVersion.Start, 4);
+            var page = await Store.ReadStreamForwards("stream-1", StreamVersion.Start, 4);
 
             page = await page.ReadNext();
 
@@ -138,9 +138,9 @@
         [Fact, Trait("Category", "ReadStream")]
         public async Task Can_read_all_messages()
         {
-            await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+            await Store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
 
-            var page = await store.ReadStreamForwards("stream-1", StreamVersion.Start, int.MaxValue);
+            var page = await Store.ReadStreamForwards("stream-1", StreamVersion.Start, int.MaxValue);
 
             page.Messages.Length.ShouldBe(3);
         }
@@ -149,11 +149,11 @@
         [MemberData(nameof(GetReadStreamBackwardsTheories))]
         public async Task Can_read_streams_backwards_with_prefetch(ReadStreamTheory theory)
         {
-            await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-            await store.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
+            await Store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+            await Store.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
 
             var streamMessagesPage =
-                await store.ReadStreamBackwards(theory.StreamId, theory.Start, theory.PageSize);
+                await Store.ReadStreamBackwards(theory.StreamId, theory.Start, theory.PageSize);
 
             var expectedStreamMessagesPage = theory.ExpectedReadStreamPage;
             var expectedMessages = theory.ExpectedReadStreamPage.Messages.ToArray();
@@ -195,15 +195,15 @@
         [MemberData(nameof(GetReadStreamBackwardsTheories))]
         public async Task Can_read_streams_backwards_without_prefetch(ReadStreamTheory theory)
         {
-            using (var fixture = GetFixture())
+            using (var Fixture = GetFixture())
             {
-                using (var store = await fixture.GetStreamStore())
+                using (var Store = await Fixture.GetStreamStore())
                 {
-                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-                    await store.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
+                    await Store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await Store.AppendToStream("stream-2", ExpectedVersion.NoStream, CreateNewStreamMessages(4, 5, 6));
 
                     var streamMessagesPage =
-                        await store.ReadStreamBackwards(theory.StreamId, theory.Start, theory.PageSize, false);
+                        await Store.ReadStreamBackwards(theory.StreamId, theory.Start, theory.PageSize, false);
 
                     var expectedStreamMessagesPage = theory.ExpectedReadStreamPage;
                     var expectedMessages = theory.ExpectedReadStreamPage.Messages.ToArray();
@@ -239,13 +239,13 @@
         /*[Fact, Trait("Category", "ReadStream")]
         public async Task Can_read_stream_backwards_without_prefetch()
         {
-            using (var fixture = GetFixture())
+            using (var Fixture = GetFixture())
             {
-                using (var store = await fixture.GetStreamStore())
+                using (var Store = await Fixture.GetStreamStore())
                 {
-                    await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+                    await Store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
 
-                    var page = await store.ReadStreamBackwards("stream-1", StreamVersion.End, 5, prefetchJsonData: false);
+                    var page = await Store.ReadStreamBackwards("stream-1", StreamVersion.End, 5, prefetchJsonData: false);
 
                     foreach (var streamMessage in page.Messages)
                     {
@@ -261,9 +261,9 @@
         [InlineData(true), InlineData(false)]
         public async Task Can_read_empty_stream_backwards(bool prefetch)
         {
-            await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages());
+            await Store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages());
 
-            var page = await store.ReadStreamBackwards("stream-1", StreamVersion.End, 1, prefetch);
+            var page = await Store.ReadStreamBackwards("stream-1", StreamVersion.End, 1, prefetch);
             page.Status.ShouldBe(PageReadStatus.Success);
             page.Messages.Length.ShouldBe(0);
             page.FromStreamVersion.ShouldBe(StreamVersion.End);
@@ -279,9 +279,9 @@
         [InlineData(true), InlineData(false)]
         public async Task Can_read_empty_stream_forwards(bool prefetch)
         {
-            await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages());
+            await Store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages());
 
-            var page = await store.ReadStreamForwards("stream-1", StreamVersion.Start, 1, prefetch);
+            var page = await Store.ReadStreamForwards("stream-1", StreamVersion.Start, 1, prefetch);
             page.Status.ShouldBe(PageReadStatus.Success);
             page.Messages.Length.ShouldBe(0);
             page.FromStreamVersion.ShouldBe(StreamVersion.Start);
@@ -297,7 +297,7 @@
         public async Task When_read_non_exist_stream_forwards_then_should_get_StreamNotFound()
         {
             var streamMessagesPage =
-                await store.ReadStreamForwards("stream-does-not-exist", StreamVersion.Start, 1);
+                await Store.ReadStreamForwards("stream-does-not-exist", StreamVersion.Start, 1);
 
             streamMessagesPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
         }
@@ -306,7 +306,7 @@
         public async Task When_read_non_exist_stream_backwards_then_should_get_StreamNotFound()
         {
             var streamMessagesPage =
-                await store.ReadStreamBackwards("stream-does-not-exist", StreamVersion.End, 1);
+                await Store.ReadStreamBackwards("stream-does-not-exist", StreamVersion.End, 1);
 
             streamMessagesPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
         }
@@ -314,11 +314,11 @@
         [Fact, Trait("Category", "ReadStream")]
         public async Task When_read_deleted_stream_forwards_then_should_get_StreamNotFound()
         {
-            await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-            await store.DeleteStream("stream-1");
+            await Store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+            await Store.DeleteStream("stream-1");
 
             var streamMessagesPage =
-                await store.ReadStreamForwards("stream-1", StreamVersion.Start, 1);
+                await Store.ReadStreamForwards("stream-1", StreamVersion.Start, 1);
 
             streamMessagesPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
         }
@@ -326,11 +326,11 @@
         [Fact, Trait("Category", "ReadStream")]
         public async Task When_read_deleted_stream_backwards_then_should_get_StreamNotFound()
         {
-            await store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
-            await store.DeleteStream("stream-1");
+            await Store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+            await Store.DeleteStream("stream-1");
 
             var streamMessagesPage =
-                await store.ReadStreamBackwards("stream-1", StreamVersion.Start, 1);
+                await Store.ReadStreamBackwards("stream-1", StreamVersion.Start, 1);
 
             streamMessagesPage.Status.ShouldBe(PageReadStatus.StreamNotFound);
         }
@@ -338,10 +338,10 @@
         [Theory, InlineData(0), InlineData(1)]
         public async Task Can_read_stream_backwards_starting_past_end_of_stream(int fromVersionInclusive)
         {
-            await store.AppendToStream("stream-1", ExpectedVersion.NoStream, Array.Empty<NewStreamMessage>());
+            await Store.AppendToStream("stream-1", ExpectedVersion.NoStream, Array.Empty<NewStreamMessage>());
 
             var streamMessagesPage =
-                await store.ReadStreamBackwards("stream-1", fromVersionInclusive, 1);
+                await Store.ReadStreamBackwards("stream-1", fromVersionInclusive, 1);
 
             streamMessagesPage.Status.ShouldBe(PageReadStatus.Success);
             streamMessagesPage.Messages.Length.ShouldBe(0);
@@ -353,9 +353,9 @@
         [InlineData("stream%1")]
         public async Task when_read_stream_forwards_with_url_encodable_stream(string streamId)
         {
-            await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1));
+            await Store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1));
 
-            var result = await store.ReadStreamForwards(streamId, StreamVersion.Start, 1);
+            var result = await Store.ReadStreamForwards(streamId, StreamVersion.Start, 1);
             
             Assert.Equal(streamId, result.Messages[0].StreamId);
         }
@@ -365,9 +365,9 @@
         [InlineData("stream%1")]
         public async Task when_read_stream_backwards_with_url_encodable_stream(string streamId)
         {
-            await store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1));
+            await Store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1));
 
-            var result = await store.ReadStreamBackwards(streamId, StreamVersion.End, 1);
+            var result = await Store.ReadStreamBackwards(streamId, StreamVersion.End, 1);
             
             Assert.Equal(streamId, result.Messages[0].StreamId);
         }

@@ -17,14 +17,14 @@
         public async Task Can_subscribe_to_a_stream_from_start()
         {
             var streamId1 = "stream-1";
-            await AppendMessages(store, streamId1, 10);
+            await AppendMessages(Store, streamId1, 10);
 
             var streamId2 = "stream-2";
-            await AppendMessages(store, streamId2, 10);
+            await AppendMessages(Store, streamId2, 10);
 
             var done = new TaskCompletionSource<StreamMessage>();
             var receivedMessages = new List<StreamMessage>();
-            using (var subscription = store.SubscribeToStream(
+            using (var subscription = Store.SubscribeToStream(
                 streamId1,
                 StreamVersion.None,
                 (_, message, ct) =>
@@ -37,7 +37,7 @@
                     return Task.CompletedTask;
                 }))
             {
-                await AppendMessages(store, streamId1, 2);
+                await AppendMessages(Store, streamId1, 2);
 
                 var receivedMessage = await done.Task.WithTimeout();
 
@@ -53,10 +53,10 @@
         public async Task When_subscribe_to_a_stream_and_receive_message_then_should_get_subscription_instance()
         {
             var streamId = "stream-1";
-            await AppendMessages(store, streamId, 10);
+            await AppendMessages(Store, streamId, 10);
 
             var done = new TaskCompletionSource<IStreamSubscription>();
-            using (var subscription = store.SubscribeToStream(
+            using (var subscription = Store.SubscribeToStream(
                 streamId,
                 StreamVersion.None,
                 (sub, _, ct) =>
@@ -78,7 +78,7 @@
             var done = new TaskCompletionSource<StreamMessage>();
             var receivedMessages = new List<StreamMessage>();
 
-            using (var subscription = store.SubscribeToStream(
+            using (var subscription = Store.SubscribeToStream(
                 streamId,
                 StreamVersion.None,
                 (_, message, ct) =>
@@ -91,7 +91,7 @@
                     return Task.CompletedTask;
                 }))
             {
-                await AppendMessages(store, streamId, 2);
+                await AppendMessages(Store, streamId, 2);
 
                 var receivedMessage = await done.Task.WithTimeout();
 
@@ -107,14 +107,14 @@
         public async Task Can_subscribe_to_all_stream_from_start()
         {
             string streamId1 = "stream-1";
-            await AppendMessages(store, streamId1, 3);
+            await AppendMessages(Store, streamId1, 3);
 
             string streamId2 = "stream-2";
-            await AppendMessages(store, streamId2, 3);
+            await AppendMessages(Store, streamId2, 3);
 
             var receiveMessages = new TaskCompletionSource<StreamMessage>();
             List<StreamMessage> receivedMessages = new List<StreamMessage>();
-            using(store.SubscribeToAll(
+            using(Store.SubscribeToAll(
                 Position.None,
                 (_, message, __) =>
                 {
@@ -128,7 +128,7 @@
                     return Task.CompletedTask;
                 }))
             {
-                await AppendMessages(store, streamId1, 1);
+                await AppendMessages(Store, streamId1, 1);
 
                 await receiveMessages.Task.WithTimeout();
 
@@ -140,10 +140,10 @@
         public async Task When_subscribe_to_all_and_receive_message_then_should_get_subscription_instance()
         {
             const string streamId = "stream-1";
-            await AppendMessages(store, streamId, 10);
+            await AppendMessages(Store, streamId, 10);
 
             var done = new TaskCompletionSource<IAllStreamSubscription>();
-            using (var subscription = store.SubscribeToAll(
+            using (var subscription = Store.SubscribeToAll(
                 Position.None,
                 (sub, _, __) =>
                 {
@@ -166,7 +166,7 @@
 
             var receiveMessages = new TaskCompletionSource<StreamMessage>();
             List<StreamMessage> receivedMessages = new List<StreamMessage>();
-            using (store.SubscribeToAll(
+            using (Store.SubscribeToAll(
                 Position.None,
                 (_, message, __) =>
                 {
@@ -179,11 +179,11 @@
                     return Task.CompletedTask;
                 }))
             {
-                await AppendMessages(store, streamId1, 3);
+                await AppendMessages(Store, streamId1, 3);
 
-                await AppendMessages(store, streamId2, 3);
+                await AppendMessages(Store, streamId2, 3);
 
-                await AppendMessages(store, streamId1, 1);
+                await AppendMessages(Store, streamId1, 1);
 
                 await receiveMessages.Task.WithTimeout(5000);
 
@@ -195,14 +195,14 @@
         public async Task Can_subscribe_to_a_stream_from_end()
         {
             string streamId1 = "stream-1";
-            await AppendMessages(store, streamId1, 10);
+            await AppendMessages(Store, streamId1, 10);
 
             string streamId2 = "stream-2";
-            await AppendMessages(store, streamId2, 10);
+            await AppendMessages(Store, streamId2, 10);
 
             var receiveMessage = new TaskCompletionSource<StreamMessage>();
             int receivedCount = 0;
-            using (var subscription = store.SubscribeToStream(
+            using (var subscription = Store.SubscribeToStream(
                 streamId1,
                 StreamVersion.End,
                 (_, message, ct) =>
@@ -218,9 +218,9 @@
                 }))
             {
                 await subscription.Started;
-                await AppendMessages(store, streamId1, 2);
+                await AppendMessages(Store, streamId1, 2);
 
-                var allMessagesPage = await store.ReadAllForwards(0, 30);
+                var allMessagesPage = await Store.ReadAllForwards(0, 30);
                 foreach(var streamMessage in allMessagesPage.Messages)
                 {
                     TestOutputHelper.WriteLine(streamMessage.ToString());
@@ -240,14 +240,14 @@
         public async Task Given_non_empty_streamstore_can_subscribe_to_all_stream_from_end()
         {
             string streamId1 = "stream-1";
-            await AppendMessages(store, streamId1, 10);
+            await AppendMessages(Store, streamId1, 10);
 
             string streamId2 = "stream-2";
-            await AppendMessages(store, streamId2, 10);
+            await AppendMessages(Store, streamId2, 10);
 
             var receiveMessages = new TaskCompletionSource<StreamMessage>();
             List<StreamMessage> receivedMessages = new List<StreamMessage>();
-            using(var subscription = store.SubscribeToAll(
+            using(var subscription = Store.SubscribeToAll(
                 Position.End,
                 (_, message, __) =>
                 {
@@ -263,7 +263,7 @@
             {
                 await subscription.Started;
 
-                await AppendMessages(store, streamId1, 2);
+                await AppendMessages(Store, streamId1, 2);
 
                 await receiveMessages.Task.WithTimeout();
 
@@ -277,7 +277,7 @@
             string streamId1 = "stream-1";
             var receiveMessages = new TaskCompletionSource<int>();
             List<StreamMessage> receivedMessages = new List<StreamMessage>();
-            using (var subscription = store.SubscribeToAll(
+            using (var subscription = Store.SubscribeToAll(
                 Position.End,
                 (_, message, __) =>
                 {
@@ -291,7 +291,7 @@
             {
                 await subscription.Started;
 
-                await AppendMessages(store, streamId1, 10);
+                await AppendMessages(Store, streamId1, 10);
 
                 await receiveMessages.Task.WithTimeout();
 
@@ -303,14 +303,14 @@
         public async Task Can_subscribe_to_a_stream_from_a_specific_version()
         {
             string streamId1 = "stream-1";
-            await AppendMessages(store, streamId1, 10);
+            await AppendMessages(Store, streamId1, 10);
 
             string streamId2 = "stream-2";
-            await AppendMessages(store, streamId2, 10);
+            await AppendMessages(Store, streamId2, 10);
 
             var receiveMessages = new TaskCompletionSource<StreamMessage>();
             int receivedCount = 0;
-            using (var subscription = store.SubscribeToStream(
+            using (var subscription = Store.SubscribeToStream(
                 streamId1,
                 7,
                 (_, message, ct) =>
@@ -323,7 +323,7 @@
                     return Task.CompletedTask;
                 }))
             {
-                await AppendMessages(store, streamId1, 2);
+                await AppendMessages(Store, streamId1, 2);
 
                 var receivedMessage = await receiveMessages.Task.WithTimeout();
 
@@ -339,14 +339,14 @@
         public async Task Can_have_multiple_subscriptions_to_all()
         {
             string streamId1 = "stream-1";
-            await AppendMessages(store, streamId1, 2);
+            await AppendMessages(Store, streamId1, 2);
 
             var completionSources =
-                Enumerable.Range(0, fixture.MaxSubscriptionCount).Select(_ => new TaskCompletionSource<int>())
+                Enumerable.Range(0, Fixture.MaxSubscriptionCount).Select(_ => new TaskCompletionSource<int>())
                 .ToArray();
 
-            var subscriptions = Enumerable.Range(0, fixture.MaxSubscriptionCount)
-                .Select(index => store.SubscribeToAll(
+            var subscriptions = Enumerable.Range(0, Fixture.MaxSubscriptionCount)
+                .Select(index => Store.SubscribeToAll(
                     Position.None,
                     (_, message, __) =>
                     {
@@ -372,7 +372,7 @@
         public async Task Can_have_multiple_subscriptions_to_stream()
         {
             string streamId1 = "stream-1";
-            await AppendMessages(store, streamId1, 2);
+            await AppendMessages(Store, streamId1, 2);
 
             var subscriptionCount = 50;
 
@@ -382,7 +382,7 @@
                 .ToArray();
 
             var subscriptions = Enumerable.Range(0, subscriptionCount)
-                .Select(index => store.SubscribeToStream(
+                .Select(index => Store.SubscribeToStream(
                     streamId1,
                     0,
                     (_, message, ct) =>
@@ -417,7 +417,7 @@
             var receiveMessage = new TaskCompletionSource<bool>();
             var receiveDeletedMessage = new TaskCompletionSource<StreamMessage>();
             List<StreamMessage> receivedMessages = new List<StreamMessage>();
-            using (var subscription = store.SubscribeToAll(
+            using (var subscription = Store.SubscribeToAll(
                 Position.None,
                 (_, message, __) =>
                 {
@@ -436,12 +436,12 @@
                     return Task.CompletedTask;
                 }))
             {
-                await AppendMessages(store, streamId, 1);
+                await AppendMessages(Store, streamId, 1);
                 await receiveMessage.Task.WithTimeout();
 
 
                 // Act
-                await store.DeleteStream(streamId);
+                await Store.DeleteStream(streamId);
                 await receiveDeletedMessage.Task.WithTimeout();
 
                 // Assert
@@ -457,13 +457,13 @@
             void SubscriptionDropped(IStreamSubscription _, SubscriptionDroppedReason reason, Exception __) => eventReceivedException.SetResult(reason);
             var streamId = "stream-1";
 
-            using(store.SubscribeToStream(
+            using(Store.SubscribeToStream(
                 streamId,
                 StreamVersion.None,
                 MessageReceived,
                 SubscriptionDropped))
             {
-                await store.AppendToStream(streamId,
+                await Store.AppendToStream(streamId,
                     ExpectedVersion.NoStream,
                     new NewStreamMessage(Guid.NewGuid(), "type", "{}"));
 
@@ -477,7 +477,7 @@
         public async Task When_stream_subscription_disposed_then_should_drop_subscription_with_reason_Disposed()
         {
             var tcs = new TaskCompletionSource<SubscriptionDroppedReason>();
-            var subscription = store.SubscribeToStream(
+            var subscription = Store.SubscribeToStream(
                 "stream-1",
                 StreamVersion.End,
                 (_, __, ___) => Task.CompletedTask,
@@ -495,7 +495,7 @@
         public async Task When_stream_subscription_dropped_then_should_supply_subscription_instance()
         {
             var tcs = new TaskCompletionSource<IStreamSubscription>();
-            var subscription = store.SubscribeToStream(
+            var subscription = Store.SubscribeToStream(
                 "stream-1",
                 StreamVersion.None,
                 (_, __, ___) => Task.CompletedTask,
@@ -516,7 +516,7 @@
             string streamId = "stream-1";
             var droppedTcs = new TaskCompletionSource<SubscriptionDroppedReason>();
             var handler = new AsyncAutoResetEvent();
-            var subscription = store.SubscribeToStream(streamId,
+            var subscription = Store.SubscribeToStream(streamId,
                 StreamVersion.Start,
                 async (_, __, ct) =>
                 {
@@ -528,7 +528,7 @@
                     droppedTcs.SetResult(reason);
                 });
             // First message is blocked in handling, the second is co-operatively cancelled
-            await AppendMessages(store, streamId, 2); 
+            await AppendMessages(Store, streamId, 2); 
             await handler.WaitAsync().WithTimeout(10000);
             subscription.Dispose();
 
@@ -541,10 +541,10 @@
         public async Task Can_dispose_stream_subscription_multiple_times()
         {
             var streamId = "stream-1";
-            var subscription = store.SubscribeToStream(streamId,
+            var subscription = Store.SubscribeToStream(streamId,
                 StreamVersion.Start,
                 (_, __, ___) => Task.CompletedTask);
-            await AppendMessages(store, streamId, 2);
+            await AppendMessages(Store, streamId, 2);
             subscription.Dispose();
             subscription.Dispose();
         }
@@ -557,12 +557,12 @@
             void SubscriptionDropped(IAllStreamSubscription _, SubscriptionDroppedReason reason, Exception __) => eventReceivedException.SetResult(reason);
             var streamId = "stream-1";
 
-            using (store.SubscribeToAll(
+            using (Store.SubscribeToAll(
                 Position.None,
                 MessageReceived,
                 SubscriptionDropped))
             {
-                await store.AppendToStream(
+                await Store.AppendToStream(
                     streamId,
                     ExpectedVersion.NoStream,
                     new NewStreamMessage(Guid.NewGuid(), "type", "{}"));
@@ -577,7 +577,7 @@
         public async Task When_all_stream_subscription_disposed_then_should_drop_subscription_with_reason_Disposed()
         {
             var tcs = new TaskCompletionSource<SubscriptionDroppedReason>();
-            var subscription = store.SubscribeToAll(
+            var subscription = Store.SubscribeToAll(
                 Position.End,
                 (_, __, ___) => Task.CompletedTask,
                 (_, reason, __) =>
@@ -594,7 +594,7 @@
         public async Task When_all_stream_subscription_dropped_then_should_supply_subscription_instance()
         {
             var tcs = new TaskCompletionSource<IAllStreamSubscription>();
-            var subscription = store.SubscribeToAll(
+            var subscription = Store.SubscribeToAll(
                 Position.End,
                 (_, __, ___) => Task.CompletedTask,
                 (sub, _, __) =>
@@ -613,7 +613,7 @@
             string streamId = "stream-1";
             var droppedTcs = new TaskCompletionSource<SubscriptionDroppedReason>();
             var handler = new AsyncAutoResetEvent();
-            var subscription = store.SubscribeToAll(
+            var subscription = Store.SubscribeToAll(
                 Position.End,
                 async (_, __, ___) =>
                 {
@@ -626,7 +626,7 @@
                 });
             // First message is blocked in handling, the second is cooperatively cancelled
             await subscription.Started;
-            await AppendMessages(store, streamId, 2);
+            await AppendMessages(Store, streamId, 2);
             await handler.WaitAsync().WithTimeout();
             subscription.Dispose();
 
@@ -639,10 +639,10 @@
         public async Task Can_dispose_all_stream_subscription_multiple_times()
         {
             var streamId = "stream-1";
-            var subscription = store.SubscribeToAll(
+            var subscription = Store.SubscribeToAll(
                 Position.Start,
                 (_, __, ___) => Task.CompletedTask);
-            await AppendMessages(store, streamId, 2);
+            await AppendMessages(Store, streamId, 2);
             subscription.Dispose();
             subscription.Dispose();
         }
@@ -651,9 +651,9 @@
         public async Task When_caught_up_to_all_then_then_should_notify()
         {
             var streamId = "stream-1";
-            await AppendMessages(store, streamId, 30);
+            await AppendMessages(Store, streamId, 30);
             var caughtUp = new TaskCompletionSource<bool>();
-            var subscription = store.SubscribeToAll(
+            var subscription = Store.SubscribeToAll(
                 Position.None,
                 (_, __, ___) => Task.CompletedTask,
                 hasCaughtUp: b =>
@@ -672,10 +672,10 @@
         public async Task When_caught_up_to_all_then_then_should_notify_only_twice()
         {
             var streamId = "stream-1";
-            await AppendMessages(store, streamId, 30);
+            await AppendMessages(Store, streamId, 30);
             var caughtUp = new TaskCompletionSource<bool>();
             var numberOfCaughtUps = 0;
-            var subscription = store.SubscribeToAll(
+            var subscription = Store.SubscribeToAll(
                 Position.None,
                 (_, __, ___) => Task.CompletedTask,
                 hasCaughtUp: b =>
@@ -702,9 +702,9 @@
         public async Task When_caughtup_to_stream_then_then_should_notify()
         {
             var streamId = "stream-1";
-            await AppendMessages(store, streamId, 30);
+            await AppendMessages(Store, streamId, 30);
             var caughtUp = new TaskCompletionSource<bool>();
-            var subscription = store.SubscribeToStream(
+            var subscription = Store.SubscribeToStream(
                 streamId,
                 StreamVersion.None,
                 (_, __, ___) => Task.CompletedTask,
@@ -724,11 +724,11 @@
         public async Task When_falls_behind_on_all_then_then_should_notify()
         {
             var streamId = "stream-1";
-            await AppendMessages(store, streamId, 30);
+            await AppendMessages(Store, streamId, 30);
             var fallenBehind = new TaskCompletionSource<bool>();
             bool caughtUp = false;
 
-            var subscription = store.SubscribeToAll(
+            var subscription = Store.SubscribeToAll(
                 Position.None,
                 (_, __, ___) => Task.CompletedTask,
                 hasCaughtUp: b =>
@@ -752,11 +752,11 @@
         public async Task When_falls_behind_on_stream_then_then_should_notify()
         {
             var streamId = "stream-1";
-            await AppendMessages(store, streamId, 30);
+            await AppendMessages(Store, streamId, 30);
             var fallenBehind = new TaskCompletionSource<bool>();
             bool caughtUp = false;
 
-            var subscription = store.SubscribeToStream(
+            var subscription = Store.SubscribeToStream(
                 streamId,
                 StreamVersion.None,
                 (_, __, ___) => Task.CompletedTask,
@@ -781,7 +781,7 @@
         public async Task When_dispose_store_then_should_dispose_stream_subscriptions()
         {
             var subscriptionDropped = new TaskCompletionSource<SubscriptionDroppedReason>();
-            var subscription = store.SubscribeToStream(
+            var subscription = Store.SubscribeToStream(
                 "stream-1",
                 StreamVersion.None,
                 (_, __, ___) => Task.CompletedTask,
@@ -790,7 +790,7 @@
                     subscriptionDropped.SetResult(reason);
                 });
 
-            store.Dispose();
+            Store.Dispose();
 
             var droppedReason = await subscriptionDropped.Task.WithTimeout(5000);
 
@@ -801,7 +801,7 @@
         public async Task When_dispose_store_then_should_dispose_all_stream_subscriptions()
         {
             var subscriptionDropped = new TaskCompletionSource<SubscriptionDroppedReason>();
-            var subscription = store.SubscribeToAll(
+            var subscription = Store.SubscribeToAll(
                 Position.None,
                 (_, __, ___) => Task.CompletedTask,
                 subscriptionDropped: (streamSubscription, reason, exception) =>
@@ -809,7 +809,7 @@
                     subscriptionDropped.SetResult(reason);
                 });
 
-            store.Dispose();
+            Store.Dispose();
 
             var droppedReason = await subscriptionDropped.Task.WithTimeout(5000);
 
@@ -824,7 +824,7 @@
             var received = new AsyncAutoResetEvent();
             string streamIdReceived = null;
 
-            using (store.SubscribeToStream(
+            using (Store.SubscribeToStream(
                 streamId1,
                 StreamVersion.None,
                 (_, message, ct) =>
@@ -834,18 +834,18 @@
                     return Task.CompletedTask;
                 }))
             {
-                await AppendMessages(store, streamId1, 1);
-                await AppendMessages(store, streamId2, 1);
+                await AppendMessages(Store, streamId1, 1);
+                await AppendMessages(Store, streamId2, 1);
                 await received.WaitAsync().WithTimeout();
                 streamIdReceived.ShouldBe(streamId1);
 
-                await AppendMessages(store, streamId1, 1);
-                await AppendMessages(store, streamId2, 1);
+                await AppendMessages(Store, streamId1, 1);
+                await AppendMessages(Store, streamId2, 1);
                 await received.WaitAsync().WithTimeout();
                 streamIdReceived.ShouldBe(streamId1);
 
-                await AppendMessages(store, streamId1, 1);
-                await AppendMessages(store, streamId2, 1);
+                await AppendMessages(Store, streamId1, 1);
+                await AppendMessages(Store, streamId2, 1);
                 await received.WaitAsync().WithTimeout();
                 streamIdReceived.ShouldBe(streamId1);
             }
@@ -856,7 +856,7 @@
         {
             bool hasCaughtUp;
             var tcs = new TaskCompletionSource<bool>();
-            using (store.SubscribeToAll(
+            using (Store.SubscribeToAll(
                 null,
                 (_, message, ct) => Task.CompletedTask,
                 hasCaughtUp: b => tcs.SetResult(b)))
@@ -871,7 +871,7 @@
         {
             bool hasCaughtUp;
             var tcs = new TaskCompletionSource<bool>();
-            using (store.SubscribeToStream(
+            using (Store.SubscribeToStream(
                 "stream-1",
                 null,
                 (_, message, ct) => Task.CompletedTask,

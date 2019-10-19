@@ -20,7 +20,7 @@
         [Fact]
         public async Task Can_use_multiple_schemas()
         {
-            var dboStore = fixture.Store;
+            var dboStore = Fixture.Store;
 
             using (var barFixture = await MsSqlStreamStoreV3Fixture.Create("bar"))
             {
@@ -107,11 +107,11 @@
             var streamId = "stream-large";
             var data = new string('a', 1024 * 1024 * 2);
             var newStreamMessage = new NewStreamMessage(Guid.NewGuid(), "foo", data);
-            await fixture.Store.AppendToStream(streamId, ExpectedVersion.Any, newStreamMessage);
+            await Fixture.Store.AppendToStream(streamId, ExpectedVersion.Any, newStreamMessage);
             TestOutputHelper.WriteLine($"Append: {stopwatch.Elapsed}");
 
             stopwatch.Restart();
-            var readStreamPage = await fixture.Store.ReadStreamForwards(streamId, StreamVersion.Start, 1);
+            var readStreamPage = await Fixture.Store.ReadStreamForwards(streamId, StreamVersion.Start, 1);
             var jsonData = await readStreamPage.Messages[0].GetJsonData();
             TestOutputHelper.WriteLine($"Read: {stopwatch.Elapsed}");
         }
@@ -123,11 +123,11 @@
             var streamId = "stream-large";
             var data = new string('a', 1024 * 1024 * 2);
             var newStreamMessage = new NewStreamMessage(Guid.NewGuid(), "foo", data);
-            await fixture.Store.AppendToStream(streamId, ExpectedVersion.Any, newStreamMessage);
+            await Fixture.Store.AppendToStream(streamId, ExpectedVersion.Any, newStreamMessage);
             TestOutputHelper.WriteLine($"Append: {stopwatch.Elapsed}");
 
             stopwatch.Restart();
-            var readStreamPage = await fixture.Store.ReadStreamForwards(streamId, StreamVersion.Start, prefetchJsonData: false, maxCount: 1);
+            var readStreamPage = await Fixture.Store.ReadStreamForwards(streamId, StreamVersion.Start, prefetchJsonData: false, maxCount: 1);
             var jsonData = await readStreamPage.Messages[0].GetJsonData();
             TestOutputHelper.WriteLine($"Read: {stopwatch.Elapsed}");
         }

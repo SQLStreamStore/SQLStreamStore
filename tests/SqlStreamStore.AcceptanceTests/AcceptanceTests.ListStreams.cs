@@ -18,13 +18,13 @@ namespace SqlStreamStore
 
             for(var i = 0; i < 30; i++)
             {
-                await store.AppendToStream(
+                await Store.AppendToStream(
                     $"{streamIdPrefix}-{i}",
                     ExpectedVersion.NoStream,
                     Array.Empty<NewStreamMessage>());
             }
 
-            var page = await store.ListStreams(10);
+            var page = await Store.ListStreams(10);
             page.StreamIds.ShouldBe(Enumerable.Range(0, 10).Select(i => $"{streamIdPrefix}-{i}"));
 
             page = await page.Next();
@@ -46,18 +46,18 @@ namespace SqlStreamStore
         {
             for(var i = 0; i < 30; i++)
             {
-                await store.AppendToStream(
+                await Store.AppendToStream(
                     $"{streamIdPrefix}-{i}",
                     ExpectedVersion.NoStream,
                     Array.Empty<NewStreamMessage>());
 
-                await store.AppendToStream(
+                await Store.AppendToStream(
                     $"not-stream-{i}",
                     ExpectedVersion.NoStream,
                     Array.Empty<NewStreamMessage>());
             }
 
-            var page = await store.ListStreams(Pattern.StartsWith(streamIdPrefix), 10);
+            var page = await Store.ListStreams(Pattern.StartsWith(streamIdPrefix), 10);
             page.StreamIds.ShouldBe(Enumerable.Range(0, 10).Select(i => $"{streamIdPrefix}-{i}"));
 
             page = await page.Next();
@@ -79,18 +79,18 @@ namespace SqlStreamStore
         {
             for(var i = 0; i < 30; i++)
             {
-                await store.AppendToStream(
+                await Store.AppendToStream(
                     $"{i}-{streamIdPostfix}",
                     ExpectedVersion.NoStream,
                     Array.Empty<NewStreamMessage>());
 
-                await store.AppendToStream(
+                await Store.AppendToStream(
                     $"{i}-stream-not",
                     ExpectedVersion.NoStream,
                     Array.Empty<NewStreamMessage>());
             }
 
-            var page = await store.ListStreams(Pattern.EndsWith(streamIdPostfix), 10);
+            var page = await Store.ListStreams(Pattern.EndsWith(streamIdPostfix), 10);
             page.StreamIds.ShouldBe(Enumerable.Range(0, 10).Select(i => $"{i}-{streamIdPostfix}"));
 
             page = await page.Next();
@@ -107,12 +107,12 @@ namespace SqlStreamStore
         [Fact]
         public async Task When_list_streams_after_deletion_empty_results_should_not_be_returned()
         {
-            await store.AppendToStream("stream-1", ExpectedVersion.Any, CreateNewStreamMessages(1));
-            await store.AppendToStream("stream-2", ExpectedVersion.Any, CreateNewStreamMessages(2));
+            await Store.AppendToStream("stream-1", ExpectedVersion.Any, CreateNewStreamMessages(1));
+            await Store.AppendToStream("stream-2", ExpectedVersion.Any, CreateNewStreamMessages(2));
 
-            await store.DeleteStream("stream-1");
+            await Store.DeleteStream("stream-1");
 
-            var page = await store.ListStreams(Pattern.Anything());
+            var page = await Store.ListStreams(Pattern.Anything());
 
             page.StreamIds.ShouldNotContain((string) default);
             page.StreamIds.ShouldNotContain("stream-1");

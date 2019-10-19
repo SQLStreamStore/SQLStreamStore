@@ -15,9 +15,9 @@ namespace SqlStreamStore
         {
             var eventsToWrite = CreateNewMessages();
 
-            await store.AppendToStream("stream-1", ExpectedVersion.NoStream, eventsToWrite);
+            await Store.AppendToStream("stream-1", ExpectedVersion.NoStream, eventsToWrite);
 
-            var readEvents = await new PagedStreamStore(store).GetAsync("stream-1");
+            var readEvents = await new PagedStreamStore(Store).GetAsync("stream-1");
 
             readEvents.Count().ShouldBe(eventsToWrite.Length);
         }

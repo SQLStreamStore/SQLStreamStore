@@ -15,12 +15,12 @@
         {
             const string streamId = "stream";
             var newStreamMessages = CreateNewStreamMessages(1, 2, 3);
-            await store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamMessages);
+            await Store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamMessages);
             var idToDelete = newStreamMessages[1].MessageId;
 
-            await store.DeleteMessage(streamId, idToDelete);
+            await Store.DeleteMessage(streamId, idToDelete);
 
-            var streamMessagesPage = await store.ReadStreamForwards(streamId, StreamVersion.Start, 3);
+            var streamMessagesPage = await Store.ReadStreamForwards(streamId, StreamVersion.Start, 3);
 
             streamMessagesPage.Messages.Length.ShouldBe(2);
             streamMessagesPage.Messages.Any(e => e.MessageId == idToDelete).ShouldBeFalse();
@@ -31,12 +31,12 @@
         {
             const string streamId = "stream";
             var newStreamMessages = CreateNewStreamMessages(1, 2, 3);
-            await store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamMessages);
+            await Store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamMessages);
             var messageIdToDelete = newStreamMessages[1].MessageId;
 
-            await store.DeleteMessage(streamId, messageIdToDelete);
+            await Store.DeleteMessage(streamId, messageIdToDelete);
 
-            var page = await store.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
+            var page = await Store.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
             var message = page.Messages.Single();
             var messageDeleted = await message.GetJsonDataAs<MessageDeleted>();
             message.Type.ShouldBe(MessageDeletedMessageType);
@@ -49,14 +49,14 @@
         {
             const string streamId = "stream";
             var newStreamMessages = CreateNewStreamMessages(1, 2, 3);
-            await store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamMessages);
-            var initialHead = await store.ReadHeadPosition();
+            await Store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamMessages);
+            var initialHead = await Store.ReadHeadPosition();
 
-            await store.DeleteMessage(streamId, Guid.NewGuid());
+            await Store.DeleteMessage(streamId, Guid.NewGuid());
 
-            var page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 3);
+            var page = await Store.ReadStreamForwards(streamId, StreamVersion.Start, 3);
             page.Messages.Length.ShouldBe(3);
-            var subsequentHead = await store.ReadHeadPosition();
+            var subsequentHead = await Store.ReadHeadPosition();
             subsequentHead.ShouldBe(initialHead);
         }
 
@@ -65,13 +65,13 @@
         {
             const string streamId = "stream";
             var messages = CreateNewStreamMessages(1, 2, 3);
-            await store.AppendToStream(streamId, ExpectedVersion.NoStream, messages);
-            await store.DeleteMessage(streamId, messages.Last().MessageId);
+            await Store.AppendToStream(streamId, ExpectedVersion.NoStream, messages);
+            await Store.DeleteMessage(streamId, messages.Last().MessageId);
 
             messages = CreateNewStreamMessages(4);
-            await store.AppendToStream(streamId, 2, messages);
+            await Store.AppendToStream(streamId, 2, messages);
 
-            var page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 3);
+            var page = await Store.ReadStreamForwards(streamId, StreamVersion.Start, 3);
             page.Messages.Length.ShouldBe(3);
             page.LastStreamVersion.ShouldBe(3);
         }
@@ -80,11 +80,11 @@
         public async Task When_delete_a_messages_from_stream_with_then_can_read_all_forwards()
         {
             string streamId = "stream-1";
-            await AppendMessages(store, streamId, 2);
-            var page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
-            await store.DeleteMessage(streamId, page.Messages.First().MessageId);
+            await AppendMessages(Store, streamId, 2);
+            var page = await Store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+            await Store.DeleteMessage(streamId, page.Messages.First().MessageId);
 
-            page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+            page = await Store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
 
             page.Messages.Length.ShouldBe(1);
             page.LastStreamVersion.ShouldBe(1);
@@ -95,11 +95,11 @@
         public async Task When_delete_all_messages_from_stream_with_1_messages_then_can_read_all_forwards()
         {
             string streamId = "stream-1";
-            await AppendMessages(store, streamId, 1);
-            var page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
-            await store.DeleteMessage(streamId, page.Messages[0].MessageId);
+            await AppendMessages(Store, streamId, 1);
+            var page = await Store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+            await Store.DeleteMessage(streamId, page.Messages[0].MessageId);
 
-            page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+            page = await Store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
 
             page.Messages.Length.ShouldBe(0);
             page.LastStreamVersion.ShouldBe(0);
@@ -110,12 +110,12 @@
         public async Task When_delete_all_messages_from_stream_with_multiple_messages_then_can_read_all_forwards()
         {
             string streamId = "stream-1";
-            await AppendMessages(store, streamId, 2);
-            var page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
-            await store.DeleteMessage(streamId, page.Messages[0].MessageId);
-            await store.DeleteMessage(streamId, page.Messages[1].MessageId);
+            await AppendMessages(Store, streamId, 2);
+            var page = await Store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+            await Store.DeleteMessage(streamId, page.Messages[0].MessageId);
+            await Store.DeleteMessage(streamId, page.Messages[1].MessageId);
 
-            page = await store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
+            page = await Store.ReadStreamForwards(streamId, StreamVersion.Start, 2);
 
             page.Messages.Length.ShouldBe(0);
             page.LastStreamVersion.ShouldBe(1);
@@ -129,9 +129,9 @@
             string streamId)
         {
             var newStreamMessages = CreateNewStreamMessages(1);
-            await store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamMessages);
+            await Store.AppendToStream(streamId, ExpectedVersion.NoStream, newStreamMessages);
 
-            await store.DeleteMessage(streamId, newStreamMessages[0].MessageId);
+            await Store.DeleteMessage(streamId, newStreamMessages[0].MessageId);
         }
    }
 }

@@ -42,7 +42,15 @@ namespace build
             Target(
                 Test,
                 DependsOn(Build),
-                () => Run("dotnet", "test --configuration=Release --no-build --no-restore --verbosity=normal"));
+                ForEach(
+                    "SqlStreamStore.Tests",
+                    "SqlStreamStore.MsSql.Tests",
+                    "SqlStreamStore.MsSql.V3.Tests",
+                    "SqlStreamStore.MySql.Tests",
+                    "SqlStreamStore.Postgres.Tests",
+                    "SqlStreamStore.HAL.Tests",
+                    "SqlStreamStore.Http.Tests"),
+                project => Run("dotnet", $"test tests/{project}/{project}.csproj --configuration=Release --no-build --no-restore --verbosity=normal"));
 
             Target(
                 Pack,

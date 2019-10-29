@@ -54,11 +54,11 @@ namespace build
                     "SqlStreamStore.Postgres",
                     "SqlStreamStore.HAL",
                     "SqlStreamStore.Http"),
-                project => Run("dotnet", $"pack src/{project}/{project}.csproj -c Release -o ../../{ArtifactsDir} --no-build"));
+                project => Run("dotnet", $"pack src/{project}/{project}.csproj -c Release -o ../../../{ArtifactsDir} --no-build"));
 
             Target(Publish, DependsOn(Pack), () =>
             {
-                var packagesToPush = Directory.GetFiles(ArtifactsDir, "*.nupkg", SearchOption.TopDirectoryOnly);
+                var packagesToPush = Directory.GetFiles($"../{ArtifactsDir}", "*.nupkg", SearchOption.TopDirectoryOnly);
                 Console.WriteLine($"Found packages to publish: {string.Join("; ", packagesToPush)}");
 
                 var apiKey = Environment.GetEnvironmentVariable("MYGET_API_KEY");

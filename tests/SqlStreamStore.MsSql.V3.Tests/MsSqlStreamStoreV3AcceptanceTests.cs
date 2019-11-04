@@ -8,11 +8,11 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public class MsSqlStreamStoreV3AcceptanceTests : AcceptanceTests, IClassFixture<FixturePool>
+    public class MsSqlStreamStoreV3AcceptanceTests : AcceptanceTests, IClassFixture<MsSqlStreamStoreV3FixturePool>
     {
-        private readonly FixturePool _fixturePool;
+        private readonly MsSqlStreamStoreV3FixturePool _fixturePool;
 
-        public MsSqlStreamStoreV3AcceptanceTests(FixturePool fixturePool, ITestOutputHelper testOutputHelper)
+        public MsSqlStreamStoreV3AcceptanceTests(MsSqlStreamStoreV3FixturePool fixturePool, ITestOutputHelper testOutputHelper)
             : base(testOutputHelper)
         {
             _fixturePool = fixturePool;

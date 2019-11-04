@@ -6,7 +6,7 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public class FixturePool : IAsyncLifetime
+    public class MsSqlStreamStoreV3FixturePool : IAsyncLifetime
     {
         private readonly ConcurrentDictionary<string, ConcurrentQueue<MsSqlStreamStoreV3Fixture>> _fixturePoolBySchema
             = new ConcurrentDictionary<string, ConcurrentQueue<MsSqlStreamStoreV3Fixture>>();

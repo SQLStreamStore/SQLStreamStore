@@ -11,6 +11,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="..\SqlStreamStore.MsSql.Tests\MsSqlStreamStoreFixture.cs" Link="MsSqlStreamStoreFixture.cs" />
+    <Compile Include="..\SqlStreamStore.MsSql.Tests\MsSqlStreamStoreFixturePool.cs" Link="MsSqlStreamStoreFixturePool.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\SqlStreamStore.MsSql\SqlStreamStore.MsSql.csproj" />

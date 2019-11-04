@@ -1,49 +1,23 @@
 ﻿namespace SqlStreamStore
 {
-    using System;
-    using System.Diagnostics;
     using System.Threading.Tasks;
-    using Shouldly;
-    using SqlStreamStore.Streams;
     using Xunit;
     using Xunit.Abstractions;
 
-    public class MsSqlStreamStoreAcceptanceTests : AcceptanceTests
+    public class MsSqlStreamStoreAcceptanceTests : AcceptanceTests, IClassFixture<MsSqlStreamStoreFixturePool>
     {
-        public MsSqlStreamStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
+        private readonly MsSqlStreamStoreFixturePool _fixturePool;
+
+        public MsSqlStreamStoreAcceptanceTests(MsSqlStreamStoreFixturePool fixturePool, ITestOutputHelper testOutputHelper)
             : base(testOutputHelper)
-        { }
-
-        protected override async Task<IStreamStoreFixture> CreateFixture()
-            => await MsSqlStreamStoreFixture.Create("foo");
-
-        [Fact]
-        public async Task Can_use_multiple_schemas()
         {
-            using(var dboFixture = await MsSqlStreamStoreFixture.Create())
-            {
-                var dboStore = dboFixture.Store;
-
-                using(var barFixture = await MsSqlStreamStoreFixture.Create("multiple"))
-                {
-                    var barStore = barFixture.Store;
-
-                    await dboStore.AppendToStream("stream-1",
-                        ExpectedVersion.NoStream,
-                        CreateNewStreamMessages(1, 2));
-                    await barStore.AppendToStream("stream-1",
-                        ExpectedVersion.NoStream,
-                        CreateNewStreamMessages(1, 2));
-
-                    var dboHeadPosition = await dboStore.ReadHeadPosition();
-                    var barHeadPosition = await barStore.ReadHeadPosition();
-
-                    dboHeadPosition.ShouldBe(1);
-                    barHeadPosition.ShouldBe(1);
-                }
-            }
+            _fixturePool = fixturePool;
         }
 
+        protected override async Task<IStreamStoreFixture> CreateFixture()
+            => await _fixturePool.Get(TestOutputHelper);
+
+        /*
         [Fact]
         public async Task Can_get_stream_message_count_with_created_before_date()
         {
@@ -173,5 +147,6 @@
             var jsonData = await readStreamPage.Messages[0].GetJsonData();
             TestOutputHelper.WriteLine($"Read: {stopwatch.Elapsed}");
         }
+        */
     }
 }

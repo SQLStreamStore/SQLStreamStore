@@ -44,7 +44,7 @@ namespace build
                 DependsOn(Build),
                 ForEach(
                     //"SqlStreamStore.Tests",
-                    //"SqlStreamStore.MsSql.Tests",
+                    "SqlStreamStore.MsSql.Tests",
                     "SqlStreamStore.MsSql.V3.Tests"),
                     //"SqlStreamStore.MySql.Tests",
                     //"SqlStreamStore.Postgres.Tests",

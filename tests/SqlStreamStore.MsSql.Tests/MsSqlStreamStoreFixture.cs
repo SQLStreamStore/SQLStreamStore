@@ -2,7 +2,6 @@ namespace SqlStreamStore
 {
     using System;
     using System.Threading.Tasks;
-    using Microsoft.Data.SqlClient;
     using SqlStreamStore.Infrastructure;
 
     public sealed class MsSqlStreamStoreFixture : IStreamStoreFixture
@@ -10,18 +9,15 @@ namespace SqlStreamStore
         private readonly bool _createSchema;
         public readonly string ConnectionString;
         private readonly string _schema;
-        private readonly bool _deleteDatabaseOnDispose;
         private readonly string _databaseName;
         private readonly DockerMsSqlServerDatabase _databaseInstance;
         private readonly MsSqlStreamStoreSettings _settings;
 
         private MsSqlStreamStoreFixture(
             string schema,
-            bool deleteDatabaseOnDispose = true,
             bool createSchema = true)
         {
             _schema = schema;
-            _deleteDatabaseOnDispose = deleteDatabaseOnDispose;
             _createSchema = createSchema;
             _databaseName = $"sss-v3-{Guid.NewGuid():n}";
             _databaseInstance = new DockerMsSqlServerDatabase(_databaseName);
@@ -77,19 +73,14 @@ namespace SqlStreamStore
         {
             var fixture = new MsSqlStreamStoreFixture(
                 schema,
-                deleteDatabaseOnDispose: deleteDatabaseOnDispose,
                 createSchema:createSchema);
             await fixture.Init();
             return fixture;
         }
 
-        public static async Task<MsSqlStreamStoreFixture> CreateWithV1Schema(
-            string schema = "dbo",
-            bool deleteDatabaseOnDispose = true)
+        public static async Task<MsSqlStreamStoreFixture> CreateWithV1Schema(string schema = "dbo")
         {
-            var fixture = new MsSqlStreamStoreFixture(
-                schema,
-                deleteDatabaseOnDispose: deleteDatabaseOnDispose);
+            var fixture = new MsSqlStreamStoreFixture(schema);
             await fixture.Init(createV1Schema: true);
             return fixture;
         }
@@ -97,23 +88,7 @@ namespace SqlStreamStore
         public void Dispose()
         {
             Store?.Dispose();
-            if (!_deleteDatabaseOnDispose)
-            {
-                return;
-            }
-            SqlConnection.ClearAllPools();
-            using (var connection = _databaseInstance.CreateConnection())
-            {
-                connection.Open();
-                using (var command = new SqlCommand($"ALTER DATABASE [{_databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connection))
-                {
-                    command.ExecuteNonQuery();
-                }
-                using (var command = new SqlCommand($"DROP DATABASE [{_databaseName}]", connection))
-                {
-                    command.ExecuteNonQuery();
-                }
-            }
+            Store = null;
         }
     }
 }

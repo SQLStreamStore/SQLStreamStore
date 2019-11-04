@@ -8,64 +8,34 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public class MsSqlStreamStoreV3AcceptanceTests : AcceptanceTests
+    public class MsSqlStreamStoreV3AcceptanceTests : AcceptanceTests, IClassFixture<FixturePool>
     {
-        public MsSqlStreamStoreV3AcceptanceTests(ITestOutputHelper testOutputHelper)
+        private readonly FixturePool _fixturePool;
+
+        public MsSqlStreamStoreV3AcceptanceTests(FixturePool fixturePool, ITestOutputHelper testOutputHelper)
             : base(testOutputHelper)
-        { }
-
-        protected override async Task<IStreamStoreFixture> CreateFixture()
-            => await MsSqlStreamStoreV3Fixture.Create("foo");
-
-        [Fact]
-        public async Task Can_use_multiple_schemas()
         {
-            var dboStore = Fixture.Store;
-
-            using (var barFixture = await MsSqlStreamStoreV3Fixture.Create("bar"))
-            {
-                var barStore = barFixture.Store;
-
-                await dboStore.AppendToStream("stream-1",
-                    ExpectedVersion.NoStream,
-                    CreateNewStreamMessages(1, 2));
-                await barStore.AppendToStream("stream-1",
-                    ExpectedVersion.NoStream,
-                    CreateNewStreamMessages(1, 2));
-
-                var dboHeadPosition = await dboStore.ReadHeadPosition();
-                var barHeadPosition = await barStore.ReadHeadPosition();
-
-                dboHeadPosition.ShouldBe(1);
-                barHeadPosition.ShouldBe(1);
-            }
+            _fixturePool = fixturePool;
         }
 
-        [Theory, InlineData("dbo"), InlineData("myschema")]
-        public async Task Can_call_initialize_repeatably(string schema)
-        {
-            using (var fixture = await MsSqlStreamStoreV3Fixture.Create(schema, createSchema:false))
-            {
-                await fixture.Store.CreateSchemaIfNotExists();
-                await fixture.Store.CreateSchemaIfNotExists();
-            }
-        }
+        protected override async Task<IStreamStoreFixture> CreateFixture() 
+            => await _fixturePool.Get(TestOutputHelper);
 
         [Fact]
         public async Task Can_drop_all()
         {
-            using (var fixture = await MsSqlStreamStoreV3Fixture.Create())
+            using (var fixture = await _fixturePool.Get(TestOutputHelper, "abc"))
             {
-                await fixture.Store.DropAll();
+                await fixture.MsSqlStreamStoreV3.DropAll();
             }
         }
 
         [Fact]
         public async Task Can_check_schema()
         {
-            using (var fixture = await MsSqlStreamStoreV3Fixture.Create())
+            using (var fixture = await _fixturePool.Get(TestOutputHelper))
             {
-                var result = await fixture.Store.CheckSchema();
+                var result = await fixture.MsSqlStreamStoreV3.CheckSchema();
 
                 result.ExpectedVersion.ShouldBe(3);
                 result.CurrentVersion.ShouldBe(3);
@@ -76,9 +46,11 @@
         [Fact]
         public async Task When_schema_is_not_created_then_should_be_indicated()
         {
-            using (var fixture = await MsSqlStreamStoreV3Fixture.Create(createSchema: false))
+            using (var fixture = await _fixturePool.Get(TestOutputHelper, "notcreated"))
             {
-                var result = await fixture.Store.CheckSchema();
+                await fixture.MsSqlStreamStoreV3.DropAll();
+
+                var result = await fixture.MsSqlStreamStoreV3.CheckSchema();
 
                 result.ExpectedVersion.ShouldBe(3);
                 result.CurrentVersion.ShouldBe(0);
@@ -89,14 +61,14 @@
         [Fact]
         public void Can_export_database_creation_script()
         {
-            string schema = "custom_schema";
+            const string schema = "custom_schema";
             var store = new MsSqlStreamStoreV3(new MsSqlStreamStoreV3Settings("server=.;database=sss")
             {
                 Schema = schema,
             });
 
-
             var sqlScript = store.GetSchemaCreationScript();
+            
             sqlScript.ShouldBe(new ScriptsV3.Scripts("custom_schema").CreateSchema);
         }
 

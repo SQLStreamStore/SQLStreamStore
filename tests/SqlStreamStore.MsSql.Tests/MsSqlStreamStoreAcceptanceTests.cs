@@ -24,7 +24,7 @@
             {
                 var dboStore = dboFixture.Store;
 
-                using(var barFixture = await MsSqlStreamStoreFixture.Create("bar"))
+                using(var barFixture = await MsSqlStreamStoreFixture.Create("multiple"))
                 {
                     var barStore = barFixture.Store;
 

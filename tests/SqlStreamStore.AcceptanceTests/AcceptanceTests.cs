@@ -14,6 +14,7 @@
         private const string DefaultJsonData = @"{ ""data"": ""data"" }";
         private const string DefaultJsonMetadata = @"{ ""meta"": ""data"" }";
         private readonly IDisposable _logCapture;
+
         protected AcceptanceTests(ITestOutputHelper testOutputHelper)
         {
             TestOutputHelper = testOutputHelper;

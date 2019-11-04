@@ -33,7 +33,6 @@
 
             await v2Store.SetStreamMetadata("stream-1", ExpectedVersion.Any, maxAge: 10, maxCount: 20);
             v2Store.Dispose();
-            v2Fixture.Dispose();
 
             var settings = new MsSqlStreamStoreV3Settings(v2Fixture.ConnectionString)
             {

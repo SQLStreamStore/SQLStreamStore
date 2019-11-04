@@ -72,8 +72,7 @@
             await Store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
             await Store.DeleteStream(streamId, 2);
 
-            var page =
-                await Store.ReadStreamForwards(streamId, StreamVersion.Start, 10);
+            var page = await Store.ReadStreamForwards(streamId, StreamVersion.Start, 10);
 
             page.Status.ShouldBe(PageReadStatus.StreamNotFound);
         }
@@ -86,8 +85,7 @@
             await Store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
             await Store.DeleteStream(streamId, 2);
 
-            var page =
-                await Store.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
+            var page = await Store.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
 
             page.Status.ShouldBe(PageReadStatus.Success);
             var message = page.Messages.Single();

@@ -45,9 +45,9 @@ namespace build
                 ForEach(
                     //"SqlStreamStore.Tests",
                     "SqlStreamStore.MsSql.Tests",
-                    "SqlStreamStore.MsSql.V3.Tests"),
+                    "SqlStreamStore.MsSql.V3.Tests",
                     //"SqlStreamStore.MySql.Tests",
-                    //"SqlStreamStore.Postgres.Tests",
+                    "SqlStreamStore.Postgres.Tests"),
                     //"SqlStreamStore.HAL.Tests",
                     //"SqlStreamStore.Http.Tests"),
                 project => Run("dotnet", $"test tests/{project}/{project}.csproj --configuration=Release --no-build --no-restore --verbosity=normal --logger \"trx;LogFileName=<../../../{ArtifactsDir}/{project}TestResults.trx>\""));

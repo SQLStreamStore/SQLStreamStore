@@ -68,7 +68,7 @@ namespace SqlStreamStore
         /// </summary>
         public Func<string, MySqlConnection> ConnectionFactory
         {
-            get => _connectionFactory ??= connectionString => new MySqlConnection(connectionString);
+            get => _connectionFactory ?? (_connectionFactory = connectionString => new MySqlConnection(connectionString));
             set
             {
                 Ensure.That(value, nameof(value)).IsNotNull();

@@ -87,7 +87,7 @@ namespace SqlStreamStore
             using(var connection = await OpenConnection(cancellationToken))
             using(var transaction = await connection
                 .BeginTransactionAsync(cancellationToken)
-                .NotOnCapturedContext())
+                .ConfigureAwait(false))
             {
                 var throwIfAdditionalMessages = false;
 
@@ -328,7 +328,7 @@ namespace SqlStreamStore
             using(var connection = await OpenConnection(cancellationToken))
             using(var transaction = await connection
                 .BeginTransactionAsync(cancellationToken)
-                .NotOnCapturedContext())
+                .ConfigureAwait(false))
             using(var command = BuildStoredProcedureCall(
                 _schema.CreateEmptyStream,
                 transaction,

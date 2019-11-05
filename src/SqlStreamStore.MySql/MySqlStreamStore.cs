@@ -228,9 +228,7 @@
         private async Task<MySqlConnection> OpenConnection(CancellationToken cancellationToken)
         {
             var connection = _createConnection();
-
             await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
             return connection;
         }
 

@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SimpleExec;
@@ -16,6 +15,15 @@ namespace build
         private const string Test = "test";
         private const string Pack = "pack";
         private const string Publish = "publish";
+        private static bool s_oneOrMoreTestsFailed;
+
+        public enum OnError
+        {
+            StopImmediately,  // default
+            StopAfterTargetCompleted, // runs all the input collection before stopping.
+            ContinueAndFailAtEnd, // continues processing but fails at the end
+            ContinueAndIgnore, // continues processing and does not fail at end
+        }
 
         private static void Main(string[] args)
         {
@@ -43,36 +51,25 @@ namespace build
             Target(
                 Test,
                 DependsOn(Build),
-                () =>
+                ForEach(
+                    "SqlStreamStore.Tests",
+                    "SqlStreamStore.MsSql.Tests",
+                    "SqlStreamStore.MsSql.V3.Tests",
+                    "SqlStreamStore.MySql.Tests",
+                    "SqlStreamStore.Postgres.Tests",
+                    "SqlStreamStore.HAL.Tests",
+                    "SqlStreamStore.Http.Tests"), 
+                project =>
                 {
-                       var projects = new [] {
-                           "SqlStreamStore.Tests",
-                           "SqlStreamStore.MsSql.Tests",
-                           "SqlStreamStore.MsSql.V3.Tests",
-                           "SqlStreamStore.MySql.Tests",
-                           "SqlStreamStore.Postgres.Tests",
-                           "SqlStreamStore.HAL.Tests",
-                           "SqlStreamStore.Http.Tests"};
-                       var exceptions = new List<NonZeroExitCodeException>();
-
-                       // want to run all test projects and not bomb out on the first nonzero exit code.
-                       foreach (var project in projects)
-                       {
-                           try
-                           {
-                               Run("dotnet",
-                                   $"test tests/{project}/{project}.csproj --configuration=Release --no-build --no-restore --verbosity=normal --logger \"trx;LogFileName=<../../../{ArtifactsDir}/{project}TestResults.trx>\"");
-                           }
-                           catch (NonZeroExitCodeException exception)
-                           {
-                               exceptions.Add(exception);
-                           }
-                       }
-
-                       if (exceptions.Any())
-                       {
-                           throw new AggregateException("One or more tests failed", exceptions);
-                       }
+                    try
+                    {
+                        Run("dotnet",
+                            $"test tests/{project}/{project}.csproj --configuration=Release --no-build --no-restore --verbosity=normal");
+                    }
+                    catch (NonZeroExitCodeException)
+                    {
+                        s_oneOrMoreTestsFailed = true;
+                    }
                 });
 
             Target(
@@ -106,7 +103,15 @@ namespace build
                 }
             });
 
-            Target("default", DependsOn(Test, Publish));
+            Target("default",
+                DependsOn(Test, Publish),
+                () =>
+                {
+                    if (s_oneOrMoreTestsFailed)
+                    {
+                        throw new Exception("One or more tests failed.");
+                    }
+                });
 
             RunTargetsAndExit(args);
         }

@@ -26,7 +26,7 @@ namespace SqlStreamStore.MySql
             Port = (uint) _tcpPort,
             UserID = "root",
             Pooling = false,
-            MaximumPoolSize = 100
+            MaximumPoolSize = 20
         };
 
         public MySqlDockerDatabaseManager(

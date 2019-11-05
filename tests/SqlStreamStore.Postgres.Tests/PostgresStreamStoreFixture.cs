@@ -27,7 +27,8 @@ namespace SqlStreamStore
             {
                 Schema = schema,
                 GetUtcNow = () => GetUtcNow(),
-                DisableDeletionTracking = false
+                DisableDeletionTracking = false,
+                ScavengeAsynchronously = false,
             };
         }
 

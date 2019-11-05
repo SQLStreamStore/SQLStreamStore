@@ -7,7 +7,7 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <PackageTags>cqrs;event-sourcing;event-store;stream-store</PackageTags>
     <NoWarn>$(NoWarn);1701;1702;1705;1591</NoWarn>
-    <LangVersion>latest</LangVersion>
+    <LangVersion>7.3</LangVersion>
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <MinVerMinimumMajorMinor>1.2</MinVerMinimumMajorMinor>
     <TRAVIS_BUILD_NUMBER Condition="'$(TRAVIS_BUILD_NUMBER)' == ''">0</TRAVIS_BUILD_NUMBER>

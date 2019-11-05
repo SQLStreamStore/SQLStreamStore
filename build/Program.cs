@@ -1,7 +1,8 @@
 ﻿using System;
-using System.ComponentModel;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using SimpleExec;
 using static Bullseye.Targets;
 using static SimpleExec.Command;
 
@@ -42,15 +43,37 @@ namespace build
             Target(
                 Test,
                 DependsOn(Build),
-                ForEach(
-                    "SqlStreamStore.Tests",
-                    "SqlStreamStore.MsSql.Tests",
-                    "SqlStreamStore.MsSql.V3.Tests",
-                    "SqlStreamStore.MySql.Tests",
-                    "SqlStreamStore.Postgres.Tests",
-                    "SqlStreamStore.HAL.Tests",
-                    "SqlStreamStore.Http.Tests"),
-                project => Run("dotnet", $"test tests/{project}/{project}.csproj --configuration=Release --no-build --no-restore --verbosity=normal --logger \"trx;LogFileName=<../../../{ArtifactsDir}/{project}TestResults.trx>\""));
+                () =>
+                {
+                       var projects = new [] {
+                           "SqlStreamStore.Tests",
+                           "SqlStreamStore.MsSql.Tests",
+                           "SqlStreamStore.MsSql.V3.Tests",
+                           "SqlStreamStore.MySql.Tests",
+                           "SqlStreamStore.Postgres.Tests",
+                           "SqlStreamStore.HAL.Tests",
+                           "SqlStreamStore.Http.Tests"};
+                       var exceptions = new List<NonZeroExitCodeException>();
+
+                       // want to run all test projects and not bomb out on the first nonzero exit code.
+                       foreach (var project in projects)
+                       {
+                           try
+                           {
+                               Run("dotnet",
+                                   $"test tests/{project}/{project}.csproj --configuration=Release --no-build --no-restore --verbosity=normal --logger \"trx;LogFileName=<../../../{ArtifactsDir}/{project}TestResults.trx>\"");
+                           }
+                           catch (NonZeroExitCodeException exception)
+                           {
+                               exceptions.Add(exception);
+                           }
+                       }
+
+                       if (exceptions.Any())
+                       {
+                           throw new AggregateException("One or more tests failed", exceptions);
+                       }
+                });
 
             Target(
                 Pack,

@@ -1,15 +1,6 @@
 ﻿namespace SqlStreamStore
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading;
     using System.Threading.Tasks;
-    using Npgsql;
-    using Shouldly;
-    using SqlStreamStore.Infrastructure;
-    using SqlStreamStore.PgSqlScripts;
-    using SqlStreamStore.Streams;
     using Xunit;
     using Xunit.Abstractions;
 

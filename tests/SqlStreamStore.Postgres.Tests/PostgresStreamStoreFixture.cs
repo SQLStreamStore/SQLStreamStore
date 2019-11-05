@@ -81,7 +81,7 @@ namespace SqlStreamStore
                     {
                         command.ExecuteNonQuery();
                     }
-                    //ALTER SEQUENCE seq RESTART WITH 1;
+
                     commandText = $"ALTER SEQUENCE {schema}.streams_seq RESTART WITH 1;";
                     using (var command = new NpgsqlCommand(commandText, connection))
                     {

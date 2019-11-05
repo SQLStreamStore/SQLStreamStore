@@ -2,37 +2,52 @@ namespace SqlStreamStore
 {
     using System;
     using System.Threading.Tasks;
+    using global::MySql.Data.MySqlClient;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.MySql;
-    using Xunit.Abstractions;
 
     public class MySqlStreamStoreFixture : IStreamStoreFixture
     {
-        private readonly string _databaseName;
-        private readonly bool _createSchema;
-        private readonly MySqlDatabaseManager _databaseManager;
+        private readonly Action _onDispose;
+        private bool _preparedPreviously;
         private readonly MySqlStreamStoreSettings _settings;
 
-        public string DatabaseName => _databaseName;
-
-        private MySqlStreamStoreFixture(
-            ITestOutputHelper testOutputHelper,
-            bool createSchema)
+        public MySqlStreamStoreFixture(
+            MySqlDockerDatabaseManager dockerInstance,
+            string databaseName,
+            Action onDispose)
         {
-            _databaseName = $"test_{Guid.NewGuid():n}";
-            _createSchema = createSchema;
-            _databaseManager = new MySqlDockerDatabaseManager(
-                testOutputHelper,
-                _databaseName);
-            _settings = new MySqlStreamStoreSettings(ConnectionString)
+            _onDispose = onDispose;
+            DatabaseName = databaseName;
+            var connectionString = dockerInstance.ConnectionString;
+
+            _settings = new MySqlStreamStoreSettings(connectionString)
             {
                 GetUtcNow = () => GetUtcNow(),
+                DisableDeletionTracking = false
                 ScavengeAsynchronously = false,
                 AppendDeadlockRetryAttempts = 25
             };
         }
 
-        IStreamStore IStreamStoreFixture.Store => Store;
+        public void Dispose()
+        {
+            Store.Dispose();
+            MySqlStreamStore = null;
+            _onDispose();
+        }
+
+        public string DatabaseName { get; }
+
+        public IStreamStore Store => MySqlStreamStore;
+
+        public MySqlStreamStore MySqlStreamStore { get; private set; }
+
+        public GetUtcNow GetUtcNow { get; set; } = SystemClock.GetUtcNow;
+
+        public long MinPosition { get; set; } = 0;
+
+        public int MaxSubscriptionCount { get; set; } = 500;
 
         public bool DisableDeletionTracking
         {
@@ -40,41 +55,45 @@ namespace SqlStreamStore
             set => _settings.DisableDeletionTracking = value;
         }
 
-        public MySqlStreamStore Store { get; private set; }
-
-        public GetUtcNow GetUtcNow { get; set; } = SystemClock.GetUtcNow;
-
-        public string ConnectionString => _databaseManager.ConnectionString;
-
-        public long MinPosition { get; set; } = 0;
-
-        public int MaxSubscriptionCount { get; set; } = 100;
-
-        private async Task Init()
+        public async Task Prepare()
         {
-            await _databaseManager.CreateDatabase();
+            _settings.DisableDeletionTracking = false;
+            MySqlStreamStore = new MySqlStreamStore(_settings);
 
-            Store = new MySqlStreamStore(_settings);
-
-            if(_createSchema)
+            await MySqlStreamStore.CreateSchemaIfNotExists();
+            if (_preparedPreviously)
             {
-                await Store.CreateSchemaIfNotExists();
+                using (var connection = new MySqlConnection(_settings.ConnectionString))
+                {
+                    connection.Open();
+
+                    var commandText = "DELETE FROM messages";
+                    using (var command = new MySqlCommand(commandText, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+
+                    commandText = "DELETE FROM streams";
+                    using (var command = new MySqlCommand(commandText, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+
+                    commandText = "ALTER TABLE streams AUTO_INCREMENT = 1";
+                    using (var command = new MySqlCommand(commandText, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+
+                    commandText = "ALTER TABLE messages AUTO_INCREMENT = 1";
+                    using (var command = new MySqlCommand(commandText, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
             }
-        }
 
-        public static async Task<MySqlStreamStoreFixture> Create(
-            ITestOutputHelper testOutputHelper = null,
-            bool createSchema = true)
-        {
-            var fixture = new MySqlStreamStoreFixture(testOutputHelper, createSchema);
-            await fixture.Init();
-            return fixture;
-        }
-
-        public void Dispose()
-        {
-            Store.Dispose();
-            _databaseManager.Dispose();
+            _preparedPreviously = true;
         }
     }
 }

@@ -351,7 +351,7 @@
         [Theory, Trait("Category", "ReadStream")]
         [InlineData("stream/1")]
         [InlineData("stream%1")]
-        public async Task when_read_stream_forwards_with_url_encodable_stream(string streamId)
+        public async Task When_read_stream_forwards_with_url_encodable_stream(string streamId)
         {
             await Store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1));
 
@@ -363,7 +363,7 @@
         [Theory, Trait("Category", "ReadStream")]
         [InlineData("stream/1")]
         [InlineData("stream%1")]
-        public async Task when_read_stream_backwards_with_url_encodable_stream(string streamId)
+        public async Task When_read_stream_backwards_with_url_encodable_stream(string streamId)
         {
             await Store.AppendToStream(streamId, ExpectedVersion.NoStream, CreateNewStreamMessages(1));
 

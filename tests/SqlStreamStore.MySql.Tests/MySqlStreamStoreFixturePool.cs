@@ -18,7 +18,7 @@
             {
                 var dbUniqueName = (DateTime.UtcNow - DateTime.UnixEpoch).TotalMilliseconds;
                 var databaseName = $"sss-v3-{dbUniqueName}";
-                var dockerInstance = new MySqlDockerDatabaseManager(outputHelper, databaseName);
+                var dockerInstance = new MySqlDockerDatabaseManager(outputHelper, databaseName); // TODO output helper here will be interleaved
                 await dockerInstance.CreateDatabase();
 
                 fixture = new MySqlStreamStoreFixture(

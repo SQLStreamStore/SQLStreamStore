@@ -82,5 +82,11 @@ namespace SqlStreamStore
         ///     message has been deleted. This can be modified at runtime.
         /// </summary>
         public bool DisableDeletionTracking { get; set; }
+
+        /// <summary>
+        ///     Indicates how long many times an operation should be retried
+        ///     if a deadlock is detected. Defaults to 0.
+        /// </summary>
+        public int DeadlockRetryAttempts { get; set; }
     }
 }

@@ -1,6 +1,7 @@
 namespace SqlStreamStore
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using MySql.Data.MySqlClient;
@@ -18,22 +19,38 @@ namespace SqlStreamStore
         {
             var streamIdInfo = new StreamIdInfo(streamId);
 
-            try
+            var retryableExceptions = new List<Exception>();
+            while(retryableExceptions.Count <= _settings.DeadlockRetryAttempts)
             {
-                return messages.Length == 0
-                    ? await CreateEmptyStream(streamIdInfo, expectedVersion, cancellationToken)
-                    : await AppendMessagesToStream(streamIdInfo, expectedVersion, messages, cancellationToken);
-            }
-            catch(MySqlException ex) when(ex.IsWrongExpectedVersion())
-            {
-                throw new WrongExpectedVersionException(
-                    ErrorMessages.AppendFailedWrongExpectedVersion(
+                try
+                {
+                    return messages.Length == 0
+                        ? await CreateEmptyStream(streamIdInfo, expectedVersion, cancellationToken)
+                        : await AppendMessagesToStream(streamIdInfo, expectedVersion, messages, cancellationToken);
+                }
+                catch(MySqlException ex) when(ex.IsDeadlock())
+                {
+                    retryableExceptions.Add(ex);
+                }
+                catch(MySqlException ex) when(ex.IsWrongExpectedVersion())
+                {
+                    throw new WrongExpectedVersionException(
+                        ErrorMessages.AppendFailedWrongExpectedVersion(
+                            streamIdInfo.MySqlStreamId.IdOriginal,
+                            expectedVersion),
                         streamIdInfo.MySqlStreamId.IdOriginal,
-                        expectedVersion),
+                        expectedVersion,
+                        ex);
+                }
+            }
+            throw new WrongExpectedVersionException(
+                MySqlErrorMessages.AppendFailedDeadlock(
                     streamIdInfo.MySqlStreamId.IdOriginal,
                     expectedVersion,
-                    ex);
-            }
+                    _settings.DeadlockRetryAttempts),
+                streamIdInfo.MySqlStreamId.IdOriginal,
+                expectedVersion,
+                retryableExceptions.Count == 1 ? retryableExceptions[0] : new AggregateException(retryableExceptions));
         }
 
         private async Task<AppendResult> AppendMessagesToStream(

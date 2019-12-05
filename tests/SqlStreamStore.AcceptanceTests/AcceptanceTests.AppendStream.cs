@@ -1,6 +1,7 @@
 ﻿namespace SqlStreamStore
 {
     using System;
+    using System.Collections.Generic;
     using System.Threading.Tasks;
     using Shouldly;
     using SqlStreamStore.Streams;
@@ -709,6 +710,43 @@
 
             result.CurrentVersion.ShouldBe(2);
             result.CurrentPosition.ShouldBeGreaterThanOrEqualTo(Fixture.MinPosition + 2L);
+        }
+
+        [Fact, Trait("Category", "AppendStream")]
+        public async Task When_append_stream_concurrently_with_no_stream_expected_and_same_messages_then_should_then_should_have_expected_result()
+        {
+            // Idempotency
+            const string streamId = "stream-1";
+            
+            var messages = CreateNewStreamMessages(1, 2);
+            var tasks = new List<Task<AppendResult>>();
+            for(var index = 0; index < 10; index++)
+            {
+                tasks.Add(Store.AppendToStream(streamId, ExpectedVersion.NoStream, messages));
+            }
+            
+            var results = await Task.WhenAll(tasks);
+
+            Assert.All(results, result => result.CurrentVersion.ShouldBe(1));
+            Assert.All(results, result => result.CurrentPosition.ShouldBe(results[0].CurrentPosition));
+        }
+        
+        [Fact, Trait("Category", "AppendStream")]
+        public async Task When_append_to_different_streams_concurrently_with_no_stream_expected_and_same_messages_then_should_then_should_have_expected_result()
+        {
+            // Idempotency
+            const string streamPrefix = "stream-";
+            
+            var messages = CreateNewStreamMessages(1, 2);
+            var tasks = new List<Task<AppendResult>>();
+            for(var index = 0; index < 10; index++)
+            {
+                tasks.Add(Store.AppendToStream(streamPrefix + index, ExpectedVersion.NoStream, messages));
+            }
+            
+            var results = await Task.WhenAll(tasks);
+
+            Assert.All(results, result => result.CurrentVersion.ShouldBe(1));
         }
     }
 }

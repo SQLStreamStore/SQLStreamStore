@@ -19,7 +19,8 @@ BEGIN
 
     SELECT streams.id_internal INTO _stream_id_internal
     FROM streams
-    WHERE streams.id = _stream_id;
+    WHERE streams.id = _stream_id
+    FOR UPDATE;
 
     IF _stream_id_internal IS NULL THEN
         CALL get_stream_metadata(_metadata_stream_id, _max_age, _max_count);

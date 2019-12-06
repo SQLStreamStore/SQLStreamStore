@@ -14,7 +14,7 @@
 
     /// <inheritdoc />
     /// <summary>
-    ///     Represents a PostgreSQL stream store implementation.
+    ///     Represents a MySql stream store implementation.
     /// </summary>
     public partial class MySqlStreamStore : StreamStoreBase
     {

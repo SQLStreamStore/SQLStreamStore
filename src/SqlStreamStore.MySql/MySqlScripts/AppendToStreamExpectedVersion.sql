@@ -15,7 +15,8 @@ BEGIN
 
     SELECT streams.id_internal INTO _stream_id_internal
     FROM streams
-    WHERE streams.id = _stream_id;
+    WHERE streams.id = _stream_id
+    FOR UPDATE;
 
     IF (SELECT streams.version
         FROM streams

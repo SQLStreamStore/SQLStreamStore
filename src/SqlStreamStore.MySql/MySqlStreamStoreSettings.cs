@@ -10,6 +10,7 @@ namespace SqlStreamStore
     {
         private Func<string, MySqlConnection> _connectionFactory;
         private GetUtcNow _getUtcNow = SystemClock.GetUtcNow;
+        private int _appendDeadlockRetryAttempts = 0;
         private readonly MySqlConnectionStringBuilder _connectionStringBuilder;
 
         /// <summary>
@@ -84,9 +85,17 @@ namespace SqlStreamStore
         public bool DisableDeletionTracking { get; set; }
 
         /// <summary>
-        ///     Indicates how many times an operation should be retried
+        ///     Indicates how many times an append operation should be retried
         ///     if a deadlock is detected. Defaults to 0.
         /// </summary>
-        public int DeadlockRetryAttempts { get; set; }
+        public int AppendDeadlockRetryAttempts
+        {
+            get => _appendDeadlockRetryAttempts;
+            set
+            {
+                Ensure.That(value, nameof(value)).IsGte(0);
+                _appendDeadlockRetryAttempts = value;
+            }
+        }
     }
 }

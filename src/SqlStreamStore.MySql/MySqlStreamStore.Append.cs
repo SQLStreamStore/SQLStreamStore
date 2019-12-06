@@ -19,8 +19,28 @@ namespace SqlStreamStore
         {
             var streamIdInfo = new StreamIdInfo(streamId);
 
+            if(_settings.AppendDeadlockRetryAttempts == 0)
+            {
+                try
+                {
+                    return messages.Length == 0
+                        ? await CreateEmptyStream(streamIdInfo, expectedVersion, cancellationToken)
+                        : await AppendMessagesToStream(streamIdInfo, expectedVersion, messages, cancellationToken);
+                }
+                catch(MySqlException ex) when(ex.IsWrongExpectedVersion())
+                {
+                    throw new WrongExpectedVersionException(
+                        ErrorMessages.AppendFailedWrongExpectedVersion(
+                            streamIdInfo.MySqlStreamId.IdOriginal,
+                            expectedVersion),
+                        streamIdInfo.MySqlStreamId.IdOriginal,
+                        expectedVersion,
+                        ex);
+                }
+            }
+
             var retryableExceptions = new List<Exception>();
-            while(retryableExceptions.Count <= _settings.DeadlockRetryAttempts)
+            while(retryableExceptions.Count <= _settings.AppendDeadlockRetryAttempts)
             {
                 try
                 {
@@ -47,10 +67,12 @@ namespace SqlStreamStore
                 MySqlErrorMessages.AppendFailedDeadlock(
                     streamIdInfo.MySqlStreamId.IdOriginal,
                     expectedVersion,
-                    _settings.DeadlockRetryAttempts),
+                    _settings.AppendDeadlockRetryAttempts),
                 streamIdInfo.MySqlStreamId.IdOriginal,
                 expectedVersion,
-                retryableExceptions.Count == 1 ? retryableExceptions[0] : new AggregateException(retryableExceptions));
+                new AggregateException(retryableExceptions));
+
+
         }
 
         private async Task<AppendResult> AppendMessagesToStream(

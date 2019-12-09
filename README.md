@@ -4,14 +4,14 @@ A stream store library for .NET that specifically targets SQL based implementati
 
 | Package | Install |
 | --- | --- |
-| [SqlStreamStore](https://www.fuget.org/packages/SqlStreamStore) (includes in-memory version for behaviour testing) | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg?logo=nuget)](https://www.nuget.org/packages/SqlStreamStore) |
-| [MS SQL Server](https://www.fuget.org/packages/SqlStreamStore.MsSql) / Azure SQL Database | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg?logo=nuget)](https://www.nuget.org/packages/SqlStreamStore.MsSql) |
-| [PostgreSQL](https://www.fuget.org/packages/SqlStreamStore.Postgres) / AWS Aurora | [![NuGet](https://img.shields.io/nuget/vpre/SqlStreamStore.Postgres.svg?logo=nuget)](https://www.nuget.org/packages/SqlStreamStore.Postgres) |
-| [MySQL](https://www.fuget.org/packages/SqlStreamStore.MySql) / AWS Aurora | [![NuGet](https://img.shields.io/nuget/vpre/SqlStreamStore.MySql.svg?logo=nuget)](https://www.nuget.org/packages/SqlStreamStore.MySql) |
+| [SqlStreamStore](https://www.nuget.org/packages/SqlStreamStore) (includes in-memory version for behaviour testing) | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg?logo=nuget)](https://www.nuget.org/packages/SqlStreamStore) |
+| [MS SQL Server](https://www.muget.org/packages/SqlStreamStore.MsSql) / Azure SQL Database | [![NuGet](https://img.shields.io/nuget/v/SqlStreamStore.svg?logo=nuget)](https://www.nuget.org/packages/SqlStreamStore.MsSql) |
+| [PostgreSQL](https://www.muget.org/packages/SqlStreamStore.Postgres) / AWS Aurora | [![NuGet](https://img.shields.io/nuget/vpre/SqlStreamStore.Postgres.svg?logo=nuget)](https://www.nuget.org/packages/SqlStreamStore.Postgres) |
+| [MySQL](https://www.muget.org/packages/SqlStreamStore.MySql) / AWS Aurora | [![NuGet](https://img.shields.io/nuget/vpre/SqlStreamStore.MySql.svg?logo=nuget)](https://www.nuget.org/packages/SqlStreamStore.MySql) |
 | Sqlite | [_up for grabs_](https://github.com/SQLStreamStore/SqlStreamStore/issues/28) |
 | HTTP Wrapper API | On CI Feed |
 
-CI Packages available [on MyGet](https://www.myget.org/gallery/sqlstreamstore)
+CI Packages available [on Feedz](https://f.feedz.io/streamstore/ci/nuget/index.json).
 
 # Design considerations:
 

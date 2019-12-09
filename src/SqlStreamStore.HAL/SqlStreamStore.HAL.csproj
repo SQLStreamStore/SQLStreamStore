@@ -11,7 +11,7 @@
     <PackageReference Include="Halcyon" Version="2.5.1" />
     <PackageReference Include="LibLog" Version="5.0.6" PrivateAssets="All" />
     <PackageReference Include="Microsoft.AspNetCore.Routing" Version="2.1.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.1" />
+    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
   <ItemGroup>
     <EmbeddedResource Include="**\Schema\*.schema.json;**\Schema\*.schema.md">

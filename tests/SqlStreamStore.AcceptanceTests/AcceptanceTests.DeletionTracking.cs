@@ -14,11 +14,8 @@ namespace SqlStreamStore
             Fixture.DisableDeletionTracking = true;
 
             var messages = CreateNewStreamMessages(1);
-
-            await Fixture.Store.AppendToStream("stream", ExpectedVersion.NoStream, messages);
-
-            await Fixture.Store.DeleteMessage("stream", messages[0].MessageId);
-
+            await Store.AppendToStream("stream", ExpectedVersion.NoStream, messages);
+            await Store.DeleteMessage("stream", messages[0].MessageId);
             var page = await Store.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
 
             page.Messages.Length.ShouldBe(0);
@@ -30,11 +27,8 @@ namespace SqlStreamStore
             Fixture.DisableDeletionTracking = true;
             
             var messages = CreateNewStreamMessages(1);
-
-            await Fixture.Store.AppendToStream("stream", ExpectedVersion.NoStream, messages);
-
-            await Fixture.Store.DeleteStream("stream");
-
+            await Store.AppendToStream("stream", ExpectedVersion.NoStream, messages);
+            await Store.DeleteStream("stream");
             var page = await Store.ReadStreamBackwards(DeletedStreamId, StreamVersion.End, 1);
 
             page.Messages.Length.ShouldBe(0);

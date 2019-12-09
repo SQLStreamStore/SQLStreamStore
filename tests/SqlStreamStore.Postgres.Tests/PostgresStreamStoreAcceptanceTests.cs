@@ -1,27 +1,25 @@
 ﻿namespace SqlStreamStore
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading;
     using System.Threading.Tasks;
-    using Npgsql;
-    using Shouldly;
-    using SqlStreamStore.Infrastructure;
-    using SqlStreamStore.PgSqlScripts;
-    using SqlStreamStore.Streams;
     using Xunit;
     using Xunit.Abstractions;
 
-    public class PostgresStreamStoreAcceptanceTests : AcceptanceTests
+    public class PostgresStreamStoreAcceptanceTests : AcceptanceTests, IClassFixture<PostgresStreamStoreV3FixturePool>
     {
-        public PostgresStreamStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
+        private readonly PostgresStreamStoreV3FixturePool _fixturePool;
+
+        public PostgresStreamStoreAcceptanceTests(
+            PostgresStreamStoreV3FixturePool fixturePool,
+            ITestOutputHelper testOutputHelper)
             : base(testOutputHelper)
-        { }
+        {
+            _fixturePool = fixturePool;
+        }
 
         protected override async Task<IStreamStoreFixture> CreateFixture() 
-            => await PostgresStreamStoreFixture.Create(testOutputHelper: TestOutputHelper);
+            => await _fixturePool.Get(TestOutputHelper);
 
+        /*
         [Fact]
         public async Task Can_use_multiple_schemas()
         {
@@ -140,5 +138,6 @@
             var sqlScript = store.GetSchemaCreationScript();
             sqlScript.ShouldBe(new Scripts(schema).CreateSchema);
         }
+        */
     }
 }

@@ -103,7 +103,8 @@
 
                 using (var command = new SqlCommand(_scripts.CreateSchema, connection))
                 {
-                    await command.ExecuteNonQueryAsync(cancellationToken)
+                    await command
+                        .ExecuteNonQueryAsync(cancellationToken)
                         .NotOnCapturedContext();
                 }
             }

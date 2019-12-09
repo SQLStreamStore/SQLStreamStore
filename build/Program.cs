@@ -1,7 +1,7 @@
 ﻿using System;
-using System.ComponentModel;
 using System.IO;
 using System.Linq;
+using SimpleExec;
 using static Bullseye.Targets;
 using static SimpleExec.Command;
 
@@ -15,6 +15,15 @@ namespace build
         private const string Test = "test";
         private const string Pack = "pack";
         private const string Publish = "publish";
+        private static bool s_oneOrMoreTestsFailed;
+
+        public enum OnError
+        {
+            StopImmediately,  // default
+            StopAfterTargetCompleted, // runs all the input collection before stopping.
+            ContinueAndFailAtEnd, // continues processing but fails at the end
+            ContinueAndIgnore, // continues processing and does not fail at end
+        }
 
         private static void Main(string[] args)
         {
@@ -49,8 +58,19 @@ namespace build
                     "SqlStreamStore.MySql.Tests",
                     "SqlStreamStore.Postgres.Tests",
                     "SqlStreamStore.HAL.Tests",
-                    "SqlStreamStore.Http.Tests"),
-                project => Run("dotnet", $"test tests/{project}/{project}.csproj --configuration=Release --no-build --no-restore --verbosity=normal"));
+                    "SqlStreamStore.Http.Tests"), 
+                project =>
+                {
+                    try
+                    {
+                        Run("dotnet",
+                            $"test tests/{project}/{project}.csproj --configuration=Release --no-build --no-restore --verbosity=normal");
+                    }
+                    catch (NonZeroExitCodeException)
+                    {
+                        s_oneOrMoreTestsFailed = true;
+                    }
+                });
 
             Target(
                 Pack,
@@ -83,7 +103,15 @@ namespace build
                 }
             });
 
-            Target("default", DependsOn(Test, Publish));
+            Target("default",
+                DependsOn(Test, Publish),
+                () =>
+                {
+                    if (s_oneOrMoreTestsFailed)
+                    {
+                        throw new Exception("One or more tests failed.");
+                    }
+                });
 
             RunTargetsAndExit(args);
         }

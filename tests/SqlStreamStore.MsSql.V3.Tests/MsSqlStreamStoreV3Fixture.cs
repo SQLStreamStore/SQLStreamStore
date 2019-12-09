@@ -1,48 +1,50 @@
-namespace SqlStreamStore
+﻿namespace SqlStreamStore
 {
     using System;
     using System.Threading.Tasks;
     using Microsoft.Data.SqlClient;
     using SqlStreamStore.Infrastructure;
 
-    public sealed class MsSqlStreamStoreV3Fixture : IStreamStoreFixture
+    public class MsSqlStreamStoreV3Fixture : IStreamStoreFixture
     {
-        private readonly bool _createSchema;
-        public readonly string ConnectionString;
-        private readonly string _schema;
-        private readonly bool _deleteDatabaseOnDispose;
-        private readonly string _databaseName;
-        private readonly DockerMsSqlServerDatabase _databaseInstance;
+        private readonly Action _onDispose;
+        private bool _preparedPreviously;
         private readonly MsSqlStreamStoreV3Settings _settings;
 
-        private MsSqlStreamStoreV3Fixture(
+        public MsSqlStreamStoreV3Fixture(
             string schema,
-            bool disableDeletionTracking = false,
-            bool deleteDatabaseOnDispose = true,
-            bool createSchema = true)
+            DockerMsSqlServerDatabase dockerInstance,
+            string databaseName,
+            Action onDispose)
         {
-            _schema = schema;
-            _deleteDatabaseOnDispose = deleteDatabaseOnDispose;
-            _createSchema = createSchema;
-            _databaseName = $"sss-v3-{Guid.NewGuid():n}";
-            _databaseInstance = new DockerMsSqlServerDatabase(_databaseName);
+            _onDispose = onDispose;
 
-            var connectionStringBuilder = _databaseInstance.CreateConnectionStringBuilder();
+            DatabaseName = databaseName;
+            var connectionStringBuilder = dockerInstance.CreateConnectionStringBuilder();
             connectionStringBuilder.MultipleActiveResultSets = true;
-            connectionStringBuilder.InitialCatalog = _databaseName;
-            ConnectionString = connectionStringBuilder.ToString();
+            connectionStringBuilder.InitialCatalog = DatabaseName;
+            var connectionString = connectionStringBuilder.ToString();
 
-            _settings = new MsSqlStreamStoreV3Settings(ConnectionString)
+            _settings = new MsSqlStreamStoreV3Settings(connectionString)
             {
-                Schema = _schema,
+                Schema = schema,
                 GetUtcNow = () => GetUtcNow(),
-                DisableDeletionTracking = disableDeletionTracking
+                DisableDeletionTracking = false
             };
         }
 
-        IStreamStore IStreamStoreFixture.Store => Store;
+        public void Dispose()
+        {
+            Store.Dispose();
+            MsSqlStreamStoreV3 = null;
+            _onDispose();
+        }
 
-        public MsSqlStreamStoreV3 Store { get; private set; }
+        public string DatabaseName { get; }
+
+        public IStreamStore Store => MsSqlStreamStoreV3;
+
+        public MsSqlStreamStoreV3 MsSqlStreamStoreV3 { get; private set; }
 
         public GetUtcNow GetUtcNow { get; set; } = SystemClock.GetUtcNow;
 
@@ -56,55 +58,47 @@ namespace SqlStreamStore
             set => _settings.DisableDeletionTracking = value;
         }
 
-        private async Task Init()
+        public async Task Prepare()
         {
-            await _databaseInstance.CreateDatabase();
-            Store = new MsSqlStreamStoreV3(_settings);
-            if(_createSchema)
-            {
-                await Store.CreateSchemaIfNotExists();
-            }
-        }
+            _settings.DisableDeletionTracking = false;
+            MsSqlStreamStoreV3 = new MsSqlStreamStoreV3(_settings);
 
-        public static async Task<MsSqlStreamStoreV3Fixture> Create(
-            string schema = "dbo",
-            bool createSchema = true,
-            bool deleteDatabaseOnDispose = true)
-        {
-            var fixture = new MsSqlStreamStoreV3Fixture(
-                schema,
-                false,
-                deleteDatabaseOnDispose,
-                createSchema);
-            await fixture.Init();
-            return fixture;
-        }
-
-        public void Dispose()
-        {
-            Store?.Dispose();
-
-            if(!_deleteDatabaseOnDispose)
-            {
-                return;
-            }
-
-            SqlConnection.ClearAllPools();
-            using(var connection = _databaseInstance.CreateConnection())
-            {
-                connection.Open();
-                using(var command =
-                    new SqlCommand($"ALTER DATABASE [{_databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE",
-                        connection))
+            await MsSqlStreamStoreV3.CreateSchemaIfNotExists();
+            if (_preparedPreviously)
+            { 
+                using (var connection = new SqlConnection(_settings.ConnectionString))
                 {
-                    command.ExecuteNonQuery();
-                }
+                    connection.Open();
 
-                using(var command = new SqlCommand($"DROP DATABASE [{_databaseName}]", connection))
-                {
-                    command.ExecuteNonQuery();
+                    var schema = _settings.Schema;
+
+                    var commandText = $"DELETE FROM [{schema}].[Messages]";
+                    using(var command = new SqlCommand(commandText, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+
+                    commandText = $"DELETE FROM [{schema}].[Streams]";
+                    using(var command = new SqlCommand(commandText, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+
+                    commandText = $"DBCC CHECKIDENT ('[{schema}].[Streams]', RESEED, 0);";
+                    using(var command = new SqlCommand(commandText, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+
+                    commandText = $"DBCC CHECKIDENT ('[{schema}].[Messages]', RESEED, -1);";
+                    using(var command = new SqlCommand(commandText, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
                 }
             }
+
+            _preparedPreviously = true;
         }
     }
 }

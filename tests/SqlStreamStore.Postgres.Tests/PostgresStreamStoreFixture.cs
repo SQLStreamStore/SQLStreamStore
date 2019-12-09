@@ -2,43 +2,50 @@ namespace SqlStreamStore
 {
     using System;
     using System.Threading.Tasks;
+    using Npgsql;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Postgres;
-    using Xunit.Abstractions;
 
     public class PostgresStreamStoreFixture : IStreamStoreFixture
     {
-        private readonly string _schema;
-        private readonly bool _createSchema;
-        private readonly PostgresDatabaseManager _databaseManager;
+        private readonly Action _onDispose;
+        private bool _preparedPreviously;
         private readonly PostgresStreamStoreSettings _settings;
 
-        private PostgresStreamStoreFixture(
+        public PostgresStreamStoreFixture(
             string schema,
-            ITestOutputHelper testOutputHelper,
-            bool createSchema)
+            PostgresDockerDatabaseManager dockerInstance,
+            string databaseName,
+            Action onDispose)
         {
-            _schema = schema;
-            _createSchema = createSchema;
-            _databaseManager = new PostgresDockerDatabaseManager(
-                testOutputHelper,
-                $"test_{Guid.NewGuid():n}");
-            _settings = new PostgresStreamStoreSettings(ConnectionString)
+            _onDispose = onDispose;
+
+            DatabaseName = databaseName;
+            var connectionString = dockerInstance.ConnectionString;
+
+            _settings = new PostgresStreamStoreSettings(connectionString)
             {
-                Schema = _schema,
+                Schema = schema,
                 GetUtcNow = () => GetUtcNow(),
-                ScavengeAsynchronously = false
+                DisableDeletionTracking = false,
+                ScavengeAsynchronously = false,
             };
         }
 
+        public void Dispose()
+        {
+            Store.Dispose();
+            PostgresStreamStore = null;
+            _onDispose();
+        }
 
-        IStreamStore IStreamStoreFixture.Store => Store;
+        public string DatabaseName { get; }
 
-        public PostgresStreamStore Store { get; private set; }
+        public IStreamStore Store => PostgresStreamStore;
+
+        public PostgresStreamStore PostgresStreamStore { get; private set; }
 
         public GetUtcNow GetUtcNow { get; set; } = SystemClock.GetUtcNow;
-
-        public string ConnectionString => _databaseManager.ConnectionString;
 
         public long MinPosition { get; set; } = 0;
 
@@ -50,32 +57,47 @@ namespace SqlStreamStore
             set => _settings.DisableDeletionTracking = value;
         }
 
-        private async Task Init()
+        public async Task Prepare()
         {
-            await _databaseManager.CreateDatabase();
+            _settings.DisableDeletionTracking = false;
+            PostgresStreamStore = new PostgresStreamStore(_settings);
 
-            Store = new PostgresStreamStore(_settings);
-
-            if(_createSchema)
+            await PostgresStreamStore.CreateSchemaIfNotExists();
+            if (_preparedPreviously)
             {
-                await Store.CreateSchemaIfNotExists();
+                using (var connection = new NpgsqlConnection(_settings.ConnectionString))
+                {
+                    connection.Open();
+
+                    var schema = _settings.Schema;
+
+                    var commandText = $"DELETE FROM {schema}.messages";
+                    using (var command = new NpgsqlCommand(commandText, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+
+                    commandText = $"DELETE FROM {schema}.streams";
+                    using (var command = new NpgsqlCommand(commandText, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+
+                    commandText = $"ALTER SEQUENCE {schema}.streams_seq RESTART WITH 1;";
+                    using (var command = new NpgsqlCommand(commandText, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+
+                    commandText = $"ALTER SEQUENCE {schema}.messages_seq RESTART WITH 0;";
+                    using (var command = new NpgsqlCommand(commandText, connection))
+                    {
+                        command.ExecuteNonQuery();
+                    }
+                }
             }
-        }
 
-        public static async Task<PostgresStreamStoreFixture> Create(
-            string schema = "dbo",
-            ITestOutputHelper testOutputHelper = null,
-            bool createSchema = true)
-        {
-            var fixture = new PostgresStreamStoreFixture(schema, testOutputHelper, createSchema);
-            await fixture.Init();
-            return fixture;
-        }
-
-        public void Dispose()
-        {
-            Store.Dispose();
-            _databaseManager.Dispose();
+            _preparedPreviously = true;
         }
     }
 }

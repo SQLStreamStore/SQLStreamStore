@@ -22,7 +22,8 @@
         {
             // Set up an old schema + data.
             var schema = "baz";
-            var v2Fixture = await MsSqlStreamStoreFixture.Create(schema, deleteDatabaseOnDispose: false);
+            var v2Pool = new MsSqlStreamStoreFixturePool();
+            var v2Fixture = await v2Pool.Get(_testOutputHelper, schema);
             var v2Store = v2Fixture.Store;
             await v2Store.AppendToStream("stream-1",
                 ExpectedVersion.NoStream,
@@ -33,7 +34,6 @@
 
             await v2Store.SetStreamMetadata("stream-1", ExpectedVersion.Any, maxAge: 10, maxCount: 20);
             v2Store.Dispose();
-            v2Fixture.Dispose();
 
             var settings = new MsSqlStreamStoreV3Settings(v2Fixture.ConnectionString)
             {

@@ -1,27 +1,25 @@
 ﻿namespace SqlStreamStore
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
-    using System.Threading;
     using System.Threading.Tasks;
-    using global::MySql.Data.MySqlClient;
-    using Shouldly;
-    using SqlStreamStore.Infrastructure;
-    using SqlStreamStore.MySqlScripts;
-    using SqlStreamStore.Streams;
     using Xunit;
     using Xunit.Abstractions;
 
-    public class MySqlStreamStoreAcceptanceTests : AcceptanceTests
+    public class MySqlStreamStoreAcceptanceTests : AcceptanceTests, IClassFixture<MySqlStreamStoreFixturePool>
     {
-        public MySqlStreamStoreAcceptanceTests(ITestOutputHelper testOutputHelper)
+        private readonly MySqlStreamStoreFixturePool _fixturePool;
+
+        public MySqlStreamStoreAcceptanceTests(
+            MySqlStreamStoreFixturePool fixturePool,
+            ITestOutputHelper testOutputHelper)
             : base(testOutputHelper)
-        { }
+        {
+            _fixturePool = fixturePool;
+        }
 
         protected override async Task<IStreamStoreFixture> CreateFixture()
-            => await MySqlStreamStoreFixture.Create(TestOutputHelper);
+            => await _fixturePool.Get(TestOutputHelper);
 
+        /*
         [Fact]
         public async Task Can_use_multiple_databases()
         {
@@ -126,5 +124,6 @@
             var sqlScript = store.GetSchemaCreationScript();
             sqlScript.ShouldBe(new Scripts().CreateSchema);
         }
+        */
     }
 }

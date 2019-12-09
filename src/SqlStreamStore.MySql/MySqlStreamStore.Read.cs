@@ -27,7 +27,7 @@ namespace SqlStreamStore
                 using(var connection = await OpenConnection(cancellationToken))
                 using(var transaction = await connection
                     .BeginTransactionAsync(cancellationToken)
-                    .NotOnCapturedContext())
+                    .ConfigureAwait(false))
                 {
                     var streamIdInfo = new StreamIdInfo(streamId);
 
@@ -61,7 +61,7 @@ namespace SqlStreamStore
                 using(var connection = await OpenConnection(cancellationToken))
                 using(var transaction = await connection
                     .BeginTransactionAsync(cancellationToken)
-                    .NotOnCapturedContext())
+                    .ConfigureAwait(false))
                 {
                     var streamIdInfo = new StreamIdInfo(streamId);
 

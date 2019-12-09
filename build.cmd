@@ -4,5 +4,6 @@ docker run --rm -it --name sss-build ^
  -v %cd%/artifacts:/artifacts ^
  -v %cd%/.git:/.git ^
  --network host ^
+ -e FEEDZ_SSS_API_KEY=$FEEDZ_API_KEY ^
  sss-build ^
  dotnet run -p /repo/build/build.csproj -- %*

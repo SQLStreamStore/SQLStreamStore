@@ -11,7 +11,7 @@ A stream store library for .NET that specifically targets SQL based implementati
 | Sqlite | [_up for grabs_](https://github.com/SQLStreamStore/SqlStreamStore/issues/28) |
 | HTTP Wrapper API | On CI Feed |
 
-CI Packages available [on Feedz](https://f.feedz.io/streamstore/ci/nuget/index.json).
+CI Packages available [on Feedz](https://f.feedz.io/logicality/streamstore-ci/nuget/index.json).
 
 # Design considerations:
 

@@ -24,7 +24,7 @@ namespace SqlStreamStore
             _settings = new MySqlStreamStoreSettings(connectionString)
             {
                 GetUtcNow = () => GetUtcNow(),
-                DisableDeletionTracking = false
+                DisableDeletionTracking = false,
                 ScavengeAsynchronously = false,
                 AppendDeadlockRetryAttempts = 25
             };

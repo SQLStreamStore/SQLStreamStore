@@ -81,7 +81,7 @@ namespace build
                 var packagesToPush = Directory.GetFiles($"../{ArtifactsDir}", "*.nupkg", SearchOption.TopDirectoryOnly);
                 Console.WriteLine($"Found packages to publish: {string.Join("; ", packagesToPush)}");
 
-                var apiKey = Environment.GetEnvironmentVariable("FEEDZ_API_KEY");
+                var apiKey = Environment.GetEnvironmentVariable("FEEDZ_SSS_API_KEY");
 
                 if (string.IsNullOrWhiteSpace(apiKey))
                 {

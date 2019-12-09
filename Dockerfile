@@ -1,5 +1,7 @@
 FROM mcr.microsoft.com/dotnet/core/sdk:3.1.100-alpine3.10 AS build
 
+RUN apk add git
+
 WORKDIR /repo
 
 # https://github.com/moby/moby/issues/15858

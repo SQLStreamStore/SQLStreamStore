@@ -17,14 +17,6 @@ namespace build
         private const string Publish = "publish";
         private static bool s_oneOrMoreTestsFailed;
 
-        public enum OnError
-        {
-            StopImmediately,  // default
-            StopAfterTargetCompleted, // runs all the input collection before stopping.
-            ContinueAndFailAtEnd, // continues processing but fails at the end
-            ContinueAndIgnore, // continues processing and does not fail at end
-        }
-
         private static void Main(string[] args)
         {
             Target(BuildHalDocs, () =>
@@ -89,17 +81,17 @@ namespace build
                 var packagesToPush = Directory.GetFiles($"../{ArtifactsDir}", "*.nupkg", SearchOption.TopDirectoryOnly);
                 Console.WriteLine($"Found packages to publish: {string.Join("; ", packagesToPush)}");
 
-                var apiKey = Environment.GetEnvironmentVariable("MYGET_API_KEY");
+                var apiKey = Environment.GetEnvironmentVariable("FEEDZ_API_KEY");
 
                 if (string.IsNullOrWhiteSpace(apiKey))
                 {
-                    Console.WriteLine("MyGet API key not available. Packages will not be pushed.");
+                    Console.WriteLine("Feedz API key not available. Packages will not be pushed.");
                     return;
                 }
 
                 foreach (var packageToPush in packagesToPush)
                 {
-                    Run("dotnet", $"nuget push {packageToPush} -s https://www.myget.org/F/sqlstreamstore/api/v3/index.json -k {apiKey}", noEcho: true);
+                    Run("dotnet", $"nuget push {packageToPush} -s https://f.feedz.io/dh/oss-ci/nuget/index.json -k {apiKey}", noEcho: true);
                 }
             });
 

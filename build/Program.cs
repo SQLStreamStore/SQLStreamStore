@@ -91,7 +91,7 @@ namespace build
 
                 foreach (var packageToPush in packagesToPush)
                 {
-                    Run("dotnet", $"nuget push {packageToPush} -s https://f.feedz.io/dh/oss-ci/nuget/index.json -k {apiKey}", noEcho: true);
+                    Run("dotnet", $"nuget push {packageToPush} -s https://f.feedz.io/dh/oss-ci/nuget/index.json -k {apiKey} --skip-duplicate", noEcho: true);
                 }
             });
 

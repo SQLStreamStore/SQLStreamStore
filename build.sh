@@ -7,6 +7,6 @@ docker run --rm -it --name sss-build \
  -v $PWD/.git:/.git \
  --network host \
  -e TRAVIS_BUILD_NUMBER=$TRAVIS_BUILD_NUMBER \
- -e FEEDZ_SSS_API_KEY=$FEEDZ_API_KEY \
+ -e FEEDZ_SSS_API_KEY=$FEEDZ_SSS_API_KEY \
  sss-build \
  dotnet run -p /repo/build/build.csproj -- "$@"

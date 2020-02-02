@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netcoreapp2.1</TargetFramework>
-    <RootNamespace>SqlStreamStore</RootNamespace>
+    <RootNamespace>SqlStreamStore.TestUtils</RootNamespace>
     <IsTestProject>false</IsTestProject>
   </PropertyGroup>
 

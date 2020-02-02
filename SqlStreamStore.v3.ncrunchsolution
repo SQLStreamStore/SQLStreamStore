@@ -2,6 +2,7 @@
   <Settings>
     <AllowParallelTestExecution>True</AllowParallelTestExecution>
     <AllowTestsToRunInParallelWithThemselves>False</AllowTestsToRunInParallelWithThemselves>
+    <DefaultTestTimeout>15000</DefaultTestTimeout>
     <SolutionConfigured>True</SolutionConfigured>
   </Settings>
   <EngineModes>

@@ -9,6 +9,7 @@
     using SqlStreamStore.Imports.AsyncEx.Nito.AsyncEx.Coordination;
     using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
+    using SqlStreamStore.TestUtils;
     using Xunit;
 
     public partial class AcceptanceTests

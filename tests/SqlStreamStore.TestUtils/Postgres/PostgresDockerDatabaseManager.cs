@@ -1,11 +1,10 @@
-namespace SqlStreamStore.Postgres
+namespace SqlStreamStore.TestUtils.Postgres
 {
     using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using Npgsql;
-    using SqlStreamStore;
     using SqlStreamStore.Infrastructure;
     using Xunit.Abstractions;
 

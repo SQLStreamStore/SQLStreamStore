@@ -1,14 +1,14 @@
-﻿namespace SqlStreamStore
+﻿namespace SqlStreamStore.TestUtils
 {
     using System;
     using System.IO;
     using System.Reactive.Linq;
+    using System.Threading;
     using Serilog;
     using Serilog.Events;
     using Serilog.Formatting.Display;
     using SqlStreamStore.Infrastructure;
     using Xunit.Abstractions;
-    using System.Threading;
 
     public static class LoggingHelper
     {

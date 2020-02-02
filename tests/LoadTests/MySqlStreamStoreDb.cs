@@ -3,7 +3,7 @@
     using System;
     using System.Threading.Tasks;
     using SqlStreamStore;
-    using SqlStreamStore.MySql;
+    using SqlStreamStore.TestUtils.MySql;
     using Xunit.Abstractions;
 
     public class MySqlStreamStoreDb

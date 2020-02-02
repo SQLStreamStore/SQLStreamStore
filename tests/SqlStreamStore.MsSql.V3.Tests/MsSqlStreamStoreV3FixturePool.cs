@@ -3,6 +3,7 @@
     using System;
     using System.Collections.Concurrent;
     using System.Threading.Tasks;
+    using SqlStreamStore.TestUtils.MsSql;
     using Xunit;
     using Xunit.Abstractions;
 

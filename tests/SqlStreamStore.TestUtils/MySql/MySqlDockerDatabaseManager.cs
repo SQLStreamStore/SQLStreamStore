@@ -1,11 +1,10 @@
-namespace SqlStreamStore.MySql
+namespace SqlStreamStore.TestUtils.MySql
 {
     using System;
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
     using global::MySql.Data.MySqlClient;
-    using SqlStreamStore;
     using SqlStreamStore.Infrastructure;
     using Xunit.Abstractions;
 

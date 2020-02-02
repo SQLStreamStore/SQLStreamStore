@@ -4,7 +4,7 @@ namespace SqlStreamStore
     using System.Threading.Tasks;
     using global::MySql.Data.MySqlClient;
     using SqlStreamStore.Infrastructure;
-    using SqlStreamStore.MySql;
+    using SqlStreamStore.TestUtils.MySql;
 
     public class MySqlStreamStoreFixture : IStreamStoreFixture
     {

@@ -4,7 +4,7 @@ namespace SqlStreamStore
     using System.Threading.Tasks;
     using Npgsql;
     using SqlStreamStore.Infrastructure;
-    using SqlStreamStore.Postgres;
+    using SqlStreamStore.TestUtils.Postgres;
 
     public class PostgresStreamStoreFixture : IStreamStoreFixture
     {

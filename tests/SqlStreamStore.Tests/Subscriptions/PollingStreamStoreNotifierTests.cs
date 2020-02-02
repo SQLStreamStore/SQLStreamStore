@@ -4,6 +4,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.TestUtils;
     using Xunit;
 
     public class PollingStreamStoreNotifierTests

@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore
+﻿namespace SqlStreamStore.TestUtils.MsSql
 {
     using System;
     using System.Collections.Generic;

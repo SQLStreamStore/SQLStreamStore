@@ -7,6 +7,7 @@
     using Microsoft.Data.SqlClient;
     using SqlStreamStore;
     using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.TestUtils;
 
     public class MsSqlStreamStoreDb : IDisposable
     {

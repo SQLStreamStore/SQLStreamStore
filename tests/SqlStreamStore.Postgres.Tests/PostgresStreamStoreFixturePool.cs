@@ -3,7 +3,7 @@
     using System;
     using System.Collections.Concurrent;
     using System.Threading.Tasks;
-    using SqlStreamStore.Postgres;
+    using SqlStreamStore.TestUtils.Postgres;
     using Xunit;
     using Xunit.Abstractions;
 

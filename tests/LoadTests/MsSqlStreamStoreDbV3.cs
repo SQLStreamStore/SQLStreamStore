@@ -4,6 +4,7 @@
     using System.Threading.Tasks;
     using Microsoft.Data.SqlClient;
     using SqlStreamStore;
+    using SqlStreamStore.TestUtils.MsSql;
 
     public class MsSqlStreamStoreDbV3 : IDisposable
     {

@@ -57,12 +57,6 @@ namespace SqlStreamStore
         public string LogName { get; } = nameof(MySqlStreamStore);
 
         /// <summary>
-        ///     Allows setting whether or not deleting expired (i.e., older than maxCount) messages happens in the same database transaction as append to stream or not.
-        ///     This does not effect scavenging when setting a stream's metadata - it is always run in the same transaction.
-        /// </summary>
-        public bool ScavengeAsynchronously { get; set; } = true;
-
-        /// <summary>
         ///     Allows overriding the way a <see cref="MySqlConnection"/> is created given a connection string.
         ///     The default implementation simply passes the connection string into the <see cref="MySqlConnection"/> constructor.
         /// </summary>

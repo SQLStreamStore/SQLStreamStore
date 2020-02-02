@@ -8,7 +8,7 @@
 
     public class MySqlStreamStoreDb
     {
-        public string ConnectionString => _databaseManager.ConnectionString;
+        private string ConnectionString => _databaseManager.ConnectionString;
         private readonly MySqlDockerDatabaseManager _databaseManager;
 
         public MySqlStreamStoreDb()
@@ -23,23 +23,11 @@
                 $"test_{Guid.NewGuid():n}");
         }
 
-        public async Task<MySqlStreamStore> GetMySqlStreamStore(bool scavengeAsynchronously = false)
-        {
-            var store = await GetUninitializedMySqlStreamStore(scavengeAsynchronously);
-
-            await store.CreateSchemaIfNotExists();
-
-            return store;
-        }
-
-        public async Task<MySqlStreamStore> GetUninitializedMySqlStreamStore(bool scavengeAsynchronously = false)
+        public async Task<MySqlStreamStore> GetUninitializedMySqlStreamStore()
         {
             await CreateDatabase();
 
-            var settings = new MySqlStreamStoreSettings(ConnectionString)
-            {
-                ScavengeAsynchronously = scavengeAsynchronously
-            };
+            var settings = new MySqlStreamStoreSettings(ConnectionString);
 
             return new MySqlStreamStore(settings);
         }

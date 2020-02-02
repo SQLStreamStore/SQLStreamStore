@@ -25,7 +25,6 @@ namespace SqlStreamStore
             {
                 GetUtcNow = () => GetUtcNow(),
                 DisableDeletionTracking = false,
-                ScavengeAsynchronously = false,
                 AppendDeadlockRetryAttempts = 25
             };
         }

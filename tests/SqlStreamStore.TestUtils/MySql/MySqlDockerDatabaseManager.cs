@@ -9,32 +9,37 @@ namespace SqlStreamStore.MySql
     using SqlStreamStore.Infrastructure;
     using Xunit.Abstractions;
 
-    public class MySqlDockerDatabaseManager : MySqlDatabaseManager
+    public class MySqlDockerDatabaseManager
     {
         private const string DockerImage = "mysql";
         private const string DockerTag = "5.6";
         private const string ContainerName = "sql-stream-store-tests-mysql";
 
+        private readonly ITestOutputHelper _testOutputHelper;
+        private readonly string _databaseName;
         private readonly int _tcpPort;
         private readonly DockerContainer _mysqlContainer;
-
-        public override string ConnectionString => ConnectionStringBuilder.ConnectionString;
+        private string DefaultConnectionString => new MySqlConnectionStringBuilder(ConnectionString)
+        {
+            Database = null
+        }.ConnectionString;
 
         private MySqlConnectionStringBuilder ConnectionStringBuilder => new MySqlConnectionStringBuilder
         {
-            Database = DatabaseName,
+            Database = _databaseName,
             Port = (uint) _tcpPort,
             UserID = "root",
-            Pooling = false,
-            MaximumPoolSize = 20
+            Pooling = true,
+            MaximumPoolSize = 100
         };
 
         public MySqlDockerDatabaseManager(
             ITestOutputHelper testOutputHelper,
             string databaseName,
             int tcpPort = 3306)
-            : base(testOutputHelper, databaseName)
         {
+            _testOutputHelper = testOutputHelper;
+            _databaseName = databaseName;
             _tcpPort = tcpPort;
             _mysqlContainer = new DockerContainer(
                 DockerImage,
@@ -53,11 +58,22 @@ namespace SqlStreamStore.MySql
             };
         }
 
-        public override async Task CreateDatabase(CancellationToken cancellationToken = default)
+        public string ConnectionString => ConnectionStringBuilder.ConnectionString;
+
+        public async Task CreateDatabase(CancellationToken cancellationToken = default)
         {
             await _mysqlContainer.TryStart(cancellationToken).WithTimeout(60 * 1000 * 3);
 
-            await base.CreateDatabase(cancellationToken);
+            var commandText = $"CREATE DATABASE IF NOT EXISTS `{_databaseName}`";
+            using (var connection = new MySqlConnection(DefaultConnectionString))
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                using (var command = new MySqlCommand(commandText, connection))
+                {
+                    await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                }
+            }
         }
 
         private async Task<bool> HealthCheck(CancellationToken cancellationToken)
@@ -73,7 +89,7 @@ namespace SqlStreamStore.MySql
             }
             catch(Exception ex)
             {
-                TestOutputHelper.WriteLine(ex.Message);
+                _testOutputHelper.WriteLine(ex.Message);
             }
 
             return false;

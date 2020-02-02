@@ -29,10 +29,9 @@
         {
             _schema = schema;
 
-            _databaseManager = new PostgresServerDatabaseManager(
+            _databaseManager = new PostgresDockerDatabaseManager(
                 new ConsoleTestoutputHelper(),
-                $"test_{Guid.NewGuid():n}",
-                connectionString);
+                $"test_{Guid.NewGuid():n}");
         }
 
         public async Task<PostgresStreamStore> GetPostgresStreamStore(bool scavengeAsynchronously = false)

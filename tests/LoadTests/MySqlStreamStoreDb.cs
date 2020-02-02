@@ -6,10 +6,10 @@
     using SqlStreamStore.MySql;
     using Xunit.Abstractions;
 
-    public class MySqlStreamStoreDb : IDisposable
+    public class MySqlStreamStoreDb
     {
         public string ConnectionString => _databaseManager.ConnectionString;
-        private readonly MySqlDatabaseManager _databaseManager;
+        private readonly MySqlDockerDatabaseManager _databaseManager;
 
         public MySqlStreamStoreDb()
             : this(new ConsoleTestoutputHelper())
@@ -21,14 +21,6 @@
             _databaseManager = new MySqlDockerDatabaseManager(
                 testOutputHelper, 
                 $"test_{Guid.NewGuid():n}");
-        }
-
-        public MySqlStreamStoreDb(string connectionString)
-        {
-            _databaseManager = new MySqlServerDatabaseManager(
-                new ConsoleTestoutputHelper(),
-                $"test_{Guid.NewGuid():n}",
-                connectionString);
         }
 
         public async Task<MySqlStreamStore> GetMySqlStreamStore(bool scavengeAsynchronously = false)
@@ -50,11 +42,6 @@
             };
 
             return new MySqlStreamStore(settings);
-        }
-
-        public void Dispose()
-        {
-            _databaseManager?.Dispose();
         }
 
         public Task CreateDatabase() => _databaseManager.CreateDatabase();

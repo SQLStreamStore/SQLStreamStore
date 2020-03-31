@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <Description>SQLite provider for SQL Stream Store</Description>
+    <AssemblyTitle>SQL Stream Store - SQLite Provider</AssemblyTitle>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AssemblyName>SqlStreamStore.SQLite</AssemblyName>
+    <PackageId>SqlStreamStore.SQLite</PackageId>
+    <RootNamespace>SqlStreamStore</RootNamespace>
+  </PropertyGroup>
+
+</Project>

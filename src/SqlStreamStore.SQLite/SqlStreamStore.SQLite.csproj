@@ -4,6 +4,10 @@
     <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <PackageReference Include="System.Data.SQLite.Core" Version="1.0.112" />
+  </ItemGroup>
+
   <PropertyGroup>
     <Description>SQLite provider for SQL Stream Store</Description>
     <AssemblyTitle>SQL Stream Store - SQLite Provider</AssemblyTitle>

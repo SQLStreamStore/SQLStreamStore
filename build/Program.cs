@@ -49,6 +49,7 @@ namespace build
                     "SqlStreamStore.MsSql.V3.Tests",
                     "SqlStreamStore.MySql.Tests",
                     "SqlStreamStore.Postgres.Tests",
+                    "SqlStreamStore.SQLite.Tests",
                     "SqlStreamStore.HAL.Tests",
                     "SqlStreamStore.Http.Tests"), 
                 project =>
@@ -72,6 +73,7 @@ namespace build
                     "SqlStreamStore.MsSql",
                     "SqlStreamStore.MySql",
                     "SqlStreamStore.Postgres",
+                    "SqlStreamStore.SQLite",
                     "SqlStreamStore.HAL",
                     "SqlStreamStore.Http"),
                 project => Run("dotnet", $"pack src/{project}/{project}.csproj -c Release -o ../../../{ArtifactsDir} --no-build"));

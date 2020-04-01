@@ -1,6 +1,8 @@
 namespace SqlStreamStore
 {
     using System;
+    using System.Data.Common;
+    using System.Data.SQLite;
     using System.Threading;
     using System.Threading.Tasks;
     using SqlStreamStore.Streams;
@@ -17,5 +19,18 @@ namespace SqlStreamStore
             throw new NotImplementedException();
         }
 
+    }
+
+    internal static class SqlDataReaderExtensions
+    {
+        internal static int? GetNullableInt32(this SQLiteDataReader reader, int ordinal) 
+            => reader.IsDBNull(ordinal) 
+                ? (int?) null 
+                : reader.GetInt32(ordinal);
+
+        internal static int? GetNullableInt32(this DbDataReader reader, int ordinal) 
+            => reader.IsDBNull(ordinal) 
+                ? (int?) null 
+                : reader.GetInt32(ordinal);
     }
 }

@@ -5,6 +5,7 @@ namespace SqlStreamStore
     using System.Runtime.ExceptionServices;
     using System.Threading;
     using System.Threading.Tasks;
+    using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Streams;
 
@@ -16,7 +17,78 @@ namespace SqlStreamStore
             NewStreamMessage[] messages, 
             CancellationToken cancellationToken)
         {
-            int maxRetries = 2;
+            Ensure.That(streamId, nameof(streamId)).IsNotNullOrWhiteSpace();
+            Ensure.That(expectedVersion, nameof(expectedVersion)).IsGte(ExpectedVersion.NoStream);
+            Ensure.That(messages, nameof(messages)).IsNotNull();
+            GuardAgainstDisposed();
+
+            SQLiteAppendResult result;
+            using (var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                var streamIdInfo = new StreamIdInfo(streamId);
+                result = await AppendToStreamInternal(connection, null, streamIdInfo.SQLiteStreamId, expectedVersion, messages, cancellationToken);
+            }
+
+            if (result.MaxCount.HasValue)
+            {
+                await CheckStreamMaxCount(streamId, result.MaxCount.Value, cancellationToken);
+            }
+
+            return new AppendResult(result.CurrentVersion, result.CurrentPosition);
+        }
+
+        private Task<SQLiteAppendResult> AppendToStreamInternal(SQLiteConnection connection, SQLiteTransaction transaction, SQLiteStreamId streamId, int expectedVersion, NewStreamMessage[] messages, CancellationToken cancellationToken)
+        {
+            GuardAgainstDisposed();
+
+            return this.RetryOnDeadLock(() => {
+                switch (expectedVersion)
+                {
+                    case ExpectedVersion.Any:
+                        return connection.AppendToStreamExpectedVersionAny(
+                            transaction,
+                            streamId,
+                            messages,
+                            GetUtcNow,
+                            cancellationToken);
+                    case ExpectedVersion.NoStream:
+                        return connection.AppendToStreamExpectedVersionNoStream(
+                            transaction,
+                            streamId,
+                            messages,
+                            GetUtcNow,
+                            cancellationToken);
+                    case ExpectedVersion.EmptyStream:
+                        return connection.AppendToStreamExpectedVersion(
+                            transaction,
+                            streamId,
+                            expectedVersion,
+                            messages,
+                            GetUtcNow,
+                            cancellationToken);
+                }
+
+                return connection.AppendToStreamExpectedVersion(
+                    transaction, 
+                    streamId, 
+                    expectedVersion, 
+                    messages, 
+                    GetUtcNow, 
+                    cancellationToken);
+            });
+        }
+
+        private Task CheckStreamMaxCount(string streamId, int value, CancellationToken cancellationToken)
+        {
+            throw new NotImplementedException();
+        }
+
+        // Deadlocks appear to be a fact of life when there is high contention on a table regardless of
+        // transaction isolation settings.
+        private async Task<T> RetryOnDeadLock<T>(Func<Task<T>> operation)
+        {
+            int maxRetries = 2; //TODO too much? too little? configurable?
             Exception exception;
 
             int retryCount = 0;
@@ -24,48 +96,9 @@ namespace SqlStreamStore
             {
                 try
                 {
-                    AppendResult result = default;
-                    var streamIdInfo = new StreamIdInfo(streamId);
-
-                    using(var connection = await OpenConnection(cancellationToken))
-                    using(var transaction = connection.BeginTransaction())
-                    using(var command = connection.CreateCommand())
-                    {
-                        try
-                        {
-                            using (var reader = await command
-                                .ExecuteReaderAsync(cancellationToken)
-                                .NotOnCapturedContext())
-                            {
-                                await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
-
-                                result = new AppendResult(reader.GetInt32(0), reader.GetInt64(1));
-                            }
-
-                            transaction.Commit();
-                        }
-                        catch (SQLiteException ex)
-                        {
-                            transaction.Rollback();
-
-                            //TODO: throw new WrongExpectedVersionException();
-                        }
-                    }
-
-                    if(_settings.ScavengeAsynchronously)
-                    {
-#pragma warning disable CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                        Task.Run(() => TryScavange(streamIdInfo, cancellationToken), cancellationToken);
-#pragma warning restore CS4014 // Because this call is not awaited, execution of the current method continues before the call is completed
-                    }
-                    else
-                    {
-                        await TryScavange(streamIdInfo, cancellationToken).NotOnCapturedContext();
-                    }
-
-                    return result;
+                    return await operation();
                 }
-                catch (SQLiteException ex)
+                catch(SQLiteException ex)
                 {
                     exception = ex;
                     retryCount++;
@@ -73,7 +106,22 @@ namespace SqlStreamStore
             } while(retryCount < maxRetries);
 
             ExceptionDispatchInfo.Capture(exception).Throw();
-            return default;
+            return default(T); // never actually run
+        }
+
+        internal class StreamMeta
+        {
+            public static readonly StreamMeta None = new StreamMeta(null, null);
+
+            public StreamMeta(int? maxCount, int? maxAge)
+            {
+                MaxCount = maxCount;
+                MaxAge = maxAge;
+            }
+
+            public int? MaxCount { get; }
+
+            public int? MaxAge { get; }
         }
     }
 }

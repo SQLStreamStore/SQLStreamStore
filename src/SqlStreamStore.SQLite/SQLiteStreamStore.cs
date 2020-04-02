@@ -12,7 +12,6 @@ namespace SqlStreamStore
     {
         private readonly SQLiteStreamStoreSettings _settings;
         private readonly Func<SQLiteConnection> _createConnection;
-        private readonly Schema _schema;
         private readonly Scripts _scripts;
         private readonly Lazy<IStreamStoreNotifier> _streamStoreNotifier;
 
@@ -33,8 +32,7 @@ namespace SqlStreamStore
 
                 return settings.CreateStreamStoreNotifier.Invoke(this);
             });
-            _schema = new Schema(_settings.Schema);
-            _scripts = new Scripts(_settings.Schema);
+            _scripts = new Scripts();
         }
 
         private async Task<SQLiteConnection> OpenConnection(CancellationToken cancellationToken)
@@ -48,36 +46,23 @@ namespace SqlStreamStore
             return connection;
         }
 
-        public async Task CreateSchemaIfNotExists(CancellationToken cancellationToken)
+        public async Task CreateSchema(CancellationToken cancellationToken = default)
         {
             using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                 using(var transaction = connection.BeginTransaction())
                 {
-                    using (var command = BuildCommand(_schema.Definition, transaction))
+                    using (var command = connection.CreateCommand())
                     {
+                        command.Transaction = transaction;
+                        command.CommandText = _scripts.CreateSchema;
                         await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
                     }
 
                     transaction.Commit();
                 }
             }
-        }
-
-        private static SQLiteCommand BuildCommand(
-            string commandText,
-            SQLiteTransaction transaction,
-            params SQLiteParameter[] parameters)
-        {
-            var command = new SQLiteCommand(commandText, transaction.Connection, transaction);
-
-            foreach (var parameter in parameters)
-            {
-                command.Parameters.Add(parameter);
-            }
-
-            return command;
         }
 
         protected override async Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken)

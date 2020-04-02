@@ -27,9 +27,8 @@ namespace SqlStreamStore
             Guid eventId, 
             CancellationToken cancellationToken)
         {
-            using (var connection = _createConnection())
+            using (var connection = await OpenConnection(cancellationToken))
             {
-                await connection.OpenAsync(cancellationToken);
                 using (var transaction = connection.BeginTransaction())
                 {
                     var sqlStreamId = new StreamIdInfo(streamId).SQLiteStreamId;
@@ -66,10 +65,8 @@ namespace SqlStreamStore
             int expectedVersion,
             CancellationToken cancellationToken)
         {
-            using (var connection = _createConnection())
+            using (var connection = await OpenConnection(cancellationToken))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
                 using (var transaction = connection.BeginTransaction())
                 {
                     using (var command = new SQLiteCommand("", connection, transaction))
@@ -135,10 +132,8 @@ namespace SqlStreamStore
             StreamIdInfo streamIdInfo,
             CancellationToken cancellationToken)
         {
-            using (var connection = _createConnection())
+            using (var connection = await OpenConnection(cancellationToken))
             {
-                await connection.OpenAsync(cancellationToken);
-
                 using (var transaction = connection.BeginTransaction())
                 {
                     await DeleteStreamAnyVersion(connection, transaction, streamIdInfo.SQLiteStreamId, cancellationToken);

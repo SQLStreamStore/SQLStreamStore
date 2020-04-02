@@ -33,9 +33,8 @@ namespace SqlStreamStore
       WHERE messages.position >= @position
    ORDER BY messages.position;";
 
-            using (var connection = _createConnection())
+            using (var connection = await OpenConnection(cancellationToken))
             {
-                await connection.OpenAsync(cancellationToken);
                 using (var command = new SQLiteCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@position", position);
@@ -128,9 +127,8 @@ namespace SqlStreamStore
             maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;
             long position = fromPositionExclusive == Position.End ? long.MaxValue : fromPositionExclusive;
 
-            using (var connection = _createConnection())
+            using (var connection = await OpenConnection(cancellationToken))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 var sql = @"SELECT TOP(@count)
             streams.id_original As StreamId,
             messages.stream_version,

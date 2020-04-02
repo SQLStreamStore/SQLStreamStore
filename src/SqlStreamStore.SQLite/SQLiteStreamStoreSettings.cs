@@ -70,16 +70,10 @@ namespace SqlStreamStore
         public string LogName { get; } = nameof(SQLiteStreamStore);
 
         /// <summary>
-        ///     Allows setting whether or not deleting expired (i.e., older than maxCount) messages happens in the same database transaction as append to stream or not.
-        ///     This does not effect scavenging when setting a stream's metadata - it is always run in the same transaction.
-        /// </summary>
-        public bool ScavengeAsynchronously { get; set; } = true;
-
-        /// <summary>
         ///     Allows overriding the way a <see cref="SQLiteConnection"/> is created given a connection string.
         ///     The default implementation simply passes the connection string into the <see cref="SQLiteConnection"/> constructor.
         /// </summary>
-        public Func<string, SQLiteConnection> ConnectionFactory
+        public virtual Func<string, SQLiteConnection> ConnectionFactory
         {
             get => _connectionFactory 
                    ?? (_connectionFactory = connectionString => new SQLiteConnection(connectionString));
@@ -89,12 +83,5 @@ namespace SqlStreamStore
                 _connectionFactory = value;
             }
         }
-
-        /// <summary>
-        ///     Disables stream and message deletion tracking. Will increase
-        ///     performance, however subscribers won't know if a stream or a
-        ///     message has been deleted. This can be modified at runtime.
-        /// </summary>
-        public bool DisableDeletionTracking { get; set; }
     }
 }

@@ -11,15 +11,8 @@ namespace SqlStreamStore.SQLiteScripts
             .GetTypeInfo()
             .Assembly;
 
-        private readonly string _schema;
-
         private readonly ConcurrentDictionary<string, string> _scripts =
             new ConcurrentDictionary<string, string>();
-
-        public Scripts(string schema)
-        {
-            _schema = schema;
-        }
 
         public string Tables => GetScript(nameof(Tables));
         public string Scavenge => GetScript(nameof(Scavenge));  // TODO: create scavange query.
@@ -44,8 +37,7 @@ namespace SqlStreamStore.SQLiteScripts
                     using (StreamReader reader = new StreamReader(stream))
                     {
                         return reader
-                            .ReadToEnd()
-                            .Replace("__schema__", _schema);
+                            .ReadToEnd();
                     }
                 }
             });

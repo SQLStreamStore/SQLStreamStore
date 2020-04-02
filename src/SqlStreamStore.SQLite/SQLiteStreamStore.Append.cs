@@ -23,9 +23,8 @@ namespace SqlStreamStore
             GuardAgainstDisposed();
 
             SQLiteAppendResult result;
-            using (var connection = _createConnection())
+            using (var connection = await OpenConnection(cancellationToken))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                 var streamIdInfo = new StreamIdInfo(streamId);
                 result = await AppendToStreamInternal(connection, null, streamIdInfo.SQLiteStreamId, expectedVersion, messages, cancellationToken);
             }
@@ -108,10 +107,8 @@ namespace SqlStreamStore
         {
             GuardAgainstDisposed();
 
-            using(var connection = _createConnection())
+            using(var connection = await OpenConnection(cancellationToken))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
                 using(var command = new SQLiteCommand(_scripts.GetStreamMessageCount, connection))
                 {
                     var streamIdInfo = new StreamIdInfo(streamId);

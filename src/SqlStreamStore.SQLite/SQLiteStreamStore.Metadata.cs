@@ -15,9 +15,8 @@ namespace SqlStreamStore
             var streamIdInfo = new StreamIdInfo(streamId);
 
             ReadStreamPage page;
-            using (var connection = _createConnection())
+            using (var connection = await OpenConnection(cancellationToken))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                 page = await ReadStreamInternal(
                     streamIdInfo.MetadataSQLiteStreamId,
                     StreamVersion.End,
@@ -53,10 +52,8 @@ namespace SqlStreamStore
             CancellationToken cancellationToken)
         {
             SQLiteAppendResult result;
-            using(var connection = _createConnection())
+            using(var connection = await OpenConnection(cancellationToken))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
                 using(var transaction = connection.BeginTransaction())
                 {
                     var streamIdInfo = new StreamIdInfo(streamId);

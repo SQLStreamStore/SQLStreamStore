@@ -20,9 +20,8 @@ namespace SqlStreamStore
             ReadNextStreamPage readNext, 
             CancellationToken cancellationToken)
         {
-            using (var connection = _createConnection())
+            using (var connection = await OpenConnection(cancellationToken))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                 var streamIdInfo = new StreamIdInfo(streamId);
                 return await ReadStreamInternal(
                     streamIdInfo.SQLiteStreamId,
@@ -39,9 +38,8 @@ namespace SqlStreamStore
 
         protected override async Task<ReadStreamPage> ReadStreamBackwardsInternal(string streamId, int fromVersionInclusive, int count, bool prefetch, ReadNextStreamPage readNext, CancellationToken cancellationToken)
         {
-            using (var connection = _createConnection())
+            using (var connection = await OpenConnection(cancellationToken))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                 var streamIdInfo = new StreamIdInfo(streamId);
                 return await ReadStreamInternal(
                     streamIdInfo.SQLiteStreamId,
@@ -221,9 +219,8 @@ namespace SqlStreamStore
 
         private async Task<string> GetJsonData(string streamId, int streamVersion, CancellationToken cancellationToken)
         {
-            using(var connection = _createConnection())
+            using(var connection = await OpenConnection(cancellationToken))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                 var sql = @"SELECT messages.json_data
 FROM messages
 WHERE messages.stream_id_internal = 

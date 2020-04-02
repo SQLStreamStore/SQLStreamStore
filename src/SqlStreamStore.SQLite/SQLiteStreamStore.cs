@@ -50,20 +50,17 @@ namespace SqlStreamStore
 
         public async Task CreateSchema(CancellationToken cancellationToken = default)
         {
-            using(var connection = _createConnection())
+            using(var connection = await OpenConnection(cancellationToken))
+            using(var transaction = connection.BeginTransaction())
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-                using(var transaction = connection.BeginTransaction())
+                using(var command = connection.CreateCommand())
                 {
-                    using(var command = connection.CreateCommand())
-                    {
-                        command.Transaction = transaction;
-                        command.CommandText = _scripts.CreateSchema;
-                        await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
-                    }
-
-                    transaction.Commit();
+                    command.Transaction = transaction;
+                    command.CommandText = _scripts.CreateSchema;
+                    await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
                 }
+
+                transaction.Commit();
             }
         }
 

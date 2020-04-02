@@ -38,20 +38,23 @@ namespace SqlStreamStore
         {
             var appendResult = new AppendResult(StreamVersion.End, Position.End);
             var nextExpectedVersion = expectedVersion;
-            using (var connection = await OpenConnection(cancellationToken))
+            
+            using(var connection = await OpenConnection(cancellationToken))
             using(var transaction = connection.BeginTransaction())
+            using(var command = connection.CreateCommand())
             {
+                command.Transaction = transaction;
+                
                 var throwIfAdditionalMessages = false;
 
                 for(var i = 0; i < messages.Length; i++)
                 {
                     bool messageExists;
                     (nextExpectedVersion, appendResult, messageExists) = await AppendMessageToStream(
-                        connection,
+                        command,
                         streamId.SQLiteStreamId,
                         nextExpectedVersion,
                         messages[i],
-                        transaction,
                         cancellationToken);
 
                     if(i == 0)
@@ -80,56 +83,33 @@ namespace SqlStreamStore
         }
 
         private async Task<(int nextExpectedVersion, AppendResult appendResult, bool messageExists)> AppendMessageToStream(
-            SQLiteConnection connection,
+            SQLiteCommand command,
             SQLiteStreamId streamId, 
             int expectedVersion, 
             NewStreamMessage message, 
-            SQLiteTransaction transaction, 
             CancellationToken cancellationToken)
         {
             switch(expectedVersion)
             {
                 case ExpectedVersion.Any:
-                    return await AppendToStreamExpectedVersionAny(connection, streamId, message, transaction, cancellationToken);
+                    return await AppendToStreamExpectedVersionAny(command, streamId, message, cancellationToken);
                 case ExpectedVersion.NoStream:
-                    return await AppendToStreamExpectedVersionNoStream(connection, streamId, message, transaction, cancellationToken);
+                    return await AppendToStreamExpectedVersionNoStream(command, streamId, message, cancellationToken);
                 case ExpectedVersion.EmptyStream:
-                    return await AppendToStreamExpectedVersionEmptyStream(connection, streamId, message, transaction, cancellationToken);
+                    return await AppendToStreamExpectedVersionEmptyStream(command, streamId, message, cancellationToken);
                 default:
-                    return await AppendToStreamExpectedVersion(connection, streamId, expectedVersion, message, transaction, cancellationToken);
+                    return await AppendToStreamExpectedVersion(command, streamId, expectedVersion, message, cancellationToken);
             }
         }
 
         private async Task<(int nextExpectedVersion, AppendResult appendResult, bool messageExists)> AppendToStreamExpectedVersionAny(
-            SQLiteConnection connection,
+            SQLiteCommand command,
             SQLiteStreamId streamId, 
             NewStreamMessage message, 
-            SQLiteTransaction transaction, 
             CancellationToken cancellationToken)
         {
-            using(var command = connection.CreateCommand())
-            {
                 // get internal id
-                long _stream_id_internal;
-                command.CommandText = "SELECT id_internal FROM streams WHERE id = @streamId";
-                command.Parameters.Add(new SQLiteParameter("@streamId", streamId.Id));
-                var result = await command.ExecuteScalarAsync(cancellationToken);
-                if(result == DBNull.Value)
-                {
-                    command.CommandText = @"INSERT INTO streams (id, id_original, max_age, max_count)
-                                            VALUES(@streamId, @streamIdOriginal, @maxAge, @maxCount);
-                                            SELECT last_insert_rowid();";
-                    command.Parameters.Clear();
-                    command.Parameters.Add(new SQLiteParameter("@streamId", streamId.Id));
-                    command.Parameters.Add(new SQLiteParameter("@streamOriginalId", streamId.IdOriginal));
-                    command.Parameters.Add(new SQLiteParameter("@maxAge", DBNull.Value));
-                    command.Parameters.Add(new SQLiteParameter("@maxCount", DBNull.Value));
-                    _stream_id_internal = Convert.ToInt64(await command.ExecuteScalarAsync(cancellationToken));
-                }
-                else
-                {
-                    _stream_id_internal = Convert.ToInt64(result);
-                }
+                long _stream_id_internal = await ResolveInternalStream(command, streamId, cancellationToken);
 
                 command.CommandText = @"SELECT COUNT(*) > 0, stream_version
 FROM messages
@@ -148,14 +128,14 @@ WHERE messages.stream_id_internal = @streamIdInternal
                     if(await reader.ReadAsync(cancellationToken))
                     {
                         messageExists = reader.GetBoolean(0);
-                        streamVersion = reader.GetInt32(1);
+                        streamVersion = messageExists ? reader.GetInt32(1) : -1;
                     }
                 }
 
                 if(!messageExists)
                 {
                     command.CommandText = @"INSERT INTO messages(stream_id_internal, stream_version, message_id, created_utc, type, json_data, json_metadata)
-                    SELECT @streamIdInternal, @streamVersion, @messageId, @createdUtc, @type, @jsonData, @jsonMetadata)
+                    SELECT @streamIdInternal, @streamVersion, @messageId, @createdUtc, @type, @jsonData, @jsonMetadata
                     FROM streams
                     WHERE id_internal = @streamIdInternal;
                     
@@ -188,43 +168,283 @@ WHERE streams.id_internal = @streamIdInternal;";
                     new AppendResult(streamVersion + 1, streamPosition), 
                     messageExists);
 
-            }
         }
 
         private async Task<(int nextExpectedVersion, AppendResult appendResult, bool messageExists)> AppendToStreamExpectedVersionNoStream(
-            SQLiteConnection connection,
+            SQLiteCommand command,
             SQLiteStreamId streamId, 
             NewStreamMessage message, 
-            SQLiteTransaction transaction, 
             CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            int currentVersion = 0;
+            long currentPosition = 0;
+            bool messageExists = false;
+
+            // get internal id
+            long _stream_id_internal = await ResolveInternalStream(command, streamId, cancellationToken);
+
+            command.CommandText = @"SELECT COUNT(*) > 0 
+                FROM messages 
+                WHERE messages.stream_id_internal = @streamIdInternal
+                    AND messages.message_id = @messageId
+                    AND messages.stream_version = 0;";
+            command.Parameters.Clear();
+            command.Parameters.AddWithValue("@streamIdInternal", _stream_id_internal);
+            command.Parameters.AddWithValue("@messageId", message.MessageId);
+
+            messageExists = Convert.ToBoolean(await command.ExecuteScalarAsync(cancellationToken));
+
+            if(!messageExists)
+            {
+                command.CommandText = @"INSERT INTO messages (stream_id_internal, stream_version, message_id, created_utc, type, json_data, json_metadata)
+                                        VALUES(@streamIdInternal, 0, @messageId, @createdUtc, @type, @jsonData, @jsonMetadata);
+                                        
+                                        UPDATE streams SET [version] = 0, [position] = last_insert_rowid()
+                                        WHERE streams.id_internal = @streamIdInternal;";
+                
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamIdInternal", _stream_id_internal);
+                command.Parameters.AddWithValue("@messageId", message.MessageId);
+                command.Parameters.AddWithValue("@createdUtc", GetUtcNow());
+                command.Parameters.AddWithValue("@type", message.Type);
+                command.Parameters.AddWithValue("@jsonData", message.JsonData);
+                command.Parameters.AddWithValue("@jsonMetadata", message.JsonMetadata);
+
+                await command.ExecuteNonQueryAsync(cancellationToken);
+            }
+
+            command.CommandText = "SELECT streams.version, streams.position FROM streams WHERE streams.id_internal = @streamIdInternal";
+            command.Parameters.Clear();
+            command.Parameters.AddWithValue("@streamIdInternal", _stream_id_internal);
+
+            using(var reader = await command.ExecuteReaderAsync(cancellationToken))
+            {
+                await reader.ReadAsync(cancellationToken);
+                currentVersion = reader.GetInt32(0);
+                currentPosition = reader.GetInt64(1);
+            }
+
+            return (nextExpectedVersion: 0, new AppendResult(currentVersion, currentPosition), messageExists);
         }
 
         private async Task<(int nextExpectedVersion, AppendResult appendResult, bool messageExists)> AppendToStreamExpectedVersionEmptyStream(
-            SQLiteConnection connection,
+            SQLiteCommand command,
             SQLiteStreamId streamId, 
-            NewStreamMessage message, 
-            SQLiteTransaction transaction, 
+            NewStreamMessage message,  
             CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            int currentVersion = 0;
+            long currentPosition = 0;
+            bool messageExists = false;
+
+            // get internal id
+            long _stream_id_internal = await ResolveInternalStream(command, streamId, cancellationToken);
+
+            command.CommandText = @"SELECT COUNT(*) > 0 
+                FROM messages 
+                WHERE messages.stream_id_internal = @streamIdInternal
+                    AND messages.message_id = @messageId
+                    AND messages.stream_version = 0;";
+            command.Parameters.Clear();
+            command.Parameters.AddWithValue("@streamIdInternal", _stream_id_internal);
+            command.Parameters.AddWithValue("@messageId", message.MessageId);
+
+            messageExists = Convert.ToBoolean(await command.ExecuteScalarAsync(cancellationToken));
+
+            if(!messageExists)
+            {
+                command.CommandText = @"INSERT INTO messages (stream_id_internal, stream_version, message_id, created_utc, type, json_data, json_metadata)
+                                        VALUES(@streamIdInternal, 0, @messageId, @createdUtc, @type, @jsonData, @jsonMetadata);
+                                        
+                                        UPDATE streams SET streams.version = 0, streams.position = last_insert_rowid()
+                                        WHERE streams.id_internal = @streamIdInternal;";
+                
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamIdInternal", _stream_id_internal);
+                command.Parameters.AddWithValue("@messageId", message.MessageId);
+                command.Parameters.AddWithValue("@createdUtc", GetUtcNow());
+                command.Parameters.AddWithValue("@type", message.Type);
+                command.Parameters.AddWithValue("@jsonData", message.JsonData);
+                command.Parameters.AddWithValue("@jsonMetadata", message.JsonMetadata);
+
+                await command.ExecuteNonQueryAsync(cancellationToken);
+            }
+
+            command.CommandText = @"SELECT 0, messages.position 
+                                    FROM messages 
+                                    WHERE messages.message_id = @messageId 
+                                        AND messages.stream_id_internal = @streamIdInternal;";
+            command.Parameters.Clear();
+            command.Parameters.AddWithValue("@messageId", message.MessageId);
+            command.Parameters.AddWithValue("@streamIdInternal", _stream_id_internal);
+
+            using(var reader = await command.ExecuteReaderAsync(cancellationToken))
+            {
+                await reader.ReadAsync(cancellationToken);
+                currentVersion = reader.GetInt32(0);
+                currentPosition = reader.GetInt64(1);
+            }
+
+            return (nextExpectedVersion: 0, new AppendResult(currentVersion, currentPosition), messageExists);
         }
 
         private async Task<(int nextExpectedVersion, AppendResult appendResult, bool messageExists)> AppendToStreamExpectedVersion(
-            SQLiteConnection connection,
+            SQLiteCommand command,
             SQLiteStreamId streamId, 
             int expectedVersion, 
             NewStreamMessage message, 
-            SQLiteTransaction transaction, 
             CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            int currentVersion = 0;
+            long currentPosition = 0;
+            bool messageExists = false;
+            
+            // get internal id
+            long _stream_id_internal = await ResolveInternalStream(command, streamId, cancellationToken);
+
+            command.CommandText = @"SELECT streams.version < @expectedVersion 
+                                    FROM streams 
+                                    WHERE streams.id_internal = @streamIdInternal;";
+            command.Parameters.Clear();
+            command.Parameters.AddWithValue("@streamIdInternal", _stream_id_internal);
+            command.Parameters.AddWithValue("@expectedVersion", expectedVersion);
+
+            if((bool) await command.ExecuteScalarAsync(cancellationToken))
+            {
+                throw new WrongExpectedVersionException(
+                    ErrorMessages.AppendFailedWrongExpectedVersion(streamId.Id, expectedVersion),
+                    streamId.Id,
+                    expectedVersion);
+            }
+            
+            command.CommandText = @"SELECT COUNT(*) > 0 
+                FROM messages 
+                WHERE messages.stream_id_internal = @streamIdInternal
+                    AND messages.message_id = @messageId
+                    AND messages.stream_version = 0;";
+            command.Parameters.Clear();
+            command.Parameters.AddWithValue("@streamIdInternal", _stream_id_internal);
+            command.Parameters.AddWithValue("@messageId", message.MessageId);
+
+            messageExists = Convert.ToBoolean(await command.ExecuteScalarAsync(cancellationToken));
+
+            if(!messageExists)
+            {
+                command.CommandText = @"INSERT INTO messages (stream_id_internal, stream_version, message_id, created_utc, type, json_data, json_metadata)
+                                        VALUES(@streamIdInternal, @expectedVersion + 1, @messageId, @createdUtc, @type, @jsonData, @jsonMetadata);
+                                        
+                                        UPDATE streams SET streams.version = @expectedVersion + 1, streams.position = last_insert_rowid()
+                                        WHERE streams.id_internal = @streamIdInternal;";
+                
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamIdInternal", _stream_id_internal);
+                command.Parameters.AddWithValue("@expectedVersion", expectedVersion);
+                command.Parameters.AddWithValue("@messageId", message.MessageId);
+                command.Parameters.AddWithValue("@createdUtc", GetUtcNow());
+                command.Parameters.AddWithValue("@type", message.Type);
+                command.Parameters.AddWithValue("@jsonData", message.JsonData);
+                command.Parameters.AddWithValue("@jsonMetadata", message.JsonMetadata);
+
+                await command.ExecuteNonQueryAsync(cancellationToken);
+
+                command.CommandText = @"SELECT streams.position 
+                                        FROM streams 
+                                        WHERE streams.id_internal = @streamIdInternal";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamIdInternal", _stream_id_internal);
+
+                currentVersion = expectedVersion + 1;
+                currentPosition = Convert.ToInt64(await command.ExecuteScalarAsync(cancellationToken));
+            }
+            else
+            {
+                command.CommandText = @"SELECT streams.version, streams.position
+                                    FROM streams WHERE streams.id_internal = @streamIdInternal;";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamIdInternal", _stream_id_internal);
+
+                using(var reader = await command.ExecuteReaderAsync(cancellationToken))
+                {
+                    currentVersion = reader.GetInt32(0);
+                    currentPosition = reader.GetInt64(1);
+                }
+            }
+
+            return (nextExpectedVersion: expectedVersion + 1, new AppendResult(currentVersion, currentPosition), messageExists);
         }
 
-        private async Task<AppendResult> CreateEmptyStream(StreamIdInfo streamIdInfo, int expectedVersion, CancellationToken cancellationToken)
+        private async Task<AppendResult> CreateEmptyStream(
+            StreamIdInfo streamIdInfo,
+            int expectedVersion,
+            CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            var appendResult = new AppendResult(StreamVersion.End, Position.End);
+            
+            using(var connection = await OpenConnection(cancellationToken))
+            using(var transaction = connection.BeginTransaction())
+            using (var command = new SQLiteCommand("", connection, transaction))
+            {
+                if(expectedVersion == ExpectedVersion.EmptyStream)
+                {
+                    command.CommandText = "SELECT streams.version > 0 FROM streams WHERE streams.id = @streamId";
+                    command.Parameters.Clear();
+                    command.Parameters.Add(new SQLiteParameter("@streamId", streamIdInfo.SQLiteStreamId.Id));
+
+                    if(Convert.ToBoolean(await command.ExecuteScalarAsync(cancellationToken)))
+                    {
+                        throw new WrongExpectedVersionException(
+                            ErrorMessages.AppendFailedWrongExpectedVersion(streamIdInfo.SQLiteStreamId.Id, expectedVersion),
+                            streamIdInfo.SQLiteStreamId.Id,
+                            expectedVersion);
+                    }
+                }
+                else if(expectedVersion == ExpectedVersion.NoStream)
+                {
+                    command.CommandText = "SELECT COUNT(*) > 0 FROM streams WHERE streams.id = @streamId";
+                    command.Parameters.Clear();
+                    command.Parameters.Add(new SQLiteParameter("@streamId", streamIdInfo.SQLiteStreamId.Id));
+
+                    if(Convert.ToBoolean(await command.ExecuteScalarAsync(cancellationToken)))
+                    {
+                        throw new WrongExpectedVersionException(
+                            ErrorMessages.AppendFailedWrongExpectedVersion(streamIdInfo.SQLiteStreamId.Id, expectedVersion),
+                            streamIdInfo.SQLiteStreamId.Id,
+                            expectedVersion);
+                    }
+                }
+                
+                command.CommandText = "SELECT COUNT(*) = 0 FROM streams WHERE streams.id = @streamId";
+                command.Parameters.Clear();
+                command.Parameters.Add(new SQLiteParameter("@streamId", streamIdInfo.SQLiteStreamId.Id));
+
+                if(Convert.ToBoolean(await command.ExecuteScalarAsync(cancellationToken)))
+                {
+                    command.CommandText = @"INSERT INTO streams (id, id_original, max_age, max_count)
+                                            VALUES(@streamId, @streamIdOriginal, @maxAge, @maxCount);
+                                            SELECT last_insert_rowid();";
+                    command.Parameters.Clear();
+                    command.Parameters.Add(new SQLiteParameter("@streamId", streamIdInfo.SQLiteStreamId.Id));
+                    command.Parameters.Add(new SQLiteParameter("@streamOriginalId", streamIdInfo.SQLiteStreamId.IdOriginal));
+                    command.Parameters.Add(new SQLiteParameter("@maxAge", DBNull.Value));
+                    command.Parameters.Add(new SQLiteParameter("@maxCount", DBNull.Value));
+
+                    await command.ExecuteScalarAsync(cancellationToken);
+                }
+
+                command.CommandText = "SELECT streams.version, streams.position FROM streams WHERE streams.id = @streamId";
+                command.Parameters.Clear();
+                command.Parameters.Add(new SQLiteParameter("@streamId", streamIdInfo.SQLiteStreamId.Id));
+
+                using(var reader = await command.ExecuteReaderAsync(cancellationToken))
+                {
+                    await reader.ReadAsync(cancellationToken);
+                    appendResult = new AppendResult(reader.GetInt32(0), reader.GetInt64(1));
+                }
+                
+                transaction.Commit();
+            }
+
+            return appendResult;
         }
 
         ///  anything below this is possible to be destroyed/removed.
@@ -318,6 +538,34 @@ DESC LIMIT 1";
             }
 
             return (maxAge, maxCount);
+        }
+
+        private async Task<long> ResolveInternalStream(SQLiteCommand command, SQLiteStreamId streamId, CancellationToken cancellationToken)
+        {
+            // get internal id
+            long _stream_id_internal;
+            command.CommandText = "SELECT id_internal FROM streams WHERE id = @streamId";
+            command.Parameters.Clear();
+            command.Parameters.Add(new SQLiteParameter("@streamId", streamId.Id));
+            var result = await command.ExecuteScalarAsync(cancellationToken);
+            if(result == DBNull.Value)
+            {
+                command.CommandText = @"INSERT INTO streams (id, id_original, max_age, max_count)
+                                            VALUES(@streamId, @streamIdOriginal, @maxAge, @maxCount);
+                                            SELECT last_insert_rowid();";
+                command.Parameters.Clear();
+                command.Parameters.Add(new SQLiteParameter("@streamId", streamId.Id));
+                command.Parameters.Add(new SQLiteParameter("@streamOriginalId", streamId.IdOriginal));
+                command.Parameters.Add(new SQLiteParameter("@maxAge", DBNull.Value));
+                command.Parameters.Add(new SQLiteParameter("@maxCount", DBNull.Value));
+                _stream_id_internal = Convert.ToInt64(await command.ExecuteScalarAsync(cancellationToken));
+            }
+            else
+            {
+                _stream_id_internal = Convert.ToInt64(result);
+            }
+
+            return _stream_id_internal;
         }
 
         internal class StreamMeta

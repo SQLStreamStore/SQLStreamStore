@@ -188,13 +188,12 @@ namespace SqlStreamStore
                         await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
 
                         var streamDeletedEvent = CreateStreamDeletedMessage(streamIdInfo.SQLiteStreamId.IdOriginal);
-                        await AppendToStreamExpectedVersionAny(connection,
+                        await AppendToStreamExpectedVersionAny(command,
                             streamIdInfo.SQLiteStreamId,
                             streamDeletedEvent,
-                            transaction,
                             cancellationToken);
 
-                        await DeleteStreamAnyVersion(connection,transaction,streamIdInfo.MetadataSQLiteStreamId, cancellationToken);
+                        await DeleteStreamAnyVersion(command, streamIdInfo.MetadataSQLiteStreamId, cancellationToken);
 
                         transaction.Commit();
                     }
@@ -207,24 +206,25 @@ namespace SqlStreamStore
             CancellationToken cancellationToken)
         {
             using (var connection = await OpenConnection(cancellationToken))
+            using (var transaction = connection.BeginTransaction())
+            using (var command = connection.CreateCommand())
             {
-                using (var transaction = connection.BeginTransaction())
-                {
-                    await DeleteStreamAnyVersion(connection, transaction, streamIdInfo.SQLiteStreamId, cancellationToken);
-                    await DeleteStreamAnyVersion(connection, transaction, streamIdInfo.MetadataSQLiteStreamId, cancellationToken);
-                    transaction.Commit();
-                }
+                command.Transaction = transaction;
+                
+                await DeleteStreamAnyVersion(command, streamIdInfo.SQLiteStreamId, cancellationToken);
+                await DeleteStreamAnyVersion(command, streamIdInfo.MetadataSQLiteStreamId, cancellationToken);
+                transaction.Commit();
             }
         }
 
         private async Task DeleteStreamAnyVersion(
-            SQLiteConnection connection, 
-            SQLiteTransaction transaction, 
+            SQLiteCommand command, 
             SQLiteStreamId streamId, 
             CancellationToken cancellationToken)
         {
             bool aStreamIsDeleted;
-            var sql = @"DELETE FROM messages
+
+            command.CommandText = @"DELETE FROM messages
 WHERE messages.stream_id_internal = (
       SELECT TOP 1 streams.id_internal 
       FROM streams
@@ -233,25 +233,20 @@ WHERE messages.stream_id_internal = (
 DELETE FROM streams
       WHERE streams.id = @streamId;
 SELECT @@ROWCOUNT;";
+            command.Parameters.Clear();
+            command.Parameters.Add(new SQLiteParameter("@streamId", streamId.Id));
+            var i = await command
+                .ExecuteScalarAsync(cancellationToken)
+                .NotOnCapturedContext();
 
-            using (var command = new SQLiteCommand(sql, connection, transaction))
-            {
-                command.Parameters.Add(new SQLiteParameter("@streamId", streamId.Id));
-                var i = await command
-                    .ExecuteScalarAsync(cancellationToken)
-                    .NotOnCapturedContext();
-
-                aStreamIsDeleted = (int)i > 0;
-            }
-
+            aStreamIsDeleted = (int)i > 0;
             if (aStreamIsDeleted)
             {
                 var streamDeletedEvent = CreateStreamDeletedMessage(streamId.Id);
-                await AppendToStreamExpectedVersionAny(connection,
-                    streamId,
-                    streamDeletedEvent,
-                    transaction,
-                    cancellationToken);
+                await AppendToStreamExpectedVersionAny(command,
+                streamId,
+                streamDeletedEvent,
+                cancellationToken);
             }
         }
     }

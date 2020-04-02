@@ -10,7 +10,7 @@ namespace SqlStreamStore
 
         public SQLiteStreamStoreFixture()
         {
-            var connectionString = $"Data Source={System.IO.Path.GetTempFileName()};Version=3;";
+            var connectionString = $"Data Source={System.IO.Path.GetTempFileName()};Version=3;Pooling=True;Max Pool Size=100;";
             //var connectionString = $"Data Source=/home/richard/Desktop/sqlite.db3;Version=3;Pooling=True;Max Pool Size=100;";
             
             _settings = new SQLiteStreamStoreSettings(connectionString)

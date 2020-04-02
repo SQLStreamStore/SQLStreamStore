@@ -18,11 +18,10 @@ namespace SqlStreamStore
             var position = fromPositionExclusive;
             maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;
 
-            var sql = @"SELECT TOP(@count)
-            streams.id_original As stream_id,
+            var sql = @"SELECT streams.id_original As stream_id,
             messages.stream_version,
             messages.position,
-            messages.id,
+            messages.message_id,
             messages.createdUtc,
             messages.type,
             messages.json_metadata,
@@ -31,7 +30,8 @@ namespace SqlStreamStore
  INNER JOIN streams
          ON messages.stream_id_internal = streams.id_internal
       WHERE messages.position >= @position
-   ORDER BY messages.position;";
+   ORDER BY messages.position
+      LIMIT @count;";
 
             using (var connection = await OpenConnection(cancellationToken))
             {
@@ -129,11 +129,10 @@ namespace SqlStreamStore
 
             using (var connection = await OpenConnection(cancellationToken))
             {
-var sql = @"SELECT TOP(@count)
-            streams.id_original As StreamId,
+var sql = @"SELECT streams.id_original As StreamId,
             messages.stream_version,
             messages.position,
-            messages.id,
+            messages.message_id,
             messages.created_utc,
             messages.type,
             messages.json_metadata,
@@ -142,7 +141,8 @@ var sql = @"SELECT TOP(@count)
  INNER JOIN streams
          ON messages.stream_id_internal = streams.id_internal
       WHERE messages.position <= @position
-   ORDER BY messages.position DESC;";
+   ORDER BY messages.position DESC;
+      LIMIT @count";
                 using (var command = new SQLiteCommand(sql, connection))
                 {
                     command.Parameters.AddWithValue("@count", maxCount);

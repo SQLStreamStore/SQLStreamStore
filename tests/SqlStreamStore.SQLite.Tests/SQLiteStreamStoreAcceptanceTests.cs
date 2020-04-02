@@ -12,6 +12,7 @@ namespace SqlStreamStore
             : base(testOutputHelper)
         {
             _fixture = fixture;
+            _fixture.Prepare().Wait();
         }
 
         protected override Task<IStreamStoreFixture> CreateFixture()

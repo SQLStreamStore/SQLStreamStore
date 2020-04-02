@@ -94,32 +94,34 @@ namespace SqlStreamStore
             {
                 command.CommandText = @"SELECT streams.id_internal, streams.version, streams.position
        FROM streams
-      WHERE streams.Id = @streamId";
+      WHERE streams.id = @streamId";
                 command.Parameters.Add(new SQLiteParameter("@streamId", sqlStreamId.Id));
 
                 var streamIdInternal = default(int?);
-                var streamVersion = default(int?);
+                var streamVersion = -1;
                 var streamPosition = default(int?);
 
                 using (var reader = await command.ExecuteReaderAsync(cancellationToken))
                 {
-                    if (reader.IsDBNull(0))
+                    if(await reader.ReadAsync(cancellationToken))
+                    {
+                        streamIdInternal = reader.GetNullableInt32(0);
+                        streamVersion = reader.GetInt32(1);
+                        streamPosition = reader.GetNullableInt32(2);
+                    }
+                    else
                     {
                         return new ReadStreamPage(
-                              sqlStreamId.IdOriginal,
-                              PageReadStatus.StreamNotFound,
-                              start,
-                              -1,
-                              -1, 
-                              -1,
-                              direction,
-                              true,
-                              readNext);
+                            sqlStreamId.IdOriginal,
+                            PageReadStatus.StreamNotFound,
+                            start,
+                            -1,
+                            -1,
+                            -1,
+                            direction,
+                            true,
+                            readNext);
                     }
-
-                    streamIdInternal = reader.GetNullableInt32(0);
-                    streamVersion = reader.GetNullableInt32(1);
-                    streamPosition = reader.GetNullableInt32(2);
                 }
 
                 if (streamPosition == null)
@@ -129,22 +131,23 @@ namespace SqlStreamStore
                     WHERE messages.stream_id_internal = @streamIdInternal
                         AND messages.stream_version >= @streamVersion";
                     command.Parameters.Clear();
-                    command.Parameters.Add(new SQLiteParameter("@streamId", streamIdInternal));
+                    command.Parameters.Add(new SQLiteParameter("@streamIdInternal", streamIdInternal));
                     command.Parameters.Add(new SQLiteParameter("@streamVersion", streamVersion));
-                    streamPosition = (int?)await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                    var pos = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                    streamPosition = pos == DBNull.Value ? 0 : (int?) pos;
                 }
 
-                command.CommandText = @"SELECT TOP(@count)
-            messages.stream_version,
-            messages.position,
-            messages.id AS event_id,
-            messages.createdUtc,
-            messages.type,
+                command.CommandText = @"SELECT messages.stream_version,
+            messages.[position],
+            messages.message_id AS event_id,
+            messages.created_utc,
+            messages.[type],
             messages.json_metadata,
-            CASE WHEN @includeJsonData = true THEN messages.json_data ELSE null END
+            CASE WHEN @includeJsonData = true THEN messages.json_data ELSE null END as json_data
        FROM messages
-      WHERE messages.StreamIdInternal = @streamIdInternal AND dbo.Messages.Position >= @position
-   ORDER BY messages.Position;";
+      WHERE messages.stream_id_internal = @streamIdInternal AND messages.position >= @position
+   ORDER BY messages.position
+      LIMIT @count;";
                 command.Parameters.Clear();
                 command.Parameters.Add(new SQLiteParameter("@streamIdInternal", streamIdInternal));
                 command.Parameters.Add(new SQLiteParameter("@count", count + 1 ));
@@ -206,8 +209,8 @@ namespace SqlStreamStore
                         sqlStreamId.IdOriginal,
                         PageReadStatus.Success,
                         start,
-                        getNextVersion(messages, streamVersion.Value),
-                        streamVersion.Value,
+                        getNextVersion(messages, streamVersion),
+                        streamVersion,
                         streamPosition.Value,
                         direction,
                         isEnd,

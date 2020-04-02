@@ -107,10 +107,22 @@ namespace SqlStreamStore.Infrastructure
                 "ReadAllBackwards from position {fromPositionInclusive} with max count {maxCount}.",
                 fromPositionInclusive,
                 maxCount);
-
-            ReadNextAllPage readNext = (nextPosition, ct) => ReadAllBackwards(nextPosition, maxCount, prefetchJsonData, ct);
-            var page = await ReadAllBackwardsInternal(fromPositionInclusive, maxCount, prefetchJsonData, readNext, cancellationToken);
-            return await FilterExpired(page, readNext, cancellationToken);
+            try
+            {
+                ReadNextAllPage readNext = (nextPosition, ct) =>
+                    ReadAllBackwards(nextPosition, maxCount, prefetchJsonData, ct);
+                var page = await ReadAllBackwardsInternal(fromPositionInclusive,
+                    maxCount,
+                    prefetchJsonData,
+                    readNext,
+                    cancellationToken);
+                return await FilterExpired(page, readNext, cancellationToken);
+            }
+            catch(Exception exc)
+            {
+                Logger.Fatal(exc,"");
+                throw;
+            }
         }
 
         public async Task<ReadStreamPage> ReadStreamForwards(

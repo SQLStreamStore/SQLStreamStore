@@ -51,7 +51,7 @@ namespace SqlStreamStore
             string metadataJson, 
             CancellationToken cancellationToken)
         {
-            SQLiteAppendResult result;
+            AppendResult result;
             using(var connection = await OpenConnection(cancellationToken))
             {
                 using(var transaction = connection.BeginTransaction())
@@ -72,10 +72,7 @@ namespace SqlStreamStore
                             json);
                     var message = new NewStreamMessage(messageId, "$stream-metadata", json);
 
-                    result = await AppendToStreamInternal(
-                        connection,
-                        transaction,
-                        streamIdInfo.MetadataSQLiteStreamId,
+                    result = await AppendToStreamInternal(streamId,
                         expectedStreamMetadataVersion,
                         new[] { message },
                         cancellationToken);

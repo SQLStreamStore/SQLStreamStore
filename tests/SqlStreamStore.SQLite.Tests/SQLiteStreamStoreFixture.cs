@@ -6,14 +6,13 @@ namespace SqlStreamStore
 
     public class SQLiteStreamStoreFixture : IStreamStoreFixture
     {
-        private readonly Action _onDispose;
         private readonly SQLiteStreamStoreSettings _settings;
 
-        public SQLiteStreamStoreFixture(Action onDispose)
+        public SQLiteStreamStoreFixture()
         {
-            _onDispose = onDispose;
-            var connectionString = $"Data Source={System.IO.Path.GetTempFileName()};Version=3;Pooling=True;Max Pool Size=100;";
-
+            var connectionString = $"Data Source={System.IO.Path.GetTempFileName()};Version=3;";
+            //var connectionString = $"Data Source=/home/richard/Desktop/sqlite.db3;Version=3;Pooling=True;Max Pool Size=100;";
+            
             _settings = new SQLiteStreamStoreSettings(connectionString)
             {
                 GetUtcNow = () => GetUtcNow()
@@ -31,22 +30,16 @@ namespace SqlStreamStore
             set => throw new NotSupportedException();
         }
 
-        bool _notPrepared = true;
         public async Task Prepare()
         {
             SQLiteStreamStore = new SQLiteStreamStore(_settings);
-            if (_notPrepared)
-            {
-                await SQLiteStreamStore.CreateSchema();
-            }
-            _notPrepared = false;
+            await SQLiteStreamStore.CreateSchema();
         }
  
         public void Dispose()
         {
-            Store.Dispose();
+            Store?.Dispose();
             SQLiteStreamStore = null;
-            _onDispose();
         }
    }
 }

@@ -143,7 +143,7 @@ namespace SqlStreamStore
             messages.createdUtc,
             messages.type,
             messages.json_metadata,
-            CASE WHEN @position = true THEN messages.json_data ELSE null END
+            CASE WHEN @includeJsonData = true THEN messages.json_data ELSE null END
        FROM messages
       WHERE messages.StreamIdInternal = @streamIdInternal AND dbo.Messages.Position >= @position
    ORDER BY messages.Position;";

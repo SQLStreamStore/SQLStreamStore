@@ -1,12 +1,10 @@
 namespace SqlStreamStore
 {
     using System;
-    using System.Collections.Generic;
     using System.Data.SQLite;
     using System.Threading;
     using System.Threading.Tasks;
     using SqlStreamStore.Infrastructure;
-    using SqlStreamStore.Logging;
     using SqlStreamStore.SQLiteScripts;
     using SqlStreamStore.Subscriptions;
 
@@ -80,70 +78,6 @@ namespace SqlStreamStore
             }
 
             return command;
-        }
-
-        internal async Task<int> TryScavange(
-            StreamIdInfo streamIdInfo,
-            CancellationToken cancellationToken)
-        {
-            if (streamIdInfo.SQLiteStreamId == SQLiteStreamId.Deleted)
-            {
-                return -1;
-            }
-
-            try
-            {
-                using (var connection = await OpenConnection(cancellationToken))
-                using (var transaction = connection.BeginTransaction())
-                {
-                    var deletedMessageIds = new List<Guid>();
-                    using (var command = BuildCommand(
-                        _scripts.Scavenge,
-                        transaction, 
-                        Parameters.StreamId(streamIdInfo.SQLiteStreamId)))
-                    {
-                        using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
-                        {
-                            if (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
-                            {
-                                deletedMessageIds.Add(reader.GetGuid(0));
-                            }
-                        }
-                        
-                        Logger.Info(
-                            "Found {count} message(s) for stream {streamId} to scavenge.",
-                            deletedMessageIds.Count,
-                            streamIdInfo.SQLiteStreamId);
-
-                        if (deletedMessageIds.Count > 0)
-                        {
-                            Logger.Debug(
-                                "Scavenging the following messages on stream {streamId}: {messageIds}",
-                                streamIdInfo.SQLiteStreamId,
-                                deletedMessageIds);
-
-                            await DeleteEventsInternal(
-                                streamIdInfo,
-                                deletedMessageIds.ToArray(),
-                                transaction,
-                                cancellationToken).NotOnCapturedContext();
-                        }
-
-                        transaction.Commit();
-
-                        return deletedMessageIds.Count;
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                Logger.WarnException(
-                    "Scavenge attempt failed on stream {streamId}. Another attempt will be made when this stream is written to.",
-                    ex,
-                    streamIdInfo.SQLiteStreamId.IdOriginal);
-            }
-
-            return -1;
         }
 
         protected override async Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken)

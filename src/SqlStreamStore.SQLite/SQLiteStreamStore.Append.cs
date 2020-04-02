@@ -79,9 +79,51 @@ namespace SqlStreamStore
             });
         }
 
-        private Task CheckStreamMaxCount(string streamId, int value, CancellationToken cancellationToken)
+        private async Task CheckStreamMaxCount(string streamId, int? maxCount, CancellationToken cancellationToken)
         {
-            throw new NotImplementedException();
+            if (maxCount.HasValue)
+            {
+                var count = await GetStreamMessageCount(streamId, cancellationToken);
+                if (count > maxCount.Value)
+                {
+                    int toPurge = count - maxCount.Value;
+
+                    var streamMessagesPage = await ReadStreamForwardsInternal(streamId, StreamVersion.Start,
+                        toPurge, false, null, cancellationToken);
+
+                    if (streamMessagesPage.Status == PageReadStatus.Success)
+                    {
+                        foreach (var message in streamMessagesPage.Messages)
+                        {
+                            await DeleteEventInternal(streamId, message.MessageId, cancellationToken);
+                        }
+                    }
+                }
+            }
+        }
+
+        private async Task<int> GetStreamMessageCount(
+            string streamId,
+            CancellationToken cancellationToken = default)
+        {
+            GuardAgainstDisposed();
+
+            using(var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                using(var command = new SQLiteCommand(_scripts.GetStreamMessageCount, connection))
+                {
+                    var streamIdInfo = new StreamIdInfo(streamId);
+                    command.Parameters.Add(new SQLiteParameter("@streamId", streamId));
+
+                    var result = await command
+                        .ExecuteScalarAsync(cancellationToken)
+                        .NotOnCapturedContext();
+
+                    return (int) result;
+                }
+            }
         }
 
         // Deadlocks appear to be a fact of life when there is high contention on a table regardless of

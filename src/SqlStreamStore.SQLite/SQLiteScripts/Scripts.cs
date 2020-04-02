@@ -23,6 +23,8 @@ namespace SqlStreamStore.SQLiteScripts
 
         public string Tables => GetScript(nameof(Tables));
         public string Scavenge => GetScript(nameof(Scavenge));  // TODO: create scavange query.
+        public string GetStreamMessageCount => GetScript(nameof(GetStreamMessageCount));
+        public string DeleteEvent => GetScript(nameof(DeleteEvent));
 
         public string CreateSchema => string.Join(
             Environment.NewLine,

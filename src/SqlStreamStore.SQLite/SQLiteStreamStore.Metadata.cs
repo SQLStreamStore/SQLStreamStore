@@ -1,10 +1,9 @@
 namespace SqlStreamStore
 {
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Streams;
-    using StreamStoreStore.Json;
 
     public partial class SQLiteStreamStore
     {
@@ -51,8 +50,6 @@ namespace SqlStreamStore
             string metadataJson, 
             CancellationToken cancellationToken)
         {
-            var streamIdInfo = new StreamIdInfo(streamId);
-
             var metadataMessage = new MetadataMessage
             {
                 StreamId = streamId,
@@ -60,21 +57,61 @@ namespace SqlStreamStore
                 MaxCount = maxCount,
                 MetaJson = metadataJson
             };
-            var json = SimpleJson.SerializeObject(metadataMessage);
-            var messageId = MetadataMessageIdGenerator.Create(
-                    streamIdInfo.MetadataSQLiteStreamId.IdOriginal,
-                    expectedStreamMetadataVersion,
-                    json);
-            var message = new NewStreamMessage(messageId, "$stream-metadata", json);
 
-            var result = AppendToStreamInternal(streamId,
-                expectedStreamMetadataVersion,
-                new[] { message },
-                cancellationToken).GetAwaiter().GetResult();
+            var streamIdInfo = new StreamIdInfo(streamId);
+            var currentVersion = default(int?);
 
-            CheckStreamMaxCount(streamId, maxCount, cancellationToken);
+            using(var connection = OpenConnection())
+            using (var transaction = connection.BeginTransaction())
+            using (var command = connection.CreateCommand())
+            {
+                command.Transaction = transaction;
+                
+                if(expectedStreamMetadataVersion == ExpectedVersion.NoStream)
+                {
+                    AppendToStreamExpectedVersionNoStream(command,
+                        streamIdInfo.MetadataSQLiteStreamId,
+                        null,
+                        cancellationToken);
+                }
+                else if(expectedStreamMetadataVersion == ExpectedVersion.Any)
+                {
+                    AppendToStreamExpectedVersionAny(command,
+                        streamIdInfo.MetadataSQLiteStreamId,
+                        null,
+                        cancellationToken);
+                }
+                else if(expectedStreamMetadataVersion == ExpectedVersion.EmptyStream)
+                {
+                    AppendToStreamExpectedVersionEmptyStream(command,
+                        streamIdInfo.MetadataSQLiteStreamId,
+                        null,
+                        cancellationToken);
+                }
+                else
+                {
+                    AppendToStreamExpectedVersion(command,
+                        streamIdInfo.MetadataSQLiteStreamId,
+                        expectedStreamMetadataVersion,
+                        null,
+                        cancellationToken);
+                }
 
-            return Task.FromResult(new SetStreamMetadataResult(result.CurrentVersion));
+                command.CommandText = @"UPDATE streams
+                                        SET max_age = @maxAge,
+                                            max_count = @maxCount
+                                        WHERE streams.id = @streamId";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@maxAge", DBNull.Value);
+                command.Parameters.AddWithValue("@maxCount", DBNull.Value);
+                command.ExecuteNonQuery();
+                
+                transaction.Commit();
+            }
+            
+            TryScavenge(streamIdInfo, cancellationToken);
+
+            return Task.FromResult(new SetStreamMetadataResult(currentVersion.Value));
         }
    }
 }

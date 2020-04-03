@@ -436,30 +436,34 @@ WHERE streams.id_internal = @streamIdInternal;";
             {
                 if(expectedVersion == ExpectedVersion.EmptyStream)
                 {
-                    command.CommandText = "SELECT streams.version > 0 FROM streams WHERE streams.id = @streamId";
+                    command.CommandText = "SELECT streams.version >= 0 FROM streams WHERE streams.id = @streamId";
                     command.Parameters.Clear();
                     command.Parameters.AddWithValue("@streamId", streamIdInfo.SQLiteStreamId.Id);
 
                     if(Convert.ToBoolean(command.ExecuteScalar()))
                     {
                         throw new WrongExpectedVersionException(
-                            ErrorMessages.AppendFailedWrongExpectedVersion(streamIdInfo.SQLiteStreamId.Id, expectedVersion),
-                            streamIdInfo.SQLiteStreamId.Id,
+                            ErrorMessages.AppendFailedWrongExpectedVersion(
+                                streamIdInfo.SQLiteStreamId.IdOriginal, 
+                                expectedVersion),
+                            streamIdInfo.SQLiteStreamId.IdOriginal,
                             expectedVersion);
                     }
                 }
-                
-                if(expectedVersion == ExpectedVersion.NoStream)
+                else if(expectedVersion == ExpectedVersion.NoStream)
                 {
-                    command.CommandText = "SELECT COUNT(*) > 0 FROM streams WHERE streams.id = @streamId";
+                    command.CommandText = "SELECT COUNT(*) FROM streams WHERE streams.id = @streamId";
                     command.Parameters.Clear();
                     command.Parameters.AddWithValue("@streamId", streamIdInfo.SQLiteStreamId.Id);
+                    var streamCount = Convert.ToInt32(command.ExecuteScalar());
 
-                    if(Convert.ToBoolean(command.ExecuteScalar()))
+                    if(streamCount > 0)
                     {
                         throw new WrongExpectedVersionException(
-                            ErrorMessages.AppendFailedWrongExpectedVersion(streamIdInfo.SQLiteStreamId.Id, expectedVersion),
-                            streamIdInfo.SQLiteStreamId.Id,
+                            ErrorMessages.AppendFailedWrongExpectedVersion(
+                                streamIdInfo.SQLiteStreamId.IdOriginal, 
+                                expectedVersion),
+                            streamIdInfo.SQLiteStreamId.IdOriginal,
                             expectedVersion);
                     }
                 }
@@ -485,7 +489,9 @@ WHERE streams.id_internal = @streamIdInternal;";
                     command.ExecuteNonQuery();
                 }
 
-                command.CommandText = "SELECT streams.version, streams.position FROM streams WHERE streams.id = @streamId";
+                command.CommandText = @"SELECT streams.version, streams.position 
+                                        FROM streams 
+                                        WHERE streams.id = @streamId";
                 command.Parameters.Clear();
                 command.Parameters.AddWithValue("@streamId", streamIdInfo.SQLiteStreamId.Id);
 

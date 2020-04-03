@@ -52,7 +52,7 @@ namespace SqlStreamStore
             return connection;
         }
 
-        public void CreateSchema()
+        public void CreateSchemaIfNotExists()
         {
             using(var connection = OpenConnection())
             using(var transaction = connection.BeginTransaction())
@@ -100,9 +100,35 @@ namespace SqlStreamStore
                     var deletedMessageIds = new List<Guid>();
                     using(var command = connection.CreateCommand())
                     {
-                        command.CommandText = _scripts.Scavenge;
+                        long? _stream_id_internal = 0;
+                        long? _max_count = 0;
+                        
+                        command.Transaction = transaction;
+
+                        command.CommandText = @"SELECT streams.id_internal, streams.max_count
+                                                FROM streams WHERE streams.id = @streamId";
                         command.Parameters.Clear();
-                        command.Parameters.AddWithValue("@@streamId", streamId.SQLiteStreamId.Id);
+                        command.Parameters.AddWithValue("@streamId", streamId.SQLiteStreamId.Id);
+                        using(var reader = command.ExecuteReader())
+                        {
+                            if(reader.Read())
+                            {
+                                _stream_id_internal = reader.GetInt64(0);
+                                _max_count = reader.GetInt64(1);
+                            }
+                        }
+
+                        command.CommandText = @"SELECT messages.message_id
+                                                FROM messages
+                                                WHERE messages.stream_id_internal = ((SELECT coalesce(RealValue, IntegerValue, BlobValue, TextValue) FROM _Variables WHERE Name = '_stream_id_internal' LIMIT 1))
+                                                    AND messages.message_id NOT IN (SELECT messages.message_id
+                                                                                    FROM messages
+                                                                                    WHERE messages.stream_id_internal = @streamIdInternal)
+                                                                                        ORDER BY messages.stream_version desc
+                                                                                        LIMIT @maxCount)";
+                        command.Parameters.Clear();
+                        command.Parameters.AddWithValue("@internalStreamId", _stream_id_internal);
+                        command.Parameters.AddWithValue("@maxCount", _max_count);
 
                         using(var reader = command.ExecuteReader())
                         {

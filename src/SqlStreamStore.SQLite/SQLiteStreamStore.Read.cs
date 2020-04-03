@@ -85,6 +85,7 @@ namespace SqlStreamStore
                     {
                         return events.Last().StreamVersion - 1;
                     }
+                    
                     return -1;
                 };
             }

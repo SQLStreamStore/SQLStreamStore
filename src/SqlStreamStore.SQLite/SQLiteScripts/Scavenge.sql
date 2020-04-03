@@ -1,4 +1,4 @@
-IF EXISTS (SELECT * FROM streams WHERE streams.id == @streamId)
+EXISTS (SELECT * FROM streams WHERE streams.id == @streamId)
 BEGIN;
     /* Create in-memory temp table for variables */
     PRAGMA temp_store = 2;

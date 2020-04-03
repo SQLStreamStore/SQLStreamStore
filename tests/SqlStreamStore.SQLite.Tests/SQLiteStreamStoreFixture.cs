@@ -45,8 +45,8 @@ namespace SqlStreamStore
                     connection.Open();
                     command.CommandText = @"DELETE FROM messages;
                                             DELETE FROM streams;
-                                            UPDATE sqlite_sequence SET seq = -1 WHERE name = 'messages';
-                                            UPDATE sqlite_sequence SET seq = -1 WHERE name = 'streams';";
+                                            UPDATE sqlite_sequence SET seq = 0 WHERE name = 'messages';
+                                            UPDATE sqlite_sequence SET seq = 0 WHERE name = 'streams';";
                     command.ExecuteNonQuery();
                 }
             }

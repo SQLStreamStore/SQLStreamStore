@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS messages (
     type                    CHAR(128)   NOT NULL,
     json_data               text        NOT NULL,
     json_metadata           text,
-    FOREIGN KEY (stream_id_internal) REFERENCES streams(id_internal),
-    UNIQUE (stream_id_internal, message_id)
+    FOREIGN KEY (stream_id_internal) REFERENCES streams (id_internal),
     UNIQUE (stream_id_internal, stream_version)
+    UNIQUE (stream_id_internal, message_id)
 );

@@ -131,9 +131,9 @@ namespace SqlStreamStore
                 command.Parameters.AddWithValue("@prefetch", prefetch);
                 command.Parameters.AddWithValue("@forwards", direction == ReadDirection.Forward);
                 command.Parameters.AddWithValue("@version", streamVersion);
-                command.Parameters.AddWithValue("@count", count);
+                command.Parameters.AddWithValue("@count", count + 1);
 
-                using(var reader = command.ExecuteReader())
+                using(var reader = command.ExecuteReader(CommandBehavior.SequentialAccess))
                 {
                     if(!reader.HasRows)
                     {

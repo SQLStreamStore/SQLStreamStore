@@ -44,6 +44,19 @@ namespace SqlStreamStore
             int streamIdInternal = 0;
             using(var command = transaction.Connection.CreateCommand())
             {
+                command.CommandText = "SELECT id_internal FROM streams WHERE id_original = @streamId";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamId", streamId.IdOriginal);
+                var result = command.ExecuteScalar();
+                if(result == DBNull.Value || result == null)
+                {
+                    throw new WrongExpectedVersionException(
+                        ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamId.IdOriginal, expectedVersion),
+                        streamId.IdOriginal,
+                        expectedVersion,
+                        default);
+                }
+
                 if(expectedVersion == ExpectedVersion.EmptyStream)
                 {
                     throw new WrongExpectedVersionException(
@@ -52,23 +65,11 @@ namespace SqlStreamStore
                         expectedVersion,
                         default);
                 }
-                else if(expectedVersion >= 0) // expected version
+
+                streamIdInternal = Convert.ToInt32(result);
+                
+                if(expectedVersion >= 0) // expected version
                 {
-                    command.CommandText = "SELECT id_internal FROM streams WHERE id = @streamId";
-                    command.Parameters.Clear();
-                    command.Parameters.AddWithValue("@streamId", streamId.Id);
-                    var result = command.ExecuteScalar();
-                    if(result == DBNull.Value)
-                    {
-                        throw new WrongExpectedVersionException(
-                            ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamId.IdOriginal, expectedVersion),
-                            streamId.IdOriginal,
-                            expectedVersion,
-                            default);
-                    }
-
-                    streamIdInternal = Convert.ToInt32(result);
-
                     command.CommandText = @"SELECT messages.stream_version 
                                         FROM messages 
                                         WHERE messages.stream_id_internal = @streamIdInternal 
@@ -88,10 +89,14 @@ namespace SqlStreamStore
                     }
                 }
 
-                command.CommandText = @"DELETE FROM messages WHERE messages.stream_id_internal = @streamIdInternal;
-                                        DELETE FROM streams WHERE streams.id_internal = @streamIdInternal;";
+                command.CommandText = @"DELETE FROM messages WHERE messages.stream_id_internal = @streamIdInternal;";
                 command.Parameters.Clear();
                 command.Parameters.AddWithValue("@streamIdInternal", streamIdInternal);
+                command.ExecuteNonQuery();
+                    
+                command.CommandText = @"DELETE FROM streams WHERE streams.id = @streamId;";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamId", streamId.Id);
                 command.ExecuteNonQuery();
 
                 //TODO: develop deletion tracking, if required.

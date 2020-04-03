@@ -1,7 +1,7 @@
 namespace SqlStreamStore
 {
     using System;
-    using System.Data.SQLite;
+    using Microsoft.Data.Sqlite;
     using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Subscriptions;
@@ -9,7 +9,7 @@ namespace SqlStreamStore
     public class SQLiteStreamStoreSettings
     {
         private string _schema = "public";
-        private Func<string, SQLiteConnection> _connectionFactory;
+        private Func<string, SqliteConnection> _connectionFactory;
         private GetUtcNow _getUtcNow = SystemClock.GetUtcNow;
 
         /// <summary>
@@ -70,13 +70,15 @@ namespace SqlStreamStore
         public string LogName { get; } = nameof(SQLiteStreamStore);
 
         /// <summary>
-        ///     Allows overriding the way a <see cref="SQLiteConnection"/> is created given a connection string.
-        ///     The default implementation simply passes the connection string into the <see cref="SQLiteConnection"/> constructor.
+        ///     Allows overriding the way a <see cref="SqliteConnection"/> is created given a connection string.
+        ///     The default implementation simply passes the connection string into the <see cref="SqliteConnection"/> constructor.
         /// </summary>
-        public virtual Func<string, SQLiteConnection> ConnectionFactory
+        public virtual Func<string, SqliteConnection> ConnectionFactory
         {
             get => _connectionFactory 
-                   ?? (_connectionFactory = connectionString => new SQLiteConnection(connectionString));
+                   ?? (_connectionFactory = connectionString => new SqliteConnection(connectionString));
+            
+            
             set
             {
                 Ensure.That(value, nameof(value)).IsNotNull();

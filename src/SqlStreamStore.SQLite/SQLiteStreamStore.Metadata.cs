@@ -15,9 +15,9 @@ namespace SqlStreamStore
             var streamIdInfo = new StreamIdInfo(streamId);
 
             ReadStreamPage page;
-            using (var connection = await OpenConnection(cancellationToken))
+            using (var connection = OpenConnection())
             {
-                page = await ReadStreamInternal(
+                page = ReadStreamInternal(
                     streamIdInfo.MetadataSQLiteStreamId,
                     StreamVersion.End,
                     1,
@@ -43,7 +43,7 @@ namespace SqlStreamStore
                 metadataMessage.MetaJson);
         }
 
-        protected override async Task<SetStreamMetadataResult> SetStreamMetadataInternal(
+        protected override Task<SetStreamMetadataResult> SetStreamMetadataInternal(
             string streamId, 
             int expectedStreamMetadataVersion, 
             int? maxAge, 
@@ -51,39 +51,30 @@ namespace SqlStreamStore
             string metadataJson, 
             CancellationToken cancellationToken)
         {
-            AppendResult result;
-            using(var connection = await OpenConnection(cancellationToken))
+            var streamIdInfo = new StreamIdInfo(streamId);
+
+            var metadataMessage = new MetadataMessage
             {
-                using(var transaction = connection.BeginTransaction())
-                {
-                    var streamIdInfo = new StreamIdInfo(streamId);
+                StreamId = streamId,
+                MaxAge = maxAge,
+                MaxCount = maxCount,
+                MetaJson = metadataJson
+            };
+            var json = SimpleJson.SerializeObject(metadataMessage);
+            var messageId = MetadataMessageIdGenerator.Create(
+                    streamIdInfo.MetadataSQLiteStreamId.IdOriginal,
+                    expectedStreamMetadataVersion,
+                    json);
+            var message = new NewStreamMessage(messageId, "$stream-metadata", json);
 
-                    var metadataMessage = new MetadataMessage
-                    {
-                        StreamId = streamId,
-                        MaxAge = maxAge,
-                        MaxCount = maxCount,
-                        MetaJson = metadataJson
-                    };
-                    var json = SimpleJson.SerializeObject(metadataMessage);
-                    var messageId = MetadataMessageIdGenerator.Create(
-                            streamIdInfo.MetadataSQLiteStreamId.IdOriginal,
-                            expectedStreamMetadataVersion,
-                            json);
-                    var message = new NewStreamMessage(messageId, "$stream-metadata", json);
+            var result = AppendToStreamInternal(streamId,
+                expectedStreamMetadataVersion,
+                new[] { message },
+                cancellationToken).GetAwaiter().GetResult();
 
-                    result = await AppendToStreamInternal(streamId,
-                        expectedStreamMetadataVersion,
-                        new[] { message },
-                        cancellationToken);
+            CheckStreamMaxCount(streamId, maxCount, cancellationToken);
 
-                    transaction.Commit();
-                }
-            }
-
-            await CheckStreamMaxCount(streamId, maxCount, cancellationToken);
-
-            return new SetStreamMetadataResult(result.CurrentVersion);
+            return Task.FromResult(new SetStreamMetadataResult(result.CurrentVersion));
         }
    }
 }

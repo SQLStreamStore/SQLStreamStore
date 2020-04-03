@@ -2,9 +2,9 @@ namespace SqlStreamStore
 {
     using System;
     using System.Collections.Generic;
-    using System.Data.SQLite;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Data.Sqlite;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Logging;
     using SqlStreamStore.SQLiteScripts;
@@ -13,7 +13,7 @@ namespace SqlStreamStore
     public partial class SQLiteStreamStore : StreamStoreBase
     {
         private readonly SQLiteStreamStoreSettings _settings;
-        private readonly Func<SQLiteConnection> _createConnection;
+        private readonly Func<SqliteConnection> _createConnection;
         private readonly Scripts _scripts;
         private readonly Lazy<IStreamStoreNotifier> _streamStoreNotifier;
 
@@ -37,58 +37,52 @@ namespace SqlStreamStore
             _scripts = new Scripts();
         }
 
-        private async Task<SQLiteConnection> OpenConnection(CancellationToken cancellationToken)
+        private SqliteConnection OpenConnection()
         {
             var connection = _createConnection();
 
-            await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
-            // any setup logic for the sqlite store.
+            connection.Open();
+            using(var command = connection.CreateCommand())
+            {
+                command.CommandText = "PRAGMA foreign_keys = true;";
+                command.ExecuteNonQuery();
+            }
 
             return connection;
         }
 
-        public async Task CreateSchema(CancellationToken cancellationToken = default)
+        public void CreateSchema()
         {
-            using(var connection = await OpenConnection(cancellationToken))
+            using(var connection = OpenConnection())
             using(var transaction = connection.BeginTransaction())
             {
                 using(var command = connection.CreateCommand())
                 {
                     command.Transaction = transaction;
                     command.CommandText = _scripts.CreateSchema;
-                    await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                    command.ExecuteNonQuery();
                 }
 
                 transaction.Commit();
             }
         }
 
-        protected override async Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken)
+        protected override Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
 
-            using(var connection = _createConnection())
+            using(var connection = OpenConnection())
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-
-                using(var command = new SQLiteCommand("SELECT MAX(messages.position) FROM messages", connection))
+                using(var command = new SqliteCommand("SELECT MAX(messages.position) FROM messages", connection))
                 {
-                    var result = await command
-                        .ExecuteScalarAsync(cancellationToken)
-                        .NotOnCapturedContext();
+                    var result = command.ExecuteScalar();
 
-                    if(result == DBNull.Value)
-                    {
-                        return -1;
-                    }
-
-                    return (long) result;
+                    return Task.FromResult(result == DBNull.Value ? -1 : (long)result);
                 }
             }
         }
 
-        internal async Task<int> TryScavenge(
+        internal int TryScavenge(
             StreamIdInfo streamId,
             CancellationToken cancellationToken)
         {
@@ -99,7 +93,7 @@ namespace SqlStreamStore
 
             try
             {
-                using(var connection = await OpenConnection(cancellationToken))
+                using(var connection = OpenConnection())
                 using(var transaction = connection.BeginTransaction())
                 {
                     var deletedMessageIds = new List<Guid>();
@@ -107,11 +101,11 @@ namespace SqlStreamStore
                     {
                         command.CommandText = _scripts.Scavenge;
                         command.Parameters.Clear();
-                        command.Parameters.Add(new SQLiteParameter("@@streamId", streamId.SQLiteStreamId.Id));
+                        command.Parameters.AddWithValue("@@streamId", streamId.SQLiteStreamId.Id);
 
-                        using(var reader = await command.ExecuteReaderAsync(cancellationToken))
+                        using(var reader = command.ExecuteReader())
                         {
-                            while(await reader.ReadAsync(cancellationToken))
+                            while(reader.Read())
                             {
                                 deletedMessageIds.Add(reader.GetGuid(0));
                             }
@@ -133,7 +127,7 @@ namespace SqlStreamStore
 
                     foreach(var deletedMessageId in deletedMessageIds)
                     {
-                        await DeleteEventInternal(streamId, deletedMessageId, transaction, cancellationToken);
+                        DeleteEventInternal(streamId, deletedMessageId, transaction, cancellationToken);
                     }
 
                     transaction.Commit();

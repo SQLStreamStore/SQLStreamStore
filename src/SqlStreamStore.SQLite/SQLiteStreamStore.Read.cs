@@ -3,16 +3,15 @@ namespace SqlStreamStore
     using System;
     using System.Collections.Generic;
     using System.Data;
-    using System.Data.SQLite;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using SqlStreamStore.Infrastructure;
+    using Microsoft.Data.Sqlite;
     using SqlStreamStore.Streams;
 
     public partial class SQLiteStreamStore
     {
-        protected override async Task<ReadStreamPage> ReadStreamForwardsInternal(
+        protected override Task<ReadStreamPage> ReadStreamForwardsInternal(
             string streamId, 
             int start, 
             int count, 
@@ -20,10 +19,10 @@ namespace SqlStreamStore
             ReadNextStreamPage readNext, 
             CancellationToken cancellationToken)
         {
-            using (var connection = await OpenConnection(cancellationToken))
+            using (var connection = OpenConnection())
             {
                 var streamIdInfo = new StreamIdInfo(streamId);
-                return await ReadStreamInternal(
+                return Task.FromResult(ReadStreamInternal(
                     streamIdInfo.SQLiteStreamId,
                     start,
                     count,
@@ -32,16 +31,16 @@ namespace SqlStreamStore
                     readNext,
                     connection,
                     null,
-                    cancellationToken);
+                    cancellationToken));
             }
         }
 
-        protected override async Task<ReadStreamPage> ReadStreamBackwardsInternal(string streamId, int fromVersionInclusive, int count, bool prefetch, ReadNextStreamPage readNext, CancellationToken cancellationToken)
+        protected override Task<ReadStreamPage> ReadStreamBackwardsInternal(string streamId, int fromVersionInclusive, int count, bool prefetch, ReadNextStreamPage readNext, CancellationToken cancellationToken)
         {
-            using (var connection = await OpenConnection(cancellationToken))
+            using (var connection = OpenConnection())
             {
                 var streamIdInfo = new StreamIdInfo(streamId);
-                return await ReadStreamInternal(
+                return Task.FromResult(ReadStreamInternal(
                     streamIdInfo.SQLiteStreamId,
                     fromVersionInclusive,
                     count,
@@ -50,18 +49,18 @@ namespace SqlStreamStore
                     readNext,
                     connection,
                     null,
-                    cancellationToken);
+                    cancellationToken));
             }
         }
-        private async Task<ReadStreamPage> ReadStreamInternal(
+        private ReadStreamPage ReadStreamInternal(
             SQLiteStreamId sqlStreamId,
             int start,
             int count,
             ReadDirection direction,
             bool prefetch,
             ReadNextStreamPage readNext,
-            SQLiteConnection connection,
-            SQLiteTransaction transaction,
+            SqliteConnection connection,
+            SqliteTransaction transaction,
             CancellationToken cancellationToken)
         {
             count = count == int.MaxValue ? count - 1 : count;
@@ -95,15 +94,15 @@ namespace SqlStreamStore
                 command.CommandText = @"SELECT streams.id_internal, streams.version, streams.position
        FROM streams
       WHERE streams.id = @streamId";
-                command.Parameters.Add(new SQLiteParameter("@streamId", sqlStreamId.Id));
+                command.Parameters.AddWithValue("@streamId", sqlStreamId.Id);
 
                 var streamIdInternal = default(int?);
                 var streamVersion = -1;
                 var streamPosition = default(int?);
 
-                using (var reader = await command.ExecuteReaderAsync(cancellationToken))
+                using (var reader = command.ExecuteReader())
                 {
-                    if(await reader.ReadAsync(cancellationToken))
+                    if(reader.Read())
                     {
                         streamIdInternal = reader.GetNullableInt32(0);
                         streamVersion = reader.GetInt32(1);
@@ -131,9 +130,9 @@ namespace SqlStreamStore
                     WHERE messages.stream_id_internal = @streamIdInternal
                         AND messages.stream_version >= @streamVersion";
                     command.Parameters.Clear();
-                    command.Parameters.Add(new SQLiteParameter("@streamIdInternal", streamIdInternal));
-                    command.Parameters.Add(new SQLiteParameter("@streamVersion", streamVersion));
-                    var pos = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                    command.Parameters.AddWithValue("@streamIdInternal", streamIdInternal);
+                    command.Parameters.AddWithValue("@streamVersion", streamVersion);
+                    var pos = command.ExecuteScalar();
                     streamPosition = pos == DBNull.Value ? 0 : (int?) pos;
                 }
 
@@ -149,15 +148,15 @@ namespace SqlStreamStore
    ORDER BY messages.position
       LIMIT @count;";
                 command.Parameters.Clear();
-                command.Parameters.Add(new SQLiteParameter("@streamIdInternal", streamIdInternal));
-                command.Parameters.Add(new SQLiteParameter("@count", count + 1 ));
-                command.Parameters.Add(new SQLiteParameter("@position", streamPosition));
-                command.Parameters.Add(new SQLiteParameter("@includeJsonData", prefetch));
+                command.Parameters.AddWithValue("@streamIdInternal", streamIdInternal);
+                command.Parameters.AddWithValue("@count", count + 1 );
+                command.Parameters.AddWithValue("@position", streamPosition);
+                command.Parameters.AddWithValue("@includeJsonData", prefetch);
 
-                using (var reader = await command.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken).NotOnCapturedContext())
+                using (var reader = command.ExecuteReader(CommandBehavior.SequentialAccess))
                 {
                     var messages = new List<StreamMessage>();
-                    while (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                    while (reader.Read())
                     {
                         if (messages.Count == count)
                         {
@@ -175,12 +174,12 @@ namespace SqlStreamStore
                             Func<CancellationToken, Task<string>> getJsonData;
                             if(prefetch)
                             {
-                                var jsonData = await reader.GetTextReader(6).ReadToEndAsync();
+                                var jsonData = reader.GetTextReader(6).ReadToEnd();
                                 getJsonData = _ => Task.FromResult(jsonData);
                             }
                             else
                             {
-                                getJsonData = ct => GetJsonData(sqlStreamId.Id, streamVersion1, ct);
+                                getJsonData = ct => Task.FromResult(GetJsonData(command, sqlStreamId.Id, streamVersion1));
                             }
 
                             var message = new StreamMessage(
@@ -220,36 +219,29 @@ namespace SqlStreamStore
             }
         }
 
-        private async Task<string> GetJsonData(string streamId, int streamVersion, CancellationToken cancellationToken)
+        private string GetJsonData(SqliteCommand command, string streamId, int streamVersion)
         {
-            using(var connection = await OpenConnection(cancellationToken))
-            {
-                var sql = @"SELECT messages.json_data
+            command.CommandText = @"SELECT messages.json_data
 FROM messages
 WHERE messages.stream_id_internal = 
-  (
-    SELECT streams.id_internal
-    FROM streams
-    WHERE streams.id = @streamId)
-  AND messages.stream_version = @streamVersion";
-                using(var command = new SQLiteCommand(sql, connection))
-                {
-                    command.Parameters.Add(new SQLiteParameter("@streamId", streamId));
-                    command.Parameters.AddWithValue("@streamVersion", streamVersion);
+(
+SELECT streams.id_internal
+FROM streams
+WHERE streams.id = @streamId)
+AND messages.stream_version = @streamVersion";
+            command.Parameters.Clear();
+            command.Parameters.AddWithValue("@streamId", streamId);
+            command.Parameters.AddWithValue("@streamVersion", streamVersion);
 
-                    using(var reader = await command
-                        .ExecuteReaderAsync(
-                            CommandBehavior.SequentialAccess | CommandBehavior.SingleRow, 
-                            cancellationToken)
-                        .NotOnCapturedContext())
-                    {
-                        if(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
-                        {
-                            return await reader.GetTextReader(0).ReadToEndAsync();
-                        }
-                        return null;
-                    }
+            using(var reader = command
+                .ExecuteReader(
+                    CommandBehavior.SequentialAccess | CommandBehavior.SingleRow))
+            {
+                if(reader.Read())
+                {
+                    return reader.GetTextReader(0).ReadToEnd();
                 }
+                return null;
             }
         }
     }

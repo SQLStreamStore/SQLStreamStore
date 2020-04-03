@@ -2,6 +2,7 @@ namespace SqlStreamStore
 {
     using System;
     using System.Threading.Tasks;
+    //using Microsoft.Data.Sqlite;
     using SqlStreamStore.Infrastructure;
 
     public class SQLiteStreamStoreFixture : IStreamStoreFixture
@@ -10,9 +11,15 @@ namespace SqlStreamStore
 
         public SQLiteStreamStoreFixture()
         {
-            var connectionString = $"Data Source={System.IO.Path.GetTempFileName()};Version=3;Pooling=True;Max Pool Size=100;";
-            //var connectionString = $"Data Source=/home/richard/Desktop/sqlite.db3;Version=3;Pooling=True;Max Pool Size=100;";
+            var connectionString = $"Data Source={System.IO.Path.GetTempFileName()};Cache=Shared;";
             
+            // var csb = new SqliteConnectionStringBuilder()
+            // {
+            //     DataSource = System.IO.Path.GetTempFileName(),
+            //     Cache = SqliteCacheMode.Shared,
+            // };
+            // var connectionString = csb.ToString();
+
             _settings = new SQLiteStreamStoreSettings(connectionString)
             {
                 GetUtcNow = () => GetUtcNow()
@@ -30,10 +37,11 @@ namespace SqlStreamStore
             set => throw new NotSupportedException();
         }
 
-        public async Task Prepare()
+        public Task Prepare()
         {
             SQLiteStreamStore = new SQLiteStreamStore(_settings);
-            await SQLiteStreamStore.CreateSchema();
+            SQLiteStreamStore.CreateSchema();
+            return Task.CompletedTask;
         }
  
         public void Dispose()

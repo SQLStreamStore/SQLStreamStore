@@ -84,10 +84,10 @@ namespace SqlStreamStore
         }
 
         internal int TryScavenge(
-            StreamIdInfo streamId,
+            SQLiteStreamId streamId,
             CancellationToken cancellationToken)
         {
-            if(streamId.SQLiteStreamId == SQLiteStreamId.Deleted)
+            if(streamId == SQLiteStreamId.Deleted)
             {
                 return -1;
             }
@@ -108,7 +108,7 @@ namespace SqlStreamStore
                         command.CommandText = @"SELECT streams.id_internal, streams.max_count
                                                 FROM streams WHERE streams.id = @streamId";
                         command.Parameters.Clear();
-                        command.Parameters.AddWithValue("@streamId", streamId.SQLiteStreamId.Id);
+                        command.Parameters.AddWithValue("@streamId", streamId.Id);
                         using(var reader = command.ExecuteReader())
                         {
                             if(reader.Read())
@@ -142,13 +142,13 @@ namespace SqlStreamStore
                     Logger.Info(
                         "Found {deletedMessageIdCount} message(s) for stream {streamId} to scavenge.",
                         deletedMessageIds.Count,
-                        streamId.SQLiteStreamId.IdOriginal);
+                        streamId.IdOriginal);
 
                     if(deletedMessageIds.Count > 0)
                     {
                         Logger.Debug(
                             "Scavenging the following messages on stream {streamId}: {deletedMessageIds}",
-                            streamId.SQLiteStreamId.IdOriginal,
+                            streamId.IdOriginal,
                             deletedMessageIds);
                     }
 
@@ -167,7 +167,7 @@ namespace SqlStreamStore
                 Logger.WarnException(
                     "Scavenge attempt failed on stream {streamId}. Another attempt will be made when this stream is written to.",
                     ex,
-                    streamId.SQLiteStreamId.IdOriginal);
+                    streamId.IdOriginal);
             }
 
             return -1;

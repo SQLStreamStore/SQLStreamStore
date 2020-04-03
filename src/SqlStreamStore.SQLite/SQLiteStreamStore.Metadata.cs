@@ -4,6 +4,7 @@ namespace SqlStreamStore
     using System.Threading;
     using System.Threading.Tasks;
     using SqlStreamStore.Streams;
+    using StreamStoreStore.Json;
 
     public partial class SQLiteStreamStore
     {
@@ -50,13 +51,14 @@ namespace SqlStreamStore
             string metadataJson, 
             CancellationToken cancellationToken)
         {
-            var metadataMessage = new MetadataMessage
+            var metadata = new MetadataMessage
             {
                 StreamId = streamId,
                 MaxAge = maxAge,
                 MaxCount = maxCount,
                 MetaJson = metadataJson
             };
+            var metadataMessageJsonData = SimpleJson.SerializeObject(metadata);
 
             var streamIdInfo = new StreamIdInfo(streamId);
             var currentVersion = default(int?);
@@ -71,21 +73,21 @@ namespace SqlStreamStore
                 {
                     AppendToStreamExpectedVersionNoStream(command,
                         streamIdInfo.MetadataSQLiteStreamId,
-                        null,
+                        new NewStreamMessage(Guid.Parse(streamIdInfo.MetadataSQLiteStreamId.Id), "", "", metadataJson), 
                         cancellationToken);
                 }
                 else if(expectedStreamMetadataVersion == ExpectedVersion.Any)
                 {
                     AppendToStreamExpectedVersionAny(command,
                         streamIdInfo.MetadataSQLiteStreamId,
-                        null,
+                        new NewStreamMessage(Guid.Parse(streamIdInfo.MetadataSQLiteStreamId.Id), "", "", metadataJson), 
                         cancellationToken);
                 }
                 else if(expectedStreamMetadataVersion == ExpectedVersion.EmptyStream)
                 {
                     AppendToStreamExpectedVersionEmptyStream(command,
                         streamIdInfo.MetadataSQLiteStreamId,
-                        null,
+                        new NewStreamMessage(Guid.Parse(streamIdInfo.MetadataSQLiteStreamId.Id), "", "", metadataJson), 
                         cancellationToken);
                 }
                 else
@@ -109,7 +111,7 @@ namespace SqlStreamStore
                 transaction.Commit();
             }
             
-            TryScavenge(streamIdInfo, cancellationToken);
+            TryScavenge(streamIdInfo.SQLiteStreamId, cancellationToken);
 
             return Task.FromResult(new SetStreamMetadataResult(currentVersion.Value));
         }

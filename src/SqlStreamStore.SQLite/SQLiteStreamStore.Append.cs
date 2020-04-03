@@ -4,7 +4,6 @@ namespace SqlStreamStore
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Data.Sqlite;
-    using SqlStreamStore.Logging;
     using SqlStreamStore.Streams;
 
     partial class SQLiteStreamStore
@@ -21,7 +20,7 @@ namespace SqlStreamStore
             {
                 return Task.FromResult(messages.Length == 0
                     ? CreateEmptyStream(streamIdInfo, expectedVersion, cancellationToken)
-                    : AppendMessagesToStream(streamIdInfo, expectedVersion, messages, cancellationToken)
+                    : AppendMessagesToStream(streamIdInfo.SQLiteStreamId, expectedVersion, messages, cancellationToken)
                 );
             }
             catch(Exception e)
@@ -32,7 +31,7 @@ namespace SqlStreamStore
         }
 
         private AppendResult AppendMessagesToStream(
-            StreamIdInfo streamId, 
+            SQLiteStreamId streamId, 
             int expectedVersion, 
             NewStreamMessage[] messages, 
             CancellationToken cancellationToken)
@@ -53,7 +52,7 @@ namespace SqlStreamStore
                     bool messageExists;
                     (nextExpectedVersion, appendResult, messageExists) = AppendMessageToStream(
                         command,
-                        streamId.SQLiteStreamId,
+                        streamId,
                         nextExpectedVersion,
                         messages[i],
                         cancellationToken);
@@ -67,8 +66,8 @@ namespace SqlStreamStore
                         if(throwIfAdditionalMessages && !messageExists)
                         {
                             throw new WrongExpectedVersionException(
-                                ErrorMessages.AppendFailedWrongExpectedVersion(streamId.SQLiteStreamId.IdOriginal, expectedVersion),
-                                streamId.SQLiteStreamId.IdOriginal,
+                                ErrorMessages.AppendFailedWrongExpectedVersion(streamId.IdOriginal, expectedVersion),
+                                streamId.IdOriginal,
                                 expectedVersion
                             );
                         }
@@ -110,8 +109,6 @@ namespace SqlStreamStore
                 NewStreamMessage message,
                 CancellationToken cancellationToken)
         {
-            Logger.Info(command.Connection.ConnectionString);
-            
             // get internal id
             long _stream_id_internal;
             command.CommandText = "SELECT id_internal FROM streams WHERE id = @streamId";

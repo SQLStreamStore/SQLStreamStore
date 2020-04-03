@@ -108,7 +108,7 @@ namespace SqlStreamStore
             using(var connection = OpenConnection())
             using(var transaction = connection.BeginTransaction())
             {
-                DeleteEventInternal(streamIdInfo, eventId, transaction, cancellationToken);
+                DeleteEventInternal(streamIdInfo.SQLiteStreamId, eventId, transaction, cancellationToken);
                 
                 transaction.Commit();
             }
@@ -117,7 +117,7 @@ namespace SqlStreamStore
         }
 
         private void DeleteEventInternal(
-            StreamIdInfo streamIdInfo,
+            SQLiteStreamId streamId,
             Guid eventId,
             SqliteTransaction transaction,
             CancellationToken cancellationToken)
@@ -133,7 +133,7 @@ namespace SqlStreamStore
                 WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE streams.id = @streamId)
                     AND messages.message_id = @messageId";
                 command.Parameters.Clear();
-                command.Parameters.AddWithValue("@streamId", streamIdInfo.SQLiteStreamId.Id);
+                command.Parameters.AddWithValue("@streamId", streamId.Id);
                 command.Parameters.AddWithValue("@messageId", eventId);
 
                 command.ExecuteNonQuery();

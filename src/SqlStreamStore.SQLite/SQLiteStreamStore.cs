@@ -114,18 +114,18 @@ namespace SqlStreamStore
                             if(reader.Read())
                             {
                                 _stream_id_internal = reader.GetInt64(0);
-                                _max_count = reader.GetInt64(1);
+                                _max_count = reader.GetValue(1) != DBNull.Value ? reader.GetInt64(1) : default;
                             }
                         }
 
                         command.CommandText = @"SELECT messages.message_id
                                                 FROM messages
-                                                WHERE messages.stream_id_internal = ((SELECT coalesce(RealValue, IntegerValue, BlobValue, TextValue) FROM _Variables WHERE Name = '_stream_id_internal' LIMIT 1))
+                                                WHERE messages.stream_id_internal = @internalStreamId
                                                     AND messages.message_id NOT IN (SELECT messages.message_id
                                                                                     FROM messages
-                                                                                    WHERE messages.stream_id_internal = @streamIdInternal)
-                                                                                        ORDER BY messages.stream_version desc
-                                                                                        LIMIT @maxCount)";
+                                                                                    WHERE messages.stream_id_internal = @internalStreamId)
+                                                ORDER BY messages.stream_version DESC
+                                                LIMIT @maxCount";
                         command.Parameters.Clear();
                         command.Parameters.AddWithValue("@internalStreamId", _stream_id_internal);
                         command.Parameters.AddWithValue("@maxCount", _max_count);

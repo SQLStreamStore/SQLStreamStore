@@ -41,23 +41,10 @@ namespace SqlStreamStore
             SqliteTransaction transaction,
             CancellationToken cancellationToken)
         {
-            if(expectedVersion == ExpectedVersion.EmptyStream)
-            {
-                throw new WrongExpectedVersionException(
-                    ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamId.IdOriginal, expectedVersion),
-                    streamId.IdOriginal,
-                    expectedVersion,
-                    default);
-            }
-
             int streamIdInternal = 0;
             using(var command = transaction.Connection.CreateCommand())
             {
-                command.CommandText = "SELECT id_internal FROM streams WHERE id = @streamId";
-                command.Parameters.Clear();
-                command.Parameters.AddWithValue("@streamId", streamId.Id);
-                var result = command.ExecuteScalar();
-                if(result == DBNull.Value)
+                if(expectedVersion == ExpectedVersion.EmptyStream)
                 {
                     throw new WrongExpectedVersionException(
                         ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamId.IdOriginal, expectedVersion),
@@ -65,34 +52,49 @@ namespace SqlStreamStore
                         expectedVersion,
                         default);
                 }
+                else if(expectedVersion >= 0) // expected version
+                {
+                    command.CommandText = "SELECT id_internal FROM streams WHERE id = @streamId";
+                    command.Parameters.Clear();
+                    command.Parameters.AddWithValue("@streamId", streamId.Id);
+                    var result = command.ExecuteScalar();
+                    if(result == DBNull.Value)
+                    {
+                        throw new WrongExpectedVersionException(
+                            ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamId.IdOriginal, expectedVersion),
+                            streamId.IdOriginal,
+                            expectedVersion,
+                            default);
+                    }
 
-                streamIdInternal = Convert.ToInt32(result);
+                    streamIdInternal = Convert.ToInt32(result);
 
-                command.CommandText = @"SELECT messages.stream_version 
+                    command.CommandText = @"SELECT messages.stream_version 
                                         FROM messages 
                                         WHERE messages.stream_id_internal = @streamIdInternal 
                                         ORDER BY messages.position DESC
-                                        LIMIT 1";
-                command.Parameters.Clear();
-                command.Parameters.AddWithValue("@streamIdInternal", streamIdInternal);
-                var latestVersion = Convert.ToInt32(command.ExecuteScalar());
+                                        LIMIT 1;";
+                    command.Parameters.Clear();
+                    command.Parameters.AddWithValue("@streamIdInternal", streamIdInternal);
+                    var latestVersion = Convert.ToInt32(command.ExecuteScalar());
 
-                if(expectedVersion != latestVersion)
-                {
-                    throw new WrongExpectedVersionException(
-                        ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamId.IdOriginal, expectedVersion),
-                        streamId.IdOriginal,
-                        expectedVersion,
-                        default);
+                    if(expectedVersion != latestVersion)
+                    {
+                        throw new WrongExpectedVersionException(
+                            ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamId.IdOriginal, expectedVersion),
+                            streamId.IdOriginal,
+                            expectedVersion,
+                            default);
+                    }
                 }
 
                 command.CommandText = @"DELETE FROM messages WHERE messages.stream_id_internal = @streamIdInternal;
-                DELETE FROM streams WHERE streams.id = @streamId";
+                                            DELETE FROM streams WHERE streams.id = @streamId";
                 command.Parameters.Clear();
                 command.Parameters.AddWithValue("@streamIdInternal", streamIdInternal);
                 command.Parameters.AddWithValue("@streamId", streamId.Id);
                 command.ExecuteNonQuery();
-                
+
                 //TODO: develop deletion tracking, if required.
             }
         }

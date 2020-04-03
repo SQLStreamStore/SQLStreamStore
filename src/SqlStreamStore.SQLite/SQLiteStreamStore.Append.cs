@@ -4,6 +4,7 @@ namespace SqlStreamStore
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Data.Sqlite;
+    using SqlStreamStore.Logging;
     using SqlStreamStore.Streams;
 
     partial class SQLiteStreamStore
@@ -109,6 +110,8 @@ namespace SqlStreamStore
                 NewStreamMessage message,
                 CancellationToken cancellationToken)
         {
+            Logger.Info(command.Connection.ConnectionString);
+            
             // get internal id
             long _stream_id_internal;
             command.CommandText = "SELECT id_internal FROM streams WHERE id = @streamId";
@@ -152,11 +155,11 @@ WHERE messages.stream_id_internal = @streamIdInternal
                 {
                     var numberOfStreams = reader.GetInt32(0);
                     messageExists = numberOfStreams > 0;
-                    streamVersion = messageExists ? reader.GetInt32(1) : -1;
+                    streamVersion = messageExists ? reader.GetInt32(1) : 0;
                 }
                 else
                 {
-                    streamVersion = -1;
+                    streamVersion = 0;
                 }
             }
 

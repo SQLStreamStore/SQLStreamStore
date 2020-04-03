@@ -89,10 +89,9 @@ namespace SqlStreamStore
                 }
 
                 command.CommandText = @"DELETE FROM messages WHERE messages.stream_id_internal = @streamIdInternal;
-                                            DELETE FROM streams WHERE streams.id = @streamId";
+                                        DELETE FROM streams WHERE streams.id_internal = @streamIdInternal;";
                 command.Parameters.Clear();
                 command.Parameters.AddWithValue("@streamIdInternal", streamIdInternal);
-                command.Parameters.AddWithValue("@streamId", streamId.Id);
                 command.ExecuteNonQuery();
 
                 //TODO: develop deletion tracking, if required.

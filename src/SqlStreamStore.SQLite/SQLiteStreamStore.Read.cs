@@ -107,7 +107,7 @@ namespace SqlStreamStore
                                         SELECT streams.id_original as stream_id,
                                                messages.message_id,
                                                messages.stream_version,
-                                               (messages.[position] - 1),
+                                               messages.[position] - 1,
                                                messages.created_utc,
                                                messages.type,
                                                messages.json_metadata,
@@ -123,7 +123,7 @@ namespace SqlStreamStore
                                                END)
                                         ORDER BY (CASE
                                                     WHEN @forwards THEN messages.stream_version
-                                                    ELSE messages.stream_version * -1
+                                                    ELSE -messages.stream_version
                                                   END)
                                         LIMIT @count;";
                 command.Parameters.Clear();
@@ -169,6 +169,7 @@ namespace SqlStreamStore
                     }
 
                     var isEnd = true;
+                    
                     if(messages.Count == count + 1)
                     {
                         isEnd = false;

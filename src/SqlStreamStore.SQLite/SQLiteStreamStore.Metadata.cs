@@ -61,41 +61,45 @@ namespace SqlStreamStore
             var metadataMessageJsonData = SimpleJson.SerializeObject(metadata);
 
             var streamIdInfo = new StreamIdInfo(streamId);
-            var currentVersion = default(int?);
-
+            var result = default((int nextExpectedVersion, AppendResult appendResult, bool messageExists));
+            
             using(var connection = OpenConnection())
             using (var transaction = connection.BeginTransaction())
             using (var command = connection.CreateCommand())
             {
                 command.Transaction = transaction;
+                var message = new NewStreamMessage(
+                    Guid.NewGuid(), 
+                    "$stream-metadata",
+                    metadataJson); 
                 
                 if(expectedStreamMetadataVersion == ExpectedVersion.NoStream)
                 {
-                    AppendToStreamExpectedVersionNoStream(command,
+                    result = AppendToStreamExpectedVersionNoStream(command,
                         streamIdInfo.MetadataSQLiteStreamId,
-                        new NewStreamMessage(Guid.Parse(streamIdInfo.MetadataSQLiteStreamId.Id), "", "", metadataJson), 
+                        message,
                         cancellationToken);
                 }
                 else if(expectedStreamMetadataVersion == ExpectedVersion.Any)
                 {
-                    AppendToStreamExpectedVersionAny(command,
+                    result = AppendToStreamExpectedVersionAny(command,
                         streamIdInfo.MetadataSQLiteStreamId,
-                        new NewStreamMessage(Guid.Parse(streamIdInfo.MetadataSQLiteStreamId.Id), "", "", metadataJson), 
+                        message,
                         cancellationToken);
                 }
                 else if(expectedStreamMetadataVersion == ExpectedVersion.EmptyStream)
                 {
-                    AppendToStreamExpectedVersionEmptyStream(command,
+                    result = AppendToStreamExpectedVersionEmptyStream(command,
                         streamIdInfo.MetadataSQLiteStreamId,
-                        new NewStreamMessage(Guid.Parse(streamIdInfo.MetadataSQLiteStreamId.Id), "", "", metadataJson), 
+                        message,
                         cancellationToken);
                 }
                 else
                 {
-                    AppendToStreamExpectedVersion(command,
+                    result = AppendToStreamExpectedVersion(command,
                         streamIdInfo.MetadataSQLiteStreamId,
                         expectedStreamMetadataVersion,
-                        null,
+                        message,
                         cancellationToken);
                 }
 
@@ -104,6 +108,7 @@ namespace SqlStreamStore
                                             max_count = @maxCount
                                         WHERE streams.id = @streamId";
                 command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamId", streamId);
                 command.Parameters.AddWithValue("@maxAge", DBNull.Value);
                 command.Parameters.AddWithValue("@maxCount", DBNull.Value);
                 command.ExecuteNonQuery();
@@ -113,7 +118,7 @@ namespace SqlStreamStore
             
             TryScavenge(streamIdInfo.SQLiteStreamId, cancellationToken);
 
-            return Task.FromResult(new SetStreamMetadataResult(currentVersion.Value));
+            return Task.FromResult(new SetStreamMetadataResult(result.appendResult.CurrentVersion));
         }
    }
 }

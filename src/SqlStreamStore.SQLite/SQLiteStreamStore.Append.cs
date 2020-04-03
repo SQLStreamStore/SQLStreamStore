@@ -152,7 +152,7 @@ WHERE messages.stream_id_internal = @streamIdInternal
                 {
                     var numberOfStreams = reader.GetInt32(0);
                     messageExists = numberOfStreams > 0;
-                    streamVersion = messageExists ? reader.GetInt32(1) : 0;
+                    streamVersion = reader.IsDBNull(1) ? -1 : reader.GetInt32(1);
                 }
                 else
                 {
@@ -185,7 +185,11 @@ WHERE messages.stream_id_internal = @streamIdInternal
                 command.Parameters.AddWithValue("@jsonData", message.JsonData);
                 command.Parameters.AddWithValue("@jsonMetadata", message.JsonMetadata);
 
-                streamPosition = Convert.ToInt32(command.ExecuteScalar());
+                command.ExecuteScalar();
+
+                return (streamVersion + 1,
+                    new AppendResult(streamVersion + 1, streamPosition),
+                    messageExists);
             }
             else
             {
@@ -198,14 +202,12 @@ WHERE streams.id_internal = @streamIdInternal;";
                 using(var reader = command.ExecuteReader())
                 {
                     reader.Read();
-                    streamVersion = reader.GetInt32(0);
-                    streamPosition = reader.GetInt32(1);
+
+                    return (streamVersion,
+                        new AppendResult(reader.GetInt32(0), reader.GetInt64(1)),
+                        messageExists);
                 }
             }
-
-            return (streamVersion,
-                new AppendResult(streamVersion + 1, streamPosition),
-                messageExists);
         }
 
         private (int nextExpectedVersion, AppendResult appendResult, bool messageExists) AppendToStreamExpectedVersionNoStream(

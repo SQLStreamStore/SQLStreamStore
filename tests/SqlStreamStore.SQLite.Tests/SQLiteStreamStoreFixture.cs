@@ -12,13 +12,6 @@ namespace SqlStreamStore
         public SQLiteStreamStoreFixture()
         {
             var connectionString = $"Data Source={System.IO.Path.GetTempFileName()};Cache=Shared;";
-            
-            // var csb = new SqliteConnectionStringBuilder()
-            // {
-            //     DataSource = System.IO.Path.GetTempFileName(),
-            //     Cache = SqliteCacheMode.Shared,
-            // };
-            // var connectionString = csb.ToString();
 
             _settings = new SQLiteStreamStoreSettings(connectionString)
             {

@@ -469,10 +469,10 @@ WHERE streams.id_internal = @streamIdInternal;";
                 var count = GetStreamMessageCount(streamId, cancellationToken);
                 if (count > maxCount.Value)
                 {
-                    int toPurge = count - maxCount.Value;
+                    long toPurge = count - maxCount.Value;
 
                     var streamMessagesPage = ReadStreamForwardsInternal(streamId, StreamVersion.Start,
-                        toPurge, false, null, cancellationToken).GetAwaiter().GetResult();
+                        Convert.ToInt32(toPurge), false, null, cancellationToken).GetAwaiter().GetResult();
 
                     if (streamMessagesPage.Status == PageReadStatus.Success)
                     {
@@ -485,7 +485,7 @@ WHERE streams.id_internal = @streamIdInternal;";
             }
         }
 
-        private int GetStreamMessageCount(
+        private long GetStreamMessageCount(
             string streamId,
             CancellationToken cancellationToken = default)
         {
@@ -498,7 +498,7 @@ WHERE streams.id_internal = @streamIdInternal;";
                     var streamIdInfo = new StreamIdInfo(streamId);
                     command.Parameters.AddWithValue("@streamId", streamId);
 
-                    return (int) command.ExecuteScalar();
+                    return Convert.ToInt64(command.ExecuteScalar());
                 }
             }
         }

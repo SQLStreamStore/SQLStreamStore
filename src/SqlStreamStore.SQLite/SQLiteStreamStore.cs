@@ -44,7 +44,8 @@ namespace SqlStreamStore
             connection.Open();
             using(var command = connection.CreateCommand())
             {
-                command.CommandText = "PRAGMA foreign_keys = true;";
+                command.CommandText = @"PRAGMA foreign_keys = true;
+                                        PRAGMA journal_mode = WAL;";
                 command.ExecuteNonQuery();
             }
 

@@ -25,7 +25,7 @@ namespace SqlStreamStore
             messages.stream_version,
             messages.position,
             messages.message_id,
-            messages.createdUtc,
+            messages.created_utc,
             messages.type,
             messages.json_metadata,
             CASE WHEN @includeJsonData = true THEN messages.json_data ELSE null END

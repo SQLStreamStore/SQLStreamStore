@@ -23,10 +23,15 @@ namespace SqlStreamStore
                     : AppendMessagesToStream(streamIdInfo.SQLiteStreamId, expectedVersion, messages, cancellationToken)
                 );
             }
-            catch(Exception e)
+            catch(SqliteException ex)
             {
-                Console.WriteLine(e);
-                throw;
+                throw new WrongExpectedVersionException(
+                    ErrorMessages.AppendFailedWrongExpectedVersion(
+                        streamIdInfo.SQLiteStreamId.IdOriginal,
+                        expectedVersion),
+                    streamIdInfo.SQLiteStreamId.IdOriginal,
+                    expectedVersion,
+                    ex);
             }
         }
 
@@ -163,16 +168,20 @@ WHERE messages.stream_id_internal = @streamIdInternal
 
             if(!messageExists)
             {
-                GetStreamMetadata(command, streamId);
-
-                streamVersion += 1;
+                command.CommandText = @"SELECT streams.[version]
+                                        FROM streams
+                                        where streams.id_internal = @streamIdInternal
+                                        LIMIT 1";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamIdInternal", _stream_id_internal);
+                streamVersion = Convert.ToInt32(command.ExecuteScalar());
 
                 command.CommandText =
                     @"INSERT INTO messages(stream_id_internal, stream_version, message_id, created_utc, type, json_data, json_metadata)
-                VALUES (@streamIdInternal, @streamVersion, @messageId, @createdUtc, @type, @jsonData, @jsonMetadata);
+                VALUES (@streamIdInternal, @streamVersion + 1, @messageId, @createdUtc, @type, @jsonData, @jsonMetadata);
                 
                 UPDATE streams
-                SET [version] = @streamVersion,
+                SET [version] = @streamVersion + 1,
                     [position] = last_insert_rowid()
                 WHERE streams.id_internal = @streamIdInternal";
                 command.Parameters.Clear();
@@ -199,7 +208,7 @@ WHERE messages.stream_id_internal = @streamIdInternal
                 var currentVersion = reader.GetInt32(0);
                 var newPosition = reader.GetInt64(1);
 
-                return (streamVersion,
+                return (messageExists ? streamVersion : currentVersion,
                     new AppendResult(currentVersion, newPosition),
                     messageExists);
             }

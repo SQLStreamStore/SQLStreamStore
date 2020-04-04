@@ -116,102 +116,117 @@ namespace SqlStreamStore
                 NewStreamMessage message,
                 CancellationToken cancellationToken)
         {
-            // get internal id
-            long _stream_id_internal;
-            command.CommandText = "SELECT id_internal FROM streams WHERE id = @streamId";
-            command.Parameters.Clear();
-            command.Parameters.AddWithValue("@streamId", streamId.Id);
-            var result = command.ExecuteScalar();
-            if(result == DBNull.Value || result == null)
-            {
-                var metaData = GetStreamMetadata(command, streamId);
-                
-                command.CommandText = @"INSERT INTO streams (id, id_original, max_age, max_count)
-                                            VALUES(@streamId, @streamIdOriginal, @maxAge, @maxCount);
-                                            SELECT last_insert_rowid();";
-                command.Parameters.Clear();
-                command.Parameters.AddWithValue("@streamId", streamId.Id);
-                command.Parameters.AddWithValue("@streamIdOriginal", streamId.IdOriginal);
-                command.Parameters.AddWithValue("@maxAge", metaData.MaxAge ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@maxCount", metaData.MaxCount ?? (object)DBNull.Value);
-                _stream_id_internal = Convert.ToInt64(command.ExecuteScalar());
-            }
-            else
-            {
-                _stream_id_internal = Convert.ToInt64(result);
-            }
+            // get internal id.
+             long _stream_id_internal;
+             command.CommandText = @"SELECT id_internal 
+                                     FROM streams 
+                                     WHERE id = @streamId
+                                     LIMIT 1;";
+             command.Parameters.Clear();
+             command.Parameters.AddWithValue("@streamId", streamId.Id);
+             var internalId = command.ExecuteScalar();
 
-            bool messageExists = false;
-            int streamVersion = -1;
+             // build stream if it does not exist.
+             if(internalId == null)
+             {
+                 var metadata = GetStreamMetadata(command, streamId);
 
-            command.CommandText = @"SELECT COUNT(*), stream_version
-FROM messages
-WHERE messages.stream_id_internal = @streamIdInternal
-    AND messages.message_id = @messageId";
-            command.Parameters.Clear();
-            command.Parameters.AddWithValue("@streamIdInternal", _stream_id_internal);
-            command.Parameters.AddWithValue("@messageId", message.MessageId);
+                 command.CommandText = @"INSERT INTO streams (id, id_original, max_age, max_count)
+                                         VALUES (@id, @idOriginal, @maxAge, @maxCount);
+                                         SELECT last_insert_rowid();";
+                 command.Parameters.Clear();
+                 command.Parameters.AddWithValue("@id", streamId.Id);
+                 command.Parameters.AddWithValue("@idOriginal", streamId.IdOriginal);
+                 command.Parameters.Add(new SqliteParameter("@maxAge", SqliteType.Integer) { Value = metadata.MaxAge ?? (object)DBNull.Value });
+                 command.Parameters.Add(new SqliteParameter("@maxCount", SqliteType.Integer) { Value = metadata.MaxCount ?? (object)DBNull.Value });
+                 _stream_id_internal = Convert.ToInt64(command.ExecuteScalar());
+             }
+             else
+             {
+                 _stream_id_internal = Convert.ToInt64(internalId);
+             }
+            
+             // determine message count & stream version.
+             var messageExists = false;
+             var streamVersionBeforeInsert = -1;
 
-            using(var reader = command.ExecuteReader())
-            {
-                if(reader.Read())
-                {
-                    var numberOfStreams = reader.GetInt32(0);
-                    messageExists = numberOfStreams > 0;
-                    streamVersion = reader.IsDBNull(1) ? -1 : reader.GetInt32(1);
-                }
-                else
-                {
-                    streamVersion = 0;
-                }
-            }
+             command.CommandText = @"SELECT COUNT(*) > 0, messages.stream_version
+                                     FROM messages
+                                     WHERE messages.stream_id_internal = @idInternal 
+                                       AND messages.message_id = @messageId
+                                     LIMIT 1;";
+             command.Parameters.Clear();
+             command.Parameters.AddWithValue("@idInternal", _stream_id_internal);
+             command.Parameters.AddWithValue("@messageId", message.MessageId);
+             
+             using(var reader = command.ExecuteReader())
+             {
+                 if(reader.Read())
+                 {
+                     messageExists = reader.GetBoolean(0);
+                     streamVersionBeforeInsert = Convert.ToInt32(reader.IsDBNull(1) ? -1 : reader.GetInt32(1));
+                 }
+             }
 
-            if(!messageExists)
-            {
-                command.CommandText = @"SELECT streams.[version]
-                                        FROM streams
-                                        where streams.id_internal = @streamIdInternal
-                                        LIMIT 1";
-                command.Parameters.Clear();
-                command.Parameters.AddWithValue("@streamIdInternal", _stream_id_internal);
-                streamVersion = Convert.ToInt32(command.ExecuteScalar());
+             if(!messageExists)
+             {
+                 command.CommandText = @"SELECT streams.[version] 
+                                         FROM streams 
+                                         WHERE id_internal = @idInternal";
+                 command.Parameters.Clear();
+                 command.Parameters.AddWithValue("@idInternal", _stream_id_internal);
+                 streamVersionBeforeInsert = Convert.ToInt32(command.ExecuteScalar());
 
-                command.CommandText =
-                    @"INSERT INTO messages(stream_id_internal, stream_version, message_id, created_utc, type, json_data, json_metadata)
-                VALUES (@streamIdInternal, @streamVersion + 1, @messageId, @createdUtc, @type, @jsonData, @jsonMetadata);
-                
-                UPDATE streams
-                SET [version] = @streamVersion + 1,
-                    [position] = last_insert_rowid()
-                WHERE streams.id_internal = @streamIdInternal";
-                command.Parameters.Clear();
-                command.Parameters.AddWithValue("@streamIdInternal", _stream_id_internal);
-                command.Parameters.AddWithValue("@streamVersion", streamVersion);
-                command.Parameters.AddWithValue("@messageId", message.MessageId);
-                command.Parameters.AddWithValue("@createdUtc", GetUtcNow());
-                command.Parameters.AddWithValue("@type", message.Type);
-                command.Parameters.AddWithValue("@jsonData", message.JsonData);
-                command.Parameters.AddWithValue("@jsonMetadata", message.JsonMetadata);
-                command.ExecuteNonQuery();
-            }
+                 command.CommandText = @"INSERT INTO messages (stream_id_internal, stream_version, message_id, created_utc, type, json_data, json_metadata)
+                                         VALUES (@idInternal, @streamVersion + 1, @messageId, @createdUtc, @type, @jsonData, @jsonMetadata);
+                                         
+                                         SELECT last_insert_rowid();";
+                 command.Parameters.Clear();
+                 command.Parameters.AddWithValue("@idInternal", _stream_id_internal);
+                 command.Parameters.AddWithValue("@streamVersion", streamVersionBeforeInsert);
+                 command.Parameters.AddWithValue("@messageId", message.MessageId);
+                 command.Parameters.AddWithValue("@createdUtc", GetUtcNow());
+                 command.Parameters.AddWithValue("@type", message.Type);
+                 command.Parameters.AddWithValue("@jsonData", message.JsonData);
+                 command.Parameters.AddWithValue("@jsonMetadata", message.JsonMetadata);
+                 var currentPosition = Convert.ToInt64(command.ExecuteScalar());
+                 var currentVersion = streamVersionBeforeInsert + 1;
 
-            command.CommandText = @"SELECT [version], [position]
-                                    FROM streams
-                                    WHERE streams.id_internal = @streamIdInternal
-                                    LIMIT 1;";
-            command.Parameters.Clear();
-            command.Parameters.AddWithValue("@streamIdInternal", _stream_id_internal);
+                 command.CommandText = @"UPDATE streams
+                                         SET version = @version,
+                                             position = @position
+                                         WHERE streams.id_internal = @idInternal";
+                 command.Parameters.Clear();
+                 command.Parameters.AddWithValue("@version", currentVersion);
+                 command.Parameters.AddWithValue("@position", currentPosition);
+                 command.Parameters.AddWithValue("@idInternal", _stream_id_internal);
+                 command.ExecuteNonQuery();
 
-            using(var reader = command.ExecuteReader())
-            {
-                reader.Read();
-                var currentVersion = reader.GetInt32(0);
-                var newPosition = reader.GetInt64(1);
+                 return (currentVersion, 
+                     new AppendResult(currentVersion, currentPosition),
+                     false);
+             }
+             else
+             {
+                 command.CommandText = @"SELECT streams.[version], streams.[position]
+                                         FROM streams
+                                         WHERE streams.id_internal = @idInternal
+                                         LIMIT 1";
+                 command.Parameters.Clear();
+                 command.Parameters.AddWithValue("@idInternal", _stream_id_internal);
 
-                return (messageExists ? streamVersion : currentVersion,
-                    new AppendResult(currentVersion, newPosition),
-                    messageExists);
-            }
+                 using(var reader = command.ExecuteReader())
+                 {
+                     if(reader.Read())
+                     {
+                         return (streamVersionBeforeInsert, 
+                             new AppendResult(reader.GetInt32(0), reader.GetInt64(1)),
+                             true);
+                     }
+                 }
+             }
+             
+             throw new InvalidOperationException("Unhandled case within AppendToStreamExpectedVersionAny.");
         }
 
         private (int nextExpectedVersion, AppendResult appendResult, bool messageExists) AppendToStreamExpectedVersionNoStream(
@@ -354,7 +369,21 @@ WHERE messages.stream_id_internal = @streamIdInternal
             bool messageExists = false;
             
             // get internal id
-            long _stream_id_internal = ResolveInternalStream(command, streamId, cancellationToken);
+            command.CommandText = @"SELECT streams.id_internal
+                                    FROM streams
+                                    WHERE streams.id = @streamId";
+            command.Parameters.Clear();
+            command.Parameters.AddWithValue("@streamId", streamId.Id);
+            var streamIdInternalObject = command.ExecuteScalar();
+            if(streamIdInternalObject == null || streamIdInternalObject == DBNull.Value)
+            {
+                throw new WrongExpectedVersionException(
+                    ErrorMessages.AppendFailedWrongExpectedVersion(streamId.Id, expectedVersion),
+                    streamId.Id,
+                    expectedVersion);
+            }
+
+            var _stream_id_internal = Convert.ToInt64(streamIdInternalObject);
 
             command.CommandText = @"SELECT streams.version 
                                     FROM streams 
@@ -374,11 +403,11 @@ WHERE messages.stream_id_internal = @streamIdInternal
             command.CommandText = @"SELECT COUNT(*) 
                 FROM messages 
                 WHERE messages.stream_id_internal = @streamIdInternal
-                    AND messages.stream_version = @expectedVersion + 1
+                    AND messages.stream_version = @expectedVersion
                     AND messages.message_id = @messageId;";
             command.Parameters.Clear();
             command.Parameters.AddWithValue("@streamIdInternal", _stream_id_internal);
-            command.Parameters.AddWithValue("@expectedVersion", expectedVersion);
+            command.Parameters.AddWithValue("@expectedVersion", expectedVersion + 1);
             command.Parameters.AddWithValue("@messageId", message.MessageId);
 
             var messagesCountObj = command.ExecuteScalar();
@@ -391,7 +420,11 @@ WHERE messages.stream_id_internal = @streamIdInternal
                                         VALUES(@streamIdInternal, @expectedVersion + 1, @messageId, @createdUtc, @type, @jsonData, @jsonMetadata);
                                         
                                         UPDATE streams SET [version] = @expectedVersion + 1, [position] = last_insert_rowid()
-                                        WHERE streams.id_internal = @streamIdInternal;";
+                                        WHERE streams.id_internal = @streamIdInternal;
+                                        
+                                        SELECT [position]
+                                        FROM streams
+                                        WHERE id_internal = @streamIdInternal;";
                 
                 command.Parameters.Clear();
                 command.Parameters.AddWithValue("@streamIdInternal", _stream_id_internal);
@@ -401,23 +434,28 @@ WHERE messages.stream_id_internal = @streamIdInternal
                 command.Parameters.AddWithValue("@type", message.Type);
                 command.Parameters.AddWithValue("@jsonData", message.JsonData);
                 command.Parameters.AddWithValue("@jsonMetadata", message.JsonMetadata);
-
-                command.ExecuteNonQuery();
+                
+                currentPosition = Convert.ToInt64(command.ExecuteScalar());
+                currentVersion = expectedVersion + 1;
             }
-
-            command.CommandText = @"SELECT streams.version, streams.position
-                                    FROM streams WHERE streams.id_internal = @streamIdInternal;";
-            command.Parameters.Clear();
-            command.Parameters.AddWithValue("@streamIdInternal", _stream_id_internal);
-
-            using(var reader = command.ExecuteReader())
-            if(reader.Read())
+            else
             {
-                currentVersion = reader.GetInt32(0);
-                currentPosition = reader.GetInt64(1);
+                command.CommandText = @"SELECT streams.version, streams.position
+                                FROM streams WHERE streams.id_internal = @streamIdInternal;";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamIdInternal", _stream_id_internal);
+
+                using(var reader = command.ExecuteReader())
+                    if(reader.Read())
+                    {
+                        currentVersion = reader.GetInt32(0);
+                        currentPosition = reader.GetInt64(1);
+                    }
             }
 
-            return (nextExpectedVersion: expectedVersion + 1, new AppendResult(currentVersion, currentPosition), messageExists);
+            return (nextExpectedVersion: expectedVersion + 1, 
+                new AppendResult(currentVersion, currentPosition), 
+                messageExists);
         }
 
         private AppendResult CreateEmptyStream(

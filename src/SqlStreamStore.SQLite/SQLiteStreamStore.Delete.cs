@@ -103,44 +103,59 @@ namespace SqlStreamStore
             }
         }
 
-        protected override Task DeleteEventInternal(
+        protected override async Task DeleteEventInternal(
             string streamId,
             Guid eventId,
             CancellationToken cancellationToken)
         {
+            GuardAgainstDisposed();
+            cancellationToken.ThrowIfCancellationRequested();
+            
             var streamIdInfo = new StreamIdInfo(streamId);
+            bool hasBeenDeleted = false;
+            
             using(var connection = OpenConnection())
             using(var transaction = connection.BeginTransaction())
+            using (var command = connection.CreateCommand())
             {
-                DeleteEventInternal(streamIdInfo.SQLiteStreamId, eventId, transaction, cancellationToken);
-                
-                transaction.Commit();
+                command.Transaction = transaction;
+                command.CommandText = @"
+SELECT COUNT(*) FROM streams WHERE id = @streamId;
+
+SELECT COUNT(*)
+FROM messages
+    JOIN streams ON messages.stream_id_internal = streams.id_internal
+WHERE streams.id = @streamId
+    AND messages.message_id = @messageId;
+
+DELETE FROM messages 
+    JOIN streams ON messages.stream_id_internal = streams.id_internal
+WHERE streams.id = @streamId
+    AND messages.message_id = @messageId;
+";
+                command.Parameters.AddWithValue("@streamId", streamIdInfo.SQLiteStreamId.Id);
+                command.Parameters.AddWithValue("@messageId", eventId);
+                using(var reader = command.ExecuteReader())
+                {
+                    reader.Read();
+                    var streamsCount = !reader.IsDBNull(0) 
+                        ? reader.GetInt64(0)
+                        : -1;
+                    if(streamsCount <= 0)
+                    {
+                        return;
+                    }
+
+                    reader.NextResult();
+                    reader.Read();
+                    hasBeenDeleted = !reader.IsDBNull(0) && (reader.GetInt64(0) > 0);
+                }
             }
 
-            return Task.CompletedTask;
-        }
-
-        private void DeleteEventInternal(
-            SQLiteStreamId streamId,
-            Guid eventId,
-            SqliteTransaction transaction,
-            CancellationToken cancellationToken)
-        {
-            // Note: WE may need to put work in to append to stream expectedversionany.  reference DeleteStreamMessage.sql for more information.
-            // var deletedMessageMessage = Deleted.CreateMessageDeletedMessage(
-            //     streamIdInfo.SQLiteStreamId.IdOriginal,
-            //     eventId);
-
-            using(var command = transaction.Connection.CreateCommand())
+            if(hasBeenDeleted)
             {
-                command.CommandText = @"DELETE FROM messages 
-                WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE streams.id = @streamId)
-                    AND messages.message_id = @messageId";
-                command.Parameters.Clear();
-                command.Parameters.AddWithValue("@streamId", streamId.Id);
-                command.Parameters.AddWithValue("@messageId", eventId);
-
-                command.ExecuteNonQuery();
+                var deletedEvent = Deleted.CreateMessageDeletedMessage(streamId, eventId);
+                await AppendToStreamInternal(Deleted.DeletedStreamId, ExpectedVersion.Any, new[] { deletedEvent }, cancellationToken);
             }
         }
     }

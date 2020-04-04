@@ -110,8 +110,8 @@ namespace SqlStreamStore
                                         WHERE streams.id = @streamId";
                 command.Parameters.Clear();
                 command.Parameters.AddWithValue("@streamId", streamId);
-                command.Parameters.AddWithValue("@maxAge", DBNull.Value);
-                command.Parameters.AddWithValue("@maxCount", DBNull.Value);
+                command.Parameters.AddWithValue("@maxAge", maxAge ?? (object)DBNull.Value );
+                command.Parameters.AddWithValue("@maxCount", maxCount ?? (object)DBNull.Value );
                 command.ExecuteNonQuery();
                 
                 transaction.Commit();

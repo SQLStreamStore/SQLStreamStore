@@ -92,19 +92,16 @@ namespace SqlStreamStore
                 return -1;
             }
 
+            var deletedMessageIds = new List<Guid>();
             try
             {
                 using(var connection = OpenConnection())
-                using(var transaction = connection.BeginTransaction())
                 {
-                    var deletedMessageIds = new List<Guid>();
                     using(var command = connection.CreateCommand())
                     {
                         long? _stream_id_internal = 0;
-                        long? _max_count = 0;
+                        long _max_count = 0;
                         
-                        command.Transaction = transaction;
-
                         command.CommandText = @"SELECT streams.id_internal, streams.max_count
                                                 FROM streams WHERE streams.id = @streamId";
                         command.Parameters.Clear();
@@ -114,7 +111,7 @@ namespace SqlStreamStore
                             if(reader.Read())
                             {
                                 _stream_id_internal = reader.GetInt64(0);
-                                _max_count = reader.GetValue(1) != DBNull.Value ? reader.GetInt64(1) : default;
+                                _max_count = reader.IsDBNull(1) ? long.MaxValue : reader.GetInt64(1);
                             }
                         }
 
@@ -151,16 +148,14 @@ namespace SqlStreamStore
                             streamId.IdOriginal,
                             deletedMessageIds);
                     }
-
-                    foreach(var deletedMessageId in deletedMessageIds)
-                    {
-                        DeleteEventInternal(streamId, deletedMessageId, transaction, cancellationToken);
-                    }
-
-                    transaction.Commit();
-
-                    return deletedMessageIds.Count;
                 }
+                    
+                foreach(var deletedMessageId in deletedMessageIds)
+                {
+                    DeleteEventInternal(streamId.IdOriginal, deletedMessageId, cancellationToken).Wait(cancellationToken);
+                }
+                
+                return deletedMessageIds.Count;
             }
             catch(Exception ex)
             {

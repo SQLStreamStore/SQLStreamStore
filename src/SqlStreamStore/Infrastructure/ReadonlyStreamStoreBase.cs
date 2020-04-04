@@ -127,12 +127,12 @@ namespace SqlStreamStore.Infrastructure
 
         public async Task<ReadStreamPage> ReadStreamForwards(
             StreamId streamId,
-            int fromVersionInclusive,
+            int fromVersion,
             int maxCount,
             bool prefetchJsonData = true,
             CancellationToken cancellationToken = default)
         {
-            Ensure.That(fromVersionInclusive, nameof(fromVersionInclusive)).IsGte(0);
+            Ensure.That(fromVersion, nameof(fromVersion)).IsGte(0);
             Ensure.That(maxCount, nameof(maxCount)).IsGte(1);
 
             GuardAgainstDisposed();
@@ -141,11 +141,11 @@ namespace SqlStreamStore.Infrastructure
             Logger.Debug(
                 "ReadStreamForwards {streamId} from version {fromVersionInclusive} with max count {maxCount}.",
                 streamId,
-                fromVersionInclusive,
+                fromVersion,
                 maxCount);
 
             ReadNextStreamPage readNext = (nextVersion, ct) => ReadStreamForwards(streamId, nextVersion, maxCount, prefetchJsonData, ct);
-            var page = await ReadStreamForwardsInternal(streamId, fromVersionInclusive, maxCount, prefetchJsonData,
+            var page = await ReadStreamForwardsInternal(streamId, fromVersion, maxCount, prefetchJsonData,
                 readNext, cancellationToken);
             return await FilterExpired(page, readNext, cancellationToken);
         }

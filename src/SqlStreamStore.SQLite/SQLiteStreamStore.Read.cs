@@ -63,10 +63,16 @@ namespace SqlStreamStore
             SqliteTransaction transaction,
             CancellationToken cancellationToken)
         {
+            // If the count is int.MaxValue, TSql will see it as a negative number. 
+            // Users shouldn't be using int.MaxValue in the first place anyway.
             count = count == int.MaxValue ? count - 1 : count;
+
+            // To read backwards from end, need to use int MaxValue
             var streamVersion = start == StreamVersion.End ? int.MaxValue : start;
+
             var messages = new List<(StreamMessage message, int? maxAge)>();
-            Func<List<StreamMessage>, int, int> getNextVersion = null;
+
+            Func<List<StreamMessage>, int, int> getNextVersion;
             
             if (direction == ReadDirection.Forward)
             {
@@ -100,37 +106,45 @@ namespace SqlStreamStore
                 command.Parameters.AddWithValue("@streamId", sqlStreamId.Id);
                 var streamIdInternal = Convert.ToInt32(command.ExecuteScalar());
 
-                command.CommandText = @"SELECT streams.[version], streams.[position], streams.max_age
-                                        FROM streams
-                                        WHERE streams.id_internal = @streamIdInternal;
-                                        
-                                        SELECT streams.id_original as stream_id,
-                                               messages.message_id,
-                                               messages.stream_version,
-                                               messages.[position] - 1,
-                                               messages.created_utc,
-                                               messages.type,
-                                               messages.json_metadata,
-                                               (CASE
-                                                  WHEN @prefetch THEN messages.json_data
-                                                  ELSE NULL 
-                                               END) as json_data
-                                        FROM messages
-                                               INNER JOIN streams ON messages.stream_id_internal = streams.id_internal
-                                        WHERE (CASE
-                                                 WHEN @forwards THEN messages.stream_version >= @version AND id_internal = @streamIdInternal
-                                                 ELSE messages.stream_version <= @version AND streams.id_internal = @streamIdInternal
-                                               END)
-                                        ORDER BY (CASE
-                                                    WHEN @forwards THEN messages.stream_version
-                                                    ELSE -messages.stream_version
-                                                  END)
-                                        LIMIT @count;";
+                command.CommandText = direction == ReadDirection.Forward
+                    ? @"SELECT streams.[version], streams.[position], streams.max_age
+                            FROM streams
+                            WHERE streams.id_internal = @streamIdInternal;
+                            
+                            SELECT streams.id_original as stream_id,
+                                   messages.message_id,
+                                   messages.stream_version,
+                                   messages.[position] - 1,
+                                   messages.created_utc,
+                                   messages.type,
+                                   messages.json_metadata,
+                                   case when @prefetch then messages.json_data else null end as json_data
+                            FROM messages
+                                   INNER JOIN streams ON messages.stream_id_internal = streams.id_internal
+                            WHERE  messages.stream_version >= @version AND id_internal = @streamIdInternal
+                            ORDER BY messages.stream_version
+                            LIMIT @count;"
+                    : @"SELECT streams.[version], streams.[position], streams.max_age
+                            FROM streams
+                            WHERE streams.id_internal = @streamIdInternal;
+                            
+                            SELECT streams.id_original as stream_id,
+                                   messages.message_id,
+                                   messages.stream_version,
+                                   messages.[position] - 1,
+                                   messages.created_utc,
+                                   messages.type,
+                                   messages.json_metadata,
+                                   case when @prefetch then messages.json_data else null end as json_data
+                            FROM messages
+                                   INNER JOIN streams ON messages.stream_id_internal = streams.id_internal
+                            WHERE messages.stream_version <= @version AND streams.id_internal = @streamIdInternal
+                            ORDER BY messages.stream_version DESC
+                            LIMIT @count;";
                 command.Parameters.Clear();
                 command.Parameters.AddWithValue("@streamIdInternal", streamIdInternal);
-                command.Parameters.AddWithValue("@prefetch", prefetch);
-                command.Parameters.AddWithValue("@forwards", direction == ReadDirection.Forward);
                 command.Parameters.AddWithValue("@version", streamVersion);
+                command.Parameters.AddWithValue("@prefetch", prefetch);
                 command.Parameters.AddWithValue("@count", count + 1);
 
                 using(var reader = command.ExecuteReader(CommandBehavior.SequentialAccess))

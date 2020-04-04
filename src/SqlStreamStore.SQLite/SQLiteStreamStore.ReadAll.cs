@@ -165,37 +165,48 @@ namespace SqlStreamStore
                     long lastPosition = 0;
                     while (reader.Read())
                     {
-                        var streamId = reader.GetString(0);
-                        var streamVersion = reader.GetInt32(1);
-                        position = reader.GetInt64(2);
-                        var messageId = reader.GetGuid(3);
-                        var created = reader.GetDateTime(4);
-                        var type = reader.GetString(5);
-                        var jsonMetadata = reader.GetString(6);
-
-                        Func<CancellationToken, Task<string>> getJsonData;
-                        if (prefetch)
+                        if(messages.Count == maxCount)
                         {
-                            var jsonData = reader.GetTextReader(7).ReadToEnd();
-                            getJsonData = _ => Task.FromResult(jsonData);
+                            messages.Add(default);
                         }
                         else
                         {
-                            var streamIdInfo = new StreamIdInfo(streamId);
-                            getJsonData = ct => Task.FromResult(GetJsonData(command, streamIdInfo.SQLiteStreamId.Id, streamVersion));
+                            var streamId = reader.GetString(0);
+                            var streamVersion = reader.GetInt32(1);
+                            position = reader.GetInt64(2);
+                            var messageId = reader.GetGuid(3);
+                            var created = reader.GetDateTime(4);
+                            var type = reader.GetString(5);
+                            var jsonMetadata = reader.GetString(6);
+
+                            Func<CancellationToken, Task<string>> getJsonData;
+                            if(prefetch)
+                            {
+                                var jsonData = reader.GetTextReader(7).ReadToEnd();
+                                getJsonData = _ => Task.FromResult(jsonData);
+                            }
+                            else
+                            {
+                                var streamIdInfo = new StreamIdInfo(streamId);
+                                getJsonData = ct =>
+                                    Task.FromResult(GetJsonData(command,
+                                        streamIdInfo.SQLiteStreamId.Id,
+                                        streamVersion));
+                            }
+
+                            var message = new StreamMessage(
+                                streamId,
+                                messageId,
+                                streamVersion,
+                                position,
+                                created,
+                                type,
+                                jsonMetadata,
+                                getJsonData);
+
+                            messages.Add(message);
+                            lastPosition = position;
                         }
-
-                        var message = new StreamMessage(
-                            streamId,
-                            messageId,
-                            streamVersion,
-                            position,
-                            created,
-                            type,
-                            jsonMetadata, getJsonData);
-
-                        messages.Add(message);
-                        lastPosition = position;
                     }
 
                     bool isEnd = true;

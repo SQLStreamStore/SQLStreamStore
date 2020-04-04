@@ -34,7 +34,8 @@ namespace SqlStreamStore
                 return new StreamMetadataResult(streamId, -1);
             }
 
-            var metadataMessage = await page.Messages[0].GetJsonDataAs<MetadataMessage>(cancellationToken);
+            var jsonPayload = page.Messages[0];
+            var metadataMessage = await jsonPayload.GetJsonDataAs<MetadataMessage>(cancellationToken);
             return new StreamMetadataResult(
                 streamId,
                 page.LastStreamVersion,
@@ -71,7 +72,7 @@ namespace SqlStreamStore
                 var message = new NewStreamMessage(
                     Guid.NewGuid(), 
                     "$stream-metadata",
-                    metadataJson); 
+                    metadataMessageJsonData); 
                 
                 if(expectedStreamMetadataVersion == ExpectedVersion.NoStream)
                 {

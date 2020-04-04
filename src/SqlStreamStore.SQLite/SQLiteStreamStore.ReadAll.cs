@@ -128,7 +128,10 @@ namespace SqlStreamStore
                 command.CommandText = @"SELECT COUNT(*) FROM messages; -- beginning of stream.";
                 using(var reader = command.ExecuteReader())
                 {
-                    if((reader.Read() ? reader.GetInt64(0) : -1) < 0)
+                    var totalMessages = (reader.Read() && !reader.IsDBNull(0) 
+                        ? reader.GetInt64(0) 
+                        : Position.Start); 
+                    if(totalMessages == Position.Start)
                     {
                         var result = new ReadAllPage(Position.Start, Position.Start, true, 
                             ReadDirection.Backward, readNext);
@@ -142,7 +145,9 @@ namespace SqlStreamStore
                     command.Parameters.Clear();
                     using(var reader = command.ExecuteReader())
                     {
-                        fromPositionExclusive = reader.Read() ? reader.GetInt64(0) : -1;
+                        fromPositionExclusive = reader.Read() && !reader.IsDBNull(0) 
+                            ? reader.GetInt64(0) 
+                            : Position.Start;
                     }
                 }
 

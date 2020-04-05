@@ -178,7 +178,10 @@
                         receiveMessages.SetResult(message);
                     }
                     return Task.CompletedTask;
-                }))
+                },
+                subscriptionDropped: (subscription, reason, exception) => 
+                    throw exception
+            ))
             {
                 await AppendMessages(Store, streamId1, 3);
 
@@ -745,7 +748,7 @@
                 });
             subscription.MaxCountPerRead = 10;
 
-            await fallenBehind.Task.WithTimeout(5000);
+            await fallenBehind.Task.WithTimeout(TimeSpan.FromMinutes(5).Seconds);
             subscription.Dispose();
         }
 

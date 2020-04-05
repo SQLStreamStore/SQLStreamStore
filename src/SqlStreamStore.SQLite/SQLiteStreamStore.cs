@@ -16,6 +16,7 @@ namespace SqlStreamStore
         private readonly Func<SqliteConnection> _createConnection;
         private readonly Scripts _scripts;
         private readonly Lazy<IStreamStoreNotifier> _streamStoreNotifier;
+        private readonly ReaderWriterLockSlim _lock = new ReaderWriterLockSlim(LockRecursionPolicy.SupportsRecursion);
 
         public const int CurrentVersion = 1;
 
@@ -73,99 +74,67 @@ namespace SqlStreamStore
             GuardAgainstDisposed();
 
             using(var connection = OpenConnection())
+            using(var command = new SqliteCommand("SELECT MAX(messages.position) FROM messages", connection))
             {
-                using(var command = new SqliteCommand("SELECT MAX(messages.position) FROM messages", connection))
-                {
-                    var result = command.ExecuteScalar();
+                var result = command.ExecuteScalar();
 
-                    return Task.FromResult(result == DBNull.Value ? -1 : (long)result);
-                }
+                return Task.FromResult(result == DBNull.Value ? -1 : (long)result);
             }
         }
 
-        internal int TryScavenge(
-            SQLiteStreamId streamId,
-            CancellationToken cancellationToken)
+        internal void TryScavenge(SQLiteStreamId streamId, CancellationToken cancellationToken)
         {
             if(streamId == SQLiteStreamId.Deleted)
             {
-                return -1;
+                return;
             }
 
             var deletedMessageIds = new List<Guid>();
-            try
+            using(var connection = OpenConnection())
+            using(var command = connection.CreateCommand())
             {
-                using(var connection = OpenConnection())
+                command.CommandText = @"SELECT streams.id_internal FROM streams WHERE streams.id = @streamId";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamId", streamId.Id);
+                var _stream_id_internal = command.ExecuteScalar<long?>() ?? -1;
+
+                command.CommandText = @"SELECT messages.message_id
+                                    FROM messages
+                                    WHERE messages.stream_id_internal = @internalStreamId
+                                        AND messages.message_id NOT IN (SELECT messages.message_id
+                                                                        FROM messages
+                                                                        WHERE messages.stream_id_internal = @internalStreamId)
+                                    ORDER BY messages.stream_version DESC";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@internalStreamId", _stream_id_internal);
+
+                using(var reader = command.ExecuteReader())
                 {
-                    using(var command = connection.CreateCommand())
+                    while(reader.Read())
                     {
-                        long? _stream_id_internal = 0;
-                        long _max_count = 0;
-                        
-                        command.CommandText = @"SELECT streams.id_internal, streams.max_count
-                                                FROM streams WHERE streams.id = @streamId";
-                        command.Parameters.Clear();
-                        command.Parameters.AddWithValue("@streamId", streamId.Id);
-                        using(var reader = command.ExecuteReader())
-                        {
-                            if(reader.Read())
-                            {
-                                _stream_id_internal = reader.GetInt64(0);
-                                _max_count = reader.IsDBNull(1) ? long.MaxValue : reader.GetInt64(1);
-                            }
-                        }
-
-                        command.CommandText = @"SELECT messages.message_id
-                                                FROM messages
-                                                WHERE messages.stream_id_internal = @internalStreamId
-                                                    AND messages.message_id NOT IN (SELECT messages.message_id
-                                                                                    FROM messages
-                                                                                    WHERE messages.stream_id_internal = @internalStreamId)
-                                                ORDER BY messages.stream_version DESC
-                                                LIMIT @maxCount";
-                        command.Parameters.Clear();
-                        command.Parameters.AddWithValue("@internalStreamId", _stream_id_internal);
-                        command.Parameters.AddWithValue("@maxCount", _max_count);
-
-                        using(var reader = command.ExecuteReader())
-                        {
-                            while(reader.Read())
-                            {
-                                deletedMessageIds.Add(reader.GetGuid(0));
-                            }
-                        }
-                    }
-
-                    Logger.Info(
-                        "Found {deletedMessageIdCount} message(s) for stream {streamId} to scavenge.",
-                        deletedMessageIds.Count,
-                        streamId.IdOriginal);
-
-                    if(deletedMessageIds.Count > 0)
-                    {
-                        Logger.Debug(
-                            "Scavenging the following messages on stream {streamId}: {deletedMessageIds}",
-                            streamId.IdOriginal,
-                            deletedMessageIds);
+                        deletedMessageIds.Add(reader.GetGuid(0));
                     }
                 }
-                    
-                foreach(var deletedMessageId in deletedMessageIds)
-                {
-                    DeleteEventInternal(streamId.IdOriginal, deletedMessageId, cancellationToken).Wait(cancellationToken);
-                }
-                
-                return deletedMessageIds.Count;
-            }
-            catch(Exception ex)
-            {
-                Logger.WarnException(
-                    "Scavenge attempt failed on stream {streamId}. Another attempt will be made when this stream is written to.",
-                    ex,
-                    streamId.IdOriginal);
             }
 
-            return -1;
+            Logger.Info(
+                "Found {deletedMessageIdCount} message(s) for stream {streamId} to scavenge.",
+                deletedMessageIds.Count,
+                streamId.IdOriginal);
+
+            if(deletedMessageIds.Count > 0)
+            {
+                Logger.Debug(
+                    "Scavenging the following messages on stream {streamId}: {deletedMessageIds}",
+                    streamId.IdOriginal,
+                    deletedMessageIds);
+            }
+
+            foreach(var deletedMessageId in deletedMessageIds)
+            {
+                DeleteEventInternal(streamId.IdOriginal, deletedMessageId, cancellationToken)
+                    .Wait(cancellationToken);
+            }
         }
     }
 }

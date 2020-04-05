@@ -11,6 +11,9 @@ namespace SqlStreamStore
 
     public partial class SQLiteStreamStore
     {
+        private static readonly ReadNextStreamPage s_readNextNotFound =
+            (_, ct) => throw new InvalidOperationException("Cannot read next page of non-exisitent stream");
+
         protected override Task<ReadStreamPage> ReadStreamForwardsInternal(
             string streamId, 
             int start, 
@@ -19,69 +22,55 @@ namespace SqlStreamStore
             ReadNextStreamPage readNext, 
             CancellationToken cancellationToken)
         {
-            using (var connection = OpenConnection())
-            {
-                var streamIdInfo = new StreamIdInfo(streamId);
-                return Task.FromResult(ReadStreamInternal(
-                    streamIdInfo.SQLiteStreamId,
-                    start,
-                    count,
-                    ReadDirection.Forward,
-                    prefetch,
-                    readNext,
-                    connection,
-                    null,
-                    cancellationToken));
-            }
+            return Task.FromResult(ReadStreamInternal(
+                streamId,
+                start,
+                count,
+                ReadDirection.Forward,
+                prefetch,
+                readNext,
+                cancellationToken));
         }
 
         protected override Task<ReadStreamPage> ReadStreamBackwardsInternal(string streamId, int fromVersionInclusive, int count, bool prefetch, ReadNextStreamPage readNext, CancellationToken cancellationToken)
         {
-            using (var connection = OpenConnection())
-            {
-                var streamIdInfo = new StreamIdInfo(streamId);
                 return Task.FromResult(ReadStreamInternal(
-                    streamIdInfo.SQLiteStreamId,
+                    streamId,
                     fromVersionInclusive,
                     count,
                     ReadDirection.Backward,
                     prefetch,
                     readNext,
-                    connection,
-                    null,
                     cancellationToken));
-            }
         }
+        
         private ReadStreamPage ReadStreamInternal(
-            SQLiteStreamId sqlStreamId,
+            string streamId,
             int start,
             int count,
             ReadDirection direction,
             bool prefetch,
             ReadNextStreamPage readNext,
-            SqliteConnection connection,
-            SqliteTransaction transaction,
             CancellationToken cancellationToken)
         {
+            GuardAgainstDisposed();
+            cancellationToken.ThrowIfCancellationRequested();
+
             // If the count is int.MaxValue, TSql will see it as a negative number. 
             // Users shouldn't be using int.MaxValue in the first place anyway.
-            count = count == int.MaxValue ? count - 1 : count;
+            //count = count == int.MaxValue ? count - 1 : count;
+            count = 2;
 
-            // To read backwards from end, need to use int MaxValue
             var streamVersion = start == StreamVersion.End ? int.MaxValue : start;
-
-            var messages = new List<(StreamMessage message, int? maxAge)>();
-
             Func<List<StreamMessage>, int, int> getNextVersion;
-            
-            if (direction == ReadDirection.Forward)
+
+            if(direction == ReadDirection.Forward)
             {
                 getNextVersion = (events, lastVersion) =>
                 {
                     if(events.Any())
                     {
-                        var currentVersion = events.Last().StreamVersion;
-                        return currentVersion + 1;
+                        return events.Last().StreamVersion + 1;
                     }
                     return lastVersion + 1;
                 };
@@ -92,122 +81,136 @@ namespace SqlStreamStore
                 {
                     if (events.Any())
                     {
-                        var currentVersion = events.Last().StreamVersion;
-                        return currentVersion - 1;
+                        return events.Last().StreamVersion - 1;
                     }
-                    
                     return -1;
                 };
             }
 
+            using (var connection = OpenConnection())
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = @"SELECT id_internal FROM streams WHERE id = @streamId";
-                command.Parameters.AddWithValue("@streamId", sqlStreamId.Id);
-                var streamIdInternal = Convert.ToInt32(command.ExecuteScalar());
-
-                command.CommandText = direction == ReadDirection.Forward
-                    ? @"SELECT streams.[version], streams.[position], streams.max_age
-                            FROM streams
-                            WHERE streams.id_internal = @streamIdInternal;
-                            
-                            SELECT streams.id_original as stream_id,
-                                   messages.message_id,
-                                   messages.stream_version,
-                                   messages.[position] - 1,
-                                   messages.created_utc,
-                                   messages.type,
-                                   messages.json_metadata,
-                                   case when @prefetch then messages.json_data else null end as json_data
-                            FROM messages
-                                   INNER JOIN streams ON messages.stream_id_internal = streams.id_internal
-                            WHERE  messages.stream_version >= @version AND id_internal = @streamIdInternal
-                            ORDER BY messages.stream_version
-                            LIMIT @count;"
-                    : @"SELECT streams.[version], streams.[position], streams.max_age
-                            FROM streams
-                            WHERE streams.id_internal = @streamIdInternal;
-                            
-                            SELECT streams.id_original as stream_id,
-                                   messages.message_id,
-                                   messages.stream_version,
-                                   messages.[position] - 1,
-                                   messages.created_utc,
-                                   messages.type,
-                                   messages.json_metadata,
-                                   case when @prefetch then messages.json_data else null end as json_data
-                            FROM messages
-                                   INNER JOIN streams ON messages.stream_id_internal = streams.id_internal
-                            WHERE messages.stream_version <= @version AND streams.id_internal = @streamIdInternal
-                            ORDER BY messages.stream_version DESC
-                            LIMIT @count;";
+                int streamIdInternal = 0;
+                int lastStreamVersion = 0;
+                int lastStreamPosition = 0;
+                var maxAge = default(int?);
+                command.CommandText = @"SELECT streams.id_internal, streams.[version], streams.[position], max_age, max_count
+                                        FROM streams 
+                                        where streams.id_original = @streamIdOriginal";
                 command.Parameters.Clear();
-                command.Parameters.AddWithValue("@streamIdInternal", streamIdInternal);
-                command.Parameters.AddWithValue("@version", streamVersion);
-                command.Parameters.AddWithValue("@prefetch", prefetch);
-                command.Parameters.AddWithValue("@count", count + 1);
-
-                using(var reader = command.ExecuteReader(CommandBehavior.SequentialAccess))
+                command.Parameters.AddWithValue("@streamIdOriginal", streamId);
+                using(var reader = command.ExecuteReader())
                 {
-                    if(!reader.HasRows)
+                    if(!reader.Read())
                     {
+                        // not found.
                         return new ReadStreamPage(
-                            sqlStreamId.IdOriginal,
+                            streamId,
                             PageReadStatus.StreamNotFound,
                             start,
-                            -1,
-                            -1,
-                            -1,
+                            StreamVersion.End,
+                            StreamVersion.End,
+                            StreamVersion.End,
                             direction,
                             true,
                             readNext);
                     }
 
-                    if(messages.Count == count)
-                    {
-                        messages.Add(default);
-                    }
+                    streamIdInternal = reader.GetInt32(0);
+                    lastStreamVersion = reader.GetInt32(1);
+                    lastStreamPosition = reader.GetInt32(2);
+                    maxAge = reader.IsDBNull(3) ? default(int?) : reader.GetInt32(3);
+                }
 
+                long? position;
+                command.CommandText = @"SELECT messages.position
+                                        FROM messages
+                                        WHERE messages.stream_id_internal = @streamIdInternal
+                                            AND messages.stream_version = @streamVersion;";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamIdInternal", streamIdInternal);
+                command.Parameters.AddWithValue("@streamVersion", streamVersion);
+                position = command.ExecuteScalar<long?>();
+
+                if(position == null)
+                {
+                    command.CommandText = @"SELECT MIN(messages.position)
+                                            FROM messages
+                                            WHERE messages.stream_id_internal = @streamIdInternal
+                                                AND messages.stream_version >= @streamVersion;";
+                    command.Parameters.Clear();
+                    command.Parameters.AddWithValue("@streamIdInternal", streamIdInternal);
+                    command.Parameters.AddWithValue("@streamVersion", lastStreamVersion);
+                    position = command.ExecuteScalar<long?>() ?? Position.Start;
+                }
+
+                command.CommandText = direction == ReadDirection.Forward
+                    ? @"SELECT COUNT(*) 
+                        FROM messages 
+                        WHERE messages.stream_id_internal = @streamIdInternal AND position >= @position; 
+                        SELECT messages.message_id,
+                               messages.stream_version,
+                               messages.[position],
+                               messages.created_utc,
+                               messages.type,
+                               messages.json_metadata,
+                               case when @prefetch then messages.json_data else null end as json_data
+                        FROM messages
+                        WHERE messages.stream_id_internal = @streamIdInternal AND messages.position >= @position
+                        ORDER BY messages.position
+                        LIMIT @count;"
+                    : @"SELECT COUNT(*) 
+                        FROM messages 
+                        WHERE messages.stream_id_internal = @streamIdInternal AND position <= @position; 
+                        SELECT messages.message_id,
+                               messages.stream_version,
+                               messages.[position],
+                               messages.created_utc,
+                               messages.type,
+                               messages.json_metadata,
+                               case when @prefetch then messages.json_data else null end as json_data
+                        FROM messages
+                        WHERE messages.stream_id_internal = @streamIdInternal AND messages.position <= @position
+                        ORDER BY messages.position DESC
+                        LIMIT @count;";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamIdInternal", streamIdInternal);
+                command.Parameters.AddWithValue("@position", position);
+                command.Parameters.AddWithValue("@prefetch", prefetch);
+                command.Parameters.AddWithValue("@count", count);
+
+                var messages = new List<(StreamMessage message, int? maxAge)>();
+                using(var reader = command.ExecuteReader())
+                {
                     reader.Read();
-                    var lastVersion = reader.GetInt32(0);
-                    var lastPosition = reader.GetInt64(1);
-                    var maxAge = reader.IsDBNull(2)
-                        ? default
-                        : reader.GetInt32(2);
+                    var remainingMessages = Convert.ToInt32(reader.GetValue(0));
 
                     reader.NextResult();
-
                     while(reader.Read())
                     {
-                        messages.Add((ReadStreamMessage(command, reader, sqlStreamId, prefetch), maxAge));
+                        messages.Add((ReadStreamMessage(reader, new SQLiteStreamId(streamId), prefetch), maxAge));
                     }
 
-                    var isEnd = true;
+                    var filtered = FilterExpired(messages);
                     
-                    if(messages.Count == count + 1)
-                    {
-                        isEnd = false;
-                        messages.RemoveAt(count);
-                    }
-
-                    var filteredMessages = FilterExpired(messages);
-
-                    return new ReadStreamPage(
-                        sqlStreamId.IdOriginal,
+                    var page = new ReadStreamPage(
+                        streamId,
                         PageReadStatus.Success,
                         start,
-                        getNextVersion(filteredMessages, lastVersion),
-                        lastVersion,
-                        lastPosition,
+                        getNextVersion(filtered, lastStreamVersion),
+                        lastStreamVersion,
+                        lastStreamPosition,
                         direction,
-                        isEnd,
+                        remainingMessages - messages.Count <= 0, //when true, then end.  when false, then more messages,
                         readNext,
-                        filteredMessages.ToArray());
+                        filtered.ToArray());
+            
+                    return page;
                 }
             }
         }
 
-        private StreamMessage ReadStreamMessage(SqliteCommand command, SqliteDataReader reader, SQLiteStreamId sqlStreamId, bool prefetch)
+        private StreamMessage ReadStreamMessage(SqliteDataReader reader, SQLiteStreamId sqlStreamId, bool prefetch)
         {
             string ReadString(int ordinal)
             {
@@ -221,13 +224,15 @@ namespace SqlStreamStore
                     return textReader.ReadToEnd();
                 }
             }
-            
-            var messageId = reader.GetGuid(1);
-            var streamVersion = reader.GetInt32(2);
-            var position = reader.GetInt64(3);
-            var createdUtc = reader.GetDateTime(4);
-            var type = reader.GetString(5);
-            var jsonMetadata = ReadString(6);
+
+            var messageId = reader.IsDBNull(0) 
+                ? Guid.Empty 
+                : reader.GetGuid(0);
+            var streamVersion = reader.GetInt32(1);
+            var position = reader.GetInt64(2);
+            var createdUtc = reader.GetDateTime(3);
+            var type = reader.GetString(4);
+            var jsonMetadata = ReadString(5);
 
             if(prefetch)
             {
@@ -239,7 +244,7 @@ namespace SqlStreamStore
                     createdUtc,
                     type,
                     jsonMetadata,
-                    ReadString(7));
+                    ReadString(6));
             }
 
             return new StreamMessage(
@@ -250,13 +255,16 @@ namespace SqlStreamStore
                 createdUtc,
                 type,
                 jsonMetadata,
-                ct => Task.FromResult(GetJsonData(command, sqlStreamId.Id, streamVersion)));
+                ct => Task.FromResult(GetJsonData(sqlStreamId.Id, streamVersion)));
             
         }
 
-        private string GetJsonData(SqliteCommand command, string streamId, int streamVersion)
+        private string GetJsonData(string streamId, int streamVersion)
         {
-            command.CommandText = @"SELECT messages.json_data
+            using (var connection = OpenConnection())
+            using(var command = connection.CreateCommand())
+            {
+                command.CommandText = @"SELECT messages.json_data
 FROM messages
 WHERE messages.stream_id_internal = 
 (
@@ -264,19 +272,21 @@ SELECT streams.id_internal
 FROM streams
 WHERE streams.id = @streamId)
 AND messages.stream_version = @streamVersion";
-            command.Parameters.Clear();
-            command.Parameters.AddWithValue("@streamId", streamId);
-            command.Parameters.AddWithValue("@streamVersion", streamVersion);
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamId", streamId);
+                command.Parameters.AddWithValue("@streamVersion", streamVersion);
 
-            using(var reader = command
-                .ExecuteReader(
-                    CommandBehavior.SequentialAccess | CommandBehavior.SingleRow))
-            {
-                if(reader.Read())
+                using(var reader = command
+                    .ExecuteReader(
+                        CommandBehavior.SequentialAccess | CommandBehavior.SingleRow))
                 {
-                    return reader.GetTextReader(0).ReadToEnd();
+                    if(reader.Read())
+                    {
+                        return reader.GetTextReader(0).ReadToEnd();
+                    }
+
+                    return null;
                 }
-                return null;
             }
         }
     }

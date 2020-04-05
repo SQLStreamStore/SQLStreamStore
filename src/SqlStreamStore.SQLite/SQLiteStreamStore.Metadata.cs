@@ -1,47 +1,42 @@
 namespace SqlStreamStore
 {
-    using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Streams;
     using StreamStoreStore.Json;
 
     public partial class SQLiteStreamStore
     {
-        protected override async Task<StreamMetadataResult> GetStreamMetadataInternal(
+        protected override Task<StreamMetadataResult> GetStreamMetadataInternal(
             string streamId, 
             CancellationToken cancellationToken)
         {
-            var streamIdInfo = new StreamIdInfo(streamId);
+            var idInfo = new StreamIdInfo(streamId);
 
-            ReadStreamPage page;
-            using (var connection = OpenConnection())
-            {
-                page = ReadStreamInternal(
-                    streamIdInfo.MetadataSQLiteStreamId,
-                    StreamVersion.End,
-                    1,
-                    ReadDirection.Backward,
-                    true,
-                    null,
-                    connection,
-                    null,
-                    cancellationToken);
-            }
+            ReadStreamPage page = ReadStreamInternal(
+                idInfo.MetadataSQLiteStreamId.IdOriginal,
+                StreamVersion.End,
+                1,
+                ReadDirection.Backward,
+                true,
+                s_readNextNotFound,
+                cancellationToken);
 
             if (page.Status == PageReadStatus.StreamNotFound)
             {
-                return new StreamMetadataResult(streamId, -1);
+                return Task.FromResult(new StreamMetadataResult(streamId, -1));
             }
 
             var jsonPayload = page.Messages[0];
-            var metadataMessage = await jsonPayload.GetJsonDataAs<MetadataMessage>(cancellationToken);
-            return new StreamMetadataResult(
+            var json = jsonPayload.GetJsonData(CancellationToken.None).GetAwaiter().GetResult();
+            var metadataMessage = SimpleJson.DeserializeObject<MetadataMessage>(json);
+            return Task.FromResult(new StreamMetadataResult(
                 streamId,
                 page.LastStreamVersion,
                 metadataMessage.MaxAge,
                 metadataMessage.MaxCount,
-                metadataMessage.MetaJson);
+                metadataMessage.MetaJson));
         }
 
         protected override Task<SetStreamMetadataResult> SetStreamMetadataInternal(
@@ -52,74 +47,48 @@ namespace SqlStreamStore
             string metadataJson, 
             CancellationToken cancellationToken)
         {
-            var metadata = new MetadataMessage
+            var metadataMessage = new MetadataMessage
             {
                 StreamId = streamId,
                 MaxAge = maxAge,
                 MaxCount = maxCount,
                 MetaJson = metadataJson
             };
-            var metadataMessageJsonData = SimpleJson.SerializeObject(metadata);
-
-            var streamIdInfo = new StreamIdInfo(streamId);
-            var result = default((int nextExpectedVersion, AppendResult appendResult, bool messageExists));
+            var json = SimpleJson.SerializeObject(metadataMessage);
+            var messageId = MetadataMessageIdGenerator.Create(
+                streamId,
+                expectedStreamMetadataVersion,
+                json
+            );
+            var message = new NewStreamMessage(
+                messageId, 
+                "$stream-metadata",
+                json); 
             
-            using(var connection = OpenConnection())
-            using (var transaction = connection.BeginTransaction())
-            using (var command = connection.CreateCommand())
+            var idInfo = new StreamIdInfo(streamId);
+            
+            var result = AppendToStreamInternal(
+                idInfo.MetadataSQLiteStreamId.IdOriginal,
+                expectedStreamMetadataVersion,
+                new[] { message },
+                cancellationToken).GetAwaiter().GetResult();
+            
+            using (var connection = OpenConnection())
+            using(var command = connection.CreateCommand())
             {
-                command.Transaction = transaction;
-                var message = new NewStreamMessage(
-                    Guid.NewGuid(), 
-                    "$stream-metadata",
-                    metadataMessageJsonData); 
-                
-                if(expectedStreamMetadataVersion == ExpectedVersion.NoStream)
-                {
-                    result = AppendToStreamExpectedVersionNoStream(command,
-                        streamIdInfo.MetadataSQLiteStreamId,
-                        message,
-                        cancellationToken);
-                }
-                else if(expectedStreamMetadataVersion == ExpectedVersion.Any)
-                {
-                    result = AppendToStreamExpectedVersionAny(command,
-                        streamIdInfo.MetadataSQLiteStreamId,
-                        message,
-                        cancellationToken);
-                }
-                else if(expectedStreamMetadataVersion == ExpectedVersion.EmptyStream)
-                {
-                    result = AppendToStreamExpectedVersionEmptyStream(command,
-                        streamIdInfo.MetadataSQLiteStreamId,
-                        message,
-                        cancellationToken);
-                }
-                else
-                {
-                    result = AppendToStreamExpectedVersion(command,
-                        streamIdInfo.MetadataSQLiteStreamId,
-                        expectedStreamMetadataVersion,
-                        message,
-                        cancellationToken);
-                }
-
                 command.CommandText = @"UPDATE streams
                                         SET max_age = @maxAge,
                                             max_count = @maxCount
                                         WHERE streams.id = @streamId";
-                command.Parameters.Clear();
-                command.Parameters.AddWithValue("@streamId", streamId);
-                command.Parameters.AddWithValue("@maxAge", maxAge ?? (object)DBNull.Value );
-                command.Parameters.AddWithValue("@maxCount", maxCount ?? (object)DBNull.Value );
-                command.ExecuteNonQuery();
-                
-                transaction.Commit();
+                command.Parameters.AddWithValue("@streamId", idInfo.SQLiteStreamId.Id);
+                command.Parameters.AddWithValue("@maxAge", maxAge);
+                command.Parameters.AddWithValue("@maxCount", maxCount);
+                command.ExecuteNonQuery(); // TODO: Check for records affected?
             }
             
-            TryScavenge(streamIdInfo.SQLiteStreamId, cancellationToken);
+            TryScavenge(idInfo.MetadataSQLiteStreamId, cancellationToken);
 
-            return Task.FromResult(new SetStreamMetadataResult(result.appendResult.CurrentVersion));
+            return Task.FromResult(new SetStreamMetadataResult(result.CurrentVersion));
         }
    }
 }

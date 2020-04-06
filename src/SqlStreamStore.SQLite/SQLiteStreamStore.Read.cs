@@ -58,8 +58,7 @@ namespace SqlStreamStore
 
             // If the count is int.MaxValue, TSql will see it as a negative number. 
             // Users shouldn't be using int.MaxValue in the first place anyway.
-            //count = count == int.MaxValue ? count - 1 : count;
-            count = 2;
+            count = count == int.MaxValue ? count - 1 : count;
 
             var streamVersion = start == StreamVersion.End ? int.MaxValue : start;
             Func<List<StreamMessage>, int, int> getNextVersion;

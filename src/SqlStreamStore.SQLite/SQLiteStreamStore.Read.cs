@@ -11,9 +11,6 @@ namespace SqlStreamStore
 
     public partial class SQLiteStreamStore
     {
-        private static readonly ReadNextStreamPage s_readNextNotFound =
-            (_, ct) => throw new InvalidOperationException("Cannot read next page of non-exisitent stream");
-
         protected override Task<ReadStreamPage> ReadStreamForwardsInternal(
             string streamId, 
             int start, 
@@ -89,15 +86,21 @@ namespace SqlStreamStore
             using (var connection = OpenConnection())
             using (var command = connection.CreateCommand())
             {
+                var idInfo = new StreamIdInfo(streamId);
                 int streamIdInternal = 0;
                 int lastStreamVersion = 0;
                 int lastStreamPosition = 0;
                 var maxAge = default(int?);
-                command.CommandText = @"SELECT streams.id_internal, streams.[version], streams.[position], max_age, max_count
-                                        FROM streams 
-                                        where streams.id_original = @streamIdOriginal";
+                command.CommandText = @"SELECT streams.id_internal, 
+                                                streams.[version], 
+                                                streams.[position], 
+                                                coalesce(max_age, (SELECT s.max_age FROM streams s WHERE s.id = @metaId)), 
+                                                coalesce(max_count, (SELECT s.max_count FROM streams s WHERE s.id = @metaId))
+                                        FROM streams
+                                        where streams.id = @streamId";
                 command.Parameters.Clear();
-                command.Parameters.AddWithValue("@streamIdOriginal", streamId);
+                command.Parameters.AddWithValue("@streamId", idInfo.SQLiteStreamId.Id);
+                command.Parameters.AddWithValue("@metaId", idInfo.MetadataSQLiteStreamId.Id);
                 using(var reader = command.ExecuteReader())
                 {
                     if(!reader.Read())
@@ -119,6 +122,10 @@ namespace SqlStreamStore
                     lastStreamVersion = reader.GetInt32(1);
                     lastStreamPosition = reader.GetInt32(2);
                     maxAge = reader.IsDBNull(3) ? default(int?) : reader.GetInt32(3);
+                    if(!reader.IsDBNull(4))
+                    {
+                        count = reader.GetInt32(4);
+                    }
                 }
 
                 long? position;

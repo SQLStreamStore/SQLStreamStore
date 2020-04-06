@@ -74,7 +74,7 @@ namespace SqlStreamStore
             GuardAgainstDisposed();
 
             using(var connection = OpenConnection())
-            using(var command = new SqliteCommand("SELECT MAX(messages.position) FROM messages", connection))
+            using(var command = new SqliteCommand("SELECT MAX(messages.position) - 1 FROM messages", connection))
             {
                 var result = command.ExecuteScalar();
 

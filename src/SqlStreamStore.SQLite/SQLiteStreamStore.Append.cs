@@ -149,20 +149,19 @@ namespace SqlStreamStore
              command.Parameters.Clear();
              command.Parameters.AddWithValue("@streamId", s.Id);
              var _stream_id_internal= command.ExecuteScalar<long?>();
+             (int? MaxAge, int? MaxCount) streamMetadata = GetStreamMetadata(command, s);
 
              // build stream if it does not exist.
              if(_stream_id_internal == null)
              {
-                 var metadata = GetStreamMetadata(command, s);
-
                  command.CommandText = @"INSERT INTO streams (id, id_original, max_age, max_count)
                                          VALUES (@id, @idOriginal, @maxAge, @maxCount);
                                          SELECT last_insert_rowid();";
                  command.Parameters.Clear();
                  command.Parameters.AddWithValue("@id", s.Id);
                  command.Parameters.AddWithValue("@idOriginal", s.IdOriginal);
-                 command.Parameters.Add(new SqliteParameter("@maxAge", SqliteType.Integer) { Value = metadata.MaxAge ?? (object)DBNull.Value });
-                 command.Parameters.Add(new SqliteParameter("@maxCount", SqliteType.Integer) { Value = metadata.MaxCount ?? (object)DBNull.Value });
+                 command.Parameters.Add(new SqliteParameter("@maxAge", SqliteType.Integer) { Value = streamMetadata.MaxAge ?? (object)DBNull.Value });
+                 command.Parameters.Add(new SqliteParameter("@maxCount", SqliteType.Integer) { Value = streamMetadata.MaxCount ?? (object)DBNull.Value });
                  _stream_id_internal = command.ExecuteScalar<long?>();
              }
             
@@ -211,7 +210,7 @@ namespace SqlStreamStore
                  command.ExecuteNonQuery();
 
                  return (currentVersion ?? -1, 
-                     new SQLiteAppendResult(null, currentVersion ?? -1, currentPosition ?? -1), 
+                     new SQLiteAppendResult(streamMetadata.MaxCount, currentVersion ?? -1, currentPosition ?? -1), 
                      messageExists);
              }
              
@@ -228,7 +227,7 @@ namespace SqlStreamStore
                  if(reader.Read())
                  {
                      return (streamVersionBeforeInsert ?? -1, 
-                         new SQLiteAppendResult(null, reader.GetInt32(0), reader.GetInt64(1)), 
+                         new SQLiteAppendResult(streamMetadata.MaxCount, reader.GetInt32(0), reader.GetInt64(1)), 
                          messageExists);
                  }
              }

@@ -1,5 +1,6 @@
 namespace SqlStreamStore
 {
+    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using SqlStreamStore.Infrastructure;
@@ -20,7 +21,7 @@ namespace SqlStreamStore
                 1,
                 ReadDirection.Backward,
                 true,
-                s_readNextNotFound,
+                null,
                 cancellationToken);
 
             if (page.Status == PageReadStatus.StreamNotFound)
@@ -80,9 +81,9 @@ namespace SqlStreamStore
                                         SET max_age = @maxAge,
                                             max_count = @maxCount
                                         WHERE streams.id = @streamId";
-                command.Parameters.AddWithValue("@streamId", idInfo.SQLiteStreamId.Id);
-                command.Parameters.AddWithValue("@maxAge", maxAge);
-                command.Parameters.AddWithValue("@maxCount", maxCount);
+                command.Parameters.AddWithValue("@streamId", idInfo.MetadataSQLiteStreamId.Id);
+                command.Parameters.AddWithValue("@maxAge", maxAge ?? (object)DBNull.Value);
+                command.Parameters.AddWithValue("@maxCount", maxCount ?? (object)DBNull.Value);
                 command.ExecuteNonQuery(); // TODO: Check for records affected?
             }
             

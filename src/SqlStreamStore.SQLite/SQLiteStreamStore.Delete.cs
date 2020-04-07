@@ -18,7 +18,7 @@ namespace SqlStreamStore
             var streamIdInfo = new StreamIdInfo(streamId);
             var messages = new List<NewStreamMessage>();
             
-            using (var connection = OpenConnection())
+            using(var connection = OpenConnection())
             using(var transaction = connection.BeginTransaction())
             using(var command = connection.CreateCommand())
             {
@@ -125,6 +125,7 @@ namespace SqlStreamStore
             using (var command = connection.CreateCommand())
             {
                 command.Transaction = transaction;
+                
                 command.CommandText = @"
 SELECT COUNT(*) FROM streams WHERE id = @streamId;
 
@@ -156,6 +157,8 @@ WHERE streams.id = @streamId
                     reader.Read();
                     hasBeenDeleted = !reader.IsDBNull(0) && (reader.GetInt64(0) > 0);
                 }
+                
+                transaction.Commit();
             }
 
             if(hasBeenDeleted)

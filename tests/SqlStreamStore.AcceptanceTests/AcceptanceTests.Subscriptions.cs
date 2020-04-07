@@ -748,7 +748,7 @@
                 });
             subscription.MaxCountPerRead = 10;
 
-            await fallenBehind.Task.WithTimeout(TimeSpan.FromMinutes(5).Seconds);
+            await fallenBehind.Task.WithTimeout(5000);
             subscription.Dispose();
         }
 

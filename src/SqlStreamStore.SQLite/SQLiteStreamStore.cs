@@ -21,7 +21,7 @@ namespace SqlStreamStore
         public const int CurrentVersion = 1;
 
         public SQLiteStreamStore(SQLiteStreamStoreSettings settings)
-            : base(settings.GetUtcNow, settings.LogName)
+            : base(settings.MetadataMaxAgeCacheExpire, settings.MetadataMaxAgeCacheMaxSize, settings.GetUtcNow, settings.LogName)
         {
             _settings = settings;
             _createConnection = () => _settings.ConnectionFactory(_settings.ConnectionString);

@@ -184,7 +184,8 @@ ORDER BY messages.position
                 messages.created_utc,
                 messages.type,
                 messages.json_metadata,
-                CASE WHEN @includeJsonData THEN messages.json_data ELSE null END
+                CASE WHEN @includeJsonData THEN messages.json_data ELSE null END,
+                streams.max_age
            FROM messages
      INNER JOIN streams
              ON messages.stream_id_internal = streams.id_internal
@@ -197,7 +198,7 @@ ORDER BY messages.position
                 command.Parameters.AddWithValue("@includeJsonData", prefetch);
 
                 long lastPosition = 0;
-                var messages = new List<StreamMessage>();
+                var messages = new List<(StreamMessage Message, int? MaxAge)>();
                 using(var reader = command.ExecuteReader())
                 {
                     while(reader.Read())
@@ -215,6 +216,9 @@ ORDER BY messages.position
                             var created = reader.GetDateTime(4);
                             var type = reader.GetString(5);
                             var jsonMetadata = reader.GetString(6);
+                            var maxAge = reader.IsDBNull(8) 
+                                ? default(int?) 
+                                : reader.GetInt32(8);
 
                             Func<CancellationToken, Task<string>> getJsonData;
                             if(prefetch)
@@ -239,17 +243,18 @@ ORDER BY messages.position
                                 jsonMetadata,
                                 getJsonData);
 
-                            messages.Add(message);
+                            messages.Add((message, maxAge));
                         }
 
                         lastPosition = position;
                     }
                 }
 
-                bool isEnd = remainingMessages - messages.Count <= 0;
+                var filtered = FilterExpired(messages);
+
+                bool isEnd = remainingMessages - filtered.Count <= 0;
                 var nextPosition = lastPosition;
-                fromPositionExclusive = messages.Any() ? messages.First().Position : 0;
-                
+                fromPositionExclusive = filtered.Any() ? filtered.First().Position : 0;
 
                 return Task.FromResult(new ReadAllPage(
                     fromPositionExclusive,
@@ -257,7 +262,7 @@ ORDER BY messages.position
                     isEnd,
                     ReadDirection.Backward,
                     readNext,
-                    messages.ToArray()));
+                    filtered.ToArray()));
             }
         }
     }

@@ -152,7 +152,7 @@ ORDER BY messages.position
             cancellationToken.ThrowIfCancellationRequested();
 
             maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;
-            long position = fromPositionExclusive == Position.End ? long.MaxValue : fromPositionExclusive;
+            long position = fromPositionExclusive == Position.End ? long.MaxValue - 1: fromPositionExclusive;
 
             // query for empty store.
             using (var connection = OpenConnection())
@@ -162,7 +162,7 @@ ORDER BY messages.position
                                         FROM messages 
                                         WHERE position < @position ORDER BY position DESC; -- determination of how many entries are left.";
                 command.Parameters.Clear();
-                command.Parameters.AddWithValue("@position", fromPositionExclusive);
+                command.Parameters.AddWithValue("@position", position);
                 var remainingMessages = command.ExecuteScalar<long?>();
 
                 if(remainingMessages == null)

@@ -265,6 +265,9 @@ namespace SqlStreamStore
             string streamId, 
             CancellationToken cancellationToken)
         {
+            //RESEARCH: Would we ever want to perform cleanup function for $deleted?
+            if(streamId == Deleted.DeletedStreamId) { return; }
+            
             var maxCount = await ResolveStreamMaxCount(streamId).NotOnCapturedContext();
             
             if (maxCount.HasValue)
@@ -297,7 +300,7 @@ namespace SqlStreamStore
                                         WHERE streams.id_original = @idOriginal";
                 command.Parameters.AddWithValue("@idOriginal", streamId);
 
-                return Task.FromResult(command.ExecuteScalar<int?>(0));
+                return Task.FromResult(command.ExecuteScalar<int?>());
             }
         }
 

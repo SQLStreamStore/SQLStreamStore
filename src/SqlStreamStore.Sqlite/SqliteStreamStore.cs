@@ -133,7 +133,7 @@ namespace SqlStreamStore
 
                 command.CommandText = @"SELECT COUNT(*)
                                         FROM messages
-                                        WHERER messages.stream_id_internal = @idInternal;";
+                                        WHERE messages.stream_id_internal = @idInternal;";
                 command.Parameters.Clear();
                 command.Parameters.AddWithValue("@idInternal", idInternal);
                 var streamLength = command.ExecuteScalar<long>(StreamVersion.Start);

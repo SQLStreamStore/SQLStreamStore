@@ -30,7 +30,7 @@ namespace SqlStreamStore
                 var idInfo = new StreamIdInfo(streamId);
                 int streamIdInternal = 0;
                 int lastStreamVersion = 0;
-                int lastStreamPosition = 0;
+                long lastStreamPosition = 0;
                 var maxAge = default(int?);
                 command.CommandText = @"SELECT streams.id_internal, 
                                                 streams.[version], 
@@ -61,7 +61,7 @@ namespace SqlStreamStore
 
                     streamIdInternal = reader.GetInt32(0);
                     lastStreamVersion = reader.GetInt32(1);
-                    lastStreamPosition = reader.GetInt32(2);
+                    lastStreamPosition = reader.GetInt64(2);
                     maxAge = reader.IsDBNull(3) ? default(int?) : reader.GetInt32(3);
                     if(!reader.IsDBNull(4))
                     {
@@ -93,7 +93,8 @@ namespace SqlStreamStore
 
                 command.CommandText = @"SELECT COUNT(*) 
                         FROM messages 
-                        WHERE messages.stream_id_internal = @streamIdInternal AND position >= @position; 
+                        WHERE messages.stream_id_internal = @idInternal AND messages.[position] >= @position; 
+                        
                         SELECT messages.event_id,
                                messages.stream_version,
                                messages.[position],
@@ -102,10 +103,11 @@ namespace SqlStreamStore
                                messages.json_metadata,
                                case when @prefetch then messages.json_data else null end as json_data
                         FROM messages
-                        WHERE messages.stream_id_internal = @streamIdInternal AND messages.position >= @position
+                        WHERE messages.stream_id_internal = @idInternal AND messages.[position] >= @position
                         ORDER BY messages.position
                         LIMIT @count;";
-                command.Parameters.AddWithValue("@streamIdInternal", streamIdInternal);
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@idInternal", streamIdInternal);
                 command.Parameters.AddWithValue("@position", position);
                 command.Parameters.AddWithValue("@prefetch", prefetch);
                 command.Parameters.AddWithValue("@count", count + 1);
@@ -117,16 +119,29 @@ namespace SqlStreamStore
                     var remainingMessages = Convert.ToInt32(reader.GetValue(0));
 
                     reader.NextResult();
-                    while(reader.Read() || messages.Count == count)
+                    var _continue = true;
+                    while(reader.Read() && _continue)
                     {
                         if(messages.Count == count)
                         {
-                            lastStreamVersion = reader.GetInt32(1);
-                            lastStreamPosition = reader.GetInt32(2);
+                            if(reader.Read())
+                            {
+                                lastStreamVersion = reader.ReadScalar(1, StreamVersion.End);
+                                lastStreamPosition = reader.ReadScalar<long>(2, Position.End);
+                                _continue = false;
+                            }
                             continue;
                         }
                         
                         messages.Add((ReadStreamMessage(reader, idInfo, prefetch), maxAge));
+                        lastStreamVersion = reader.ReadScalar(1, StreamVersion.End);
+                        lastStreamPosition = reader.ReadScalar<long>(2, Position.End);
+                    }
+
+                    if(_continue)
+                    {
+                        lastStreamPosition += 1;
+                        lastStreamVersion += 1;
                     }
 
                     var filtered = FilterExpired(messages);
@@ -264,12 +279,15 @@ namespace SqlStreamStore
                     var remainingMessages = Convert.ToInt32(reader.GetValue(0));
 
                     reader.NextResult();
-                    while(reader.Read() || messages.Count == count)
+                    var _continue = true;
+                    while(reader.Read() && _continue)
                     {
                         if(messages.Count == count)
                         {
+                            reader.Read();
                             lastStreamVersion = reader.GetInt32(1);
                             lastStreamPosition = reader.GetInt32(2);
+                            _continue = false;
                             continue;
                         }
                         

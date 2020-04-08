@@ -36,11 +36,13 @@ namespace SqlStreamStore
 
         public static T ReadScalar<T>(this SqliteDataReader reader, int columnIndex, T defaultValue = default)
         {
-            var obj = reader.GetValue(columnIndex);
-            if(obj == DBNull.Value || obj == null)
+            if(reader.IsDBNull(columnIndex))
             {
                 return defaultValue;
             }
+
+            var obj = reader.GetValue(columnIndex);
+            
             var resolvedType = typeof(T);
             Type actionableType = resolvedType;
             if(resolvedType.IsGenericType)

@@ -85,16 +85,16 @@ namespace SqlStreamStore
                 foreach(var msg in messages)
                 {
                     cmd.Parameters.Clear();
-                    cmd.Parameters.AddWithValue("@idInternal", internalId);
 
-                    cmd.Parameters.AddWithValue("@eventId", messages[0].MessageId);
-                    cmd.Parameters.AddWithValue("@type", messages[0].Type);
-                    cmd.Parameters.AddWithValue("@jsonData", messages[0].JsonData);
-                    cmd.Parameters.AddWithValue("@jsonMetadata", messages[0].JsonMetadata);
-                    
                     // incrementing current version (see above, where it is either set to "StreamVersion.Start", or the value in the db.
                     currentStreamVersion += 1;
-                    cmd.Parameters.AddWithValue("@streamVersion", currentStreamVersion); // to-resolve.
+
+                    cmd.Parameters.AddWithValue("@idInternal", internalId);
+                    cmd.Parameters.AddWithValue("@eventId", msg.MessageId);
+                    cmd.Parameters.AddWithValue("@type", msg.Type);
+                    cmd.Parameters.AddWithValue("@jsonData", msg.JsonData);
+                    cmd.Parameters.AddWithValue("@jsonMetadata", msg.JsonMetadata);
+                    cmd.Parameters.AddWithValue("@streamVersion", currentStreamVersion);
                     cmd.Parameters.AddWithValue("@createdUtc", GetUtcNow());
 
                     currentPosition = cmd.ExecuteScalar(StreamVersion.End);
@@ -129,7 +129,7 @@ namespace SqlStreamStore
                 }
 
 
-                var currentStreamVersion = StreamVersion.Start;
+                var currentStreamVersion = StreamVersion.End;
                 var currentPosition = Position.Start;
                 
                 cmd.CommandText = @"INSERT INTO messages(event_id, stream_id_internal, stream_version, created_utc, [type], json_data, json_metadata)
@@ -140,15 +140,15 @@ namespace SqlStreamStore
                 foreach(var msg in messages)
                 {
                     cmd.Parameters.Clear();
-                    cmd.Parameters.AddWithValue("@idInternal", internalId);
+                    
+                    // incrementing current version (see above, where it is either set to "StreamVersion.Start", or the value in the db.
+                    currentStreamVersion += 1;
 
+                    cmd.Parameters.AddWithValue("@idInternal", internalId);
                     cmd.Parameters.AddWithValue("@eventId", msg.MessageId);
                     cmd.Parameters.AddWithValue("@type", msg.Type);
                     cmd.Parameters.AddWithValue("@jsonData", msg.JsonData);
                     cmd.Parameters.AddWithValue("@jsonMetadata", msg.JsonMetadata);
-                    
-                    // incrementing current version (see above, where it is either set to "StreamVersion.Start", or the value in the db.
-                    currentStreamVersion += 1;
                     cmd.Parameters.AddWithValue("@streamVersion", currentStreamVersion); // to-resolve.
                     cmd.Parameters.AddWithValue("@createdUtc", GetUtcNow());
 
@@ -237,16 +237,16 @@ namespace SqlStreamStore
                 foreach(var msg in messages)
                 {
                     cmd.Parameters.Clear();
-                    cmd.Parameters.AddWithValue("@idInternal", internalId);
-
-                    cmd.Parameters.AddWithValue("@eventId", messages[0].MessageId);
-                    cmd.Parameters.AddWithValue("@type", messages[0].Type);
-                    cmd.Parameters.AddWithValue("@jsonData", messages[0].JsonData);
-                    cmd.Parameters.AddWithValue("@jsonMetadata", messages[0].JsonMetadata);
-                    
+                                        
                     // incrementing current version (see above, where it is either set to "StreamVersion.Start", or the value in the db.
                     currentStreamVersion += 1;
-                    cmd.Parameters.AddWithValue("@streamVersion", currentStreamVersion); // to-resolve.
+                    
+                    cmd.Parameters.AddWithValue("@idInternal", internalId);
+                    cmd.Parameters.AddWithValue("@eventId", msg.MessageId);
+                    cmd.Parameters.AddWithValue("@type", msg.Type);
+                    cmd.Parameters.AddWithValue("@jsonData", msg.JsonData);
+                    cmd.Parameters.AddWithValue("@jsonMetadata", msg.JsonMetadata);
+                    cmd.Parameters.AddWithValue("@streamVersion", currentStreamVersion);
                     cmd.Parameters.AddWithValue("@createdUtc", GetUtcNow());
 
                     currentPosition = cmd.ExecuteScalar(StreamVersion.End);

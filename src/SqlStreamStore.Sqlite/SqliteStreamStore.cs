@@ -52,15 +52,15 @@ namespace SqlStreamStore
                 {
                     var mVers = messages.Last().StreamVersion;
                     mVers = direction == ReadDirection.Forward
-                        ? mVers += 1
-                        : mVers == StreamVersion.Start ? StreamVersion.Start : mVers -= 1;
+                        ? mVers + 1
+                        : mVers < StreamVersion.Start ? StreamVersion.Start : mVers - 1;
 
                     return mVers;
                 }
 
                 currentVersion = direction == ReadDirection.Forward
-                    ? currentVersion += 1
-                    : currentVersion == StreamVersion.End ? StreamVersion.End : currentVersion -= 1;
+                    ? currentVersion + 1
+                    : currentVersion == StreamVersion.End ? StreamVersion.End : currentVersion - 1;
                 
                 return currentVersion;
             };

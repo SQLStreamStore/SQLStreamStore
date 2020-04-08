@@ -2,6 +2,7 @@ namespace SqlStreamStore
 {
     using System;
     using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Data.Sqlite;
@@ -62,8 +63,9 @@ namespace SqlStreamStore
                     streamIdInternal = reader.GetInt32(0);
                     lastStreamVersion = reader.GetInt32(1);
                     lastStreamPosition = reader.GetInt64(2);
-                    maxAge = reader.ReadScalar<int?>(3, default);
-                    maxRecords = Math.Min(maxRecords, reader.ReadScalar(4, 0));
+                    maxAge = reader.ReadScalar(3, default(int?));
+                    var streamsMaxRecords = reader.ReadScalar(4, StreamVersion.End);
+                    maxRecords = Math.Min(maxRecords, (streamsMaxRecords == StreamVersion.End ? maxRecords : streamsMaxRecords));
                 }
 
                 command.CommandText = @"SELECT messages.position
@@ -89,7 +91,7 @@ namespace SqlStreamStore
 
                 command.CommandText = @"SELECT COUNT(*) 
                         FROM messages 
-                        WHERE messages.stream_id_internal = @idInternal AND messages.stream_version > @streamVersion; 
+                        WHERE messages.stream_id_internal = @idInternal AND messages.stream_version >= @streamVersion; 
                         
                         SELECT messages.event_id,
                                messages.stream_version,
@@ -99,7 +101,7 @@ namespace SqlStreamStore
                                messages.json_metadata,
                                case when @prefetch then messages.json_data else null end as json_data
                         FROM messages
-                        WHERE messages.stream_id_internal = @idInternal AND messages.[stream_version] > @streamVersion
+                        WHERE messages.stream_id_internal = @idInternal AND messages.[stream_version] >= @streamVersion
                         ORDER BY messages.position
                         LIMIT @count;";
                 command.Parameters.Clear();
@@ -118,26 +120,23 @@ namespace SqlStreamStore
                     var _continue = true;
                     while(reader.Read() && _continue)
                     {
-                        if(messages.Count == maxRecords)
+                        if(messages.Count == count)
                         {
                             _continue = false;
                             continue;
                         }
                         
-                        lastStreamVersion = reader.ReadScalar(1, -1);
                         messages.Add((ReadStreamMessage(reader, idInfo, prefetch), maxAge));
+                        lastStreamVersion = reader.ReadScalar(1, StreamVersion.End);
                     }
-                    if(_continue)
+                    if(_continue && reader.Read())
                     {
-                        lastStreamVersion = reader.ReadScalar(1, -1);
+                        lastStreamVersion = reader.ReadScalar(1, StreamVersion.End);
                     }
-
-                    var filtered = FilterExpired(messages);
-                    var isEnd = remainingMessages - messages.Count > maxRecords;
                     
-                    var nextVersion = isEnd
-                        ? lastStreamVersion
-                        : _resolveNextVersion(filtered, ReadDirection.Forward, lastStreamVersion);
+                    var filtered = FilterExpired(messages);
+                    var isEnd = remainingMessages - messages.Count <= maxRecords;
+                    var nextVersion = messages.Skip(1).Any() ? messages.Last().message.StreamVersion + 1 : StreamVersion.Start; 
                     
                     var page = new ReadStreamPage(
                         streamId,
@@ -169,7 +168,7 @@ namespace SqlStreamStore
 
             // If the count is int.MaxValue, TSql will see it as a negative number. 
             // Users shouldn't be using int.MaxValue in the first place anyway.
-            count = count == int.MaxValue ? count - 1 : count;
+            var maxRecords = count == int.MaxValue ? count - 1 : count;
             var streamVersion =  fromStreamVersion == StreamVersion.End ? int.MaxValue -1 : fromStreamVersion;
             using (var connection = OpenConnection())
             using (var command = connection.CreateCommand())
@@ -210,18 +209,15 @@ namespace SqlStreamStore
                     streamIdInternal = reader.GetInt32(0);
                     lastStreamVersion = reader.GetInt32(1);
                     lastStreamPosition = reader.GetInt32(2);
-                    maxAge = reader.IsDBNull(3) ? default(int?) : reader.GetInt32(3);
-                    if(!reader.IsDBNull(4))
-                    {
-                        count = reader.GetInt32(4);
-                    }
+                    maxAge = reader.ReadScalar(3, default(int?));
+                    maxRecords = Math.Min(maxRecords, reader.ReadScalar(4, 0));
                 }
 
                 command.CommandText = @"SELECT messages.position
                                         FROM messages
                                         WHERE messages.stream_id_internal = @streamIdInternal
                                             AND messages.stream_version = @streamVersion
-                                        ORDER BY messages.position DESC
+                                        --ORDER BY messages.position DESC
                                         LIMIT 1;";
                 command.Parameters.Clear();
                 command.Parameters.AddWithValue("@streamIdInternal", streamIdInternal);
@@ -258,7 +254,7 @@ namespace SqlStreamStore
                 command.Parameters.AddWithValue("@idInternal", streamIdInternal);
                 command.Parameters.AddWithValue("@position", position);
                 command.Parameters.AddWithValue("@prefetch", prefetch);
-                command.Parameters.AddWithValue("@count", count + 1);
+                command.Parameters.AddWithValue("@count", maxRecords + 1);
 
                 var messages = new List<(StreamMessage message, int? maxAge)>();
                 using(var reader = command.ExecuteReader())
@@ -284,8 +280,8 @@ namespace SqlStreamStore
                     }
 
                     var filtered = FilterExpired(messages);
-                    var isEnd = Math.Min(remainingMessages, count) - messages.Count <= 0;
-                    var nextVersion = _resolveNextVersion(filtered, ReadDirection.Backward, lastStreamVersion);
+                    var isEnd = remainingMessages - messages.Count <= maxRecords;
+                    var nextVersion = messages.Skip(1).Any() ? messages.Last().message.StreamVersion - 1 : lastStreamVersion; 
                     
                     var page = new ReadStreamPage(
                         streamId,

@@ -35,11 +35,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.MySql", "src
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.MySql.Tests", "tests\SqlStreamStore.MySql.Tests\SqlStreamStore.MySql.Tests.csproj", "{69B2EE47-1F3C-4843-A471-C02F961CFEAC}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "tests", "tests", "{7E9BEF10-C4BB-4EC6-B573-CE09ADF86F9D}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.Sqlite.Tests", "tests\SqlStreamStore.Sqlite.Tests\SqlStreamStore.Sqlite.Tests.csproj", "{53BD01A4-B1C4-414B-B424-1DE694E5704C}"
-EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{5FC3A7E1-7F57-422C-ABFC-FA05054956F3}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.Sqlite", "src\SqlStreamStore.Sqlite\SqlStreamStore.Sqlite.csproj", "{496DF6AD-94C5-4B9E-BB12-3C2DC8AC43E2}"
 EndProject
@@ -129,7 +125,5 @@ Global
 		SolutionGuid = {0BED4931-978C-4A9F-9C46-28FEF55B30C2}
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
-		{53BD01A4-B1C4-414B-B424-1DE694E5704C} = {7E9BEF10-C4BB-4EC6-B573-CE09ADF86F9D}
-		{496DF6AD-94C5-4B9E-BB12-3C2DC8AC43E2} = {5FC3A7E1-7F57-422C-ABFC-FA05054956F3}
 	EndGlobalSection
 EndGlobal

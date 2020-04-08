@@ -1,7 +1,22 @@
 <Project Sdk="Microsoft.NET.Sdk">
-
   <PropertyGroup>
+    <Description>Sqlite provider for SQL Stream Store</Description>
+    <AssemblyTitle>SQL Stream Store - Sqlite Provider</AssemblyTitle>
     <TargetFramework>netstandard2.0</TargetFramework>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <AssemblyName>SqlStreamStore.Sqlite</AssemblyName>
+    <PackageId>SqlStreamStore.Sqlite</PackageId>
+    <RootNamespace>SqlStreamStore</RootNamespace>
   </PropertyGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <EmbeddedResource Include="Scripts\*.sql" Exclude="bin\**;obj\**;packages\**;@(EmbeddedResource)" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="3.1.3" />
+    <PackageReference Include="Microsoft.Data.Sqlite.Core" Version="3.1.3" />
+  </ItemGroup>
 
 </Project>

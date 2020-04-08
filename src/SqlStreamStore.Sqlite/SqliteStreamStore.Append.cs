@@ -17,7 +17,7 @@ namespace SqlStreamStore
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
             
-            AppendResult result;
+            SqliteAppendResult result;
             switch(expectedVersion)
             {
                 case ExpectedVersion.Any:
@@ -34,12 +34,31 @@ namespace SqlStreamStore
                     break;
             }
 
+            UpdateStreamsWithAppendResult(result);
+
             await CheckStreamMaxCount(streamId, cancellationToken).NotOnCapturedContext();
 
             return result;
         }
 
-        private Task<AppendResult> AppendToStreamAnyVersion(string streamId, NewStreamMessage[] messages, CancellationToken cancellationToken)
+        private void UpdateStreamsWithAppendResult(SqliteAppendResult result)
+        {
+            using(var conn = OpenConnection(false))
+            using(var txn = conn.BeginTransaction())
+            using(var cmd = conn.CreateCommand())
+            {
+                cmd.CommandText = @"UPDATE streams
+                                    SET [version] = @version,
+                                        [position] = @position
+                                    WHERE id_original = @streamId";
+                cmd.Parameters.Clear();
+                cmd.Parameters.AddWithValue("@version", result.CurrentVersion);
+                cmd.Parameters.AddWithValue("@position", result.CurrentPosition);
+                cmd.Parameters.AddWithValue("@streamId", result.InternalStreamId);
+            }
+        }
+
+        private Task<SqliteAppendResult> AppendToStreamAnyVersion(string streamId, NewStreamMessage[] messages, CancellationToken cancellationToken)
         {
             var internalId = ResolveInternalStreamId(streamId, false) ?? CreateStream(streamId);
 
@@ -83,11 +102,11 @@ namespace SqlStreamStore
                 
                 txn.Commit();
 
-                return Task.FromResult(new AppendResult(currentStreamVersion, currentPosition));
+                return Task.FromResult(new SqliteAppendResult(currentStreamVersion, currentPosition, internalId));
             }
         }
 
-        private Task<AppendResult> AppendToStreamEmpty(string streamId, NewStreamMessage[] messages, CancellationToken cancellationToken)
+        private Task<SqliteAppendResult> AppendToStreamEmpty(string streamId, NewStreamMessage[] messages, CancellationToken cancellationToken)
         {
             var internalId = ResolveInternalStreamId(streamId);
             
@@ -106,7 +125,7 @@ namespace SqlStreamStore
                 if(cmd.ExecuteScalar<long?>(0) > 0)
                 {
                     // we has information in the stream.
-                    return Task.FromResult(new AppendResult(ExpectedVersion.NoStream, ExpectedVersion.NoStream));
+                    return Task.FromResult(new SqliteAppendResult(ExpectedVersion.NoStream, ExpectedVersion.NoStream, internalId ?? -1));
                 }
 
 
@@ -123,10 +142,10 @@ namespace SqlStreamStore
                     cmd.Parameters.Clear();
                     cmd.Parameters.AddWithValue("@idInternal", internalId);
 
-                    cmd.Parameters.AddWithValue("@eventId", messages[0].MessageId);
-                    cmd.Parameters.AddWithValue("@type", messages[0].Type);
-                    cmd.Parameters.AddWithValue("@jsonData", messages[0].JsonData);
-                    cmd.Parameters.AddWithValue("@jsonMetadata", messages[0].JsonMetadata);
+                    cmd.Parameters.AddWithValue("@eventId", msg.MessageId);
+                    cmd.Parameters.AddWithValue("@type", msg.Type);
+                    cmd.Parameters.AddWithValue("@jsonData", msg.JsonData);
+                    cmd.Parameters.AddWithValue("@jsonMetadata", msg.JsonMetadata);
                     
                     // incrementing current version (see above, where it is either set to "StreamVersion.Start", or the value in the db.
                     currentStreamVersion += 1;
@@ -138,11 +157,11 @@ namespace SqlStreamStore
                 
                 txn.Commit();
 
-                return Task.FromResult(new AppendResult(currentStreamVersion, currentPosition));
+                return Task.FromResult(new SqliteAppendResult(currentStreamVersion, currentPosition, internalId ?? -1));
             }
         }
 
-        private Task<AppendResult> AppendToNonexistentStream(string streamId, NewStreamMessage[] messages, CancellationToken cancellationToken)
+        private Task<SqliteAppendResult> AppendToNonexistentStream(string streamId, NewStreamMessage[] messages, CancellationToken cancellationToken)
         {
             var internalId = ResolveInternalStreamId(streamId, false);
             if(internalId != null) { throw new Exception("Stream already exists."); }
@@ -150,7 +169,7 @@ namespace SqlStreamStore
             return AppendToStreamEmpty(streamId, messages, cancellationToken);
         }
 
-        private Task<AppendResult> AppendToStreamExpectedVersion(string streamId, int expectedVersion, NewStreamMessage[] messages, CancellationToken cancellationToken)
+        private Task<SqliteAppendResult> AppendToStreamExpectedVersion(string streamId, int expectedVersion, NewStreamMessage[] messages, CancellationToken cancellationToken)
         {
             var internalId = ResolveInternalStreamId(streamId, false);
             if(internalId == null)
@@ -179,6 +198,26 @@ namespace SqlStreamStore
                 cmd.Parameters.AddWithValue("@version", expectedVersion);
                 if(cmd.ExecuteScalar<long?>(0) != 0)
                 {
+                    if(messages.Length == 1)
+                    {
+                        cmd.CommandText = @"SELECT streams.[version], streams.[position]
+                                            FROM streams
+                                            WHERE streams.id_internal = @internalId";
+                        cmd.Parameters.Clear();
+                        cmd.Parameters.AddWithValue("@internalId", internalId);
+
+                        using(var reader = cmd.ExecuteReader())
+                        {
+                            if(reader.Read())
+                            {
+                                var pos = reader.ReadScalar<long>(0, Position.Start);
+                                var vers = reader.ReadScalar(1, StreamVersion.Start);
+
+                                return Task.FromResult(new SqliteAppendResult(vers, pos, internalId ?? -1));
+                            }
+                        }
+                    }
+                    
                     throw new WrongExpectedVersionException(
                         ErrorMessages.AppendFailedWrongExpectedVersion(
                             streamId,
@@ -215,7 +254,7 @@ namespace SqlStreamStore
                 
                 txn.Commit();
 
-                return Task.FromResult(new AppendResult(currentStreamVersion, currentPosition));
+                return Task.FromResult(new SqliteAppendResult(currentStreamVersion, currentPosition, internalId ?? -1));
             }
         }
 

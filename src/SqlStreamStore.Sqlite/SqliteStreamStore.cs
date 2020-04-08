@@ -72,7 +72,7 @@ namespace SqlStreamStore
             {
                 command.CommandText = @"SELECT MAX(position)
                                         FROM messages;";
-                return Task.FromResult(command.ExecuteScalar<long>());
+                return Task.FromResult(command.ExecuteScalar(Position.End));
             }
         }
 

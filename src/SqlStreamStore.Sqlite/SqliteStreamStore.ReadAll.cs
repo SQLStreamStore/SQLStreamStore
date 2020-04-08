@@ -81,15 +81,16 @@ ORDER BY messages.position
   LIMIT @count;";
                 command.Parameters.Clear();
                 command.Parameters.AddWithValue("@position", fromPositionExclusive);
-                command.Parameters.AddWithValue("@count", maxCount + 1);
+                command.Parameters.AddWithValue("@count", maxCount);
                 command.Parameters.AddWithValue("@includeJsonData", prefetch);
                 var reader = command.ExecuteReader(CommandBehavior.SequentialAccess);
 
-                
-                while (reader.Read() || messages.Count == maxCount)
+                var _continue = true;
+                while (reader.Read() && _continue)
                 {
                     if(messages.Count == maxCount)
                     {
+                        _continue = false;
                         continue;
                     }
 

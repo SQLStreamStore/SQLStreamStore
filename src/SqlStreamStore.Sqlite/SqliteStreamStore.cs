@@ -50,10 +50,19 @@ namespace SqlStreamStore
             {
                 if(messages.Any())
                 {
-                    return messages.Last().StreamVersion + (direction == ReadDirection.Forward ? 1 : -1);
+                    var mVers = messages.Last().StreamVersion;
+                    mVers = direction == ReadDirection.Forward
+                        ? mVers += 1
+                        : mVers == StreamVersion.Start ? StreamVersion.Start : mVers -= 1;
+
+                    return mVers;
                 }
 
-                return currentVersion + (direction == ReadDirection.Forward ? 1 : -1);
+                currentVersion = direction == ReadDirection.Forward
+                    ? currentVersion += 1
+                    : currentVersion == StreamVersion.End ? StreamVersion.End : currentVersion -= 1;
+                
+                return currentVersion;
             };
         }
 

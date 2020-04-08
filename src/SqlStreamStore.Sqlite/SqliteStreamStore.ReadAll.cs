@@ -101,6 +101,11 @@ ORDER BY messages.position
                     var created = reader.GetDateTime(4);
                     var type = reader.GetString(5);
                     var jsonMetadata = reader.GetString(6);
+                    var jsonData = prefetch 
+                        ? !reader.IsDBNull(7) 
+                            ? reader.GetTextReader(7).ReadToEnd() 
+                            : string.Empty
+                        : string.Empty;
 
                     var message = new StreamMessage(streamId,
                         messageId,
@@ -109,11 +114,9 @@ ORDER BY messages.position
                         created,
                         type,
                         jsonMetadata,
-                        ct => prefetch 
-                            ? new Task<String>(() => (reader.IsDBNull(6)) 
-                                ? default
-                                : reader.GetTextReader(6).ReadToEnd())
-                            : GetJsonData(position));
+                        ct => prefetch
+                            ? Task.FromResult(jsonData)
+                            : GetJsonData(streamVersion));
 
                     messages.Add(message);
                 }

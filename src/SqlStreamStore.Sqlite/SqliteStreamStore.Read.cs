@@ -64,6 +64,7 @@ namespace SqlStreamStore
                     lastStreamVersion = reader.GetInt32(1);
                     lastStreamPosition = reader.GetInt64(2);
                     maxAge = reader.ReadScalar(3, default(int?));
+
                     var streamsMaxRecords = reader.ReadScalar(4, StreamVersion.End);
                     maxRecords = Math.Min(maxRecords, (streamsMaxRecords == StreamVersion.End ? maxRecords : streamsMaxRecords));
                 }
@@ -89,7 +90,7 @@ namespace SqlStreamStore
                     position = command.ExecuteScalar<long?>() ?? Position.Start;
                 }
 
-                command.CommandText = @"SELECT COUNT(*) 
+                command.CommandText = @"SELECT CASE WHEN COUNT(*) > @count THEN @count ELSE COUNT(*) END
                         FROM messages 
                         WHERE messages.stream_id_internal = @idInternal AND messages.stream_version >= @streamVersion; 
                         
@@ -108,7 +109,7 @@ namespace SqlStreamStore
                 command.Parameters.AddWithValue("@idInternal", streamIdInternal);
                 command.Parameters.AddWithValue("@streamVersion", lastStreamVersion);
                 command.Parameters.AddWithValue("@prefetch", prefetch);
-                command.Parameters.AddWithValue("@count", maxRecords + 1);
+                command.Parameters.AddWithValue("@count", maxRecords);
 
                 var messages = new List<(StreamMessage message, int? maxAge)>();
                 using(var reader = command.ExecuteReader())
@@ -117,26 +118,15 @@ namespace SqlStreamStore
                     var remainingMessages = Convert.ToInt32(reader.GetValue(0));
 
                     reader.NextResult();
-                    var _continue = true;
-                    while(reader.Read() && _continue)
+                    while(reader.Read())
                     {
-                        if(messages.Count == count)
-                        {
-                            _continue = false;
-                            continue;
-                        }
-                        
                         messages.Add((ReadStreamMessage(reader, idInfo, prefetch), maxAge));
-                        lastStreamVersion = reader.ReadScalar(1, StreamVersion.End);
                     }
-                    if(_continue && reader.Read())
-                    {
-                        lastStreamVersion = reader.ReadScalar(1, StreamVersion.End);
-                    }
+                    lastStreamVersion = messages.Any() ? messages.First().message.StreamVersion : lastStreamVersion;
                     
                     var filtered = FilterExpired(messages);
                     var isEnd = remainingMessages - messages.Count <= maxRecords;
-                    var nextVersion = messages.Skip(1).Any() ? messages.Last().message.StreamVersion + 1 : StreamVersion.Start; 
+                    var nextVersion = messages.Any() ? messages.Last().message.StreamVersion + 1 : StreamVersion.Start; 
                     
                     var page = new ReadStreamPage(
                         streamId,
@@ -210,7 +200,9 @@ namespace SqlStreamStore
                     lastStreamVersion = reader.GetInt32(1);
                     lastStreamPosition = reader.GetInt32(2);
                     maxAge = reader.ReadScalar(3, default(int?));
-                    maxRecords = Math.Min(maxRecords, reader.ReadScalar(4, 0));
+
+                    var streamsMaxRecords = reader.ReadScalar(4, StreamVersion.End);
+                    maxRecords = Math.Min(maxRecords, (streamsMaxRecords == StreamVersion.End ? maxRecords : streamsMaxRecords));
                 }
 
                 command.CommandText = @"SELECT messages.position
@@ -236,9 +228,9 @@ namespace SqlStreamStore
                     position = command.ExecuteScalar<long?>() ?? Position.Start;
                 }
 
-                command.CommandText = @"SELECT COUNT(*) 
+                command.CommandText = @"SELECT COUNT(*)
                         FROM messages 
-                        WHERE messages.stream_id_internal = @idInternal AND messages.[position] <= @position;
+                        WHERE messages.stream_id_internal = @idInternal AND messages.[position] <= @position; -- remaining messages.
                          
                         SELECT messages.event_id,
                                messages.stream_version,
@@ -254,7 +246,7 @@ namespace SqlStreamStore
                 command.Parameters.AddWithValue("@idInternal", streamIdInternal);
                 command.Parameters.AddWithValue("@position", position);
                 command.Parameters.AddWithValue("@prefetch", prefetch);
-                command.Parameters.AddWithValue("@count", maxRecords + 1);
+                command.Parameters.AddWithValue("@count", maxRecords);
 
                 var messages = new List<(StreamMessage message, int? maxAge)>();
                 using(var reader = command.ExecuteReader())
@@ -263,25 +255,21 @@ namespace SqlStreamStore
                     var remainingMessages = Convert.ToInt32(reader.GetValue(0));
 
                     reader.NextResult();
-                    var _continue = true;
-                    while(reader.Read() && _continue)
+                    while(reader.Read())
                     {
-                        if(messages.Count == count)
-                        {
-                            lastStreamVersion = reader.ReadScalar(1, StreamVersion.End);
-                            lastStreamPosition = reader.ReadScalar(2, Position.End);
-                            _continue = false;
-                            continue;
-                        }
-                        
                         messages.Add((ReadStreamMessage(reader, idInfo, prefetch), maxAge));
-                        lastStreamVersion = reader.ReadScalar(1, StreamVersion.End);
-                        lastStreamPosition = reader.ReadScalar(2, Position.End);
                     }
 
+                    // last stream version, for backward read, should be the first entry in the items being
+                    // pulled.
+                    lastStreamVersion = messages.Any() ? messages.First().message.StreamVersion : lastStreamVersion;
+                    
                     var filtered = FilterExpired(messages);
-                    var isEnd = remainingMessages - messages.Count <= maxRecords;
-                    var nextVersion = messages.Skip(1).Any() ? messages.Last().message.StreamVersion - 1 : lastStreamVersion; 
+                    var isEnd = 
+                        Math.Min(remainingMessages, maxRecords) - messages.Count <= 0
+                        &&
+                        remainingMessages <= maxRecords;
+                    var nextVersion = messages.Any() ? messages.Last().message.StreamVersion - 1 : StreamVersion.End;
                     
                     var page = new ReadStreamPage(
                         streamId,

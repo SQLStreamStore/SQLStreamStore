@@ -100,8 +100,8 @@ ORDER BY messages.position
                     var created = reader.GetDateTime(4);
                     var type = reader.GetString(5);
                     var jsonMetadata = reader.GetString(6);
-                    var preloadJson = (!reader.IsDBNull(6) && prefetch)
-                        ? reader.GetTextReader(6).ReadToEnd()
+                    var preloadJson = (!reader.IsDBNull(7) && prefetch)
+                        ? reader.GetTextReader(7).ReadToEnd()
                         : default;
 
                     var message = new StreamMessage(streamId,
@@ -200,8 +200,8 @@ ORDER BY messages.position
                         var created = reader.GetDateTime(4);
                         var type = reader.GetString(5);
                         var jsonMetadata = reader.GetString(6);
-                        var preloadJson = (!reader.IsDBNull(6) && prefetch)
-                            ? reader.GetTextReader(6).ReadToEnd()
+                        var preloadJson = (!reader.IsDBNull(7) && prefetch)
+                            ? reader.GetTextReader(7).ReadToEnd()
                             : default;
 
                         var message = new StreamMessage(streamId,

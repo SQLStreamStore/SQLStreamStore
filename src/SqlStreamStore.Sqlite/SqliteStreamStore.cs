@@ -264,7 +264,7 @@ AND messages.stream_version = @streamVersion";
             {
                 command.CommandText = @"SELECT messages.json_data
 FROM messages
-WHERE messages.[version] = @version;";
+WHERE messages.[stream_version] = @version;";
                 command.Parameters.Clear();
                 command.Parameters.AddWithValue("@version", version);
 

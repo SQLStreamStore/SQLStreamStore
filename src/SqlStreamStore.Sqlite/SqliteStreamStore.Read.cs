@@ -12,7 +12,7 @@ namespace SqlStreamStore
     {
         protected override Task<ReadStreamPage> ReadStreamForwardsInternal(
             string streamId,
-            int start,
+            int fromStreamVersion,
             int count,
             bool prefetch,
             ReadNextStreamPage readNext,
@@ -24,14 +24,13 @@ namespace SqlStreamStore
             // If the count is int.MaxValue, TSql will see it as a negative number. 
             // Users shouldn't be using int.MaxValue in the first place anyway.
             var maxRecords = count == int.MaxValue ? count - 1 : count;
-            var streamVersion = start == StreamVersion.End ? int.MaxValue : start;
+            var streamVersion = fromStreamVersion <= StreamVersion.Start ? StreamVersion.Start : fromStreamVersion;
             using (var connection = OpenConnection())
             using (var command = connection.CreateCommand())
             {
                 var idInfo = new StreamIdInfo(streamId);
                 int streamIdInternal = 0;
                 int lastStreamVersion = 0;
-                long lastStreamPosition = 0;
                 var maxAge = default(int?);
                 command.CommandText = @"SELECT streams.id_internal, 
                                                 streams.[version], 
@@ -51,7 +50,7 @@ namespace SqlStreamStore
                         return Task.FromResult(new ReadStreamPage(
                             streamId,
                             PageReadStatus.StreamNotFound,
-                            start,
+                            fromStreamVersion,
                             StreamVersion.End,
                             StreamVersion.End,
                             StreamVersion.End,
@@ -62,37 +61,42 @@ namespace SqlStreamStore
 
                     streamIdInternal = reader.GetInt32(0);
                     lastStreamVersion = reader.GetInt32(1);
-                    lastStreamPosition = reader.GetInt64(2);
                     maxAge = reader.ReadScalar(3, default(int?));
 
-                    var streamsMaxRecords = reader.ReadScalar(4, StreamVersion.End);
-                    maxRecords = Math.Min(maxRecords, (streamsMaxRecords == StreamVersion.End ? maxRecords : streamsMaxRecords));
+                    var streamsMaxRecords = reader.ReadScalar(4, StreamVersion.Start);
+                    maxRecords = Math.Min(maxRecords, (streamsMaxRecords == StreamVersion.Start ? maxRecords : streamsMaxRecords));
                 }
 
-                command.CommandText = @"SELECT messages.position
-                                        FROM messages
-                                        WHERE messages.stream_id_internal = @streamIdInternal
-                                            AND messages.stream_version = @streamVersion;";
-                command.Parameters.Clear();
-                command.Parameters.AddWithValue("@streamIdInternal", streamIdInternal);
-                command.Parameters.AddWithValue("@streamVersion", streamVersion);
-                var position = command.ExecuteScalar<long?>();
+                long? position;
+                // command.CommandText = @"SELECT messages.position
+                //                         FROM messages
+                //                         WHERE messages.stream_id_internal = @streamIdInternal
+                //                             AND messages.stream_version = @streamVersion;";
+                // command.Parameters.Clear();
+                // command.Parameters.AddWithValue("@streamIdInternal", streamIdInternal);
+                // command.Parameters.AddWithValue("@streamVersion", streamVersion);
+                // position = command.ExecuteScalar<long?>();
 
-                if(position == null)
-                {
+                // if(position == null)
+                // {
                     command.CommandText = @"SELECT MIN(messages.position)
                                             FROM messages
                                             WHERE messages.stream_id_internal = @streamIdInternal
                                                 AND messages.stream_version >= @streamVersion;";
                     command.Parameters.Clear();
                     command.Parameters.AddWithValue("@streamIdInternal", streamIdInternal);
-                    command.Parameters.AddWithValue("@streamVersion", lastStreamVersion);
+                    command.Parameters.AddWithValue("@streamVersion", streamVersion);
                     position = command.ExecuteScalar<long?>() ?? Position.Start;
-                }
+                // }
 
-                command.CommandText = @"SELECT CASE WHEN COUNT(*) > @count THEN @count ELSE COUNT(*) END
+                command.CommandText = @"SELECT COUNT(*)
                         FROM messages 
-                        WHERE messages.stream_id_internal = @idInternal AND messages.stream_version >= @streamVersion; 
+                        WHERE messages.stream_id_internal = @idInternal; -- count of total messages within stream.
+                        
+                        SELECT COUNT(*)
+                        FROM messages
+                        WHERE messages.stream_id_internal = @idInternal
+                            AND messages.[position] < @position; -- count of all prior messages that have been read.
                         
                         SELECT messages.event_id,
                                messages.stream_version,
@@ -102,12 +106,12 @@ namespace SqlStreamStore
                                messages.json_metadata,
                                case when @prefetch then messages.json_data else null end as json_data
                         FROM messages
-                        WHERE messages.stream_id_internal = @idInternal AND messages.[stream_version] >= @streamVersion
+                        WHERE messages.stream_id_internal = @idInternal AND messages.[position] >= @position
                         ORDER BY messages.position
                         LIMIT @count;";
                 command.Parameters.Clear();
                 command.Parameters.AddWithValue("@idInternal", streamIdInternal);
-                command.Parameters.AddWithValue("@streamVersion", lastStreamVersion);
+                command.Parameters.AddWithValue("@position", position);
                 command.Parameters.AddWithValue("@prefetch", prefetch);
                 command.Parameters.AddWithValue("@count", maxRecords);
 
@@ -115,26 +119,30 @@ namespace SqlStreamStore
                 using(var reader = command.ExecuteReader())
                 {
                     reader.Read();
-                    var remainingMessages = Convert.ToInt32(reader.GetValue(0));
+                    var allMessageCount = reader.ReadScalar<int>(0);
+
+                    reader.NextResult();
+                    reader.Read();
+                    var prevReadMessageCount = reader.ReadScalar<int>(0);
 
                     reader.NextResult();
                     while(reader.Read())
                     {
                         messages.Add((ReadStreamMessage(reader, idInfo, prefetch), maxAge));
                     }
-                    lastStreamVersion = messages.Any() ? messages.First().message.StreamVersion : lastStreamVersion;
+                    lastStreamVersion = messages.Any() ? messages.Last().message.StreamVersion : StreamVersion.Start;
                     
                     var filtered = FilterExpired(messages);
-                    var isEnd = remainingMessages - messages.Count <= maxRecords;
-                    var nextVersion = messages.Any() ? messages.Last().message.StreamVersion + 1 : StreamVersion.Start; 
+                    var isEnd = prevReadMessageCount + messages.Count >= allMessageCount;
+                    var nextVersion = messages.Any() ? messages.Last().message.StreamVersion + 1 : StreamVersion.End; 
                     
                     var page = new ReadStreamPage(
                         streamId,
                         PageReadStatus.Success,
-                        start,
+                        fromStreamVersion,
                         nextVersion,
                         lastStreamVersion,
-                        lastStreamPosition,
+                        position.Value,
                         ReadDirection.Forward,
                         isEnd,
                         readNext,
@@ -159,7 +167,7 @@ namespace SqlStreamStore
             // If the count is int.MaxValue, TSql will see it as a negative number. 
             // Users shouldn't be using int.MaxValue in the first place anyway.
             var maxRecords = count == int.MaxValue ? count - 1 : count;
-            var streamVersion =  fromStreamVersion == StreamVersion.End ? int.MaxValue -1 : fromStreamVersion;
+            var streamVersion = fromStreamVersion == StreamVersion.End ? int.MaxValue -1 : fromStreamVersion;
             using (var connection = OpenConnection())
             using (var command = connection.CreateCommand())
             {
@@ -208,9 +216,7 @@ namespace SqlStreamStore
                 command.CommandText = @"SELECT messages.position
                                         FROM messages
                                         WHERE messages.stream_id_internal = @streamIdInternal
-                                            AND messages.stream_version = @streamVersion
-                                        --ORDER BY messages.position DESC
-                                        LIMIT 1;";
+                                            AND messages.stream_version = @streamVersion;";
                 command.Parameters.Clear();
                 command.Parameters.AddWithValue("@streamIdInternal", streamIdInternal);
                 command.Parameters.AddWithValue("@streamVersion", streamVersion);
@@ -220,12 +226,10 @@ namespace SqlStreamStore
                 {
                     command.CommandText = @"SELECT MAX(messages.position)
                                             FROM messages
-                                            WHERE messages.stream_id_internal = @streamIdInternal
-                                                AND messages.stream_version >= @streamVersion;";
+                                            WHERE messages.stream_id_internal = @streamIdInternal;";
                     command.Parameters.Clear();
                     command.Parameters.AddWithValue("@streamIdInternal", streamIdInternal);
-                    command.Parameters.AddWithValue("@streamVersion", lastStreamVersion);
-                    position = command.ExecuteScalar<long?>() ?? Position.Start;
+                    position = command.ExecuteScalar<long?>(Position.Start);
                 }
 
                 command.CommandText = @"SELECT COUNT(*)

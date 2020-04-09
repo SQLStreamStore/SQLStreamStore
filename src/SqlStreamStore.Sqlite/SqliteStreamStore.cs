@@ -108,7 +108,7 @@ namespace SqlStreamStore
             }
             
             // register functions.
-            connection.CreateFunction("reverse", (string source) => source.Reverse() );
+            connection.CreateFunction("split", (string source) => source.Split(new[]{','}, StringSplitOptions.RemoveEmptyEntries));
             return connection;
         }
 

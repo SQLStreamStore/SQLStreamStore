@@ -202,6 +202,8 @@ ORDER BY messages.position
                     reader.NextResult();
                     while(reader.Read())
                     {
+                        var eventId = reader.GetString(3);
+                        
                         var streamId = reader.GetString(0);
                         var streamVersion = reader.GetInt32(1);
                         var position = reader.IsDBNull(2) ? Position.End : reader.GetInt64(2);

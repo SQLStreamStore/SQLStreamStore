@@ -31,6 +31,7 @@ namespace SqlStreamStore
                 var idInfo = new StreamIdInfo(streamId);
                 int streamIdInternal = 0;
                 int lastStreamVersion = 0;
+                long lastStreamPosition = 0;
                 var maxAge = default(int?);
                 command.CommandText = @"SELECT streams.id_internal, 
                                                 streams.[version], 
@@ -59,8 +60,9 @@ namespace SqlStreamStore
                             readNext));
                     }
 
-                    streamIdInternal = reader.GetInt32(0);
-                    lastStreamVersion = reader.GetInt32(1);
+                    streamIdInternal = reader.ReadScalar<int>(0);
+                    lastStreamVersion = reader.ReadScalar<int>(1);
+                    lastStreamPosition = reader.ReadScalar<int>(2);
                     maxAge = reader.ReadScalar(3, default(int?));
 
                     var streamsMaxRecords = reader.ReadScalar(4, StreamVersion.Start);
@@ -130,11 +132,11 @@ namespace SqlStreamStore
                     {
                         messages.Add((ReadStreamMessage(reader, idInfo, prefetch), maxAge));
                     }
-                    lastStreamVersion = messages.Any() ? messages.Last().message.StreamVersion : StreamVersion.Start;
+                    lastStreamVersion = messages.Any() ? messages.Last().message.StreamVersion : StreamVersion.End;
                     
                     var filtered = FilterExpired(messages);
                     var isEnd = prevReadMessageCount + messages.Count >= allMessageCount;
-                    var nextVersion = messages.Any() ? messages.Last().message.StreamVersion + 1 : StreamVersion.End; 
+                    var nextVersion = messages.Any() ? messages.Last().message.StreamVersion + 1 : StreamVersion.Start; 
                     
                     var page = new ReadStreamPage(
                         streamId,
@@ -142,7 +144,7 @@ namespace SqlStreamStore
                         fromStreamVersion,
                         nextVersion,
                         lastStreamVersion,
-                        position.Value,
+                        lastStreamPosition,
                         ReadDirection.Forward,
                         isEnd,
                         readNext,

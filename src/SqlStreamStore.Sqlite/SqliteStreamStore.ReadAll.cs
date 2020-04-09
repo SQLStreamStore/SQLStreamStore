@@ -1,6 +1,5 @@
 namespace SqlStreamStore
 {
-    using System;
     using System.Collections.Generic;
     using System.Data;
     using System.Linq;
@@ -101,11 +100,9 @@ ORDER BY messages.position
                     var created = reader.GetDateTime(4);
                     var type = reader.GetString(5);
                     var jsonMetadata = reader.GetString(6);
-                    var jsonData = prefetch 
-                        ? !reader.IsDBNull(7) 
-                            ? reader.GetTextReader(7).ReadToEnd() 
-                            : string.Empty
-                        : string.Empty;
+                    var preloadJson = (!reader.IsDBNull(6) && prefetch)
+                        ? reader.GetTextReader(6).ReadToEnd()
+                        : default;
 
                     var message = new StreamMessage(streamId,
                         messageId,
@@ -115,8 +112,8 @@ ORDER BY messages.position
                         type,
                         jsonMetadata,
                         ct => prefetch
-                            ? Task.FromResult(jsonData)
-                            : GetJsonData(streamVersion));
+                            ? Task.FromResult(preloadJson)
+                            : GetJsonData(streamId, streamVersion));
 
                     messages.Add(message);
                 }
@@ -211,6 +208,9 @@ ORDER BY messages.position
                         var created = reader.GetDateTime(4);
                         var type = reader.GetString(5);
                         var jsonMetadata = reader.GetString(6);
+                        var preloadJson = (!reader.IsDBNull(6) && prefetch)
+                            ? reader.GetTextReader(6).ReadToEnd()
+                            : default;
 
                         var message = new StreamMessage(streamId,
                             messageId,
@@ -219,11 +219,9 @@ ORDER BY messages.position
                             created,
                             type,
                             jsonMetadata,
-                            ct => prefetch 
-                                ? new Task<String>(() => (reader.IsDBNull(6)) 
-                                    ? default
-                                    : reader.GetTextReader(6).ReadToEnd())
-                                : GetJsonData(position));
+                            ct => prefetch
+                                ? Task.FromResult(preloadJson)
+                                : GetJsonData(streamId, streamVersion));
 
                         messages.Add(message);
                     }

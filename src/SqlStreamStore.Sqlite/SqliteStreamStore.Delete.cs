@@ -17,16 +17,19 @@ namespace SqlStreamStore
             cancellationToken.ThrowIfCancellationRequested();
             
             var info = new StreamIdInfo(streamId);
-            var messages = new List<NewStreamMessage>();
+            var messages = new List<NewStreamMessage>
+            {
+                DeleteStreamInternal(info.SqlStreamId, expectedVersion, cancellationToken),
+                DeleteStreamInternal(info.MetadataSqlStreamId, ExpectedVersion.Any, cancellationToken)
+            };
 
-            messages.Add(DeleteStreamInternal(info.SqlStreamId, expectedVersion, cancellationToken));
-            messages.Add(DeleteStreamInternal(info.MetadataSqlStreamId, ExpectedVersion.Any, cancellationToken));
-            
-            
             foreach (var msg in messages.Where(m => m != null))
             {
                 await AppendToStreamInternal(Deleted.DeletedStreamId, ExpectedVersion.Any, new [] { msg }, cancellationToken).NotOnCapturedContext();
             }
+
+            await TryScavengeAsync(info.SqlStreamId, cancellationToken);
+            await TryScavengeAsync(info.MetadataSqlStreamId, cancellationToken);
         }
 
         protected override async Task DeleteEventInternal(string streamId, Guid eventId, CancellationToken cancellationToken)

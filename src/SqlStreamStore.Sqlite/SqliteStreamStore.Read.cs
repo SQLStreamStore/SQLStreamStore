@@ -304,11 +304,9 @@ namespace SqlStreamStore
             var createdUtc = reader.GetDateTime(3);
             var type = reader.GetString(4);
             var jsonMetadata = reader.IsDBNull(5) ? default : reader.GetString(5);
-            var jsonData = prefetch 
-                ? !reader.IsDBNull(6) 
-                    ? reader.GetTextReader(6).ReadToEnd() 
-                    : string.Empty
-                : string.Empty;
+            var preloadJson = (!reader.IsDBNull(6) && prefetch)
+                ? reader.GetTextReader(6).ReadToEnd()
+                : default;
 
             return new StreamMessage(
                 idInfo.SqlStreamId.IdOriginal,
@@ -319,9 +317,8 @@ namespace SqlStreamStore
                 type,
                 jsonMetadata,
                 ct => prefetch
-                    ? Task.FromResult(jsonData)
-                    : GetJsonData(idInfo.SqlStreamId.Id, streamVersion)
-            );
+                    ? Task.FromResult(preloadJson)
+                    : GetJsonData(idInfo.SqlStreamId.Id, streamVersion));
         }
     }
 }

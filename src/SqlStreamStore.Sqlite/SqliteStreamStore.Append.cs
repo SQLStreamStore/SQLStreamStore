@@ -3,6 +3,7 @@ namespace SqlStreamStore
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Data.Sqlite;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Streams;
 
@@ -68,14 +69,6 @@ namespace SqlStreamStore
             {
                 cmd.Transaction = txn;
                 
-                // resolve stream version, choosing 0 if not exists.
-                cmd.CommandText = @"SELECT MAX(stream_version)
-                                    FROM messages
-                                    WHERE stream_id_internal = @idInternal;";
-                cmd.Parameters.Clear();
-                cmd.Parameters.AddWithValue("@idInternal", internalId);
-                var nextVersion = cmd.ExecuteScalar<int?>(StreamVersion.End);
-                var currentPosition = Position.End;
                 
                 // unit tests state that if there is a single message, and it exists already, then
                 // do not add the second message into the system.  Send the SqliteAppendResult back
@@ -104,49 +97,11 @@ namespace SqlStreamStore
                     }
                 }
                 
-                foreach(var msg in messages)
-                {
-                    cmd.CommandText = @"SELECT COUNT(*)
-                                        FROM messages
-                                        WHERE event_id = @eventId AND stream_id_internal = @idInternal;";
-                    cmd.Parameters.Clear();
-                    cmd.Parameters.AddWithValue("@idInternal", internalId);
-                    cmd.Parameters.AddWithValue("@eventId", msg.MessageId);
-                    var existingMessageCount = cmd.ExecuteScalar<int>(-1);
-                    if(existingMessageCount > 0)
-                    {
-                        continue;
-                    }
-                    
-                    
-                    cmd.CommandText = @"INSERT INTO messages(event_id, stream_id_internal, stream_version, created_utc, [type], json_data, json_metadata)
-                                    VALUES(@eventId, @idInternal, @streamVersion, @createdUtc, @type, @jsonData, @jsonMetadata);
-                                    
-                                    SELECT last_insert_rowid();";
-
-                    cmd.Parameters.Clear();
-
-                    // incrementing current version (see above, where it is either set to "StreamVersion.Start", or the value in the db.
-                    nextVersion += 1;
-
-                    cmd.Parameters.AddWithValue("@idInternal", internalId);
-                    cmd.Parameters.AddWithValue("@eventId", msg.MessageId);
-                    cmd.Parameters.AddWithValue("@type", msg.Type);
-                    cmd.Parameters.AddWithValue("@jsonData", msg.JsonData);
-                    cmd.Parameters.AddWithValue("@jsonMetadata", msg.JsonMetadata);
-                    cmd.Parameters.AddWithValue("@streamVersion", nextVersion);
-                    cmd.Parameters.AddWithValue("@createdUtc", GetUtcNow());
-                    cmd.ExecuteNonQuery();
-                }
-
-                cmd.CommandText = "SELECT MAX([position]) FROM messages WHERE stream_id_internal = @internalId;";
-                cmd.Parameters.Clear();
-                cmd.Parameters.AddWithValue("@internalId", internalId);
-                currentPosition = cmd.ExecuteScalar<long>(Position.End);
+                var stored = StoreMessages(messages, cmd, internalId);
                 
                 txn.Commit();
 
-                return Task.FromResult(new SqliteAppendResult(nextVersion.Value, currentPosition, internalId));
+                return Task.FromResult(new SqliteAppendResult(stored.Version, stored.Position, internalId));
             }
         }
 
@@ -171,37 +126,12 @@ namespace SqlStreamStore
                     // we has information in the stream.
                     return Task.FromResult(new SqliteAppendResult(ExpectedVersion.NoStream, ExpectedVersion.NoStream, internalId ?? -1));
                 }
-
-
-                var currentStreamVersion = StreamVersion.End;
-                var currentPosition = Position.Start;
-                
-                cmd.CommandText = @"INSERT INTO messages(event_id, stream_id_internal, stream_version, created_utc, [type], json_data, json_metadata)
-                                    VALUES(@eventId, @idInternal, @streamVersion, @createdUtc, @type, @jsonData, @jsonMetadata);
-                                    
-                                    SELECT last_insert_rowid();";
-
-                foreach(var msg in messages)
-                {
-                    cmd.Parameters.Clear();
-                    
-                    // incrementing current version (see above, where it is either set to "StreamVersion.Start", or the value in the db.
-                    currentStreamVersion += 1;
-
-                    cmd.Parameters.AddWithValue("@idInternal", internalId);
-                    cmd.Parameters.AddWithValue("@eventId", msg.MessageId);
-                    cmd.Parameters.AddWithValue("@type", msg.Type);
-                    cmd.Parameters.AddWithValue("@jsonData", msg.JsonData);
-                    cmd.Parameters.AddWithValue("@jsonMetadata", msg.JsonMetadata);
-                    cmd.Parameters.AddWithValue("@streamVersion", currentStreamVersion); // to-resolve.
-                    cmd.Parameters.AddWithValue("@createdUtc", GetUtcNow());
-
-                    currentPosition = cmd.ExecuteScalar(StreamVersion.End);
-                }
+                                
+                var stored = StoreMessages(messages, cmd, Convert.ToInt32(internalId));
                 
                 txn.Commit();
 
-                return Task.FromResult(new SqliteAppendResult(currentStreamVersion, currentPosition, internalId ?? -1));
+                return Task.FromResult(new SqliteAppendResult(stored.Version, stored.Position, Convert.ToInt32(internalId)));
             }
         }
 
@@ -209,7 +139,9 @@ namespace SqlStreamStore
         {
             var internalId = ResolveInternalStreamId(streamId, false);
             if(internalId != null) { throw new Exception("Stream already exists."); }
-            internalId = CreateStream(streamId);
+            
+            CreateStream(streamId);
+            
             return AppendToStreamEmpty(streamId, messages, cancellationToken);
         }
 
@@ -356,7 +288,67 @@ namespace SqlStreamStore
                 }
             }
         }
-        
+ 
+        private (int Version, long Position) StoreMessages(NewStreamMessage[] messages, SqliteCommand cmd, int internalId)
+        {
+            int version = 0;
+            long position = 0;
+            
+            // resolve stream version, choosing 0 if not exists.
+            cmd.CommandText = @"SELECT MAX(stream_version)
+                                    FROM messages
+                                    WHERE stream_id_internal = @idInternal;
+                                SELECT MAX([position])
+                                FROM messages;";
+            cmd.Parameters.Clear();
+            cmd.Parameters.AddWithValue("@idInternal", internalId);
+            using(var reader = cmd.ExecuteReader())
+            {
+                reader.Read();
+                version = reader.ReadScalar<int>(0, StreamVersion.End);
+
+                reader.NextResult();
+                reader.Read();
+                position = reader.ReadScalar<long>(0, Position.End);
+            }
+
+            foreach(var msg in messages)
+            {
+                cmd.CommandText = @"SELECT COUNT(*)
+                                        FROM messages
+                                        WHERE event_id = @eventId AND stream_id_internal = @idInternal;";
+                cmd.Parameters.Clear();
+                cmd.Parameters.AddWithValue("@idInternal", internalId);
+                cmd.Parameters.AddWithValue("@eventId", msg.MessageId);
+                var hasMessages = (cmd.ExecuteScalar(0) > 0);
+                if(hasMessages) continue;
+
+                cmd.CommandText =
+                    @"INSERT INTO messages(event_id, stream_id_internal, stream_version, [position], created_utc, [type], json_data, json_metadata)
+                                    VALUES(@eventId, @idInternal, @streamVersion, @position, @createdUtc, @type, @jsonData, @jsonMetadata);
+                                    
+                                    SELECT last_insert_rowid();";
+
+                cmd.Parameters.Clear();
+
+                // incrementing current version (see above, where it is either set to "StreamVersion.Start", or the value in the db.
+                version += 1;
+                position += 1;
+
+                cmd.Parameters.AddWithValue("@idInternal", internalId);
+                cmd.Parameters.AddWithValue("@eventId", msg.MessageId);
+                cmd.Parameters.AddWithValue("@type", msg.Type);
+                cmd.Parameters.AddWithValue("@jsonData", msg.JsonData);
+                cmd.Parameters.AddWithValue("@jsonMetadata", msg.JsonMetadata);
+                cmd.Parameters.AddWithValue("@position", position);
+                cmd.Parameters.AddWithValue("@streamVersion", version);
+                cmd.Parameters.AddWithValue("@createdUtc", GetUtcNow());
+                cmd.ExecuteNonQuery();
+            }
+
+            return (version, position);
+        }
+       
         private async Task CheckStreamMaxCount(
             string streamId, 
             CancellationToken cancellationToken)

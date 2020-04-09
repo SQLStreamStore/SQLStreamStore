@@ -149,15 +149,15 @@ ORDER BY messages.position
             using (var connection = OpenConnection())
             using (var command = connection.CreateCommand())
             {
-                if(fromPosition < Position.Start)
-                {
-                    return Task.FromResult(new ReadAllPage(
-                        Position.Start, 
-                        Position.Start, 
-                        true, 
-                        ReadDirection.Backward, 
-                        readNext));
-                }
+                // if(fromPosition < Position.Start)
+                // {
+                //     return Task.FromResult(new ReadAllPage(
+                //         Position.Start, 
+                //         Position.Start, 
+                //         true, 
+                //         ReadDirection.Backward, 
+                //         readNext));
+                // }
 
                 var allStreamPosition = fromPosition >= long.MaxValue - 1 ? long.MaxValue -1 : fromPosition;
                 
@@ -187,6 +187,7 @@ ORDER BY messages.position
                 var messages = new List<StreamMessage>();
                 using(var reader = command.ExecuteReader())
                 {
+                    reader.Read();
                     remainingMessages = reader.ReadScalar<long>(0, Position.End);
                     if(remainingMessages == Position.End)
                     {
@@ -199,13 +200,8 @@ ORDER BY messages.position
                     }
 
                     reader.NextResult();
-                    while(reader.Read() || messages.Count == maxCount)
+                    while(reader.Read())
                     {
-                        if(messages.Count == maxCount)
-                        {
-                            continue;
-                        }
-                        
                         var streamId = reader.GetString(0);
                         var streamVersion = reader.GetInt32(1);
                         var position = reader.IsDBNull(2) ? Position.End : reader.GetInt64(2);

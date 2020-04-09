@@ -146,17 +146,9 @@ ORDER BY messages.position
             using (var connection = OpenConnection())
             using (var command = connection.CreateCommand())
             {
-                // if(fromPosition < Position.Start)
-                // {
-                //     return Task.FromResult(new ReadAllPage(
-                //         Position.Start, 
-                //         Position.Start, 
-                //         true, 
-                //         ReadDirection.Backward, 
-                //         readNext));
-                // }
-
-                var allStreamPosition = fromPosition >= long.MaxValue - 1 ? long.MaxValue -1 : fromPosition;
+                var allStreamPosition = fromPosition == Position.End 
+                    ? long.MaxValue - 1 
+                    : fromPosition;
                 
                 // determine number of remaining messages.
                 command.CommandText = @"SELECT COUNT(*) FROM messages WHERE messages.[position] <= @position;
@@ -172,25 +164,25 @@ ORDER BY messages.position
                                            FROM messages
                                         INNER JOIN streams
                                              ON messages.stream_id_internal = streams.id_internal
-                                          WHERE messages.position >= @position
-                                        ORDER BY messages.position
+                                          WHERE messages.position <= @position
+                                        ORDER BY messages.position DESC
                                           LIMIT @count;";
                 command.Parameters.Clear();
                 command.Parameters.AddWithValue("@position", allStreamPosition);
-                command.Parameters.AddWithValue("@count", maxCount + 1);
+                command.Parameters.AddWithValue("@count", maxCount);
                 command.Parameters.AddWithValue("@includeJsonData", prefetch);
 
-                long remainingMessages;
+                long remainingMessages = 0;
                 var messages = new List<StreamMessage>();
                 using(var reader = command.ExecuteReader())
                 {
                     reader.Read();
-                    remainingMessages = reader.ReadScalar<long>(0, Position.End);
-                    if(remainingMessages == Position.End)
+                    remainingMessages = reader.ReadScalar(0, Position.End);
+                    if(remainingMessages == Position.Start)
                     {
                         return Task.FromResult(new ReadAllPage(
-                            fromPosition,
-                            fromPosition,
+                            Position.Start,
+                            Position.Start,
                             true,
                             ReadDirection.Backward,
                             readNext));
@@ -228,12 +220,16 @@ ORDER BY messages.position
                 }
 
                 bool isEnd = remainingMessages - messages.Count <= 0;
+                
                 var nextPosition = messages.Any() 
-                    ? messages.Last().Position 
+                    ? messages.Last().Position - 1
                     : Position.Start;
+                if (nextPosition < Position.Start) nextPosition = Position.Start;
+                
+                allStreamPosition = messages.Any() ? messages.First().Position : Position.Start;
 
                 return Task.FromResult(new ReadAllPage(
-                    fromPosition,
+                    allStreamPosition,
                     nextPosition,
                     isEnd,
                     ReadDirection.Backward,

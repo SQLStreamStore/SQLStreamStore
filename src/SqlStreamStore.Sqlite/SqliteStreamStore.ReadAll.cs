@@ -120,7 +120,7 @@ ORDER BY messages.position
 
                 bool isEnd = remainingMessages - messages.Count <= 0;
                 var nextPosition = messages.Any() 
-                    ? messages.Last().Position 
+                    ? messages.Last().Position + 1
                     : Position.End;
 
                 return Task.FromResult(new ReadAllPage(

@@ -165,15 +165,27 @@ namespace SqlStreamStore
                 cmd.Transaction = txn;
                 
                 // check to see if the stream has records.  if so, throw wrongexpectedversion exception.
-                cmd.CommandText = @"SELECT COUNT(*)
+                cmd.CommandText = @"SELECT MAX(stream_version)
                                     FROM messages
-                                    WHERE stream_id_internal = @internalId
-                                        AND stream_version = @version;";
+                                    WHERE stream_id_internal = @internalId";
                 cmd.Parameters.Clear();
                 cmd.Parameters.AddWithValue("@internalId", internalId);
                 cmd.Parameters.AddWithValue("@version", expectedVersion);
-                if(cmd.ExecuteScalar<long?>(0) != 0)
+                
+                int dbStreamVersion = cmd.ExecuteScalar<int>();
+                
+                if(dbStreamVersion != 0)
                 {
+                    if(dbStreamVersion != expectedVersion && messages.Length <= 1) // we have to check length because of add'l rules around single-message processing.
+                    {
+                        throw new WrongExpectedVersionException(
+                            ErrorMessages.AppendFailedWrongExpectedVersion(
+                                streamId,
+                                expectedVersion),
+                            streamId,
+                            expectedVersion);
+                    }
+
                     if(messages.Length == 1)
                     {
                         cmd.CommandText = @"SELECT streams.[version], streams.[position]

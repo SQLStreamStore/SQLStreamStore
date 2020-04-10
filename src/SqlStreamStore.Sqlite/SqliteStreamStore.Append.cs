@@ -173,18 +173,16 @@ namespace SqlStreamStore
                 cmd.Transaction = txn;
                 
                 // check to see if the stream has records.  if so, throw wrongexpectedversion exception.
-                cmd.CommandText = @"SELECT MAX(stream_version)
-                                    FROM messages
-                                    WHERE stream_id_internal = @internalId";
+                cmd.CommandText = @"SELECT [version]
+                                    FROM streams
+                                    WHERE id = @id";
                 cmd.Parameters.Clear();
-                cmd.Parameters.AddWithValue("@internalId", internalId);
-                cmd.Parameters.AddWithValue("@version", expectedVersion);
+                cmd.Parameters.AddWithValue("@id", internalId);
+                int actualStreamVersion = cmd.ExecuteScalar<int>();
                 
-                int dbStreamVersion = cmd.ExecuteScalar<int>();
-                
-                if(dbStreamVersion != 0)
+                if(actualStreamVersion != 0)
                 {
-                    if(dbStreamVersion != expectedVersion && messages.Length <= 1) // we have to check length because of add'l rules around single-message processing.
+                    if(actualStreamVersion != expectedVersion && messages.Length <= 1) // we have to check length because of add'l rules around single-message processing.
                     {
                         // determine if second post.  if so, return position/version as if
                         // it was the first post.
@@ -216,13 +214,6 @@ namespace SqlStreamStore
                             }
                         }
                     }
-                    
-                    throw new WrongExpectedVersionException(
-                        ErrorMessages.AppendFailedWrongExpectedVersion(
-                            streamId,
-                            expectedVersion),
-                        streamId,
-                        expectedVersion);
                 }
 
                 var result = StoreMessages(messages, cmd, internalId.Value);

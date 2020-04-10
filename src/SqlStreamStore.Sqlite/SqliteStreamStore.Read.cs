@@ -70,17 +70,17 @@ namespace SqlStreamStore
                 }
 
                 long? position;
-                // command.CommandText = @"SELECT messages.position
-                //                         FROM messages
-                //                         WHERE messages.stream_id_internal = @streamIdInternal
-                //                             AND messages.stream_version = @streamVersion;";
-                // command.Parameters.Clear();
-                // command.Parameters.AddWithValue("@streamIdInternal", streamIdInternal);
-                // command.Parameters.AddWithValue("@streamVersion", streamVersion);
-                // position = command.ExecuteScalar<long?>();
+                command.CommandText = @"SELECT messages.position
+                                        FROM messages
+                                        WHERE messages.stream_id_internal = @streamIdInternal
+                                            AND messages.stream_version = @streamVersion;";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamIdInternal", streamIdInternal);
+                command.Parameters.AddWithValue("@streamVersion", streamVersion);
+                position = command.ExecuteScalar<long?>();
 
-                // if(position == null)
-                // {
+                if(position == null)
+                {
                     command.CommandText = @"SELECT MIN(messages.position)
                                             FROM messages
                                             WHERE messages.stream_id_internal = @streamIdInternal
@@ -89,7 +89,7 @@ namespace SqlStreamStore
                     command.Parameters.AddWithValue("@streamIdInternal", streamIdInternal);
                     command.Parameters.AddWithValue("@streamVersion", streamVersion);
                     position = command.ExecuteScalar<long?>() ?? Position.Start;
-                // }
+                }
 
                 command.CommandText = @"SELECT COUNT(*)
                         FROM messages 

@@ -51,11 +51,14 @@ namespace SqlStreamStore
                 cmd.CommandText = @"UPDATE streams
                                     SET [version] = @version,
                                         [position] = @position
-                                    WHERE id_original = @streamId";
+                                    WHERE id_internal = @streamId";
                 cmd.Parameters.Clear();
                 cmd.Parameters.AddWithValue("@version", result.CurrentVersion);
                 cmd.Parameters.AddWithValue("@position", result.CurrentPosition);
                 cmd.Parameters.AddWithValue("@streamId", result.InternalStreamId);
+                cmd.ExecuteNonQuery();
+                
+                txn.Commit();
             }
         }
 
@@ -175,31 +178,18 @@ namespace SqlStreamStore
                 // check to see if the stream has records.  if so, throw wrongexpectedversion exception.
                 cmd.CommandText = @"SELECT [version]
                                     FROM streams
-                                    WHERE id = @id";
+                                    WHERE id_internal = @id";
                 cmd.Parameters.Clear();
                 cmd.Parameters.AddWithValue("@id", internalId);
                 int actualStreamVersion = cmd.ExecuteScalar<int>();
-                
-                if(actualStreamVersion != 0)
-                {
-                    if(actualStreamVersion != expectedVersion && messages.Length <= 1) // we have to check length because of add'l rules around single-message processing.
-                    {
-                        // determine if second post.  if so, return position/version as if
-                        // it was the first post.
-                        
-                        throw new WrongExpectedVersionException(
-                            ErrorMessages.AppendFailedWrongExpectedVersion(
-                                streamId,
-                                expectedVersion),
-                            streamId,
-                            expectedVersion);
-                    }
 
+                if(actualStreamVersion != expectedVersion) // we have to check length because of add'l rules around single-message processing.
+                {
                     if(messages.Length == 1)
                     {
                         cmd.CommandText = @"SELECT streams.[version], streams.[position]
-                                            FROM streams
-                                            WHERE streams.id_internal = @internalId";
+                                        FROM streams
+                                        WHERE streams.id_internal = @internalId";
                         cmd.Parameters.Clear();
                         cmd.Parameters.AddWithValue("@internalId", internalId);
 
@@ -207,13 +197,22 @@ namespace SqlStreamStore
                         {
                             if(reader.Read())
                             {
-                                var pos = reader.ReadScalar<long>(0, Position.Start);
-                                var vers = reader.ReadScalar(1, StreamVersion.Start);
+                                var pos = reader.ReadScalar(0, Position.Start);
+                                var ver = reader.ReadScalar(1, StreamVersion.Start);
 
-                                return Task.FromResult(new SqliteAppendResult(vers, pos, internalId ?? -1));
+                                return Task.FromResult(new SqliteAppendResult(ver, pos, internalId ?? -1));
                             }
                         }
                     }
+
+                    // determine if second post.  if so, return position/version as if
+                    // it was the first post.
+                    throw new WrongExpectedVersionException(
+                        ErrorMessages.AppendFailedWrongExpectedVersion(
+                            streamId,
+                            expectedVersion),
+                        streamId,
+                        expectedVersion);
                 }
 
                 var result = StoreMessages(messages, cmd, internalId.Value);

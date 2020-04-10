@@ -37,50 +37,44 @@ namespace SqlStreamStore
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
 
-            var hasBeenDeleted = false;
             var idInfo = new StreamIdInfo(streamId);
+            bool streamExists;
+            bool willBeDeleted;
             
             using(var conn = OpenConnection(false))
             using(var txn = conn.BeginTransaction())
             using(var cmd = conn.CreateCommand())
             {
                 cmd.Transaction = txn;
-                
-                cmd.CommandText = @"SELECT COUNT(*) FROM streams WHERE id = @streamId;
 
-SELECT COUNT(*)
+                cmd.CommandText = @"SELECT COUNT(*) FROM streams WHERE id = @streamId;";
+                cmd.Parameters.Clear();
+                cmd.Parameters.AddWithValue("@streamId", idInfo.SqlStreamId.Id);
+                streamExists= cmd.ExecuteScalar<int>() > 0;
+
+                cmd.CommandText = @"SELECT COUNT(*)
 FROM messages
-    JOIN streams ON messages.stream_id_internal = streams.id_internal
+    JOIN streams ON messages.stream_id_internal = streams.id_internal 
 WHERE streams.id = @streamId
-    AND messages.event_id = @messageId;
-
-DELETE FROM messages 
-    JOIN streams ON messages.stream_id_internal = streams.id_internal
-WHERE streams.id = @streamId
-    AND messages.event_id = @messageId;
-";
+    AND messages.event_id = @messageId;";
+                cmd.Parameters.Clear();
                 cmd.Parameters.AddWithValue("@streamId", idInfo.SqlStreamId.Id);
                 cmd.Parameters.AddWithValue("@messageId", eventId);
-                using(var reader = cmd.ExecuteReader())
-                {
-                    reader.Read();
-                    var streamsCount = !reader.IsDBNull(0) 
-                        ? reader.GetInt64(0)
-                        : -1;
-                    if(streamsCount <= 0)
-                    {
-                        return;
-                    }
+                willBeDeleted = cmd.ExecuteScalar<int>() > 0;
 
-                    reader.NextResult();
-                    reader.Read();
-                    hasBeenDeleted = !reader.IsDBNull(0) && (reader.GetInt64(0) > 0);
+                if(streamExists && willBeDeleted)
+                {
+
+                    cmd.CommandText = @"DELETE FROM messages WHERE messages.event_id = @messageId;";
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.AddWithValue("@messageId", eventId);
+                    cmd.ExecuteNonQuery();
                 }
-                
+
                 txn.Commit();
             }
 
-            if(hasBeenDeleted)
+            if(streamExists && willBeDeleted)
             {
                 var deletedEvent = Deleted.CreateMessageDeletedMessage(streamId, eventId);
                 await AppendToStreamInternal(Deleted.DeletedStreamId, ExpectedVersion.Any, new[] { deletedEvent }, cancellationToken).NotOnCapturedContext();

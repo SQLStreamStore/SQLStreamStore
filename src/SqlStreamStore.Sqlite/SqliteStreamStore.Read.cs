@@ -187,14 +187,13 @@ namespace SqlStreamStore
                 var maxAge = default(int?);
                 command.CommandText = @"SELECT streams.id_internal, 
                                                 streams.[version], 
-                                                streams.[position], 
-                                                coalesce(max_age, (SELECT s.max_age FROM streams s WHERE s.id = @metaId)), 
-                                                coalesce(max_count, (SELECT s.max_count FROM streams s WHERE s.id = @metaId))
+                                                streams.[position],
+                                                max_age,
+                                                max_count
                                         FROM streams
                                         where streams.id = @streamId";
                 command.Parameters.Clear();
                 command.Parameters.AddWithValue("@streamId", idInfo.SqlStreamId.Id);
-                command.Parameters.AddWithValue("@metaId", idInfo.MetadataSqlStreamId.Id);
                 using(var reader = command.ExecuteReader())
                 {
                     if(!reader.Read())

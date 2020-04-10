@@ -78,13 +78,13 @@ namespace SqlStreamStore
             using (var connection = OpenConnection())
             using(var command = connection.CreateCommand())
             {
-                command.CommandText = @"UPDATE streams
-                                        SET max_age = @maxAge,
-                                            max_count = @maxCount
-                                        WHERE streams.id = @streamId";
+                command.CommandText = @"REPLACE INTO streams(id, id_original, max_age, max_count)
+                                        VALUES(@id, @idOriginal, @maxAge, @maxCount)";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@id", idInfo.MetadataSqlStreamId.Id);
+                command.Parameters.AddWithValue("@idOriginal", idInfo.MetadataSqlStreamId.IdOriginal);
                 command.Parameters.AddWithValue("@maxAge", maxAge ?? (object)DBNull.Value);
                 command.Parameters.AddWithValue("@maxCount", maxCount ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@streamId", idInfo.MetadataSqlStreamId.Id);
                 command.ExecuteNonQuery(); // TODO: Check for records affected?
             }
             

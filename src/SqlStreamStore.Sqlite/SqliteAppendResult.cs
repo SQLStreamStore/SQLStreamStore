@@ -4,12 +4,12 @@ namespace SqlStreamStore
 
     public class SqliteAppendResult : AppendResult
     {
-        public int InternalStreamId { get; }
+        public int? MaxCount { get; }
 
-        public SqliteAppendResult(int currentVersion, long currentPosition, int internalStreamId) : base(currentVersion,
+        public SqliteAppendResult(int currentVersion, long currentPosition, int? maxCount) : base(currentVersion,
             currentPosition)
         {
-            InternalStreamId = internalStreamId;
+            MaxCount = maxCount;
         }
     }
 }

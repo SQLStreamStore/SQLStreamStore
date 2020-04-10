@@ -1,35 +1,25 @@
 namespace SqlStreamStore
 {
     using System;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Data.Sqlite;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Streams;
+    using static Streams.Deleted;
 
     public partial class SqliteStreamStore
     {
-        protected override async Task DeleteStreamInternal(string streamId, int expectedVersion, CancellationToken cancellationToken)
+        protected override Task DeleteStreamInternal(string streamId, int expectedVersion, CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
             
-            var info = new StreamIdInfo(streamId);
-            var messages = new List<NewStreamMessage>
-            {
-                DeleteStreamInternal(info.SqlStreamId, expectedVersion, cancellationToken),
-                DeleteStreamInternal(info.MetadataSqlStreamId, ExpectedVersion.Any, cancellationToken)
-            };
+            var streamIdInfo = new StreamIdInfo(streamId);
 
-            foreach (var msg in messages.Where(m => m != null))
-            {
-                await AppendToStreamInternal(Deleted.DeletedStreamId, ExpectedVersion.Any, new [] { msg }, cancellationToken).NotOnCapturedContext();
-            }
-
-            await TryScavengeAsync(info.SqlStreamId, cancellationToken);
-            await TryScavengeAsync(info.MetadataSqlStreamId, cancellationToken);
+            return expectedVersion == ExpectedVersion.Any
+                ? DeleteStreamAnyVersion(streamIdInfo, cancellationToken)
+                : DeleteStreamExpectedVersion(streamIdInfo, expectedVersion, cancellationToken);
         }
 
         protected override async Task DeleteEventInternal(string streamId, Guid eventId, CancellationToken cancellationToken)
@@ -81,85 +71,69 @@ WHERE streams.id = @streamId
             }
         }
 
-        private NewStreamMessage DeleteStreamInternal(SqliteStreamId streamId, int expectedVersion, CancellationToken ct)
+        private Task DeleteStreamAnyVersion(StreamIdInfo sqlStreamId, CancellationToken cancellationToken)
         {
-            using(var connection = OpenConnection())
-            using(var transaction = connection.BeginTransaction())
-            using(var command = connection.CreateCommand())
+            using(var conn = OpenConnection(false))
+            using(var cmd = conn.CreateCommand())
+            using(var txn = conn.BeginTransaction())
             {
-                command.Transaction = transaction;
-                // determine if the stream exists.
-                // if a stream is not found and an expected version is requested, throw a
-                // <see cref="WrongExpectedVersionException" />
-                command.CommandText = "SELECT id_internal FROM streams WHERE id_original = @streamId";
-                command.Parameters.Clear();
-                command.Parameters.AddWithValue("@streamId", streamId.IdOriginal);
-                var idInternal = command.ExecuteScalar<long?>();
-                if(idInternal == null)
-                {
-                    if(expectedVersion >= 0)
-                    {
-                        throw new WrongExpectedVersionException(
-                            ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamId.IdOriginal, expectedVersion),
-                            streamId.IdOriginal,
-                            expectedVersion,
-                            default);
-                    }
-
-                    return default;
-                }
-
-                if(expectedVersion != ExpectedVersion.Any)
-                {
-                    command.CommandText = @"SELECT messages.stream_version 
-                                        FROM messages 
-                                        WHERE messages.stream_id_internal = @streamIdInternal
-                                        ORDER BY messages.stream_version DESC 
-                                        LIMIT 1;";
-                    command.Parameters.Clear();
-                    command.Parameters.AddWithValue("@streamIdInternal", idInternal);
-
-                    if(expectedVersion != command.ExecuteScalar<long?>())
-                    {
-                        throw new WrongExpectedVersionException(
-                            ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamId.IdOriginal, expectedVersion),
-                            streamId.IdOriginal,
-                            expectedVersion);
-                    }
-                }
+                cmd.Transaction = txn;
                 
-                command.CommandText = @"DELETE FROM messages WHERE messages.stream_id_internal = @streamIdInternal;";
-                command.Parameters.Clear();
-                command.Parameters.AddWithValue("@streamIdInternal", idInternal);
-                command.ExecuteNonQuery();
-                    
-                command.CommandText = @"DELETE FROM streams WHERE streams.id_internal = @streamIdInternal;";
-                command.Parameters.Clear();
-                command.Parameters.AddWithValue("@streamIdInternal", idInternal);
-                command.ExecuteNonQuery();
-
-                transaction.Commit();
-
-                return Deleted.CreateStreamDeletedMessage(streamId.IdOriginal);
-
-                //TODO: develop deletion tracking, if required.
+                DeleteAStream(cmd, sqlStreamId.SqlStreamId, ExpectedVersion.Any, cancellationToken);
+                DeleteAStream(cmd, sqlStreamId.MetadataSqlStreamId, ExpectedVersion.Any, cancellationToken);
+                
+                txn.Commit();
             }
+
+            return Task.CompletedTask;
         }
 
-        private NewStreamMessage DeleteAStream(SqliteCommand cmd, SqliteStreamId sqliteStreamId, int idInternal, int expectedVersion, out long? currentVersion, CancellationToken ct)
+        private Task DeleteStreamExpectedVersion(StreamIdInfo streamIdInfo, int expectedVersion, CancellationToken cancellationToken)
         {
-            currentVersion = default(long?);
-            
+            var id = ResolveInternalStreamId(streamIdInfo.SqlStreamId.IdOriginal, throwIfNotExists: false);
+            if(id == null)
+            {
+                throw new WrongExpectedVersionException(
+                    ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamIdInfo.SqlStreamId.IdOriginal, expectedVersion),
+                    streamIdInfo.SqlStreamId.IdOriginal,
+                    expectedVersion
+                );
+            }
+
+            using(var conn = OpenConnection(false))
+            using(var cmd = conn.CreateCommand())
+            using(var txn = conn.BeginTransaction())
+            {
+                cmd.Transaction = txn;
+                
+                DeleteAStream(cmd, streamIdInfo.SqlStreamId, expectedVersion, cancellationToken);
+                DeleteAStream(cmd, streamIdInfo.MetadataSqlStreamId, ExpectedVersion.Any, cancellationToken);
+
+                txn.Commit();
+            }
+
+            return Task.CompletedTask;
+        }
+
+        private bool DeleteAStream(
+            SqliteCommand cmd,
+            StreamIdInfo streamId,
+            int expectedVersion,
+            CancellationToken ct) =>
+            DeleteAStream(cmd, streamId.SqlStreamId, expectedVersion, ct);
+        private bool DeleteAStream(SqliteCommand cmd, SqliteStreamId sqliteStreamId, int expectedVersion, CancellationToken ct)
+        {
             if(expectedVersion != ExpectedVersion.Any)
             {
                 cmd.CommandText = @"SELECT messages.stream_version 
-                                        FROM messages 
-                                        WHERE messages.stream_id_internal = @streamIdInternal
-                                        ORDER BY messages.stream_version DESC 
-                                        LIMIT 1;";
+                                    FROM messages 
+                                    WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE streams.id_original = @streamId)
+                                    ORDER BY messages.stream_version DESC 
+                                    LIMIT 1;";
                 cmd.Parameters.Clear();
-                cmd.Parameters.AddWithValue("@streamIdInternal", idInternal);
-                currentVersion = cmd.ExecuteScalar<long?>();
+                cmd.Parameters.AddWithValue("@streamId", sqliteStreamId.IdOriginal);
+                var currentVersion = cmd.ExecuteScalar<long?>();
+
                 if(currentVersion != expectedVersion)
                 {
                     throw new WrongExpectedVersionException(
@@ -171,11 +145,35 @@ WHERE streams.id = @streamId
             }
             
             // delete stream records.
-            cmd.CommandText = @"DELETE FROM messages WHERE messages.stream_id_internal = @idInternal;
-                                DELETE FROM streams WHERE streams.id_internal = @idInternal;";
+            bool hasBeenDeleted = false;
+            cmd.CommandText = @"SELECT COUNT(*) FROM messages WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE streams.id_original = @streamId);
+                                SELECT COUNT(*) FROM streams WHERE streams.id_original = @streamId;
+                                DELETE FROM messages          WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE streams.id_original = @streamId);
+                                DELETE FROM streams WHERE streams.id_original = @streamId;";
+            cmd.Parameters.Clear();
+            cmd.Parameters.AddWithValue("@streamId", sqliteStreamId.IdOriginal);
+            using(var reader = cmd.ExecuteReader())
+            {
+                reader.Read();
+                var numberOfMessages = reader.ReadScalar<int?>(0);
 
+                reader.NextResult();
+                reader.Read();
+                var numberOfStreams = reader.ReadScalar<int?>(0);
 
-            return Deleted.CreateStreamDeletedMessage(sqliteStreamId.IdOriginal);
+                hasBeenDeleted = (numberOfMessages + numberOfStreams) > 0;
+            }
+
+            if (hasBeenDeleted)
+            {
+                var streamDeletedEvent = CreateStreamDeletedMessage(sqliteStreamId.IdOriginal);
+                AppendToStreamAnyVersion(cmd,
+                    SqliteStreamId.Deleted,
+                    new[] { streamDeletedEvent },
+                    ct);
+            }
+
+            return true;
         }
     }
 }

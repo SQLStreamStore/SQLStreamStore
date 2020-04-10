@@ -109,19 +109,25 @@ namespace SqlStreamStore
             
             // register functions.
             connection.CreateFunction("split", (string source) => source.Split(new[]{','}, StringSplitOptions.RemoveEmptyEntries));
+            connection.CreateFunction("contains",
+                (string allIdsBeingSought, string idToSeek) =>
+                {
+                    var ids = allIdsBeingSought.Split(new[] { ',' }, StringSplitOptions.RemoveEmptyEntries);
+                    return ids.Contains(idToSeek, StringComparer.OrdinalIgnoreCase);
+                });
             return connection;
         }
 
-        internal async Task TryScavengeAsync(SqliteStreamId streamId, CancellationToken ct)
+        internal async Task TryScavengeAsync(string streamId, CancellationToken ct)
         {
             //RESEARCH: Is this valid?
-            if(streamId.Id.Equals(SqliteStreamId.Deleted.Id))
+            if(streamId.Equals(SqliteStreamId.Deleted.Id) || streamId.StartsWith("$"))
             {
                 return;
             }
 
             var deletedMessageIds = new List<Guid>();
-            using(var connection = OpenConnection())
+            using(var connection = OpenConnection(false))
             using(var command = connection.CreateCommand())
             {
                 long idInternal = 0;
@@ -129,9 +135,9 @@ namespace SqlStreamStore
                 
                 command.CommandText = @"SELECT streams.id_internal, streams.max_count 
                                         FROM streams 
-                                        WHERE streams.id = @streamId";
+                                        WHERE streams.id_original = @streamId";
                 command.Parameters.Clear();
-                command.Parameters.AddWithValue("@streamId", streamId.Id);
+                command.Parameters.AddWithValue("@streamId", streamId);
                 using(var reader = command.ExecuteReader())
                 {
                     if(reader.Read())
@@ -174,18 +180,18 @@ namespace SqlStreamStore
             Logger.Info(
                 "Found {deletedMessageIdCount} message(s) for stream {streamId} to scavenge.",
                 deletedMessageIds.Count,
-                streamId.IdOriginal);
+                streamId);
 
             if(deletedMessageIds.Count > 0)
             {
                 Logger.Debug(
                     "Scavenging the following messages on stream {streamId}: {deletedMessageIds}",
-                    streamId.IdOriginal,
+                    streamId,
                     deletedMessageIds);
 
                 foreach(var deletedMessageId in deletedMessageIds)
                 {
-                    await DeleteEventInternal(streamId.IdOriginal, deletedMessageId, ct).NotOnCapturedContext();
+                    await DeleteEventInternal(streamId, deletedMessageId, ct).NotOnCapturedContext();
                 }
             }
         }
@@ -210,10 +216,9 @@ namespace SqlStreamStore
                 }
             });
 
-        private int? ResolveInternalStreamId(string streamId, bool throwIfNotExists = true)
+        private int? ResolveInternalStreamId(string streamId, SqliteCommand cmd = null, bool throwIfNotExists = true)
         {
-            using(var connection = OpenConnection())
-            using(var command = connection.CreateCommand())
+            int? PerformDelete(SqliteCommand command)
             {
                 command.CommandText = "SELECT id_internal FROM streams WHERE id_original = @streamId";
                 command.Parameters.Clear();
@@ -226,6 +231,15 @@ namespace SqlStreamStore
                 }
 
                 return result;
+            }
+
+            if(cmd != null)
+                return PerformDelete(cmd);
+
+            using (var conn = OpenConnection(false))
+            using(var command = conn.CreateCommand())
+            {
+                return PerformDelete(command);
             }
         }
 

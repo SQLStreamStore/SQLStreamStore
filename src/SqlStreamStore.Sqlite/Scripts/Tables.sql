@@ -15,7 +15,7 @@ CREATE TABLE IF NOT EXISTS messages (
     event_id                CHAR(36)    NOT NULL,
     stream_id_internal      integer     NOT NULL,
     stream_version          integer     NOT NULL                CHECK (stream_version >= 0),
-    [position]              integer     NOT NULL PRIMARY KEY,
+    [position]              integer     NOT NULL PRIMARY KEY    AUTOINCREMENT,
     created_utc             DATETIME    NOT NULL,
     type                    CHAR(128)   NOT NULL,
     json_data               text        NOT NULL,

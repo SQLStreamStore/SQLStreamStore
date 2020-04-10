@@ -1,6 +1,5 @@
 namespace SqlStreamStore
 {
-    using System;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -16,7 +15,7 @@ namespace SqlStreamStore
             cancellationToken.ThrowIfCancellationRequested();
             
             var idInfo = new StreamIdInfo(streamId);
-
+            
             var page = await ReadStreamBackwardsInternal(
                 idInfo.MetadataSqlStreamId.IdOriginal,
                 StreamVersion.End,
@@ -40,7 +39,7 @@ namespace SqlStreamStore
 
         protected override async Task<SetStreamMetadataResult> SetStreamMetadataInternal(
             string streamId,
-            int expectedStreamMetadataVersion,
+            int expectedVersion,
             int? maxAge,
             int? maxCount,
             string metadataJson,
@@ -49,7 +48,6 @@ namespace SqlStreamStore
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
             
-            var idInfo = new StreamIdInfo(streamId);
             var metadataMessage = new MetadataMessage
             {
                 StreamId = streamId,
@@ -60,35 +58,20 @@ namespace SqlStreamStore
             var json = SimpleJson.SerializeObject(metadataMessage);
             var messageId = MetadataMessageIdGenerator.Create(
                 streamId,
-                expectedStreamMetadataVersion,
+                expectedVersion,
                 json
             );
-            var message = new NewStreamMessage(
-                messageId, 
-                "$stream-metadata",
-                json); 
-           
+            var message = new NewStreamMessage(messageId, "$stream-metadata", json); 
             
+            var idinfo = new StreamIdInfo(streamId);
             var result = await AppendToStreamInternal(
-                idInfo.MetadataSqlStreamId.IdOriginal,
-                expectedStreamMetadataVersion,
+                idinfo.MetadataSqlStreamId.IdOriginal,
+                expectedVersion,
                 new[] { message },
                 cancellationToken).NotOnCapturedContext();
             
-            using (var connection = OpenConnection())
-            using(var command = connection.CreateCommand())
-            {
-                command.CommandText = @"REPLACE INTO streams(id, id_original, max_age, max_count)
-                                        VALUES(@id, @idOriginal, @maxAge, @maxCount)";
-                command.Parameters.Clear();
-                command.Parameters.AddWithValue("@id", idInfo.MetadataSqlStreamId.Id);
-                command.Parameters.AddWithValue("@idOriginal", idInfo.MetadataSqlStreamId.IdOriginal);
-                command.Parameters.AddWithValue("@maxAge", maxAge ?? (object)DBNull.Value);
-                command.Parameters.AddWithValue("@maxCount", maxCount ?? (object)DBNull.Value);
-                command.ExecuteNonQuery(); // TODO: Check for records affected?
-            }
-            
-            await TryScavengeAsync(idInfo.MetadataSqlStreamId, cancellationToken).NotOnCapturedContext();
+
+            CheckStreamMaxCount(streamId, maxCount, cancellationToken).Wait(cancellationToken);
 
             return new SetStreamMetadataResult(result.CurrentVersion);
         }

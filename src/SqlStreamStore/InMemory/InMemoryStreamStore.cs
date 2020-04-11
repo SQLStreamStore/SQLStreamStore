@@ -601,41 +601,37 @@ namespace SqlStreamStore
                     return Task.FromResult(notFound);
                 }
 
-                var messages = new List<StreamMessage>();
-                var i = fromVersionInclusive == StreamVersion.End ? stream.Messages.Count - 1 : fromVersionInclusive;
-                while (i < stream.Messages.Count && i >= 0 && count > 0)
+                var fromVersion = fromVersionInclusive == StreamVersion.End ? stream.Messages.Max(m => m.StreamVersion) : fromVersionInclusive;
+
+                var messages = stream.Messages.Where(m => m.StreamVersion <= fromVersion).Reverse().Take(count).Select(m =>
                 {
-                    var inMemorymessage = stream.Messages[i];
                     StreamMessage message;
                     if (prefetch)
                     {
                         message = new StreamMessage(
                             streamId,
-                            inMemorymessage.MessageId,
-                            inMemorymessage.StreamVersion,
-                            inMemorymessage.Position,
-                            inMemorymessage.Created,
-                            inMemorymessage.Type,
-                            inMemorymessage.JsonMetadata,
-                            inMemorymessage.JsonData);
+                            m.MessageId,
+                            m.StreamVersion,
+                            m.Position,
+                            m.Created,
+                            m.Type,
+                            m.JsonMetadata,
+                            m.JsonData);
                     }
                     else
                     {
                         message = new StreamMessage(
                             streamId,
-                            inMemorymessage.MessageId,
-                            inMemorymessage.StreamVersion,
-                            inMemorymessage.Position,
-                            inMemorymessage.Created,
-                            inMemorymessage.Type,
-                            inMemorymessage.JsonMetadata,
-                            ct =>  Task.Run(() => ReadMessageData(streamId, inMemorymessage.MessageId), ct));
+                            m.MessageId,
+                            m.StreamVersion,
+                            m.Position,
+                            m.Created,
+                            m.Type,
+                            m.JsonMetadata,
+                            ct =>  Task.Run(() => ReadMessageData(streamId, m.MessageId), ct));
                     }
-                    messages.Add(message);
-
-                    i--;
-                    count--;
-                }
+                    return message;
+                }).ToList();
 
                 var lastStreamVersion = stream.Messages.Count > 0
                     ? stream.Messages[stream.Messages.Count - 1].StreamVersion

@@ -11,14 +11,16 @@ namespace SqlStreamStore.HAL.Streams
     {
         private readonly IStreamStore _streamStore;
         private readonly string _relativePathToRoot;
+        private readonly bool _useCanonicalUrls;
         public SchemaSet Schema { get; }
 
-        public StreamResource(IStreamStore streamStore)
+        public StreamResource(IStreamStore streamStore, bool useCanonicalUrls)
         {
             if(streamStore == null)
                 throw new ArgumentNullException(nameof(streamStore));
             _streamStore = streamStore;
             _relativePathToRoot = "../";
+            _useCanonicalUrls = useCanonicalUrls;
             Schema = new SchemaSet<StreamResource>();
         }
 
@@ -67,7 +69,7 @@ namespace SqlStreamStore.HAL.Streams
 
         public async Task<Response> Get(ReadStreamOperation operation, CancellationToken cancellationToken)
         {
-            if(!operation.IsUriCanonical)
+            if(_useCanonicalUrls && !operation.IsUriCanonical)
             {
                 return new PermanentRedirectResponse($"../{operation.Self}");
             }

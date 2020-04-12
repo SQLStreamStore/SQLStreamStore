@@ -600,8 +600,10 @@ namespace SqlStreamStore
                         s_readNextNotFound);
                     return Task.FromResult(notFound);
                 }
-
-                var fromVersion = fromVersionInclusive == StreamVersion.End ? stream.Messages.Max(m => m.StreamVersion) : fromVersionInclusive;
+                
+                var fromVersion = (fromVersionInclusive == StreamVersion.End) ?
+                    stream.Messages.Max(m => m.StreamVersion  as int?) ?? 0 :
+                    fromVersionInclusive;
 
                 var messages = stream.Messages.Where(m => m.StreamVersion <= fromVersion).Reverse().Take(count).Select(m =>
                 {

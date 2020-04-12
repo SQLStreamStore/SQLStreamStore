@@ -373,7 +373,7 @@
         }
 
         [Fact, Trait("Category", "ReadStream")]
-        public async Task When_reading_a_stream_backwards_with_gaps_and_providing_the_fromVersion_explicitly()
+        public async Task When_reading_a_stream_backwards_that_has_gaps_and_providing_the_fromVersion_explicitly()
         {
             var streamId = new StreamId("streamid");
             var messages = CreateNewStreamMessages(1, 2, 3);

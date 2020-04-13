@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1.100-alpine3.10 AS build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1.201-alpine3.11 AS build
 
 RUN apk add git
 

@@ -66,7 +66,7 @@
             var allStream = new AllStreamResource(streamStore, options.UseCanonicalUrls);
             var allStreamMessages = new AllStreamMessageResource(streamStore);
             var streamBrowser = new StreamBrowserResource(streamStore);
-            var streams = new StreamResource(streamStore);
+            var streams = new StreamResource(streamStore, options.UseCanonicalUrls);
             var streamMetadata = new StreamMetadataResource(streamStore);
             var streamMessages = new StreamMessageResource(streamStore);
             var documentation = new DocsResource(

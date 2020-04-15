@@ -231,29 +231,71 @@ namespace SqlStreamStore
 
         private Task<SqliteAppendResult> AppendToNonexistentStream(SqliteStreamId streamId, NewStreamMessage[] messages, CancellationToken cancellationToken)
         {
-            var internalId = ResolveInternalStreamId(streamId.IdOriginal, throwIfNotExists: false) != null;
+            var internalId = ResolveInternalStreamId(streamId.IdOriginal, throwIfNotExists: false);
             if(internalId != null)
             {
                 using(var connection = OpenConnection())
                 using(var command = connection.CreateCommand())
                 {
-                    command.CommandText = @"SELECT [version], [position]
-                                            FROM streams
-                                            WHERE id_original = @streamId
-                                            LIMIT 1;";
+                    command.CommandText = @"SELECT event_id
+                                    FROM messages
+                                    WHERE messages.stream_id_internal = @internalId
+                                    ORDER BY messages.position;";
                     command.Parameters.Clear();
-                    command.Parameters.AddWithValue("@streamId", streamId.IdOriginal);
+                    command.Parameters.AddWithValue("@internalId", internalId);
 
-                    using(var reader = command.ExecuteReader(CommandBehavior.SingleRow))
+                    var eventIds = new List<Guid>();
+                    using(var reader = command.ExecuteReader())
                     {
-                        if(reader.Read())
+                        while(reader.Read())
                         {
-                            return Task.FromResult(new SqliteAppendResult(
-                                reader.ReadScalar(0, StreamVersion.End),
-                                reader.ReadScalar(1, Position.End),
-                                null
-                            ));
+                            eventIds.Add(reader.ReadScalar<Guid>(0, Guid.Empty));
                         }
+
+                        eventIds.RemoveAll(x => x == Guid.Empty);
+                    }
+
+                    if(eventIds.Count > 0)
+                    {
+                        for(var i = 0; i < Math.Min(eventIds.Count, messages.Length); i++)
+                        {
+                            if(eventIds[i] != messages[i].MessageId)
+                            {
+                                throw new WrongExpectedVersionException(
+                                    ErrorMessages.AppendFailedWrongExpectedVersion(
+                                        streamId.IdOriginal,
+                                        ExpectedVersion.NoStream),
+                                    streamId.IdOriginal,
+                                    ExpectedVersion.NoStream);
+                            }
+                        }
+
+                        if(eventIds.Count < messages.Length)
+                        {
+                            throw new WrongExpectedVersionException(
+                                ErrorMessages.AppendFailedWrongExpectedVersion(
+                                    streamId.IdOriginal,
+                                    ExpectedVersion.NoStream),
+                                streamId.IdOriginal,
+                                ExpectedVersion.NoStream);
+                        }
+
+                        command.CommandText = @"SELECT [version], [position]
+                                            FROM streams
+                                            WHERE id_internal = @idInternal;";
+                        command.Parameters.Clear();
+                        command.Parameters.AddWithValue("@idInternal", internalId);
+
+                        using(var reader = command.ExecuteReader())
+                            if(reader.Read())
+                            {
+                                var ver = reader.ReadScalar<int>(0);
+                                var pos = reader.ReadScalar<long>(1);
+
+                                {
+                                    return Task.FromResult(new SqliteAppendResult(ver, pos, null));
+                                }
+                            }
                     }
                 }
             }

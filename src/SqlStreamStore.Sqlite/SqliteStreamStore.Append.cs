@@ -231,17 +231,33 @@ namespace SqlStreamStore
 
         private Task<SqliteAppendResult> AppendToNonexistentStream(SqliteStreamId streamId, NewStreamMessage[] messages, CancellationToken cancellationToken)
         {
-            var internalId = ResolveInternalStreamId(streamId.IdOriginal, throwIfNotExists: false);
-            if(internalId > Position.Start)
+            var internalId = ResolveInternalStreamId(streamId.IdOriginal, throwIfNotExists: false) != null;
+            if(internalId != null)
             {
-                throw new WrongExpectedVersionException(
-                    ErrorMessages.AppendFailedWrongExpectedVersion(
-                        streamId.IdOriginal,
-                        ExpectedVersion.NoStream),
-                    streamId.IdOriginal,
-                    ExpectedVersion.NoStream);
+                using(var connection = OpenConnection())
+                using(var command = connection.CreateCommand())
+                {
+                    command.CommandText = @"SELECT [version], [position]
+                                            FROM streams
+                                            WHERE id_original = @streamId
+                                            LIMIT 1;";
+                    command.Parameters.Clear();
+                    command.Parameters.AddWithValue("@streamId", streamId.IdOriginal);
+
+                    using(var reader = command.ExecuteReader(CommandBehavior.SingleRow))
+                    {
+                        if(reader.Read())
+                        {
+                            return Task.FromResult(new SqliteAppendResult(
+                                reader.ReadScalar(0, StreamVersion.End),
+                                reader.ReadScalar(1, Position.End),
+                                null
+                            ));
+                        }
+                    }
+                }
             }
-            
+
             CreateStream(streamId);
             
             return AppendToStreamEmpty(streamId, messages, cancellationToken);
@@ -287,7 +303,6 @@ namespace SqlStreamStore
                     {
                         if(reader.Read())
                         {
-                            
                             possibleFailure = true;
                         }
                     }

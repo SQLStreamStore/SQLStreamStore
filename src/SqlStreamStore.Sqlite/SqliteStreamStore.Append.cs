@@ -209,15 +209,39 @@ namespace SqlStreamStore
                     cmd.Parameters.Clear();
                     cmd.Parameters.AddWithValue("@event_id", msg.MessageId);
                     cmd.Parameters.AddWithValue("@stream_id_internal", internalId);
+
+                    bool possibleFailure = false;
+                    var vers = 0;
+                    var pos = 0L;
+                    
                     using(var reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
                     {
                         if(reader.Read())
                         {
-                            return new SqliteAppendResult(
-                                    reader.ReadScalar(1, StreamVersion.End),
-                                    reader.ReadScalar(0, Position.End),
-                                    internalId ?? -1
+                            
+                            possibleFailure = true;
+                        }
+                    }
+
+                    if(possibleFailure)
+                    {
+                        cmd.CommandText = @"SELECT [version], [position]
+                                            FROM streams
+                                            WHERE id_internal = @streamIdInternal
+                                            LIMIT 1;";
+                        cmd.Parameters.Clear();
+                        cmd.Parameters.AddWithValue("@streamIdInternal", internalId);
+
+                        using(var reader = cmd.ExecuteReader(CommandBehavior.SingleRow))
+                        {
+                            if(reader.Read())
+                            {
+                                return new SqliteAppendResult(
+                                    reader.ReadScalar(0, StreamVersion.End),
+                                    reader.ReadScalar(1, Position.End),
+                                    null
                                 );
+                            }
                         }
                     }
                 }
@@ -265,7 +289,7 @@ namespace SqlStreamStore
                     }
 
                     // tests for positional inequality between what we know and what is stored. 
-                    for(var i = 0; i < messages.Length; i++)
+                    for(var i = 0; i < Math.Min(messages.Length, nextMessageIds.Count); i++)
                     {
                         var nextMessageId = nextMessageIds.Skip(i).Take(1).SingleOrDefault();
                         if(messages[i].MessageId != nextMessageId)

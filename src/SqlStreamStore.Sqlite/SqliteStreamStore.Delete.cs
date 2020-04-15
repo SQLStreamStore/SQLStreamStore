@@ -73,16 +73,23 @@ WHERE streams.id = @streamId
 
         private Task DeleteStreamAnyVersion(StreamIdInfo sqlStreamId, CancellationToken cancellationToken)
         {
-            using(var conn = OpenConnection(false))
-            using(var cmd = conn.CreateCommand())
-            using(var txn = conn.BeginTransaction())
+            bool hasBeenDeleted = false;
+            using(var connection = OpenConnection(false))
+            using(var command = connection.CreateCommand())
+            using(var transaction = connection.BeginTransaction())
             {
-                cmd.Transaction = txn;
+                command.Transaction = transaction;
                 
-                DeleteAStream(cmd, sqlStreamId.SqlStreamId, ExpectedVersion.Any, cancellationToken);
-                DeleteAStream(cmd, sqlStreamId.MetadataSqlStreamId, ExpectedVersion.Any, cancellationToken);
+                hasBeenDeleted = DeleteAStream(command, sqlStreamId.SqlStreamId, ExpectedVersion.Any, cancellationToken) || hasBeenDeleted;
+                hasBeenDeleted = DeleteAStream(command, sqlStreamId.MetadataSqlStreamId, ExpectedVersion.Any, cancellationToken) || hasBeenDeleted;
                 
-                txn.Commit();
+                transaction.Commit();
+            }
+
+            if (hasBeenDeleted)
+            {
+                var streamDeletedEvent = CreateStreamDeletedMessage(sqlStreamId.SqlStreamId.IdOriginal);
+                AppendToStreamInternal(DeletedStreamId, ExpectedVersion.Any, new[] { streamDeletedEvent }, cancellationToken).Wait(cancellationToken);
             }
 
             return Task.CompletedTask;
@@ -100,27 +107,28 @@ WHERE streams.id = @streamId
                 );
             }
 
+            bool hasBeenDeleted = false;
             using(var conn = OpenConnection(false))
             using(var cmd = conn.CreateCommand())
             using(var txn = conn.BeginTransaction())
             {
                 cmd.Transaction = txn;
                 
-                DeleteAStream(cmd, streamIdInfo.SqlStreamId, expectedVersion, cancellationToken);
-                DeleteAStream(cmd, streamIdInfo.MetadataSqlStreamId, ExpectedVersion.Any, cancellationToken);
+                hasBeenDeleted = DeleteAStream(cmd, streamIdInfo.SqlStreamId, expectedVersion, cancellationToken) || hasBeenDeleted;
+                hasBeenDeleted = DeleteAStream(cmd, streamIdInfo.MetadataSqlStreamId, ExpectedVersion.Any, cancellationToken) || hasBeenDeleted;
 
                 txn.Commit();
+            }
+
+            if (hasBeenDeleted)
+            {
+                var streamDeletedEvent = CreateStreamDeletedMessage(streamIdInfo.SqlStreamId.IdOriginal);
+                AppendToStreamInternal(DeletedStreamId, ExpectedVersion.Any, new[] { streamDeletedEvent }, cancellationToken).Wait(cancellationToken);
             }
 
             return Task.CompletedTask;
         }
 
-        private bool DeleteAStream(
-            SqliteCommand cmd,
-            StreamIdInfo streamId,
-            int expectedVersion,
-            CancellationToken ct) =>
-            DeleteAStream(cmd, streamId.SqlStreamId, expectedVersion, ct);
         private bool DeleteAStream(SqliteCommand cmd, SqliteStreamId sqliteStreamId, int expectedVersion, CancellationToken ct)
         {
             if(expectedVersion != ExpectedVersion.Any)
@@ -145,7 +153,6 @@ WHERE streams.id = @streamId
             }
             
             // delete stream records.
-            bool hasBeenDeleted = false;
             cmd.CommandText = @"SELECT COUNT(*) FROM messages WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE streams.id_original = @streamId);
                                 SELECT COUNT(*) FROM streams WHERE streams.id_original = @streamId;
                                 DELETE FROM messages          WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE streams.id_original = @streamId);
@@ -161,19 +168,8 @@ WHERE streams.id = @streamId
                 reader.Read();
                 var numberOfStreams = reader.ReadScalar<int?>(0);
 
-                hasBeenDeleted = (numberOfMessages + numberOfStreams) > 0;
+                return (numberOfMessages + numberOfStreams) > 0;
             }
-
-            if (hasBeenDeleted)
-            {
-                var streamDeletedEvent = CreateStreamDeletedMessage(sqliteStreamId.IdOriginal);
-                AppendToStreamAnyVersion(cmd,
-                    SqliteStreamId.Deleted,
-                    new[] { streamDeletedEvent },
-                    ct);
-            }
-
-            return true;
         }
     }
 }

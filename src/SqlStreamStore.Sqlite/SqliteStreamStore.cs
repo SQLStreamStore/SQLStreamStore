@@ -79,8 +79,8 @@ namespace SqlStreamStore
             using(var connection = OpenConnection())
             using(var command = connection.CreateCommand())
             {
-                command.CommandText = @"SELECT MAX(position)
-                                        FROM messages;";
+                command.CommandText = @"SELECT MAX([position])
+                                        FROM streams;";
                 var result = command.ExecuteScalar(Position.End);
                 return Task.FromResult(result);
             }

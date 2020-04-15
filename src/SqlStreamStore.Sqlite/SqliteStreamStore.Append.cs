@@ -179,7 +179,7 @@ namespace SqlStreamStore
                 }
             }
 
-            var stored = StoreMessages(messages, cmd, streamId, Position.End);
+            var stored = StoreMessages(messages, cmd, streamId);
             
             return stored;
         }
@@ -205,7 +205,7 @@ namespace SqlStreamStore
                         StreamVersion.Start);
                 }
 
-                var stored = StoreMessages(messages, cmd, streamId, StreamVersion.End);
+                var stored = StoreMessages(messages, cmd, streamId);
                 
                 txn.Commit();
 
@@ -510,7 +510,7 @@ namespace SqlStreamStore
                         );
                 }
 
-                var storageResult = StoreMessages(messages, command, streamId, expectedVersion);
+                var storageResult = StoreMessages(messages, command, streamId);
                 
                 transaction.Commit();
 
@@ -561,17 +561,23 @@ namespace SqlStreamStore
             return inserted ?? int.MinValue;
         }
  
-        private SqliteAppendResult StoreMessages(NewStreamMessage[] messages, SqliteCommand cmd, SqliteStreamId streamId, long lastStreamPosition)
+        private SqliteAppendResult StoreMessages(NewStreamMessage[] messages, SqliteCommand cmd, SqliteStreamId streamId)
         {
             // we have to calculate position instead of depending on sqlite to do this for us (using an autoincrement value)
             // because it seems as if we cannot set the initial value to the position being @ zero.
-            long position = lastStreamPosition;
-            
-            // if position is Position.End, we need to resolve the latest position from sqlite.
-            if(position == Position.End)
+            cmd.CommandText = @"SELECT streams.[position] 
+                               FROM streams
+                               WHERE streams.id_original = '$position'";
+            cmd.Parameters.Clear();
+            var position = cmd.ExecuteScalar<long?>();
+            if(position == null)
             {
-                cmd.CommandText = "SELECT MAX(messages.position) FROM messages";
-                position = cmd.ExecuteScalar(Position.End);
+                cmd.CommandText = @"INSERT INTO streams (id, id_original, [version], [position])
+                                    VALUES(@id, '$position', 0, -1)";
+                cmd.Parameters.Clear();
+                cmd.Parameters.AddWithValue("@id", new StreamIdInfo("$position").SqlStreamId.Id);
+                cmd.ExecuteScalar();
+                position = Position.End;
             }
             
             // resolve stream version, choosing 0 if not exists.
@@ -622,7 +628,10 @@ namespace SqlStreamStore
             cmd.CommandText = @"UPDATE streams
                                     SET [version] = @version,
                                         [position] = @position
-                                    WHERE id = @streamId";
+                                    WHERE id = @streamId;
+                                UPDATE streams
+                                    SET [position] = @position
+                                    WHERE id_original = '$position'";
             cmd.Parameters.Clear();
             cmd.Parameters.AddWithValue("@version", version);
             cmd.Parameters.AddWithValue("@position", position);
@@ -645,7 +654,7 @@ namespace SqlStreamStore
                 ? new MetadataMessage() 
                 : SimpleJson.DeserializeObject<MetadataMessage>(metadataJson);
             
-            return new SqliteAppendResult(version, position, metadata.MaxCount);
+            return new SqliteAppendResult(version, position ?? Position.End, metadata.MaxCount);
         }
        
         private async Task CheckStreamMaxCount(

@@ -110,6 +110,65 @@ namespace SqlStreamStore
                     }
                 }
             }
+            else if (messages.Any())
+            {
+                var msg1 = messages.First();
+                cmd.CommandText = @"SELECT event_id
+                                    FROM messages
+                                    WHERE [position] >= (SELECT [position] 
+                                                      FROM messages 
+                                                      WHERE messages.event_id = @messageId
+                                                        AND messages.stream_id_internal = @internalId)
+                                        AND stream_id_internal = @internalId;";
+                cmd.Parameters.Clear();
+                cmd.Parameters.AddWithValue("@messageId", msg1.MessageId);
+                cmd.Parameters.AddWithValue("@internalId", internalId);
+                cmd.Parameters.AddWithValue("@count", messages.Length);
+
+                var eventIds = new List<Guid>();
+                using(var reader = cmd.ExecuteReader())
+                {
+                    while(reader.Read())
+                    {
+                        eventIds.Add(reader.ReadScalar<Guid>(0, Guid.Empty));
+                    }
+
+                    eventIds.RemoveAll(x => x == Guid.Empty);
+                }
+
+                if(eventIds.Count > 0)
+                {
+                    for(var i = 0; i < Math.Min(eventIds.Count, messages.Length); i++)
+                    {
+                        if(eventIds[i] != messages[i].MessageId)
+                        {
+                            throw new WrongExpectedVersionException(
+                                ErrorMessages.AppendFailedWrongExpectedVersion(
+                                    streamId.IdOriginal,
+                                    StreamVersion.Start),
+                                streamId.IdOriginal,
+                                StreamVersion.Start);
+                        }
+                    }
+
+                    cmd.CommandText = @"SELECT [version], [position]
+                                        FROM streams
+                                        WHERE id_internal = @idInternal;";
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.AddWithValue("@idInternal", internalId);
+
+                    using(var reader = cmd.ExecuteReader())
+                        if(reader.Read())
+                        {
+                            var ver = reader.ReadScalar<int>(0);
+                            var pos = reader.ReadScalar<long>(1);
+
+                            {
+                                return new SqliteAppendResult(ver, pos, null);
+                            }
+                        }
+                }
+            }
 
             var stored = StoreMessages(messages, cmd, streamId, Position.End);
             

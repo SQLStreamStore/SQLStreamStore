@@ -82,23 +82,33 @@ namespace SqlStreamStore
                 var msg = messages[0];
 
                 // if the message's event id exists in the database...
-                cmd.CommandText = @"SELECT stream_version, [position] 
+                cmd.CommandText = @"SELECT count(*) 
                                         FROM messages
                                         WHERE event_id = @eventId AND stream_id_internal = @idInternal;";
                 cmd.Parameters.Clear();
                 cmd.Parameters.AddWithValue("@idInternal", internalId);
                 cmd.Parameters.AddWithValue("@eventId", msg.MessageId);
 
-                using(var reader = cmd.ExecuteReader())
+                var existsInStream = cmd.ExecuteScalar<long>(0) > 0;
+                if(existsInStream)
+                {
+                    cmd.CommandText = @"SELECT [version], [position]
+                                        FROM streams
+                                        WHERE id_internal = @idInternal;";
+                    cmd.Parameters.Clear();
+                    cmd.Parameters.AddWithValue("@idInternal", internalId);
+
+                    using(var reader = cmd.ExecuteReader())
                     if(reader.Read())
                     {
                         var ver = reader.ReadScalar<int>(0);
                         var pos = reader.ReadScalar<long>(1);
 
                         {
-                            return new SqliteAppendResult(ver, pos,null);
+                            return new SqliteAppendResult(ver, pos, null);
                         }
                     }
+                }
             }
 
             var stored = StoreMessages(messages, cmd, streamId, Position.End);

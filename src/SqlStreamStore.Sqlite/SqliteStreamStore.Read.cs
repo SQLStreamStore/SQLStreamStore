@@ -226,7 +226,7 @@ namespace SqlStreamStore
                 command.Parameters.AddWithValue("@idInternal", streamIdInternal);
                 command.Parameters.AddWithValue("@streamVersion", streamVersion);
                 command.Parameters.AddWithValue("@forwards", direction == ReadDirection.Forward);
-                position = command.ExecuteScalar<long?>(Position.Start);
+                position = command.ExecuteScalar<long?>(long.MaxValue);
             }
             
             command.CommandText = @"SELECT COUNT(*)
@@ -286,11 +286,6 @@ namespace SqlStreamStore
 
             if(direction == ReadDirection.Forward)
             {
-                if(streamVersion == int.MaxValue - 1 && !messages.Any())
-                {
-                    nextVersion = StreamVersion.Start;
-                }
-
                 if(messages.Any())
                 {
                     nextVersion = messages.Last().message.StreamVersion + 1;

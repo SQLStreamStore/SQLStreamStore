@@ -337,15 +337,52 @@ namespace SqlStreamStore
                 if(messages.Length == 1)
                 {
                     var msg = messages.First();
-
-                    command.CommandText = @"SELECT COUNT([stream_version])
+                    
+                    // tries to fix "When_append_single_message_to_stream_with_correct_expected_version_second_time_with_same_initial_messages_then_should_have_expected_result"
+                    command.CommandText = @"SELECT COUNT(*)
                                             FROM messages
                                             WHERE messages.stream_id_internal = @internalId
-                                                AND messages.stream_version > @expected;";
+                                                AND messages.stream_version = @expected
+                                                AND messages.event_id = @eventId;";
+                    command.Parameters.Clear();
+                    command.Parameters.AddWithValue("@internalId", internalId);
+                    command.Parameters.AddWithValue("@expected", expectedVersion + 1);
+                    command.Parameters.AddWithValue("@eventId", msg.MessageId);
+                    var duplicateMessage = command.ExecuteScalar<int?>(0);
+                    if(duplicateMessage > 0)
+                    {
+                        command.CommandText = @"SELECT messages.stream_version, messages.[position]
+                                        FROM messages
+                                        WHERE messages.stream_id_internal = @stream_id_internal
+                                        ORDER BY messages.[position] DESC
+                                        LIMIT 1";
+                        command.Parameters.Clear();
+                        command.Parameters.AddWithValue("@stream_id_internal", internalId ?? -1);
+                        using(var reader = command.ExecuteReader())
+                        {
+                            if (reader.Read() && reader.HasRows)
+                                return new SqliteAppendResult(
+                                    reader.ReadScalar(0, StreamVersion.End),
+                                    reader.ReadScalar(1, Position.End),
+                                    internalId ?? -1
+                                );
+                        }
+                    }
+                    // end - tries to fix "When_append_single_message_to_stream_with_correct_expected_version_second_time_with_same_initial_messages_then_should_have_expected_result"
+
+                    
+                    // tries to fix "When_append_stream_with_expected_version_and_duplicate_message_Id_then_should_throw"
+                    command.CommandText = @"SELECT COUNT(*)
+                                            FROM messages
+                                            WHERE messages.stream_id_internal = @internalId
+                                                AND messages.stream_version <= @expected
+                                                AND messages.event_id = @eventId;";
                     command.Parameters.Clear();
                     command.Parameters.AddWithValue("@internalId", internalId);
                     command.Parameters.AddWithValue("@expected", expectedVersion);
-                    if(command.ExecuteScalar<int>(0) == 0)
+                    command.Parameters.AddWithValue("@eventId", msg.MessageId);
+                    duplicateMessage = command.ExecuteScalar<int?>(0);
+                    if(duplicateMessage > 0)
                     {
                         throw new WrongExpectedVersionException(
                             ErrorMessages.AppendFailedWrongExpectedVersion(
@@ -354,15 +391,16 @@ namespace SqlStreamStore
                             streamId.IdOriginal,
                             expectedVersion);
                     }
-
+                    // end - tries to fix "When_append_stream_with_expected_version_and_duplicate_message_Id_then_should_throw"
+                    
                     command.CommandText = @"SELECT event_id
-                                FROM messages
-                                WHERE messages.stream_id_internal = @internalId
-                                    AND messages.stream_version > @streamVersion
-                                ORDER BY messages.position;";
+                            FROM messages
+                            WHERE messages.stream_id_internal = @internalId
+                                AND messages.stream_version >= @expected
+                            ORDER BY messages.position;";
                     command.Parameters.Clear();
                     command.Parameters.AddWithValue("@internalId", internalId);
-                    command.Parameters.AddWithValue("@streamVersion", expectedVersion);
+                    command.Parameters.AddWithValue("@expected", expectedVersion);
 
                     var eventIds = new List<Guid>();
                     using(var reader = command.ExecuteReader())
@@ -374,23 +412,20 @@ namespace SqlStreamStore
 
                         eventIds.RemoveAll(x => x == Guid.Empty);
                     }
+                    //
+                    // if(!eventIds.Any())
+                    // {
+                    //     throw new WrongExpectedVersionException(
+                    //         ErrorMessages.AppendFailedWrongExpectedVersion(
+                    //             streamId.IdOriginal,
+                    //             expectedVersion),
+                    //         streamId.IdOriginal,
+                    //         expectedVersion);
+                    // }
 
                     if(eventIds.Contains(msg.MessageId))
                     {
-                        for(var i = 0; i < Math.Min(eventIds.Count, messages.Length); i++)
-                        {
-                            if(eventIds[i] != messages[i].MessageId)
-                            {
-                                throw new WrongExpectedVersionException(
-                                    ErrorMessages.AppendFailedWrongExpectedVersion(
-                                        streamId.IdOriginal,
-                                        ExpectedVersion.NoStream),
-                                    streamId.IdOriginal,
-                                    ExpectedVersion.NoStream);
-                            }
-                        }
-
-                        if(eventIds.Count < messages.Length)
+                        if(eventIds.Count > messages.Length)
                         {
                             throw new WrongExpectedVersionException(
                                 ErrorMessages.AppendFailedWrongExpectedVersion(
@@ -399,12 +434,10 @@ namespace SqlStreamStore
                                 streamId.IdOriginal,
                                 ExpectedVersion.NoStream);
                         }
-                    }
-                    else
-                    {
+
                         command.CommandText = @"SELECT [version], [position]
-                                        FROM streams
-                                        WHERE id_internal = @idInternal;";
+                                    FROM streams
+                                    WHERE id_internal = @idInternal;";
                         command.Parameters.Clear();
                         command.Parameters.AddWithValue("@idInternal", internalId);
 
@@ -418,25 +451,18 @@ namespace SqlStreamStore
                                     return new SqliteAppendResult(ver, pos, null);
                                 }
                             }
-
-                        throw new WrongExpectedVersionException(
-                            ErrorMessages.AppendFailedWrongExpectedVersion(
-                                streamId.IdOriginal,
-                                ExpectedVersion.NoStream),
-                            streamId.IdOriginal,
-                            ExpectedVersion.NoStream);
                     }
                 }
 
                 // does version exist for the stream?
-                command.CommandText = @"SELECT MAX(messages.stream_version)
-                                    FROM messages
-                                    WHERE messages.stream_id_internal = @stream_id_internal;";
+                command.CommandText = @"SELECT streams.[version]
+                                    FROM streams
+                                    WHERE streams.id_internal = @stream_id_internal;";
                 command.Parameters.Clear();
                 command.Parameters.AddWithValue("@stream_id_internal", internalId);
-                var maxStreamVersion = command.ExecuteScalar<int?>();
+                var currentStreamVersion = command.ExecuteScalar<int?>();
                 
-                if(expectedVersion != maxStreamVersion)
+                if(expectedVersion != currentStreamVersion)
                 {
                     var firstMessage = messages.First();
                     
@@ -518,8 +544,6 @@ namespace SqlStreamStore
             }
         }
 
-        private int CreateStream(StreamIdInfo streamId, bool throwIfCreateFails = true)
-            => CreateStream(streamId.SqlStreamId, throwIfCreateFails);
         private int CreateStream(SqliteStreamId streamId, bool throwIfCreateFails = true)
         {
             using (var conn = OpenConnection())
@@ -581,9 +605,9 @@ namespace SqlStreamStore
             }
             
             // resolve stream version, choosing 0 if not exists.
-            cmd.CommandText = @"SELECT MAX(stream_version)
-                                    FROM messages
-                                    WHERE stream_id_internal = (SELECT id_internal FROM streams WHERE id = @streamId);";
+            cmd.CommandText = @"SELECT streams.[version]
+                                    FROM streams
+                                    WHERE id = @streamId;";
             cmd.Parameters.Clear();
             cmd.Parameters.AddWithValue("@streamId", streamId.Id);
             var version = cmd.ExecuteScalar(StreamVersion.End);

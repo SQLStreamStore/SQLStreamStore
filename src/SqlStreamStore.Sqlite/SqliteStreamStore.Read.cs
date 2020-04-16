@@ -29,7 +29,6 @@ namespace SqlStreamStore
             using (var connection = OpenConnection())
             using (var command = connection.CreateCommand())
             {
-                var idInfo = new StreamIdInfo(streamId);
                 int idInternal = 0;
                 var maxAge = default(int?);
                 command.CommandText = @"SELECT streams.id_internal, streams.max_age, streams.max_count
@@ -39,7 +38,7 @@ namespace SqlStreamStore
                                             streams.id_original = @idOriginal
                                         LIMIT 1;";
                 command.Parameters.Clear();
-                command.Parameters.AddWithValue("@idOriginal", idInfo.SqlStreamId.IdOriginal);
+                command.Parameters.AddWithValue("@idOriginal", streamId);
                 using(var reader = command.ExecuteReader(CommandBehavior.SingleRow))
                 {
                     if(!reader.Read())
@@ -64,44 +63,7 @@ namespace SqlStreamStore
                     maxRecords = Math.Min(maxRecords, (streamsMaxRecords == StreamVersion.Start ? maxRecords : streamsMaxRecords));
                 }
 
-                command.CommandText = @"SELECT MIN(messages.position)
-                                    FROM messages
-                                    WHERE messages.stream_id_internal = @idInternal
-                                        AND messages.stream_version >= @streamVersion;";
-                command.Parameters.Clear();
-                command.Parameters.AddWithValue("@idInternal", idInternal);
-                command.Parameters.AddWithValue("@streamVersion", fromVersion);
-                var position = command.ExecuteScalar<long?>();
-
-                if(position == null)
-                {
-                    command.CommandText = @"SELECT messages.position
-                                FROM messages
-                                WHERE messages.stream_id_internal = @idInternal
-                                    AND messages.stream_version = @streamVersion;";
-                    command.Parameters.Clear();
-                    command.Parameters.AddWithValue("@idInternal", idInternal);
-                    command.Parameters.AddWithValue("@streamVersion", fromVersion);
-                    position = command.ExecuteScalar<long?>();
-                }
-                
-                // if no position, then need to return success with end of stream.
-                if(position == null)
-                {
-                    // not found.
-                    return Task.FromResult(new ReadStreamPage(
-                        streamId,
-                        PageReadStatus.Success,
-                        fromVersion,
-                        StreamVersion.Start,
-                        StreamVersion.End,
-                        StreamVersion.End,
-                        ReadDirection.Forward,
-                        true,
-                        readNext));
-                }
-
-                return PrepareStreamResponse(command, idInfo, ReadDirection.Forward, fromVersion, prefetch, readNext, idInternal, position, maxRecords, maxAge);
+                return PrepareStreamResponse(command, streamId, ReadDirection.Forward, fromVersion, prefetch, readNext, idInternal, maxRecords, maxAge);
             }
         }
 
@@ -123,9 +85,7 @@ namespace SqlStreamStore
             using (var connection = OpenConnection())
             using (var command = connection.CreateCommand())
             {
-                var idInfo = new StreamIdInfo(streamId);
                 int streamIdInternal = 0;
-                int startStreamVersion = streamVersion;
                 var maxAge = default(int?);
                 command.CommandText = @"SELECT streams.id_internal, streams.max_age, streams.max_count
                                         FROM streams
@@ -134,7 +94,7 @@ namespace SqlStreamStore
                                             streams.id_original = @idOriginal
                                         LIMIT 1;";
                 command.Parameters.Clear();
-                command.Parameters.AddWithValue("@idOriginal", idInfo.SqlStreamId.IdOriginal);
+                command.Parameters.AddWithValue("@idOriginal", streamId);
                 using(var reader = command.ExecuteReader())
                 {
                     if(!reader.Read())
@@ -143,7 +103,7 @@ namespace SqlStreamStore
                         return Task.FromResult(new ReadStreamPage(
                             streamId,
                             PageReadStatus.StreamNotFound,
-                            startStreamVersion,
+                            streamVersion,
                             StreamVersion.End,
                             StreamVersion.End,
                             StreamVersion.End,
@@ -160,24 +120,24 @@ namespace SqlStreamStore
                 }
 
 
-                command.CommandText = @"SELECT MAX(messages.position)
+                command.CommandText = @"SELECT messages.position
                                     FROM messages
                                     WHERE messages.stream_id_internal = @idOriginal
-                                        AND messages.stream_version >= @streamVersion;";
+                                        AND messages.stream_version <= @streamVersion
+                                    ORDER BY messages.position DESC
+                                    LIMIT 1;";
                 command.Parameters.Clear();
                 command.Parameters.AddWithValue("@idOriginal", streamIdInternal);
-                command.Parameters.AddWithValue("@streamVersion", fromStreamVersion);
+                command.Parameters.AddWithValue("@streamVersion", streamVersion);
                 var position = command.ExecuteScalar<long?>();
 
                 if(position == null)
                 {
-                    command.CommandText = @"SELECT messages.position
-                                FROM messages
-                                WHERE messages.stream_id_internal = @idOriginal
-                                    AND messages.stream_version = @streamVersion;";
+                    command.CommandText = @"SELECT streams.position
+                                FROM streams
+                                WHERE streams.id_internal = @idOriginal;";
                     command.Parameters.Clear();
                     command.Parameters.AddWithValue("@idOriginal", streamIdInternal);
-                    command.Parameters.AddWithValue("@streamVersion", fromStreamVersion);
                     position = command.ExecuteScalar<long?>();
                 }
                 
@@ -197,22 +157,78 @@ namespace SqlStreamStore
                         readNext));
                 }
 
-                return PrepareStreamResponse(command, idInfo, ReadDirection.Backward, fromStreamVersion, prefetch, readNext, streamIdInternal, position, maxRecords, maxAge);
+                return PrepareStreamResponse(command, 
+                    streamId, 
+                    ReadDirection.Backward, 
+                    fromStreamVersion, 
+                    prefetch, 
+                    readNext, 
+                    streamIdInternal, 
+                    maxRecords, 
+                    maxAge);
             }
         }
 
         private Task<ReadStreamPage> PrepareStreamResponse(
             SqliteCommand command,
-            StreamIdInfo idInfo,
+            string streamId,
             ReadDirection direction,
             int fromVersion,
             bool prefetch,
             ReadNextStreamPage readNext,
             int streamIdInternal,
-            long? position,
             int maxRecords,
             int? maxAge)
         {
+            var streamVersion = fromVersion == StreamVersion.End ? int.MaxValue -1 : fromVersion;
+            var lastPosition = 0L;
+            int lastVersion = 0;
+            int nextVersion = 0;
+
+            command.CommandText = @"SELECT [position], [version]
+                                    FROM streams
+                                    WHERE streams.id_internal = @idInternal;";
+            command.Parameters.Clear();
+            command.Parameters.AddWithValue("@idInternal", streamIdInternal);
+            using(var reader = command.ExecuteReader(CommandBehavior.SingleRow))
+            {
+                if(reader.Read())
+                {
+                    lastPosition = reader.ReadScalar<long>(0);
+                    lastVersion = reader.ReadScalar<int>(1);
+                }
+            }
+            
+
+            command.CommandText = @"SELECT messages.position
+                                    FROM messages
+                                    WHERE messages.stream_id_internal = @idInternal
+                                        AND messages.stream_version = @streamVersion;";
+            command.Parameters.Clear();
+            command.Parameters.AddWithValue("@idInternal", streamIdInternal);
+            command.Parameters.AddWithValue("@streamVersion", streamVersion);
+            command.Parameters.AddWithValue("@forwards", direction == ReadDirection.Forward);
+            var position = command.ExecuteScalar<long?>();
+
+            if(position == null)
+            {
+                command.CommandText = @"SELECT CASE
+                                            WHEN @forwards THEN MIN(messages.position)
+                                            ELSE MAX(messages.position)
+                                        END
+                                        FROM messages
+                                        WHERE messages.stream_id_internal = @idInternal 
+                                            AND CASE
+                                                WHEN @forwards THEN messages.stream_version >= @streamVersion
+                                                ELSE messages.stream_version <= @streamVersion
+                                            END;";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@idInternal", streamIdInternal);
+                command.Parameters.AddWithValue("@streamVersion", streamVersion);
+                command.Parameters.AddWithValue("@forwards", direction == ReadDirection.Forward);
+                position = command.ExecuteScalar<long?>(Position.Start);
+            }
+            
             command.CommandText = @"SELECT COUNT(*)
                         FROM messages 
                         WHERE messages.stream_id_internal = @idInternal 
@@ -221,10 +237,6 @@ namespace SqlStreamStore
                                 ELSE messages.[position] <= @position
                             END; -- count of remaining messages.
                         
-                        SELECT MAX(messages.stream_version) 
-                        FROM messages 
-                        WHERE messages.stream_id_internal = @idInternal; -- the highest version of the stream (the end of it.)
-                         
                         SELECT messages.event_id,
                                messages.stream_version,
                                messages.[position],
@@ -251,60 +263,72 @@ namespace SqlStreamStore
             command.Parameters.AddWithValue("@count", maxRecords);
             command.Parameters.AddWithValue("@forwards", direction == ReadDirection.Forward);
 
+            bool isEnd = false;
+            var filtered = new List<StreamMessage>();
+            int remaining = 0;
             var messages = new List<(StreamMessage message, int? maxAge)>();
+
             using(var reader = command.ExecuteReader())
             {
                 reader.Read();
-                var remainingMessages = Convert.ToInt32(reader.GetValue(0));
-
-                reader.NextResult();
-                reader.Read();
-                var endOfStreamVersionNumber = reader.ReadScalar<int>(0);
+                remaining = reader.ReadScalar<int>(0);
 
                 reader.NextResult();
                 while(reader.Read())
                 {
-                    messages.Add((ReadStreamMessage(reader, idInfo, prefetch), maxAge));
+                    messages.Add((ReadStreamMessage(reader, streamId, prefetch), maxAge));
+                }
+                
+                filtered.AddRange(FilterExpired(messages));
+            }
+
+            isEnd = remaining - messages.Count <= 0;
+
+            if(direction == ReadDirection.Forward)
+            {
+                if(streamVersion == int.MaxValue - 1 && !messages.Any())
+                {
+                    nextVersion = StreamVersion.Start;
                 }
 
-                bool isEnd;
-                int nextVersion;
-                var filtered = FilterExpired(messages);
-                
-                if(direction == ReadDirection.Forward)
+                if(messages.Any())
                 {
-                    isEnd =  Math.Min(remainingMessages, maxRecords) - messages.Count <= 0
-                             &&
-                             remainingMessages <= maxRecords;
-                    //isEnd = !messages.Any() || messages.Any(m => m.message.Position == position);
-                    nextVersion = messages.Any() ? messages.Last().message.StreamVersion + 1 : StreamVersion.Start; 
+                    nextVersion = messages.Last().message.StreamVersion + 1;
                 }
                 else
                 {
-                    isEnd =  Math.Min(remainingMessages, maxRecords) - messages.Count <= 0
-                             &&
-                             remainingMessages <= maxRecords;
-                    nextVersion = messages.Any() ? messages.Last().message.StreamVersion - 1 : StreamVersion.End;
+                    nextVersion = lastVersion + 1;
                 }
-                
-
-                var page = new ReadStreamPage(
-                    idInfo.SqlStreamId.IdOriginal,
-                    PageReadStatus.Success,
-                    fromVersion,
-                    nextVersion,
-                    endOfStreamVersionNumber,
-                    position.Value,
-                    direction,
-                    isEnd,
-                    readNext,
-                    filtered.ToArray());
-
-                return Task.FromResult(page);
             }
+            else if (direction == ReadDirection.Backward)
+            {
+                if(streamVersion == int.MaxValue - 1 && !messages.Any())
+                {
+                    nextVersion = StreamVersion.End;
+                }
+
+                if(messages.Any())
+                {
+                    nextVersion = messages.Last().message.StreamVersion - 1;
+                }
+            }
+
+            var page = new ReadStreamPage(
+                streamId,
+                status: PageReadStatus.Success,
+                fromStreamVersion: fromVersion,
+                nextStreamVersion: nextVersion,
+                lastStreamVersion: lastVersion,
+                lastStreamPosition: lastPosition,
+                direction: direction,
+                isEnd: isEnd,
+                readNext: readNext,
+                messages: filtered.ToArray());
+
+            return Task.FromResult(page);
         }
 
-        private StreamMessage ReadStreamMessage(SqliteDataReader reader, StreamIdInfo idInfo, bool prefetch)
+        private StreamMessage ReadStreamMessage(SqliteDataReader reader, string streamId, bool prefetch)
         {
             var messageId = reader.IsDBNull(0) 
                 ? Guid.Empty 
@@ -319,7 +343,7 @@ namespace SqlStreamStore
                 : default;
 
             return new StreamMessage(
-                idInfo.SqlStreamId.IdOriginal,
+                streamId,
                 messageId,
                 streamVersion,
                 position,
@@ -328,7 +352,7 @@ namespace SqlStreamStore
                 jsonMetadata,
                 ct => prefetch
                     ? Task.FromResult(preloadJson)
-                    : GetJsonData(idInfo.SqlStreamId.Id, streamVersion));
+                    : GetJsonData(streamId, streamVersion));
         }
     }
 }

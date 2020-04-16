@@ -73,25 +73,31 @@ WHERE streams.id = @streamId
 
         private Task DeleteStreamAnyVersion(StreamIdInfo sqlStreamId, CancellationToken cancellationToken)
         {
-            bool hasBeenDeleted = false;
+            var streamDeleted = false;
+            var metadataDeleted = false;
             using(var connection = OpenConnection(false))
             using(var command = connection.CreateCommand())
             using(var transaction = connection.BeginTransaction())
             {
                 command.Transaction = transaction;
-                
-                hasBeenDeleted = DeleteAStream(command, sqlStreamId.SqlStreamId, ExpectedVersion.Any, cancellationToken) || hasBeenDeleted;
-                hasBeenDeleted = DeleteAStream(command, sqlStreamId.MetadataSqlStreamId, ExpectedVersion.Any, cancellationToken) || hasBeenDeleted;
+
+                streamDeleted = DeleteAStream(command, sqlStreamId.SqlStreamId, ExpectedVersion.Any, cancellationToken);
+                metadataDeleted = DeleteAStream(command, sqlStreamId.MetadataSqlStreamId, ExpectedVersion.Any, cancellationToken);
                 
                 transaction.Commit();
             }
 
-            if (hasBeenDeleted)
+            if(streamDeleted)
             {
                 var streamDeletedEvent = CreateStreamDeletedMessage(sqlStreamId.SqlStreamId.IdOriginal);
                 AppendToStreamInternal(DeletedStreamId, ExpectedVersion.Any, new[] { streamDeletedEvent }, cancellationToken).Wait(cancellationToken);
             }
 
+            if(metadataDeleted)
+            {
+                var streamDeletedEvent = CreateStreamDeletedMessage(sqlStreamId.MetadataSqlStreamId.IdOriginal);
+                AppendToStreamInternal(DeletedStreamId, ExpectedVersion.Any, new[] { streamDeletedEvent }, cancellationToken).Wait(cancellationToken);
+            }            
             return Task.CompletedTask;
         }
 

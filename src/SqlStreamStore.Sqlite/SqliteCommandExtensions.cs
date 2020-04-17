@@ -6,20 +6,23 @@ namespace SqlStreamStore
 
     public static class SqliteCommandExtensions
     {
-        public static AllStreamOperations AllStream(this SqliteConnection connection)
-            => new AllStreamOperations(connection);
+        private static SqliteStreamStoreSettings _settings;
+
+        public static void WithSettings(SqliteStreamStoreSettings settings) => _settings = settings;
         
-        public static AllStreamOperations AllStream(this SqliteConnection connection, SqliteStreamStoreSettings settings)
-            => new AllStreamOperations(connection, settings);
+        public static AllStreamOperations AllStream(this SqliteConnection connection)
+            => new AllStreamOperations(connection, _settings);
 
         public static StreamOperations Streams(this SqliteCommand command, string streamId) 
             => new StreamOperations(command, streamId);
 
-        public static Task<string> GetJsonData(this SqliteStreamStoreSettings settings, string streamId, int streamVersion)
+        public static Task<string> GetJsonData(string streamId, int streamVersion)
         {
-            using (var connection = new SqliteConnection(settings.GetConnectionString(true)))
+            using (var connection = new SqliteConnection(_settings.GetConnectionString(true)))
             using(var command = connection.CreateCommand())
             {
+                connection.Open();
+                
                 command.CommandText = @"SELECT messages.json_data
 FROM messages
 WHERE messages.stream_id_internal = 

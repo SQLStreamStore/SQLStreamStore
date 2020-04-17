@@ -347,7 +347,7 @@ namespace SqlStreamStore
                 jsonMetadata,
                 ct => prefetch
                     ? Task.FromResult(preloadJson)
-                    : _settings.GetJsonData(streamId, streamVersion));
+                    : SqliteCommandExtensions.GetJsonData(streamId, streamVersion));
         }
     }
 }

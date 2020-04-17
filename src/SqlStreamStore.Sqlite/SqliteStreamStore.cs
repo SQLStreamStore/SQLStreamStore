@@ -33,6 +33,7 @@ namespace SqlStreamStore
                 settings.LogName)
         {
             _settings = settings;
+            SqliteCommandExtensions.WithSettings(settings);
             
             _streamStoreNotifier = new Lazy<IStreamStoreNotifier>(() =>
             {

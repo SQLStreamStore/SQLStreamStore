@@ -412,16 +412,6 @@ namespace SqlStreamStore
 
                         eventIds.RemoveAll(x => x == Guid.Empty);
                     }
-                    //
-                    // if(!eventIds.Any())
-                    // {
-                    //     throw new WrongExpectedVersionException(
-                    //         ErrorMessages.AppendFailedWrongExpectedVersion(
-                    //             streamId.IdOriginal,
-                    //             expectedVersion),
-                    //         streamId.IdOriginal,
-                    //         expectedVersion);
-                    // }
 
                     if(eventIds.Contains(msg.MessageId))
                     {

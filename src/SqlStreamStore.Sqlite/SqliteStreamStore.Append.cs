@@ -686,7 +686,10 @@ namespace SqlStreamStore
             int? maxCount,
             CancellationToken cancellationToken)
         {
-            var count = GetStreamMessageCount(streamId, cancellationToken);
+            var count = await OpenConnection()
+                .Streams(streamId)
+                .Length(cancellationToken);
+            
             if (count > maxCount)
             {
                 int toPurge = count - maxCount.Value;
@@ -701,25 +704,6 @@ namespace SqlStreamStore
                         await DeleteEventInternal(streamId, message.MessageId, cancellationToken).NotOnCapturedContext();
                     }
                 }
-            }
-        }
-
-        private int GetStreamMessageCount(
-            string streamId,
-            CancellationToken cancellationToken = default)
-        {
-            GuardAgainstDisposed();
-
-            using(var connection = OpenConnection())
-            using(var command = connection.CreateCommand())
-            {
-                command.CommandText = @"SELECT COUNT(*)
-                                        FROM messages
-                                        JOIN streams on messages.stream_id_internal = streams.id_internal
-                                        WHERE streams.id_original = @idOriginal";
-                command.Parameters.AddWithValue("@idOriginal", streamId);
-
-                return command.ExecuteScalar(0);
             }
         }
     }

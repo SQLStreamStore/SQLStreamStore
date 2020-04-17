@@ -13,8 +13,8 @@ namespace SqlStreamStore
         public static AllStreamOperations AllStream(this SqliteConnection connection)
             => new AllStreamOperations(connection, _settings);
 
-        public static StreamOperations Streams(this SqliteCommand command, string streamId) 
-            => new StreamOperations(command, streamId);
+        public static StreamOperations Streams(this SqliteConnection connection, string streamId) 
+            => new StreamOperations(connection, streamId);
 
         public static Task<string> GetJsonData(string streamId, int streamVersion)
         {

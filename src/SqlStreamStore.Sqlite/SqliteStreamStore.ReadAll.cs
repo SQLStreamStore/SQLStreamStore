@@ -10,7 +10,7 @@ namespace SqlStreamStore
 
     public partial class SqliteStreamStore
     {
-        protected override Task<ReadAllPage> ReadAllForwardsInternal(
+        protected override async Task<ReadAllPage> ReadAllForwardsInternal(
             long fromPositionExclusive,
             int maxCount,
             bool prefetch,
@@ -24,28 +24,26 @@ namespace SqlStreamStore
             using (var command = connection.CreateCommand())
             {
                 // find starting node.
-                command.CommandText = @"SELECT MAX(messages.[position]) FROM messages;";
-                command.Parameters.Clear();
-                var allStreamPosition = command.ExecuteScalar<long?>();
-                
+                var allStreamPosition = await connection.AllStream()
+                    .ReadHeadPosition(cancellationToken);
                 if(allStreamPosition == Position.None)
                 {
-                    return Task.FromResult(new ReadAllPage(
+                    return new ReadAllPage(
                         Position.Start, 
                         Position.Start, 
                         true, 
                         ReadDirection.Forward, 
-                        readNext));
+                        readNext);
                 }
 
                 if(allStreamPosition < fromPositionExclusive)
                 {
-                    return Task.FromResult(new ReadAllPage(
+                    return new ReadAllPage(
                         fromPositionExclusive, 
                         fromPositionExclusive, 
                         true, 
                         ReadDirection.Forward, 
-                        readNext));
+                        readNext);
                 }
                 
                 // determine number of remaining messages.
@@ -55,12 +53,12 @@ namespace SqlStreamStore
                 var remainingMessages = command.ExecuteScalar(Position.End);
                 if(remainingMessages == Position.End)
                 {
-                    return Task.FromResult(new ReadAllPage(
+                    return new ReadAllPage(
                         fromPositionExclusive,
                         Position.End,
                         true,
                         ReadDirection.Forward,
-                        readNext));
+                        readNext);
                 }
                 
                 
@@ -124,13 +122,13 @@ ORDER BY messages.position
                     ? messages.Last().Position + 1
                     : Position.End;
 
-                return Task.FromResult(new ReadAllPage(
+                return new ReadAllPage(
                     fromPositionExclusive,
                     nextPosition,
                     isEnd,
                     ReadDirection.Forward,
                     readNext,
-                    messages.ToArray()));
+                    messages.ToArray());
             }
         }
 

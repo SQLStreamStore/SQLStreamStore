@@ -134,7 +134,7 @@ ORDER BY messages.position
             }
         }
 
-        protected override Task<ReadAllPage> ReadAllBackwardsInternal(
+        protected override async Task<ReadAllPage> ReadAllBackwardsInternal(
             long fromPosition,
             int maxCount,
             bool prefetch,
@@ -147,18 +147,17 @@ ORDER BY messages.position
             using (var connection = OpenConnection())
             using (var command = connection.CreateCommand())
             {
-                command.CommandText = @"SELECT MAX(messages.[position]) FROM messages;";
-                command.Parameters.Clear();
                 long? beginningPosition = fromPosition;
-                var allStreamPosition = command.ExecuteScalar(Position.None);
+                var allStreamPosition = await connection.AllStream()
+                    .ReadHeadPosition(cancellationToken);
                 if(allStreamPosition == Position.None)
                 {
-                    return Task.FromResult(new ReadAllPage(
+                    return new ReadAllPage(
                         Position.Start,
                         Position.Start,
                         true,
                         ReadDirection.Backward,
-                        readNext));
+                        readNext);
                 }
 
                 if(fromPosition == Position.End)
@@ -168,12 +167,12 @@ ORDER BY messages.position
 
                 if(fromPosition > allStreamPosition && fromPosition > Position.Start)
                 {
-                    return Task.FromResult(new ReadAllPage(
+                    return new ReadAllPage(
                         fromPosition, 
                         fromPosition, 
                         true, 
                         ReadDirection.Backward, 
-                        readNext));
+                        readNext);
                 }
                 
                 // determine number of remaining messages.
@@ -183,12 +182,12 @@ ORDER BY messages.position
                 var remainingMessages = command.ExecuteScalar(Position.End);
                 if(remainingMessages == Position.End)
                 {
-                    return Task.FromResult(new ReadAllPage(
-                        allStreamPosition.Value,
+                    return new ReadAllPage(
+                        allStreamPosition ?? Position.Start,
                         Position.End,
                         true,
                         ReadDirection.Backward,
-                        readNext));
+                        readNext);
                 }
                 command.CommandText = @"SELECT streams.id_original As stream_id,
                                                 messages.stream_version,
@@ -243,13 +242,13 @@ ORDER BY messages.position
                 
                     var nextPosition = messages.Any() ? Math.Max(messages.Last().Position - 1, Position.Start) : Position.Start;
 
-                    return Task.FromResult(new ReadAllPage(
+                    return new ReadAllPage(
                         beginningPosition.Value,
                         nextPosition,
                         isEnd,
                         ReadDirection.Backward,
                         readNext,
-                        messages.ToArray()));
+                        messages.ToArray());
                 }
             }
         }

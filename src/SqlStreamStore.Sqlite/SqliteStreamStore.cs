@@ -71,16 +71,16 @@ namespace SqlStreamStore
             throw new NotSupportedException();
         }
 
-        protected override Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken)
+        protected override async Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
 
             using(var connection = OpenConnection())
             {
-                return connection
+                return (await connection
                     .AllStream()
-                    .ReadHeadPosition(cancellationToken);
+                    .ReadHeadPosition(cancellationToken)) ?? Position.End;
             }
         }
 
@@ -267,21 +267,6 @@ AND messages.stream_version = @streamVersion";
 
                     return Task.FromResult(default(string));
                 }
-            }
-        }
-
-        private Task<string> GetJsonData(long version)
-        {
-            using (var connection = OpenConnection())
-            using(var command = connection.CreateCommand())
-            {
-                command.CommandText = @"SELECT messages.json_data
-FROM messages
-WHERE messages.[stream_version] = @version;";
-                command.Parameters.Clear();
-                command.Parameters.AddWithValue("@version", version);
-
-                return Task.FromResult(command.ExecuteScalar(default(string)));
             }
         }
     }

@@ -75,14 +75,12 @@ namespace SqlStreamStore
         {
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
-            
+
             using(var connection = OpenConnection())
-            using(var command = connection.CreateCommand())
             {
-                command.CommandText = @"SELECT MAX([position])
-                                        FROM streams;";
-                var result = command.ExecuteScalar(Position.End);
-                return Task.FromResult(result);
+                return connection
+                    .AllStream()
+                    .ReadHeadPosition(cancellationToken);
             }
         }
 

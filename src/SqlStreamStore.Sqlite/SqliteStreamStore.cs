@@ -5,7 +5,6 @@ namespace SqlStreamStore
     using System;
     using System.Collections.Concurrent;
     using System.Collections.Generic;
-    using System.Data;
     using System.Linq;
     using System.Reflection;
     using System.Threading;
@@ -238,35 +237,6 @@ namespace SqlStreamStore
             using(var command = conn.CreateCommand())
             {
                 return PerformDelete(command);
-            }
-        }
-
-        private Task<string> GetJsonData(string streamId, int streamVersion)
-        {
-            using (var connection = OpenConnection())
-            using(var command = connection.CreateCommand())
-            {
-                command.CommandText = @"SELECT messages.json_data
-FROM messages
-WHERE messages.stream_id_internal = 
-(
-SELECT streams.id_internal
-FROM streams
-WHERE streams.id = @streamId)
-AND messages.stream_version = @streamVersion";
-                command.Parameters.Clear();
-                command.Parameters.AddWithValue("@streamId", streamId);
-                command.Parameters.AddWithValue("@streamVersion", streamVersion);
-
-                using(var reader = command.ExecuteReader(CommandBehavior.SequentialAccess | CommandBehavior.SingleRow))
-                {
-                    if(reader.Read())
-                    {
-                        return Task.FromResult(reader.GetTextReader(0).ReadToEnd());
-                    }
-
-                    return Task.FromResult(default(string));
-                }
             }
         }
     }

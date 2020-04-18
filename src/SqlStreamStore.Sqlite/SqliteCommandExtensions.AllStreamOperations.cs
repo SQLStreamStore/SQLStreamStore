@@ -18,13 +18,11 @@ namespace SqlStreamStore
             _settings = settings;
         }
 
-        public Task<long?> ReadHeadPosition(CancellationToken cancellationToken = default)
+        public async Task<long?> ReadHeadPosition(CancellationToken cancellationToken = default)
         {
-            using(var command = _connection.CreateCommand())
-            {
-                command.CommandText = @"SELECT MAX([position]) FROM messages;";
-                return Task.FromResult(command.ExecuteScalar<long?>());
-            }
+            return(await _connection.Streams("$position")
+                .Properties(cancellationToken))
+                .Position;
         }
     }
 }

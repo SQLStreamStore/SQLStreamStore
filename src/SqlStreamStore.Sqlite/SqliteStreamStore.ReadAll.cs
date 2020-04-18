@@ -173,6 +173,13 @@ ORDER BY messages.position
                         readNext);
                 }
                 
+                // For reading $all, in the case where no events have been entered into
+                // the root stream yet, we need to have a min beginning position of Position.Start (0).
+
+                beginningPosition = beginningPosition < Position.Start
+                    ? Position.Start
+                    : beginningPosition;
+                
                 // determine number of remaining messages.
                 command.CommandText = @"SELECT COUNT(*) FROM messages WHERE messages.[position] <= @position";
                 command.Parameters.Clear();

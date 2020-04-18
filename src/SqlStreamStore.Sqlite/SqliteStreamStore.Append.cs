@@ -445,14 +445,11 @@ namespace SqlStreamStore
                 }
 
                 // does version exist for the stream?
-                command.CommandText = @"SELECT streams.[version]
-                                    FROM streams
-                                    WHERE streams.id_internal = @stream_id_internal;";
-                command.Parameters.Clear();
-                command.Parameters.AddWithValue("@stream_id_internal", internalId);
-                var currentStreamVersion = command.ExecuteScalar<int?>();
+                var streamProperties = connection.Streams(streamId.IdOriginal)
+                    .Properties(cancellationToken)
+                    .GetAwaiter().GetResult();
                 
-                if(expectedVersion != currentStreamVersion)
+                if(expectedVersion != streamProperties.Version)
                 {
                     var firstMessage = messages.First();
                     
@@ -501,29 +498,12 @@ namespace SqlStreamStore
                         }
                     }
 
-                    // we seem to be equal.  Query the store to get what would be the last position append result.
-                    command.CommandText = @"SELECT messages.stream_version, messages.[position]
-                                        FROM messages
-                                        WHERE messages.stream_id_internal = @stream_id_internal
-                                        ORDER BY messages.[position] DESC
-                                        LIMIT 1";
-                    command.Parameters.Clear();
-                    command.Parameters.AddWithValue("@stream_id_internal", internalId ?? -1);
-                    using(var reader = command.ExecuteReader())
-                    {
-                        if (reader.Read() && reader.HasRows)
-                            return new SqliteAppendResult(
-                                reader.ReadScalar(0, StreamVersion.End),
-                                reader.ReadScalar(1, Position.End),
-                                internalId ?? -1
-                            );
-                    }
-
+                    // we seem to be equal.
                     return new SqliteAppendResult(
-                            StreamVersion.End,
-                            Position.End,
-                            internalId ?? -1
-                        );
+                        streamProperties.Version,
+                        streamProperties.Position,
+                        streamProperties.MaxCount
+                    );
                 }
 
                 var storageResult = StoreMessages(messages, command, streamId);
@@ -577,30 +557,8 @@ namespace SqlStreamStore
  
         private SqliteAppendResult StoreMessages(NewStreamMessage[] messages, SqliteCommand cmd, SqliteStreamId streamId)
         {
-            // we have to calculate position instead of depending on sqlite to do this for us (using an autoincrement value)
-            // because it seems as if we cannot set the initial value to the position being @ zero.
-            cmd.CommandText = @"SELECT streams.[position] 
-                               FROM streams
-                               WHERE streams.id_original = '$position'";
-            cmd.Parameters.Clear();
-            var position = cmd.ExecuteScalar<long?>();
-            if(position == null)
-            {
-                cmd.CommandText = @"INSERT INTO streams (id, id_original, [version], [position])
-                                    VALUES(@id, '$position', 0, -1)";
-                cmd.Parameters.Clear();
-                cmd.Parameters.AddWithValue("@id", new StreamIdInfo("$position").SqlStreamId.Id);
-                cmd.ExecuteScalar();
-                position = Position.End;
-            }
-            
-            // resolve stream version, choosing 0 if not exists.
-            cmd.CommandText = @"SELECT streams.[version]
-                                    FROM streams
-                                    WHERE id = @streamId;";
-            cmd.Parameters.Clear();
-            cmd.Parameters.AddWithValue("@streamId", streamId.Id);
-            var version = cmd.ExecuteScalar(StreamVersion.End);
+            var allStreamProperties = cmd.Connection.Streams("$position").Properties().GetAwaiter().GetResult();
+            var streamProperties = cmd.Connection.Streams(streamId.IdOriginal).Properties().GetAwaiter().GetResult();
 
             foreach(var msg in messages)
             {
@@ -623,14 +581,14 @@ namespace SqlStreamStore
                           position = @position
                       WHERE streams.id = @streamId;";
                 // incrementing current version (see above, where it is either set to "StreamVersion.Start", or the value in the db.
-                version += 1;
-                position += 1;
+                streamProperties.Version += 1;
+                allStreamProperties.Position += 1;
 
                 cmd.Parameters.Clear();
                 cmd.Parameters.AddWithValue("@streamId", streamId.Id);
                 cmd.Parameters.AddWithValue("@eventId", msg.MessageId);
-                cmd.Parameters.AddWithValue("@position", position);
-                cmd.Parameters.AddWithValue("@streamVersion", version);
+                cmd.Parameters.AddWithValue("@position", allStreamProperties.Position);
+                cmd.Parameters.AddWithValue("@streamVersion", streamProperties.Version);
                 cmd.Parameters.AddWithValue("@createdUtc", GetUtcNow());
                 cmd.Parameters.AddWithValue("@type", msg.Type);
                 cmd.Parameters.AddWithValue("@jsonData", msg.JsonData);
@@ -647,8 +605,8 @@ namespace SqlStreamStore
                                     SET [position] = @position
                                     WHERE id_original = '$position'";
             cmd.Parameters.Clear();
-            cmd.Parameters.AddWithValue("@version", version);
-            cmd.Parameters.AddWithValue("@position", position);
+            cmd.Parameters.AddWithValue("@version", streamProperties.Version);
+            cmd.Parameters.AddWithValue("@position", allStreamProperties.Position);
             cmd.Parameters.AddWithValue("@streamId", streamId.Id);
             cmd.ExecuteNonQuery();
 
@@ -668,7 +626,7 @@ namespace SqlStreamStore
                 ? new MetadataMessage() 
                 : SimpleJson.DeserializeObject<MetadataMessage>(metadataJson);
             
-            return new SqliteAppendResult(version, position ?? Position.End, metadata.MaxCount);
+            return new SqliteAppendResult(streamProperties.Version, allStreamProperties.Position, metadata.MaxCount);
         }
        
         private async Task CheckStreamMaxCount(

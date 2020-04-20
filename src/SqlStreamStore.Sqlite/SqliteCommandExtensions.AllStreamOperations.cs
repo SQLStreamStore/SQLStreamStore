@@ -12,15 +12,10 @@ namespace SqlStreamStore
     {
         private readonly SqliteConnection _connection;
         private SqliteTransaction _transaction;
-        private readonly SqliteStreamStoreSettings _settings;
 
         public AllStreamOperations(SqliteConnection connection)
         {
             _connection = connection;
-        }
-        public AllStreamOperations(SqliteConnection connection, SqliteStreamStoreSettings settings) : this(connection)
-        {
-            _settings = settings;
         }
 
         public IDisposable WithTransaction()
@@ -45,7 +40,7 @@ namespace SqlStreamStore
 
         public async Task<(bool StreamDeleted, bool MetadataDeleted)> Delete(string streamId, int expected, CancellationToken cancellationToken = default)
         {
-            using(var command = _connection.CreateCommand())
+            using(var command = CreateCommand())
             {
                 var info = new StreamIdInfo(streamId);
                 var stream = await DeleteStreamPart(command, info.SqlStreamId.IdOriginal, expected, cancellationToken);
@@ -125,7 +120,7 @@ namespace SqlStreamStore
             }
 
             var headers = new List<StreamHeader>();
-            using(var command = _connection.CreateCommand())
+            using(var command = CreateCommand())
             {
                 command.CommandText = @"SELECT id, id_internal, id_original, [version], [position], max_age, max_count
                                     FROM streams
@@ -169,7 +164,7 @@ namespace SqlStreamStore
 
         public Task<long?> Remaining(ReadDirection direction, long? index)
         {
-            using(var command = _connection.CreateCommand())
+            using(var command = CreateCommand())
             {
                 // determine number of remaining messages.
                 command.CommandText = @"SELECT COUNT(*) 
@@ -194,7 +189,7 @@ namespace SqlStreamStore
             CancellationToken cancellationToken = default
         )
         {
-            using(var command = _connection.CreateCommand())
+            using(var command = CreateCommand())
             {
                 var messages = new List<StreamMessage>();
                 command.CommandText = @"SELECT streams.id_original As stream_id,
@@ -249,6 +244,18 @@ ORDER BY
 
                 return Task.FromResult<IReadOnlyList<StreamMessage>>(messages);
             }
+        }
+ 
+        private SqliteCommand CreateCommand()
+        {
+            var cmd = _connection.CreateCommand();
+            
+            if(_transaction != null)
+            {
+                cmd.Transaction = _transaction;
+            }
+
+            return cmd;
         }
     }
 }

@@ -316,23 +316,25 @@ namespace SqlStreamStore
 
         private SqliteAppendResult AppendToStreamExpectedVersion(SqliteStreamId streamId, int expectedVersion, NewStreamMessage[] messages, CancellationToken cancellationToken)
         {
-            var internalId = ResolveInternalStreamId(streamId.IdOriginal, throwIfNotExists: false);
-
-            if(internalId == null)
-            {
-                throw new WrongExpectedVersionException(
-                    ErrorMessages.AppendFailedWrongExpectedVersion(
-                        streamId.IdOriginal,
-                        expectedVersion),
-                    streamId.IdOriginal,
-                    expectedVersion);
-            }
-            
             using(var connection = OpenConnection(false))
             using(var transaction = connection.BeginTransaction())
             using(var command = connection.CreateCommand())
             {
                 command.Transaction = transaction;
+
+                var props = connection.Streams(streamId.IdOriginal)
+                    .Properties(initializeIfNotFound: false, cancellationToken)
+                    .GetAwaiter().GetResult();
+
+                if(props == null)
+                {
+                    throw new WrongExpectedVersionException(
+                        ErrorMessages.AppendFailedWrongExpectedVersion(
+                            streamId.IdOriginal,
+                            expectedVersion),
+                        streamId.IdOriginal,
+                        expectedVersion);
+                }
                 
                 if(messages.Length == 1)
                 {
@@ -345,7 +347,7 @@ namespace SqlStreamStore
                                                 AND messages.stream_version = @expected
                                                 AND messages.event_id = @eventId;";
                     command.Parameters.Clear();
-                    command.Parameters.AddWithValue("@internalId", internalId);
+                    command.Parameters.AddWithValue("@internalId", props.Key);
                     command.Parameters.AddWithValue("@expected", expectedVersion + 1);
                     command.Parameters.AddWithValue("@eventId", msg.MessageId);
                     var duplicateMessage = command.ExecuteScalar<int?>(0);
@@ -357,14 +359,14 @@ namespace SqlStreamStore
                                         ORDER BY messages.[position] DESC
                                         LIMIT 1";
                         command.Parameters.Clear();
-                        command.Parameters.AddWithValue("@stream_id_internal", internalId ?? -1);
+                        command.Parameters.AddWithValue("@stream_id_internal", props.Key);
                         using(var reader = command.ExecuteReader())
                         {
                             if (reader.Read() && reader.HasRows)
                                 return new SqliteAppendResult(
                                     reader.ReadScalar(0, StreamVersion.End),
                                     reader.ReadScalar(1, Position.End),
-                                    internalId ?? -1
+                                    props.Key
                                 );
                         }
                     }
@@ -378,7 +380,7 @@ namespace SqlStreamStore
                                                 AND messages.stream_version <= @expected
                                                 AND messages.event_id = @eventId;";
                     command.Parameters.Clear();
-                    command.Parameters.AddWithValue("@internalId", internalId);
+                    command.Parameters.AddWithValue("@internalId", props.Key);
                     command.Parameters.AddWithValue("@expected", expectedVersion);
                     command.Parameters.AddWithValue("@eventId", msg.MessageId);
                     duplicateMessage = command.ExecuteScalar<int?>(0);
@@ -399,7 +401,7 @@ namespace SqlStreamStore
                                 AND messages.stream_version >= @expected
                             ORDER BY messages.position;";
                     command.Parameters.Clear();
-                    command.Parameters.AddWithValue("@internalId", internalId);
+                    command.Parameters.AddWithValue("@internalId", props.Key);
                     command.Parameters.AddWithValue("@expected", expectedVersion);
 
                     var eventIds = new List<Guid>();
@@ -429,7 +431,7 @@ namespace SqlStreamStore
                                     FROM streams
                                     WHERE id_internal = @idInternal;";
                         command.Parameters.Clear();
-                        command.Parameters.AddWithValue("@idInternal", internalId);
+                        command.Parameters.AddWithValue("@idInternal", props.Key);
 
                         using(var reader = command.ExecuteReader())
                             if(reader.Read())
@@ -446,7 +448,7 @@ namespace SqlStreamStore
 
                 // does version exist for the stream?
                 var streamProperties = connection.Streams(streamId.IdOriginal)
-                    .Properties(cancellationToken)
+                    .Properties(true, cancellationToken)
                     .GetAwaiter().GetResult();
                 
                 if(expectedVersion != streamProperties.Version)
@@ -462,7 +464,7 @@ namespace SqlStreamStore
                                 ORDER BY messages.position
                                 LIMIT @message_count;";
                     command.Parameters.Clear();
-                    command.Parameters.AddWithValue("@stream_id_internal", internalId);
+                    command.Parameters.AddWithValue("@stream_id_internal", props.Key);
                     command.Parameters.AddWithValue("@event_id", firstMessage.MessageId);
                     command.Parameters.AddWithValue("@message_count", messages.Length);
                     using(var reader = command.ExecuteReader())
@@ -528,31 +530,10 @@ namespace SqlStreamStore
         
         private int CreateStream(SqliteCommand cmd, SqliteStreamId streamId, bool throwIfCreateFails = true)
         {
-            cmd.CommandText = @"SELECT streams.id_internal
-                                FROM streams
-                                WHERE id_original = @streamId;";
-            cmd.Parameters.Clear();
-            cmd.Parameters.AddWithValue("@streamId", streamId.IdOriginal);
-
-            var idInternal = cmd.ExecuteScalar<int?>();
-            if(idInternal != null)
-            {
-                return idInternal.Value;
-            }
-            cmd.CommandText = @"INSERT INTO streams (id, id_original)
-                                VALUES (@id, @idOriginal);
-                                
-                                SELECT last_insert_rowid();";
-            cmd.Parameters.AddWithValue("@id", streamId.Id);
-            cmd.Parameters.AddWithValue("@idOriginal", streamId.IdOriginal);
-            var inserted = cmd.ExecuteScalar<int?>();
-            
-            if(inserted == null && throwIfCreateFails)
-            {
-                throw new Exception("Stream failed to create.");
-            }
-
-            return inserted ?? int.MinValue;
+            return cmd.Connection.Streams(streamId.IdOriginal)
+                .Properties()
+                .GetAwaiter().GetResult()
+                .Key;
         }
  
         private SqliteAppendResult StoreMessages(NewStreamMessage[] messages, SqliteCommand cmd, SqliteStreamId streamId)

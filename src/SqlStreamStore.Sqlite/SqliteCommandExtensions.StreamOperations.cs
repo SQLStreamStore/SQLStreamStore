@@ -54,7 +54,7 @@ namespace SqlStreamStore
             }
         }
 
-        public Task<StreamHeader> Properties(CancellationToken cancellationToken = default)
+        public Task<StreamHeader> Properties(bool initializeIfNotFound = true, CancellationToken cancellationToken = default)
         {
             using(var command = CreateCommand())
             {
@@ -67,10 +67,8 @@ namespace SqlStreamStore
                 using(var reader = command.ExecuteReader(CommandBehavior.SingleRow))
                 {
                     if(!reader.Read())
-                    {
-                        return InitializePositionStream();
-                    }
-
+                        return initializeIfNotFound ? InitializePositionStream() : Task.FromResult<StreamHeader>(default);
+                    
                     var props = new StreamHeader
                     {
                         Id = reader.ReadScalar<string>(0),

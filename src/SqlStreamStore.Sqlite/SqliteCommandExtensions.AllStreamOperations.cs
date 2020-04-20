@@ -24,8 +24,8 @@ namespace SqlStreamStore
         public async Task<long?> ReadHeadPosition(CancellationToken cancellationToken = default)
         {
             return(await _connection.Streams("$position")
-                .Properties(cancellationToken))
-                .Position;
+                .Properties(false, cancellationToken))
+                ?.Position;
         }
 
         public Task<long?> RemainingInStream(ReadDirection direction, long? index)

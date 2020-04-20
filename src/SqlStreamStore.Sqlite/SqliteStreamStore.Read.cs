@@ -11,7 +11,7 @@ namespace SqlStreamStore
 
     public partial class SqliteStreamStore
     {
-        protected override Task<ReadStreamPage> ReadStreamForwardsInternal(
+        protected override async Task<ReadStreamPage> ReadStreamForwardsInternal(
             string streamId,
             int fromVersion,
             int count,
@@ -25,49 +25,41 @@ namespace SqlStreamStore
             // If the count is int.MaxValue, TSql will see it as a negative number. 
             // Users shouldn't be using int.MaxValue in the first place anyway.
             var maxRecords = count == int.MaxValue ? count - 1 : count;
-            
-            using (var connection = OpenConnection())
-            using (var command = connection.CreateCommand())
+
+            using(var connection = OpenConnection())
+            using(var command = connection.CreateCommand())
             {
-                int idInternal = 0;
-                var maxAge = default(int?);
-                command.CommandText = @"SELECT streams.id_internal, streams.max_age, streams.max_count
-                                        FROM streams
-                                            LEFT JOIN messages ON messages.stream_id_internal = streams.id_internal 
-                                        WHERE 
-                                            streams.id_original = @idOriginal
-                                        LIMIT 1;";
-                command.Parameters.Clear();
-                command.Parameters.AddWithValue("@idOriginal", streamId);
-                using(var reader = command.ExecuteReader(CommandBehavior.SingleRow))
+                var streamProperties = await connection.Streams(streamId)
+                    .Properties(initializeIfNotFound:false, cancellationToken);
+
+                if(streamProperties == null)
                 {
-                    if(!reader.Read())
-                    {
-                        // not found.
-                        return Task.FromResult(new ReadStreamPage(
-                            streamId,
-                            PageReadStatus.StreamNotFound,
-                            fromVersion,
-                            StreamVersion.End,
-                            StreamVersion.End,
-                            StreamVersion.End,
-                            ReadDirection.Forward,
-                            true,
-                            readNext));
-                    }
-
-                    idInternal = reader.ReadScalar<int>(0);
-                    maxAge = reader.ReadScalar(1, default(int?));
-
-                    var streamsMaxRecords = reader.ReadScalar(2, StreamVersion.Start);
-                    maxRecords = Math.Min(maxRecords, (streamsMaxRecords == StreamVersion.Start ? maxRecords : streamsMaxRecords));
+                    // not found.
+                    return new ReadStreamPage(
+                        streamId,
+                        PageReadStatus.StreamNotFound,
+                        fromVersion,
+                        StreamVersion.End,
+                        StreamVersion.End,
+                        StreamVersion.End,
+                        ReadDirection.Forward,
+                        true,
+                        readNext);
                 }
-
-                return PrepareStreamResponse(command, streamId, ReadDirection.Forward, fromVersion, prefetch, readNext, idInternal, maxRecords, maxAge);
+                
+                return await PrepareStreamResponse(command,
+                    streamId,
+                    ReadDirection.Forward,
+                    fromVersion,
+                    prefetch,
+                    readNext,
+                    streamProperties.Key,
+                    maxRecords,
+                    streamProperties.MaxAge);
             }
         }
 
-        protected override Task<ReadStreamPage> ReadStreamBackwardsInternal(
+        protected override async Task<ReadStreamPage> ReadStreamBackwardsInternal(
             string streamId,
             int fromStreamVersion,
             int count,
@@ -81,91 +73,76 @@ namespace SqlStreamStore
             // If the count is int.MaxValue, TSql will see it as a negative number. 
             // Users shouldn't be using int.MaxValue in the first place anyway.
             var maxRecords = count == int.MaxValue ? count - 1 : count;
-            var streamVersion = fromStreamVersion == StreamVersion.End ? int.MaxValue -1 : fromStreamVersion;
-            using (var connection = OpenConnection())
-            using (var command = connection.CreateCommand())
+            var streamVersion = fromStreamVersion == StreamVersion.End ? int.MaxValue - 1 : fromStreamVersion;
+            using(var connection = OpenConnection())
             {
-                int streamIdInternal = 0;
-                var maxAge = default(int?);
-                command.CommandText = @"SELECT streams.id_internal, streams.max_age, streams.max_count
-                                        FROM streams
-                                            LEFT JOIN messages ON messages.stream_id_internal = streams.id_internal 
-                                        WHERE 
-                                            streams.id_original = @idOriginal
-                                        LIMIT 1;";
-                command.Parameters.Clear();
-                command.Parameters.AddWithValue("@idOriginal", streamId);
-                using(var reader = command.ExecuteReader())
+                var streamProperties = await connection.Streams(streamId)
+                    .Properties(initializeIfNotFound: false, cancellationToken);
+
+                if(streamProperties == null)
                 {
-                    if(!reader.Read())
+                    // not found.
+                    return new ReadStreamPage(
+                        streamId,
+                        PageReadStatus.StreamNotFound,
+                        fromStreamVersion,
+                        StreamVersion.End,
+                        StreamVersion.End,
+                        StreamVersion.End,
+                        ReadDirection.Forward,
+                        true,
+                        readNext);
+                }
+
+                using(var command = connection.CreateCommand())
+                {
+                    command.CommandText = @"SELECT messages.position
+                                FROM messages
+                                WHERE messages.stream_id_internal = @idOriginal
+                                    AND messages.stream_version <= @streamVersion
+                                ORDER BY messages.position DESC
+                                LIMIT 1;";
+                    command.Parameters.Clear();
+                    command.Parameters.AddWithValue("@idOriginal", streamProperties.Key);
+                    command.Parameters.AddWithValue("@streamVersion", streamVersion);
+                    var position = command.ExecuteScalar<long?>();
+
+                    if(position == null)
+                    {
+                        command.CommandText = @"SELECT streams.position
+                            FROM streams
+                            WHERE streams.id_internal = @idOriginal;";
+                        command.Parameters.Clear();
+                        command.Parameters.AddWithValue("@idOriginal", streamProperties.Key);
+                        position = command.ExecuteScalar<long?>();
+                    }
+
+                    // if no position, then need to return success with end of stream.
+                    if(position == null)
                     {
                         // not found.
-                        return Task.FromResult(new ReadStreamPage(
+                        return new ReadStreamPage(
                             streamId,
-                            PageReadStatus.StreamNotFound,
-                            streamVersion,
+                            PageReadStatus.Success,
+                            fromStreamVersion,
                             StreamVersion.End,
                             StreamVersion.End,
                             StreamVersion.End,
                             ReadDirection.Backward,
                             true,
-                            readNext));
+                            readNext);
                     }
 
-                    streamIdInternal = reader.GetInt32(0);
-                    maxAge = reader.ReadScalar(1, default(int?));
-
-                    var streamsMaxRecords = reader.ReadScalar(2, StreamVersion.End);
-                    maxRecords = Math.Min(maxRecords, streamsMaxRecords == StreamVersion.End ? maxRecords : streamsMaxRecords);
-                }
-
-
-                command.CommandText = @"SELECT messages.position
-                                    FROM messages
-                                    WHERE messages.stream_id_internal = @idOriginal
-                                        AND messages.stream_version <= @streamVersion
-                                    ORDER BY messages.position DESC
-                                    LIMIT 1;";
-                command.Parameters.Clear();
-                command.Parameters.AddWithValue("@idOriginal", streamIdInternal);
-                command.Parameters.AddWithValue("@streamVersion", streamVersion);
-                var position = command.ExecuteScalar<long?>();
-
-                if(position == null)
-                {
-                    command.CommandText = @"SELECT streams.position
-                                FROM streams
-                                WHERE streams.id_internal = @idOriginal;";
-                    command.Parameters.Clear();
-                    command.Parameters.AddWithValue("@idOriginal", streamIdInternal);
-                    position = command.ExecuteScalar<long?>();
-                }
-                
-                // if no position, then need to return success with end of stream.
-                if(position == null)
-                {
-                    // not found.
-                    return Task.FromResult(new ReadStreamPage(
+                    return await PrepareStreamResponse(command,
                         streamId,
-                        PageReadStatus.Success,
-                        fromStreamVersion,
-                        StreamVersion.End,
-                        StreamVersion.End,
-                        StreamVersion.End,
                         ReadDirection.Backward,
-                        true,
-                        readNext));
+                        fromStreamVersion,
+                        prefetch,
+                        readNext,
+                        streamProperties.Key,
+                        maxRecords,
+                        streamProperties.MaxAge);
                 }
-
-                return PrepareStreamResponse(command, 
-                    streamId, 
-                    ReadDirection.Backward, 
-                    fromStreamVersion, 
-                    prefetch, 
-                    readNext, 
-                    streamIdInternal, 
-                    maxRecords, 
-                    maxAge);
             }
         }
 

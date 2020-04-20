@@ -11,9 +11,8 @@ namespace SqlStreamStore
     public class StreamOperations
     {
         private readonly SqliteConnection _connection;
-        private readonly string _streamId;
-
         private SqliteTransaction _transaction;
+        private readonly string _streamId;
 
         public StreamOperations(SqliteConnection connection, string streamId)
         {
@@ -205,6 +204,40 @@ namespace SqlStreamStore
                 return Task.FromResult<IReadOnlyList<StreamMessage>>(messages);
             }
         }
+
+        public Task<bool> RemoveEvent(Guid eventId, CancellationToken cancellationToken = default)
+        {
+            bool streamExists = false;
+            bool willBeDeleted = false;
+
+            using(var command = CreateCommand())
+            {
+                command.CommandText = @"SELECT COUNT(*) FROM streams WHERE id_original = @streamId;";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamId", _streamId);
+                streamExists= command.ExecuteScalar<int>() > 0;
+
+                command.CommandText = @"SELECT COUNT(*)
+FROM messages
+    JOIN streams ON messages.stream_id_internal = streams.id_internal 
+WHERE streams.id_original = @streamId
+    AND messages.event_id = @messageId;";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamId", _streamId);
+                command.Parameters.AddWithValue("@messageId", eventId);
+                willBeDeleted = command.ExecuteScalar<int>() > 0;
+
+                if(streamExists && willBeDeleted)
+                {
+                    command.CommandText = @"DELETE FROM messages WHERE messages.event_id = @messageId;";
+                    command.Parameters.Clear();
+                    command.Parameters.AddWithValue("@messageId", eventId);
+                    command.ExecuteNonQuery();
+                }
+            }
+
+            return Task.FromResult(willBeDeleted && streamExists);
+        } 
         
         private Task<StreamHeader> InitializePositionStream()
         {

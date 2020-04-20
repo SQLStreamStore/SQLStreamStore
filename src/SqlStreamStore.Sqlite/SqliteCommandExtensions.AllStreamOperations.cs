@@ -1,5 +1,6 @@
 namespace SqlStreamStore
 {
+    using System;
     using System.Collections.Generic;
     using System.Data;
     using System.Threading;
@@ -10,6 +11,7 @@ namespace SqlStreamStore
     public class AllStreamOperations
     {
         private readonly SqliteConnection _connection;
+        private SqliteTransaction _transaction;
         private readonly SqliteStreamStoreSettings _settings;
 
         public AllStreamOperations(SqliteConnection connection)
@@ -19,6 +21,83 @@ namespace SqlStreamStore
         public AllStreamOperations(SqliteConnection connection, SqliteStreamStoreSettings settings) : this(connection)
         {
             _settings = settings;
+        }
+
+        public IDisposable WithTransaction()
+        {
+            _transaction = _connection.BeginTransaction();
+            return _transaction;
+        }
+
+        public Task Commit(CancellationToken cancellationToken = default)
+        {
+            _transaction.Commit();
+            _transaction = null;
+            return Task.CompletedTask;
+        }
+
+        public Task RollBack(CancellationToken cancellationToken = default)
+        {
+            _transaction.Rollback();
+            _transaction = null;
+            return Task.CompletedTask;
+        }
+
+        public async Task<(bool StreamDeleted, bool MetadataDeleted)> Delete(string streamId, int expected, CancellationToken cancellationToken = default)
+        {
+            using(var command = _connection.CreateCommand())
+            {
+                var info = new StreamIdInfo(streamId);
+                var stream = await DeleteStreamPart(command, info.SqlStreamId.IdOriginal, expected, cancellationToken);
+                var metadata = await DeleteStreamPart(command, info.MetadataSqlStreamId.IdOriginal, ExpectedVersion.Any, cancellationToken);
+
+                return (stream, metadata);
+            }
+        }
+
+        public Task<bool> DeleteStreamPart(SqliteCommand command, string streamId, int expected, CancellationToken cancellationToken)
+        {
+            if(expected != ExpectedVersion.Any)
+            {
+                command.CommandText = @"SELECT messages.stream_version 
+                                    FROM messages 
+                                    WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE streams.id_original = @streamId)
+                                    ORDER BY messages.stream_version DESC 
+                                    LIMIT 1;";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamId", streamId);
+                var currentVersion = command.ExecuteScalar<long?>();
+
+                if(currentVersion != expected)
+                {
+                    throw new WrongExpectedVersionException(
+                        ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamId,
+                            expected),
+                        streamId,
+                        expected
+                    );
+                }
+            }
+            
+            // delete stream records.
+            command.CommandText =
+                @"SELECT COUNT(*) FROM messages WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE streams.id_original = @streamId);
+                                SELECT COUNT(*) FROM streams WHERE streams.id_original = @streamId;
+                                DELETE FROM messages          WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE streams.id_original = @streamId);
+                                DELETE FROM streams WHERE streams.id_original = @streamId;";
+            command.Parameters.Clear();
+            command.Parameters.AddWithValue("@streamId", streamId);
+            using(var reader = command.ExecuteReader())
+            {
+                reader.Read();
+                var numberOfMessages = reader.ReadScalar<int?>(0);
+
+                reader.NextResult();
+                reader.Read();
+                var numberOfStreams = reader.ReadScalar<int?>(0);
+                    
+                return Task.FromResult(numberOfMessages + numberOfStreams > 0);
+            }
         }
 
         public async Task<long?> HeadPosition(CancellationToken cancellationToken = default)

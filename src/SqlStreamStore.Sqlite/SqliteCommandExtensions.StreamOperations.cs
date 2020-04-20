@@ -1,6 +1,7 @@
 namespace SqlStreamStore
 {
     using System;
+    using System.Collections.Generic;
     using System.Data;
     using System.Threading;
     using System.Threading.Tasks;
@@ -137,6 +138,71 @@ namespace SqlStreamStore
 
                     return Task.FromResult(props);
                 }
+            }
+        }
+
+        public Task<IReadOnlyList<StreamMessage>> Read(
+            ReadDirection direction,
+            long? position,
+            bool prefetchJsonData,
+            int maxRecords)
+        {
+            var messages = new List<StreamMessage>();
+            
+            using(var command = CreateCommand())
+            {
+                command.CommandText = @"SELECT messages.event_id,
+                               messages.stream_version,
+                               messages.[position],
+                               messages.created_utc,
+                               messages.[type],
+                               messages.json_metadata,
+                               case when @prefetch then messages.json_data else null end as json_data
+                        FROM messages
+                        WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE id_original = @streamId LIMIT 1)
+                        AND CASE 
+                                WHEN @forwards THEN messages.[position] >= @position
+                                ELSE messages.[position] <= @position
+                            END
+                        ORDER BY
+                            CASE 
+                                WHEN @forwards THEN messages.position
+                                ELSE -messages.position
+                            END
+                        LIMIT @count;";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamId", _streamId);
+                command.Parameters.AddWithValue("@position", position);
+                command.Parameters.AddWithValue("@prefetch", prefetchJsonData);
+                command.Parameters.AddWithValue("@count", maxRecords);
+                command.Parameters.AddWithValue("@forwards", direction == ReadDirection.Forward);
+
+                using(var reader = command.ExecuteReader())
+                {
+                    while(reader.Read())
+                    {
+                        var preloadJson = (!reader.IsDBNull(6) && prefetchJsonData)
+                            ? reader.GetTextReader(6).ReadToEnd()
+                            : default;
+                        var streamVersion = reader.ReadScalar<int>(1);  
+                        
+                        var msg = new StreamMessage(
+                            _streamId,
+                            reader.ReadScalar<Guid>(0, Guid.Empty),
+                            streamVersion,
+                            reader.ReadScalar<long>(2),
+                            reader.ReadScalar<DateTime>(3),
+                            reader.ReadScalar<string>(4),
+                            reader.ReadScalar<string>(5),
+                            ct => prefetchJsonData
+                                ? Task.FromResult(preloadJson)
+                                : SqliteCommandExtensions.GetJsonData(_streamId, streamVersion)
+                        );
+                        messages.Add(msg);
+                    }
+                }
+                
+                return Task.FromResult<IReadOnlyList<StreamMessage>>(messages);
             }
         }
         

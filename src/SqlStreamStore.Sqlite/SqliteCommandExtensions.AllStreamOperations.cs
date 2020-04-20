@@ -7,15 +7,18 @@ namespace SqlStreamStore
     using System.Threading.Tasks;
     using Microsoft.Data.Sqlite;
     using SqlStreamStore.Streams;
+    using StreamStoreStore.Json;
 
     public class AllStreamOperations
     {
         private readonly SqliteConnection _connection;
+        private readonly SqliteStreamStoreSettings _settings;
         private SqliteTransaction _transaction;
 
-        public AllStreamOperations(SqliteConnection connection)
+        public AllStreamOperations(SqliteConnection connection, SqliteStreamStoreSettings settings)
         {
             _connection = connection;
+            _settings = settings;
         }
 
         public IDisposable WithTransaction()
@@ -38,6 +41,82 @@ namespace SqlStreamStore
             return Task.CompletedTask;
         }
 
+        public Task<SqliteAppendResult> Append(string streamId, IEnumerable<NewStreamMessage> messages)
+        {
+            var allStreamProperties = _connection.Streams("$position").Properties().GetAwaiter().GetResult();
+            var props = _connection.Streams(streamId).Properties().GetAwaiter().GetResult();
+
+            using(var command = CreateCommand())
+            {
+                foreach(var msg in messages)
+                {
+                    command.CommandText = @"SELECT COUNT(*)
+                                    FROM messages
+                                    WHERE event_id = @eventId AND stream_id_internal = (SELECT id_internal FROM streams WHERE id_original = @streamId);";
+                    command.Parameters.Clear();
+                    command.Parameters.AddWithValue("@streamId", streamId);
+                    command.Parameters.AddWithValue("@eventId", msg.MessageId);
+                    var hasMessages = (command.ExecuteScalar(0) > 0);
+                    if(hasMessages) continue;
+
+                    command.CommandText =
+                        @"INSERT INTO messages(event_id, stream_id_internal,  [position], stream_version, created_utc, [type], json_data, json_metadata)
+                      SELECT               @eventId, streams.id_internal, @position,  @streamVersion, @createdUtc, @type,  @jsonData, @jsonMetadata
+                      FROM streams
+                      WHERE streams.id_original = @streamId;
+                      UPDATE streams
+                      SET version = @streamVersion,
+                          position = @position
+                      WHERE streams.id = @streamId;";
+                    // incrementing current version (see above, where it is either set to "StreamVersion.Start", or the value in the db.
+                    props.Version += 1;
+                    allStreamProperties.Position += 1;
+
+                    command.Parameters.Clear();
+                    command.Parameters.AddWithValue("@streamId", streamId);
+                    command.Parameters.AddWithValue("@eventId", msg.MessageId);
+                    command.Parameters.AddWithValue("@position", allStreamProperties.Position);
+                    command.Parameters.AddWithValue("@streamVersion", props.Version);
+                    command.Parameters.AddWithValue("@createdUtc", _settings.GetUtcNow());
+                    command.Parameters.AddWithValue("@type", msg.Type);
+                    command.Parameters.AddWithValue("@jsonData", msg.JsonData);
+                    command.Parameters.AddWithValue("@jsonMetadata", msg.JsonMetadata);
+
+                    command.ExecuteNonQuery();
+                }
+            
+                command.CommandText = @"UPDATE streams
+                                    SET [version] = @version,
+                                        [position] = @position
+                                    WHERE id_original = @streamId;
+                                UPDATE streams
+                                    SET [position] = @position
+                                    WHERE id_original = '$position'";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@version", props.Version);
+                command.Parameters.AddWithValue("@position", allStreamProperties.Position);
+                command.Parameters.AddWithValue("@streamId", streamId);
+                command.ExecuteNonQuery();
+            
+                // need the metadata to build the proper response.
+                command.CommandText = @"SELECT messages.json_data
+                                FROM messages 
+                                WHERE messages.position = (
+                                    SELECT streams.position
+                                    FROM streams
+                                    WHERE streams.id_original = @streamId
+                                    )";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamId", $"$${streamId.Replace("$", "")}");
+                var metadataJson = command.ExecuteScalar("{}");
+                var metadata = string.IsNullOrWhiteSpace(metadataJson)
+                    ? new MetadataMessage() 
+                    : SimpleJson.DeserializeObject<MetadataMessage>(metadataJson);
+
+                return Task.FromResult(new SqliteAppendResult(props.Version, allStreamProperties.Position, metadata.MaxCount));
+            }
+        }
+
         public async Task<(bool StreamDeleted, bool MetadataDeleted)> Delete(string streamId, int expected, CancellationToken cancellationToken = default)
         {
             using(var command = CreateCommand())
@@ -47,51 +126,6 @@ namespace SqlStreamStore
                 var metadata = await DeleteStreamPart(command, info.MetadataSqlStreamId.IdOriginal, ExpectedVersion.Any, cancellationToken);
 
                 return (stream, metadata);
-            }
-        }
-
-        public Task<bool> DeleteStreamPart(SqliteCommand command, string streamId, int expected, CancellationToken cancellationToken)
-        {
-            if(expected != ExpectedVersion.Any)
-            {
-                command.CommandText = @"SELECT messages.stream_version 
-                                    FROM messages 
-                                    WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE streams.id_original = @streamId)
-                                    ORDER BY messages.stream_version DESC 
-                                    LIMIT 1;";
-                command.Parameters.Clear();
-                command.Parameters.AddWithValue("@streamId", streamId);
-                var currentVersion = command.ExecuteScalar<long?>();
-
-                if(currentVersion != expected)
-                {
-                    throw new WrongExpectedVersionException(
-                        ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamId,
-                            expected),
-                        streamId,
-                        expected
-                    );
-                }
-            }
-            
-            // delete stream records.
-            command.CommandText =
-                @"SELECT COUNT(*) FROM messages WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE streams.id_original = @streamId);
-                                SELECT COUNT(*) FROM streams WHERE streams.id_original = @streamId;
-                                DELETE FROM messages          WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE streams.id_original = @streamId);
-                                DELETE FROM streams WHERE streams.id_original = @streamId;";
-            command.Parameters.Clear();
-            command.Parameters.AddWithValue("@streamId", streamId);
-            using(var reader = command.ExecuteReader())
-            {
-                reader.Read();
-                var numberOfMessages = reader.ReadScalar<int?>(0);
-
-                reader.NextResult();
-                reader.Read();
-                var numberOfStreams = reader.ReadScalar<int?>(0);
-                    
-                return Task.FromResult(numberOfMessages + numberOfStreams > 0);
             }
         }
 
@@ -256,6 +290,51 @@ ORDER BY
             }
 
             return cmd;
+        }
+
+        private Task<bool> DeleteStreamPart(SqliteCommand command, string streamId, int expected, CancellationToken cancellationToken)
+        {
+            if(expected != ExpectedVersion.Any)
+            {
+                command.CommandText = @"SELECT messages.stream_version 
+                                    FROM messages 
+                                    WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE streams.id_original = @streamId)
+                                    ORDER BY messages.stream_version DESC 
+                                    LIMIT 1;";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamId", streamId);
+                var currentVersion = command.ExecuteScalar<long?>();
+
+                if(currentVersion != expected)
+                {
+                    throw new WrongExpectedVersionException(
+                        ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamId,
+                            expected),
+                        streamId,
+                        expected
+                    );
+                }
+            }
+            
+            // delete stream records.
+            command.CommandText =
+                @"SELECT COUNT(*) FROM messages WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE streams.id_original = @streamId);
+                                SELECT COUNT(*) FROM streams WHERE streams.id_original = @streamId;
+                                DELETE FROM messages          WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE streams.id_original = @streamId);
+                                DELETE FROM streams WHERE streams.id_original = @streamId;";
+            command.Parameters.Clear();
+            command.Parameters.AddWithValue("@streamId", streamId);
+            using(var reader = command.ExecuteReader())
+            {
+                reader.Read();
+                var numberOfMessages = reader.ReadScalar<int?>(0);
+
+                reader.NextResult();
+                reader.Read();
+                var numberOfStreams = reader.ReadScalar<int?>(0);
+                    
+                return Task.FromResult(numberOfMessages + numberOfStreams > 0);
+            }
         }
     }
 }

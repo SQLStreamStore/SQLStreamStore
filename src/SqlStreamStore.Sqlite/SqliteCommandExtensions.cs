@@ -11,7 +11,7 @@ namespace SqlStreamStore
         public static void WithSettings(SqliteStreamStoreSettings settings) => _settings = settings;
         
         public static AllStreamOperations AllStream(this SqliteConnection connection)
-            => new AllStreamOperations(connection);
+            => new AllStreamOperations(connection, _settings);
 
         public static StreamOperations Streams(this SqliteConnection connection, string streamId) 
             => new StreamOperations(connection, streamId);

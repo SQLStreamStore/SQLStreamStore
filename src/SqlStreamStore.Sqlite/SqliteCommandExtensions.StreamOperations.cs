@@ -77,6 +77,84 @@ namespace SqlStreamStore
             }
         }
 
+        public Task<long?> AllStreamPosition(ReadDirection direction, Guid eventId)
+        {
+            using(var command = CreateCommand())
+            {
+                command.CommandText = @"SELECT messages.position
+                                    FROM messages
+                                    WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE id_original = @streamId)
+                                        AND messages.event_id = @eventId;";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamId", _streamId);
+                command.Parameters.AddWithValue("@eventId", eventId);
+                command.Parameters.AddWithValue("@forwards", direction == ReadDirection.Forward);
+                return Task.FromResult(command.ExecuteScalar<long?>());
+            }
+        }
+
+        public Task<bool> Contains(Guid eventId)
+        {
+            using(var command = CreateCommand())
+            {
+                // if the message's event id exists in the database...
+                command.CommandText = @"SELECT count(*) 
+                                        FROM messages
+                                        WHERE event_id = @eventId AND stream_id_internal = (SELECT id_internal FROM streams WHERE id_original = @streamId);";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamId", _streamId);
+                command.Parameters.AddWithValue("@eventId", eventId);
+
+                return Task.FromResult(command.ExecuteScalar<long>(0) > 0);
+            }
+        }
+
+        public Task<bool> Exists()
+        {
+            using(var command = CreateCommand())
+            {
+                command.CommandText = @"SELECT COUNT(*)
+                                        FROM streams
+                                        WHERE id_original = @streamId;";
+                command.Parameters.AddWithValue("@streamId", _streamId);
+                return Task.FromResult(command.ExecuteScalar<long?>(0) > 0);
+            }
+        }
+
+        public Task<bool> Exists(Guid eventId, long? expected)
+        {
+            using(var command = CreateCommand())
+            {
+                command.CommandText = @"SELECT COUNT(*)
+                                        FROM messages
+                                        WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE id_original = @streamId)
+                                            AND messages.stream_version <= @expected
+                                            AND messages.event_id = @eventId;";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamId", _streamId);
+                command.Parameters.AddWithValue("@expected", expected + 1);
+                command.Parameters.AddWithValue("@eventId", eventId);
+                return Task.FromResult(command.ExecuteScalar<int?>(0) > 0);
+            }
+        }
+        
+        public Task<bool> ExistsAtExpectedPosition(Guid eventId, long? expected)
+        {
+            using(var command = CreateCommand())
+            {
+                command.CommandText = @"SELECT COUNT(*)
+                                        FROM messages
+                                        WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE id_original = @streamId)
+                                            AND messages.stream_version = @expected
+                                            AND messages.event_id = @eventId;";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamId", _streamId);
+                command.Parameters.AddWithValue("@expected", expected + 1);
+                command.Parameters.AddWithValue("@eventId", eventId);
+                return Task.FromResult(command.ExecuteScalar<int?>(0) > 0);
+            }
+        }
+        
         public Task<int> Length(CancellationToken cancellationToken)
         {
             using(var command = CreateCommand())

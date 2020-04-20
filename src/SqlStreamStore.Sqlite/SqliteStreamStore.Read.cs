@@ -19,10 +19,6 @@ namespace SqlStreamStore
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
 
-            // If the count is int.MaxValue, TSql will see it as a negative number. 
-            // Users shouldn't be using int.MaxValue in the first place anyway.
-            var maxRecords = count == int.MaxValue ? count - 1 : count;
-
             using(var connection = OpenConnection())
             {
                 var streamProperties = await connection.Streams(streamId)
@@ -49,7 +45,7 @@ namespace SqlStreamStore
                     fromVersion,
                     prefetch,
                     readNext,
-                    maxRecords,
+                    count,
                     streamProperties.MaxAge);
             }
         }
@@ -65,9 +61,6 @@ namespace SqlStreamStore
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
 
-            // If the count is int.MaxValue, TSql will see it as a negative number. 
-            // Users shouldn't be using int.MaxValue in the first place anyway.
-            var maxRecords = count == int.MaxValue ? count - 1 : count;
             var streamVersion = fromStreamVersion == StreamVersion.End ? int.MaxValue - 1 : fromStreamVersion;
             using(var connection = OpenConnection())
             {
@@ -114,7 +107,7 @@ namespace SqlStreamStore
                     fromStreamVersion,
                     prefetch,
                     readNext,
-                    maxRecords,
+                    count,
                     streamProperties.MaxAge);
             }
         }
@@ -129,6 +122,9 @@ namespace SqlStreamStore
             int maxRecords,
             int? maxAge)
         {
+            // If the count is int.MaxValue, TSql will see it as a negative number. 
+            // Users shouldn't be using int.MaxValue in the first place anyway.
+            maxRecords = maxRecords == int.MaxValue ? maxRecords - 1 : maxRecords;
             var streamVersion = fromVersion == StreamVersion.End ? int.MaxValue -1 : fromVersion;
             int nextVersion = 0;
             var stream = connection.Streams(streamId);

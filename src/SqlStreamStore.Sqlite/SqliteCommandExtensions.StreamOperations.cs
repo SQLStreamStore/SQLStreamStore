@@ -54,6 +54,25 @@ namespace SqlStreamStore
             }
         }
 
+        public Task<int> Length(ReadDirection direction, long? startingIndex, CancellationToken cancellationToken)
+        {
+            using(var command = CreateCommand())
+            {
+                command.CommandText = @"SELECT COUNT(*)
+                                        FROM messages 
+                                        WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE id_original = @streamId LIMIT 1) 
+                                        AND CASE 
+                                                WHEN @forwards THEN messages.[position] >= @position
+                                                ELSE messages.[position] <= @position
+                                            END; -- count of remaining messages.";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamId", _streamId);
+                command.Parameters.AddWithValue("@position", startingIndex);
+                command.Parameters.AddWithValue("@forwards", direction == ReadDirection.Forward);
+                return Task.FromResult(command.ExecuteScalar<int>());
+            }
+        }
+
         public Task<StreamHeader> Properties(bool initializeIfNotFound = true, CancellationToken cancellationToken = default)
         {
             using(var command = CreateCommand())
@@ -84,6 +103,43 @@ namespace SqlStreamStore
             }
         }
 
+        public Task<long?> AllStreamPosition(ReadDirection direction, long? version)
+        {
+            using(var command = CreateCommand())
+            {
+                command.CommandText = @"SELECT messages.position
+                                    FROM messages
+                                    WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE id_original = @streamId)
+                                        AND messages.stream_version = @version;";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamId", _streamId);
+                command.Parameters.AddWithValue("@version", version);
+                command.Parameters.AddWithValue("@forwards", direction == ReadDirection.Forward);
+                var position = command.ExecuteScalar<long?>();
+
+                if(position == null)
+                {
+                    command.CommandText = @"SELECT CASE
+                                            WHEN @forwards THEN MIN(messages.position)
+                                            ELSE MAX(messages.position)
+                                        END
+                                        FROM messages
+                                        WHERE messages.stream_id_internal = (SELECT id_internal FROM streams WHERE id_original = @streamId) 
+                                            AND CASE
+                                                WHEN @forwards THEN messages.stream_version >= @version
+                                                ELSE messages.stream_version <= @version
+                                            END;";
+                    command.Parameters.Clear();
+                    command.Parameters.AddWithValue("@streamId", _streamId);
+                    command.Parameters.AddWithValue("@version", version);
+                    command.Parameters.AddWithValue("@forwards", direction == ReadDirection.Forward);
+                    position = command.ExecuteScalar<long?>(long.MaxValue);
+                }
+
+                return Task.FromResult(position);
+            }
+        }
+        
         private Task<StreamHeader> InitializePositionStream()
         {
             var idInfo = new StreamIdInfo(_streamId);

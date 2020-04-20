@@ -175,46 +175,16 @@ namespace SqlStreamStore
                     lastVersion = reader.ReadScalar<int>(1);
                 }
             }
-            
 
-            command.CommandText = @"SELECT messages.position
-                                    FROM messages
-                                    WHERE messages.stream_id_internal = @idInternal
-                                        AND messages.stream_version = @streamVersion;";
-            command.Parameters.Clear();
-            command.Parameters.AddWithValue("@idInternal", streamIdInternal);
-            command.Parameters.AddWithValue("@streamVersion", streamVersion);
-            command.Parameters.AddWithValue("@forwards", direction == ReadDirection.Forward);
-            var position = command.ExecuteScalar<long?>();
+            var position = command.Connection.Streams(streamId)
+                .AllStreamPosition(direction, streamVersion)
+                .GetAwaiter().GetResult();
 
-            if(position == null)
-            {
-                command.CommandText = @"SELECT CASE
-                                            WHEN @forwards THEN MIN(messages.position)
-                                            ELSE MAX(messages.position)
-                                        END
-                                        FROM messages
-                                        WHERE messages.stream_id_internal = @idInternal 
-                                            AND CASE
-                                                WHEN @forwards THEN messages.stream_version >= @streamVersion
-                                                ELSE messages.stream_version <= @streamVersion
-                                            END;";
-                command.Parameters.Clear();
-                command.Parameters.AddWithValue("@idInternal", streamIdInternal);
-                command.Parameters.AddWithValue("@streamVersion", streamVersion);
-                command.Parameters.AddWithValue("@forwards", direction == ReadDirection.Forward);
-                position = command.ExecuteScalar<long?>(long.MaxValue);
-            }
+            var remaining = command.Connection.Streams(streamId)
+                .Length(direction, position, CancellationToken.None)
+                .GetAwaiter().GetResult();
             
-            command.CommandText = @"SELECT COUNT(*)
-                        FROM messages 
-                        WHERE messages.stream_id_internal = @idInternal 
-                        AND CASE 
-                                WHEN @forwards THEN messages.[position] >= @position
-                                ELSE messages.[position] <= @position
-                            END; -- count of remaining messages.
-                        
-                        SELECT messages.event_id,
+            command.CommandText = @"SELECT messages.event_id,
                                messages.stream_version,
                                messages.[position],
                                messages.created_utc,
@@ -242,15 +212,10 @@ namespace SqlStreamStore
 
             bool isEnd = false;
             var filtered = new List<StreamMessage>();
-            int remaining = 0;
             var messages = new List<(StreamMessage message, int? maxAge)>();
 
             using(var reader = command.ExecuteReader())
             {
-                reader.Read();
-                remaining = reader.ReadScalar<int>(0);
-
-                reader.NextResult();
                 while(reader.Read())
                 {
                     messages.Add((ReadStreamMessage(reader, streamId, prefetch), maxAge));

@@ -95,27 +95,6 @@ namespace SqlStreamStore
 
                 using(var command = connection.CreateCommand())
                 {
-                    // command.CommandText = @"SELECT messages.position
-                    //             FROM messages
-                    //             WHERE messages.stream_id_internal = @idOriginal
-                    //                 AND messages.stream_version <= @streamVersion
-                    //             ORDER BY messages.position DESC
-                    //             LIMIT 1;";
-                    // command.Parameters.Clear();
-                    // command.Parameters.AddWithValue("@idOriginal", streamProperties.Key);
-                    // command.Parameters.AddWithValue("@streamVersion", streamVersion);
-                    // var position = command.ExecuteScalar<long?>();
-                    //
-                    // if(position == null)
-                    // {
-                    //     command.CommandText = @"SELECT streams.position
-                    //         FROM streams
-                    //         WHERE streams.id_internal = @idOriginal;";
-                    //     command.Parameters.Clear();
-                    //     command.Parameters.AddWithValue("@idOriginal", streamProperties.Key);
-                    //     position = command.ExecuteScalar<long?>();
-                    // }
-
                     var position = command.Connection.Streams(streamId)
                         .AllStreamPosition(ReadDirection.Backward, streamVersion);
 

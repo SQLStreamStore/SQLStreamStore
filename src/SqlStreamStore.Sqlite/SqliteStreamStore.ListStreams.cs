@@ -1,13 +1,13 @@
 namespace SqlStreamStore
 {
-    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using SqlStreamStore.Streams;
 
     public partial class SqliteStreamStore
     {
-        protected override Task<ListStreamsPage> ListStreamsInternal(
+        protected override async Task<ListStreamsPage> ListStreamsInternal(
             Pattern pattern,
             int maxCount,
             string continuationToken,
@@ -16,45 +16,19 @@ namespace SqlStreamStore
         {
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
-            
-            if(!int.TryParse(continuationToken, out var idInternal))
+
+            using(var connection = OpenConnection())
             {
-                idInternal = -1;
-            }
+                var headers = await connection.AllStream()
+                    .List(pattern, maxCount, continuationToken, cancellationToken);
 
-            using(var conn = OpenConnection())
-            using(var cmd = conn.CreateCommand())
-            {
-                var streamIds = new List<string>();
-                cmd.CommandText = @"SELECT streams.id_original, streams.id_internal
-FROM streams
-WHERE streams.id_internal > @idInternal";
-                switch(pattern)
-                {
-                    case Pattern.StartingWith _:
-                        cmd.CommandText += "\n AND streams.id_original LIKE CONCAT(@Pattern), '%')";
-                        break;
-                    case Pattern.EndingWith _:
-                        cmd.CommandText += "\n AND streams.id_original LIKE CONCAT('%', @Pattern)";
-                        break;
-                }
+                var token = headers.Any()
+                    ? headers.Last().Key.ToString()
+                    : Position.End.ToString();
 
-                cmd.CommandText += "\n LIMIT @maxCount;";
-                cmd.Parameters.Clear();
-                cmd.Parameters.AddWithValue("@idInternal", idInternal);
-                cmd.Parameters.AddWithValue("@pattern", pattern.Value);
-                cmd.Parameters.AddWithValue("@maxCount", maxCount);
-
-                using(var reader = cmd.ExecuteReader())
-                {
-                    while(reader.Read())
-                    {
-                        streamIds.Add(reader.GetString(0));
-                        idInternal = reader.GetInt32(1);
-                    }
-                }
-
-                return Task.FromResult(new ListStreamsPage(idInternal.ToString(), streamIds.ToArray(), listNextStreamsPage));
+                return new ListStreamsPage(token, 
+                    headers.Select(h => h.IdOriginal).ToArray(), 
+                    listNextStreamsPage);
             }
         }
     }

@@ -80,7 +80,7 @@ namespace SqlStreamStore
             {
                 return (await connection
                     .AllStream()
-                    .ReadHeadPosition(cancellationToken)) ?? Position.End;
+                    .HeadPosition(cancellationToken)) ?? Position.End;
             }
         }
 

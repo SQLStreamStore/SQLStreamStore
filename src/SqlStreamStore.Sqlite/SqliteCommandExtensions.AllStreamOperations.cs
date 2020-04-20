@@ -21,14 +21,74 @@ namespace SqlStreamStore
             _settings = settings;
         }
 
-        public async Task<long?> ReadHeadPosition(CancellationToken cancellationToken = default)
+        public async Task<long?> HeadPosition(CancellationToken cancellationToken = default)
         {
             return(await _connection.Streams("$position")
                 .Properties(false, cancellationToken))
                 ?.Position;
         }
 
-        public Task<long?> RemainingInStream(ReadDirection direction, long? index)
+        public Task<IReadOnlyList<StreamHeader>> List(
+            Pattern pattern,
+            int maxCount,
+            string continuationToken,
+            CancellationToken cancellationToken = default)
+        {
+            //RESEARCH: Can this cause some sort of DDoS attack?
+            if(!int.TryParse(continuationToken, out var id))
+            {
+                id = 0;
+            }
+
+            if(id == -1)
+            {
+                return Task.FromResult<IReadOnlyList<StreamHeader>>(new List<StreamHeader>());
+            }
+
+            var headers = new List<StreamHeader>();
+            using(var command = _connection.CreateCommand())
+            {
+                command.CommandText = @"SELECT id, id_internal, id_original, [version], [position], max_age, max_count
+                                    FROM streams
+                                    WHERE streams.id_original >= @id;";
+                switch(pattern)
+                {
+                    case Pattern.StartingWith _:
+                        command.CommandText += "\n AND streams.id_original LIKE CONCAT(@Pattern), '%')";
+                        break;
+                    case Pattern.EndingWith _:
+                        command.CommandText += "\n AND streams.id_original LIKE CONCAT('%', @Pattern)";
+                        break;
+                }
+                command.CommandText += "\n LIMIT @maxCount;";
+
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@id", id);
+                command.Parameters.AddWithValue("@pattern", pattern);
+                command.Parameters.AddWithValue("@maxCount", maxCount);
+
+                using(var reader = command.ExecuteReader(CommandBehavior.SingleRow))
+                {
+                    while(reader.Read())
+                    {
+                        headers.Add(new StreamHeader
+                        {
+                            Id = reader.ReadScalar<string>(0),
+                            Key = reader.ReadScalar<int>(1),
+                            IdOriginal =  reader.ReadScalar<string>(2),
+                            Version = reader.ReadScalar<int>(3),
+                            Position = reader.ReadScalar<int>(4),
+                            MaxAge = reader.ReadScalar<int?>(5),
+                            MaxCount = reader.ReadScalar<int>(6),
+                        });
+                    }
+                }
+            }
+
+            return Task.FromResult<IReadOnlyList<StreamHeader>>(headers);
+        }
+
+        public Task<long?> Remaining(ReadDirection direction, long? index)
         {
             using(var command = _connection.CreateCommand())
             {

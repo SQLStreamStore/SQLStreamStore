@@ -22,7 +22,7 @@ namespace SqlStreamStore
             {
                 // find starting node.
                 var allStreamPosition = await connection.AllStream()
-                    .ReadHeadPosition(cancellationToken);
+                    .HeadPosition(cancellationToken);
                 if(allStreamPosition == Position.None)
                 {
                     return new ReadAllPage(
@@ -44,7 +44,7 @@ namespace SqlStreamStore
                 }
 
                 var remaining = await connection.AllStream()
-                    .RemainingInStream(ReadDirection.Forward, fromPositionExclusive);
+                    .Remaining(ReadDirection.Forward, fromPositionExclusive);
 
                 if(remaining == Position.End)
                 {
@@ -93,7 +93,7 @@ namespace SqlStreamStore
             {
                 long? beginningPosition = fromPosition;
                 var allStreamPosition = await connection.AllStream()
-                    .ReadHeadPosition(cancellationToken);
+                    .HeadPosition(cancellationToken);
                 if(allStreamPosition == Position.None)
                 {
                     return new ReadAllPage(
@@ -127,7 +127,7 @@ namespace SqlStreamStore
                     : beginningPosition;
 
                 var remaining = await connection.AllStream()
-                    .RemainingInStream(ReadDirection.Backward, beginningPosition);
+                    .Remaining(ReadDirection.Backward, beginningPosition);
                 if(remaining == Position.End)
                 {
                     return new ReadAllPage(

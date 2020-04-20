@@ -2,7 +2,6 @@ namespace SqlStreamStore
 {
     using System;
     using System.Collections.Generic;
-    using System.Data;
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
@@ -96,26 +95,29 @@ namespace SqlStreamStore
 
                 using(var command = connection.CreateCommand())
                 {
-                    command.CommandText = @"SELECT messages.position
-                                FROM messages
-                                WHERE messages.stream_id_internal = @idOriginal
-                                    AND messages.stream_version <= @streamVersion
-                                ORDER BY messages.position DESC
-                                LIMIT 1;";
-                    command.Parameters.Clear();
-                    command.Parameters.AddWithValue("@idOriginal", streamProperties.Key);
-                    command.Parameters.AddWithValue("@streamVersion", streamVersion);
-                    var position = command.ExecuteScalar<long?>();
+                    // command.CommandText = @"SELECT messages.position
+                    //             FROM messages
+                    //             WHERE messages.stream_id_internal = @idOriginal
+                    //                 AND messages.stream_version <= @streamVersion
+                    //             ORDER BY messages.position DESC
+                    //             LIMIT 1;";
+                    // command.Parameters.Clear();
+                    // command.Parameters.AddWithValue("@idOriginal", streamProperties.Key);
+                    // command.Parameters.AddWithValue("@streamVersion", streamVersion);
+                    // var position = command.ExecuteScalar<long?>();
+                    //
+                    // if(position == null)
+                    // {
+                    //     command.CommandText = @"SELECT streams.position
+                    //         FROM streams
+                    //         WHERE streams.id_internal = @idOriginal;";
+                    //     command.Parameters.Clear();
+                    //     command.Parameters.AddWithValue("@idOriginal", streamProperties.Key);
+                    //     position = command.ExecuteScalar<long?>();
+                    // }
 
-                    if(position == null)
-                    {
-                        command.CommandText = @"SELECT streams.position
-                            FROM streams
-                            WHERE streams.id_internal = @idOriginal;";
-                        command.Parameters.Clear();
-                        command.Parameters.AddWithValue("@idOriginal", streamProperties.Key);
-                        position = command.ExecuteScalar<long?>();
-                    }
+                    var position = command.Connection.Streams(streamId)
+                        .AllStreamPosition(ReadDirection.Backward, streamVersion);
 
                     // if no position, then need to return success with end of stream.
                     if(position == null)
@@ -158,23 +160,11 @@ namespace SqlStreamStore
             int? maxAge)
         {
             var streamVersion = fromVersion == StreamVersion.End ? int.MaxValue -1 : fromVersion;
-            var lastPosition = 0L;
-            int lastVersion = 0;
             int nextVersion = 0;
 
-            command.CommandText = @"SELECT [position], [version]
-                                    FROM streams
-                                    WHERE streams.id_internal = @idInternal;";
-            command.Parameters.Clear();
-            command.Parameters.AddWithValue("@idInternal", streamIdInternal);
-            using(var reader = command.ExecuteReader(CommandBehavior.SingleRow))
-            {
-                if(reader.Read())
-                {
-                    lastPosition = reader.ReadScalar<long>(0);
-                    lastVersion = reader.ReadScalar<int>(1);
-                }
-            }
+            var header = command.Connection.Streams(streamId)
+                .Properties()
+                .GetAwaiter().GetResult();
 
             var position = command.Connection.Streams(streamId)
                 .AllStreamPosition(direction, streamVersion)
@@ -234,7 +224,7 @@ namespace SqlStreamStore
                 }
                 else
                 {
-                    nextVersion = lastVersion + 1;
+                    nextVersion = header.Version + 1;
                 }
             }
             else if (direction == ReadDirection.Backward)
@@ -255,8 +245,8 @@ namespace SqlStreamStore
                 status: PageReadStatus.Success,
                 fromStreamVersion: fromVersion,
                 nextStreamVersion: nextVersion,
-                lastStreamVersion: lastVersion,
-                lastStreamPosition: lastPosition,
+                lastStreamVersion: header.Version,
+                lastStreamPosition: header.Position,
                 direction: direction,
                 isEnd: isEnd,
                 readNext: readNext,

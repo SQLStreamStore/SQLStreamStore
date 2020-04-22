@@ -15,8 +15,6 @@ RUN for file in $(ls src/*.csproj); do mkdir -p ./${file%.*}/ && mv $file ./${fi
 COPY ./tests/*/*.csproj ./tests/
 RUN for file in $(ls tests/*.csproj); do mkdir -p ./${file%.*}/ && mv $file ./${file%.*}/; done
 
-COPY ./NuGet.Config ./
-
 RUN dotnet restore
 
 COPY ./src ./src/

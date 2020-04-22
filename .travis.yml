@@ -1,9 +1,0 @@
-language: minimal
-sudo: required
-dist: trusty
-script: "./build.sh --travis"
-env:
-  global:
-  - secure: e9lJxUIbCieJ/N1jm1KJpK6HNPC9bFEYpMf59yyckBaRFifYhTE71EKu6gppb9Rm6JDovX6IjiryRnCG4CJ2/4Tzf+66HNc4I7jkZQWv+vdwmz+B1hw4WymLJ2bAGu65MF4wjqPBr+uJR5roHTdYl7Ay2+S0B0rkVgefLWypukHdPktlako9XMunsv1TT6vv1U58yDFRO/sI0CnvP+855mGyxiKGl54GBkY+ND3hiyoKkUN+IKgBKSayQ3J0tWvw/xQKSBXEfM0H+yXz+DPgMV3a0R5F4riU23UUq1krn0KjupJQTdqqtZ+u0KNNP/9BC/QWYuDvt384idGURWGnh9YFMXdTnhHpbzJ29ku/RWjnDfm1aRSm2HMMxNJRFUm9GHRYxZ2rEvO6k+Iqcztes40/YGEDsYgDjgBMPvPzaksqpCz2xtXtDZytPZ6M5SjpNUFM7LEPhwIFWMtB0qtMpwi/Jhv55g3oH608n7a+eiW/rpPG5WElGxcaL9RX/oy0peGAUoORrmEyy6Pdvgeo6GZmq+Cj32GQJccU0PCU/DA7koRMvEC+2DNKg9NBCrmfQpCIQNYX13XmKWcJmxMeT26rrmzz1ZCIaHrp6ITzieZ76xdBEvmci+s6syChteiJJFAqEx0oAHilwjEz1iQAZ9Tpxh4yOxzx0bapnSPUwJo=
-git:
-  depth: false

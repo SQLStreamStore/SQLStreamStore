@@ -88,6 +88,7 @@
 
                     using(var command = new SqlCommand(_scripts.SetStreamMetadata, connection, transaction))
                     {
+                        command.CommandTimeout = _commandTimeout;
                         command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = streamIdInfo.SqlStreamId.Id });
                         command.Parameters.AddWithValue("streamIdOriginal", streamIdInfo.SqlStreamId.IdOriginal);
                         command.Parameters.Add("maxAge", SqlDbType.Int);

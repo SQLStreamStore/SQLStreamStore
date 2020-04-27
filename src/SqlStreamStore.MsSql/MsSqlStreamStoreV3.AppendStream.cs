@@ -151,6 +151,7 @@
         {
             using(var command = new SqlCommand(_scripts.AppendStreamExpectedVersionAny, connection, transaction))
             {
+                command.CommandTimeout = _commandTimeout;
                 command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = sqlStreamId.Id });
                 command.Parameters.AddWithValue("streamIdOriginal", sqlStreamId.IdOriginal);
 
@@ -257,6 +258,7 @@
         {
             using(var command = new SqlCommand(_scripts.AppendStreamExpectedVersionNoStream, connection, transaction))
             {
+                command.CommandTimeout = _commandTimeout;
                 command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = sqlStreamId.Id });
                 command.Parameters.AddWithValue("streamIdOriginal", sqlStreamId.IdOriginal);
 
@@ -363,6 +365,7 @@
 
             using(var command = new SqlCommand(_scripts.AppendStreamExpectedVersion, connection, transaction))
             {
+                command.CommandTimeout = _commandTimeout;
                 command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = sqlStreamId.Id });
                 command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
                 var eventsParam = CreateNewMessagesSqlParameter(sqlDataRecords);
@@ -478,6 +481,7 @@
         {
             using(var command = new SqlCommand(_scripts.GetStreamVersionOfMessageId, connection, transaction))
             {
+                command.CommandTimeout = _commandTimeout;
                 command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = sqlStreamId.Id });
                 command.Parameters.AddWithValue("messageId", messageId);
 

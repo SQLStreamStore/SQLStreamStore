@@ -12,6 +12,7 @@ namespace SqlStreamStore
     public class MsSqlStreamStoreV3Settings
     {
         private string _schema = "dbo";
+        private int _commandTimeout = 30;
 
         /// <summary>
         ///     Initialized a new instance of <see cref="MsSqlStreamStoreV3Settings"/>.
@@ -76,5 +77,18 @@ namespace SqlStreamStore
         ///     message has been deleted. This can be modified at runtime.
         /// </summary>
         public bool DisableDeletionTracking { get; set; }
+
+        /// <summary>
+        ///     Controls the wait time to execute a command. Defaults to 30 seconds.
+        /// </summary>
+        public int CommandTimeout
+        {
+            get => _commandTimeout;
+            set
+            {
+                Ensure.That(value, nameof(CommandTimeout)).IsGte(0);
+                _commandTimeout = value;
+            }
+        }
     }
 }

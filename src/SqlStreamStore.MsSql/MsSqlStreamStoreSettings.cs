@@ -13,6 +13,7 @@ namespace SqlStreamStore
     public class MsSqlStreamStoreSettings
     {
         private string _schema = "dbo";
+        private int _commandTimeout = 30;
 
         /// <summary>
         ///     Initialized a new instance of <see cref="MsSqlStreamStoreSettings"/>.
@@ -86,5 +87,18 @@ namespace SqlStreamStore
         ///     The default implementation simply passes the connection string into the <see cref="SqlConnection"/> constructor.
         /// </summary>
         public Func<string, SqlConnection> ConnectionFactory { get; set; } = connectionString => new SqlConnection(connectionString);
+
+        /// <summary>
+        ///     Controls the wait time to execute a command. Defaults to 30 seconds.
+        /// </summary>
+        public int CommandTimeout
+        {
+            get => _commandTimeout;
+            set
+            {
+                Ensure.That(value, nameof(CommandTimeout)).IsGte(0);
+                _commandTimeout = value;
+            }
+        }
     }
 }

@@ -108,6 +108,7 @@
 
             using (var command = new SqlCommand(commandText, connection, transaction))
             {
+                command.CommandTimeout = _commandTimeout;
                 command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = sqlStreamId.Id });
                 command.Parameters.AddWithValue("count", count + 1); //Read extra row to see if at end or not
                 command.Parameters.AddWithValue("streamVersion", streamVersion);
@@ -204,6 +205,7 @@
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                 using(var command = new SqlCommand(_scripts.ReadMessageData, connection))
                 {
+                    command.CommandTimeout = _commandTimeout;
                     command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = streamId });
                     command.Parameters.AddWithValue("streamVersion", streamVersion);
 

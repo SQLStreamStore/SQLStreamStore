@@ -77,7 +77,7 @@ namespace SqlStreamStore
         {
             using(_lock.UseReadLock())
             {
-                return Task.FromResult(!_streams.ContainsKey(streamId) ? 0 : _streams[streamId].Messages.Count);
+                return Task.FromResult(!_streams.ContainsKey(streamId) ? 0 : _streams[streamId].NumberOfMessages);
             }
         }
 
@@ -279,7 +279,7 @@ namespace SqlStreamStore
                 return;
             }
             if (expectedVersion != ExpectedVersion.Any &&
-                _streams[streamId].Messages.Last().StreamVersion != expectedVersion)
+               _streams[streamId].GetLastMessage().StreamVersion != expectedVersion)
             {
                 throw new WrongExpectedVersionException(
                         ErrorMessages.AppendFailedWrongExpectedVersion(streamId, expectedVersion),
@@ -507,10 +507,10 @@ namespace SqlStreamStore
 
                 var messages = new List<StreamMessage>();
                 var i = start;
-
-                while(i < stream.Messages.Count && count > 0)
+                
+                while(i < stream.NumberOfMessages && count > 0)
                 {
-                    var inMemorymessage = stream.Messages[i];
+                    var inMemorymessage = stream.GetMessageBasedOnIndex(i);
                     StreamMessage message;
                     if (prefetch)
                     {
@@ -556,7 +556,7 @@ namespace SqlStreamStore
                 {
                     nextStreamVersion = messages.Last().StreamVersion + 1;
                 }
-                var endOfStream = i == stream.Messages.Count;
+                var endOfStream = i == stream.NumberOfMessages;
 
                 var page = new ReadStreamPage(
                     streamId,
@@ -600,43 +600,44 @@ namespace SqlStreamStore
                         s_readNextNotFound);
                     return Task.FromResult(notFound);
                 }
-                
-                var fromVersion = (fromVersionInclusive == StreamVersion.End) ?
-                    stream.Messages.Max(m => m.StreamVersion  as int?) ?? 0 :
-                    fromVersionInclusive;
 
-                var messages = stream.Messages.Where(m => m.StreamVersion <= fromVersion).Reverse().Take(count).Select(m =>
+                var messages = new List<StreamMessage>();
+                var i = fromVersionInclusive == StreamVersion.End ? stream.NumberOfMessages - 1 : stream.GetIndexOfStreamVersion(fromVersionInclusive);
+                while (i < stream.NumberOfMessages && i >= 0 && count > 0)
                 {
+                    var inMemorymessage = stream.GetMessageBasedOnIndex(i);
                     StreamMessage message;
                     if (prefetch)
                     {
                         message = new StreamMessage(
                             streamId,
-                            m.MessageId,
-                            m.StreamVersion,
-                            m.Position,
-                            m.Created,
-                            m.Type,
-                            m.JsonMetadata,
-                            m.JsonData);
+                            inMemorymessage.MessageId,
+                            inMemorymessage.StreamVersion,
+                            inMemorymessage.Position,
+                            inMemorymessage.Created,
+                            inMemorymessage.Type,
+                            inMemorymessage.JsonMetadata,
+                            inMemorymessage.JsonData);
                     }
                     else
                     {
                         message = new StreamMessage(
                             streamId,
-                            m.MessageId,
-                            m.StreamVersion,
-                            m.Position,
-                            m.Created,
-                            m.Type,
-                            m.JsonMetadata,
-                            ct =>  Task.Run(() => ReadMessageData(streamId, m.MessageId), ct));
+                            inMemorymessage.MessageId,
+                            inMemorymessage.StreamVersion,
+                            inMemorymessage.Position,
+                            inMemorymessage.Created,
+                            inMemorymessage.Type,
+                            inMemorymessage.JsonMetadata,
+                            ct =>  Task.Run(() => ReadMessageData(streamId, inMemorymessage.MessageId), ct));
                     }
-                    return message;
-                }).ToList();
+                    messages.Add(message);
 
-                var lastStreamVersion = stream.Messages.Count > 0
-                    ? stream.Messages[stream.Messages.Count - 1].StreamVersion
+                    i--;
+                    count--;
+                }
+                var lastStreamVersion = stream.NumberOfMessages > 0
+                    ? stream.GetLastMessage().StreamVersion
                     : StreamVersion.End;
                 var nextStreamVersion = messages.Count > 0
                     ? messages[messages.Count - 1].StreamVersion - 1

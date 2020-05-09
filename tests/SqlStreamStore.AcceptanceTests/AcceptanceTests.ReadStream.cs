@@ -379,14 +379,14 @@
             var messages = CreateNewStreamMessages(1, 2, 3);
             var firstMessageId = messages[0].MessageId;
             var secondMessageId = messages[1].MessageId;
-            var ThirdMessageId = messages[2].MessageId;
+            var thirdMessageId = messages[2].MessageId;
 
             var appendResult = await Store.AppendToStream(streamId, ExpectedVersion.Any, messages);
             await Store.DeleteMessage(streamId, secondMessageId);
 
             var page = await Store.ReadStreamBackwards(streamId, appendResult.CurrentVersion, 10);
             page.Messages.Length.ShouldBe(2);
-            page.Messages.First().MessageId.ShouldBe(ThirdMessageId);
+            page.Messages.First().MessageId.ShouldBe(thirdMessageId);
             page.Messages.Last().MessageId.ShouldBe(firstMessageId);
         }
 

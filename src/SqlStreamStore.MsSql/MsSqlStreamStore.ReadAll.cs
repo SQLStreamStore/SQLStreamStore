@@ -29,6 +29,7 @@ namespace SqlStreamStore
                 var commandText = prefetch ? _scripts.ReadAllForwardWithData : _scripts.ReadAllForward;
                 using (var command = new SqlCommand(commandText, connection))
                 {
+                    command.CommandTimeout = _commandTimeout;
                     command.Parameters.AddWithValue("position", position);
                     command.Parameters.AddWithValue("count", maxCount + 1); //Read extra row to see if at end or not
                     var reader = await command
@@ -126,6 +127,7 @@ namespace SqlStreamStore
                 var commandText = prefetch ? _scripts.ReadAllBackwardWithData : _scripts.ReadAllBackward;
                 using (var command = new SqlCommand(commandText, connection))
                 {
+                    command.CommandTimeout = _commandTimeout;
                     command.Parameters.AddWithValue("position", position);
                     command.Parameters.AddWithValue("count", maxCount + 1); //Read extra row to see if at end or not
                     var reader = await command

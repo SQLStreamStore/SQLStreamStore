@@ -10,8 +10,8 @@
     <LangVersion>7.3</LangVersion>
     <MinVerTagPrefix>v</MinVerTagPrefix>
     <MinVerMinimumMajorMinor>1.2</MinVerMinimumMajorMinor>
-    <TRAVIS_BUILD_NUMBER Condition="'$(TRAVIS_BUILD_NUMBER)' == ''">0</TRAVIS_BUILD_NUMBER>
-    <MinVerBuildMetadata>build.$(TRAVIS_BUILD_NUMBER)</MinVerBuildMetadata>
+    <BUILD_NUMBER Condition="'$(BUILD_NUMBER)' == ''">0</BUILD_NUMBER>
+    <MinVerBuildMetadata>build.$(BUILD_NUMBER)</MinVerBuildMetadata>
     <DebugType>full</DebugType>
     <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <AllowedOutputExtensionsInPackageBuildOutputFolder>$(AllowedOutputExtensionsInPackageBuildOutputFolder);.pdb</AllowedOutputExtensionsInPackageBuildOutputFolder>

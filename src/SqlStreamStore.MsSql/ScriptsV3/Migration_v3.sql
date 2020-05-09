@@ -2,7 +2,7 @@
     Make sure you back up your database first! 
 
     This script will migrate an MSSQL Stream store schema version 2 (package
-    versions prior to 1.1.2) to version 2 (package version 1.2.0 and later).
+    versions prior to 1.1.2) to version 3 (package version 1.2.0 and later).
     
 ***/
 

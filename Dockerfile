@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1.100-alpine3.10 AS build
+FROM mcr.microsoft.com/dotnet/core/sdk:3.1.201-alpine3.11 AS build
 
 RUN apk add git
 
@@ -14,8 +14,6 @@ RUN for file in $(ls src/*.csproj); do mkdir -p ./${file%.*}/ && mv $file ./${fi
 
 COPY ./tests/*/*.csproj ./tests/
 RUN for file in $(ls tests/*.csproj); do mkdir -p ./${file%.*}/ && mv $file ./${file%.*}/; done
-
-COPY ./NuGet.Config ./
 
 RUN dotnet restore
 

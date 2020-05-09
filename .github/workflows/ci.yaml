@@ -1,0 +1,25 @@
+name: CI
+
+on:
+  push:
+    branches:
+    - master
+    tags:
+    - v*
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    env: 
+      FEEDZ_SSS_API_KEY: ${{secrets.FEEDZ_SSS_API_KEY}}
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v2
+    - name: Generate build number
+      uses: einaregilsson/build-number@v2
+      with:
+        token: ${{secrets.github_token}}
+    - name: Build and Test
+      run: bash build.sh
+      shell: bash

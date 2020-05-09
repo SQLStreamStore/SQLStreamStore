@@ -39,6 +39,7 @@ namespace SqlStreamStore
                     bool deleted;
                     using (var command = new SqlCommand(_scripts.DeleteStreamMessage, connection, transaction))
                     {
+                        command.CommandTimeout = _commandTimeout;
                         command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = sqlStreamId.Id });
                         command.Parameters.AddWithValue("eventId", eventId);
                         var count  = await command
@@ -77,6 +78,7 @@ namespace SqlStreamStore
                 {
                     using(var command = new SqlCommand(_scripts.DeleteStreamExpectedVersion, connection, transaction))
                     {
+                        command.CommandTimeout = _commandTimeout;
                         command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = streamIdInfo.SqlStreamId.Id });
                         command.Parameters.AddWithValue("expectedStreamVersion", expectedVersion);
                         try
@@ -145,6 +147,7 @@ namespace SqlStreamStore
             bool aStreamIsDeleted;
             using (var command = new SqlCommand(_scripts.DeleteStreamAnyVersion, connection, transaction))
             {
+                command.CommandTimeout = _commandTimeout;
                 command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = sqlStreamId.Id });
                 var i = await command
                     .ExecuteScalarAsync(cancellationToken)

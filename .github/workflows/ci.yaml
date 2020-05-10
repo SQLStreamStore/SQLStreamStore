@@ -16,6 +16,8 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v2
+    - run: |
+        git fetch --prune --unshallow
     - name: Generate build number
       uses: einaregilsson/build-number@v2
       with:

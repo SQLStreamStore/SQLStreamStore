@@ -23,13 +23,15 @@
                 $"test_{Guid.NewGuid():n}");
         }
 
-        public async Task<MySqlStreamStore> GetUninitializedMySqlStreamStore()
+        public async Task<MySqlStreamStore> GetMySqlStreamStore()
         {
             await CreateDatabase();
 
             var settings = new MySqlStreamStoreSettings(ConnectionString);
 
-            return new MySqlStreamStore(settings);
+            var mySqlStreamStore = new MySqlStreamStore(settings);
+            await mySqlStreamStore.CreateSchemaIfNotExists();
+            return mySqlStreamStore;
         }
 
         public Task CreateDatabase() => _databaseManager.CreateDatabase();

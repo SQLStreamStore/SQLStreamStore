@@ -25,6 +25,9 @@
                     "Append with ExpectedVersion.Any",
                     async ct => await new AppendExpectedVersionAnyParallel().Run(ct))
                 .Add(
+                    "Append with ExpectedVersion.NoStream",
+                    async ct => await new AppendExpectedVersionNoStreamParallel().Run(ct))
+                .Add(
                     "Read all",
                     async ct => await new ReadAll().Run(ct))
                 .Add(

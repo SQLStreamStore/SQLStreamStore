@@ -14,7 +14,7 @@ namespace SqlStreamStore
 
         public PostgresStreamStoreFixture(
             string schema,
-            PostgresDockerDatabaseManager dockerInstance,
+            PostgresContainer dockerInstance,
             string databaseName,
             Action onDispose)
         {

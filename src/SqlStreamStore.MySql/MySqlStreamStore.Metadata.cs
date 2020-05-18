@@ -17,7 +17,7 @@ namespace SqlStreamStore
             var streamIdInfo = new StreamIdInfo(streamId);
 
             using(var connection = await OpenConnection(cancellationToken))
-            using(var transaction = connection.BeginTransaction())
+            using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
             {
                 return await GetStreamMetadataInternal(streamIdInfo, transaction, cancellationToken);
             }
@@ -78,7 +78,7 @@ namespace SqlStreamStore
             try
             {
                 using(var connection = await OpenConnection(cancellationToken))
-                using(var transaction = connection.BeginTransaction())
+                using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
                 using(var command = BuildStoredProcedureCall(
                     _schema.SetStreamMetadata,
                     transaction,

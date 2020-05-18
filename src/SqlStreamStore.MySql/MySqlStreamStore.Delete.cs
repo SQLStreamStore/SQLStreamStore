@@ -18,7 +18,7 @@ namespace SqlStreamStore
             var streamIdInfo = new StreamIdInfo(streamId);
 
             using(var connection = await OpenConnection(cancellationToken))
-            using(var transaction = connection.BeginTransaction())
+            using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
             {
                 await DeleteStreamInternal(
                     streamIdInfo.MySqlStreamId,
@@ -94,7 +94,7 @@ namespace SqlStreamStore
             var streamIdInfo = new StreamIdInfo(streamId);
 
             using(var connection = await OpenConnection(cancellationToken))
-            using(var transaction = connection.BeginTransaction())
+            using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
             {
                 await DeleteEventInternal(streamIdInfo, eventId, transaction, cancellationToken);
 

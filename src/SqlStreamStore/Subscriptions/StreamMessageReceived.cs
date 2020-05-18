@@ -5,7 +5,7 @@
     using SqlStreamStore.Streams;
 
     /// <summary>
-    ///       Repesents a delegate that is invoked when a stream messages has been received in a subscription.
+    ///       Represents a delegate that is invoked when a stream messages has been received in a subscription.
     /// </summary>
     /// <param name="subscription">
     ///      The source subscription.

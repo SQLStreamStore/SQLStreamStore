@@ -60,7 +60,7 @@
             GuardAgainstDisposed();
 
             using(var connection = await OpenConnection(cancellationToken))
-            using(var transaction = connection.BeginTransaction())
+            using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
             {
                 using(var command = BuildCommand(_schema.Definition, transaction))
                 {
@@ -83,7 +83,7 @@
             using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-                using(var transaction = connection.BeginTransaction())
+                using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
                 using(var command = BuildCommand(_schema.DropAll, transaction))
                 {
                     await command
@@ -107,7 +107,7 @@
             using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
-                using(var transaction = connection.BeginTransaction())
+                using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
                 using(var command = BuildStoredProcedureCall(_schema.ReadProperties, transaction))
                 {
                     var properties = SimpleJson.DeserializeObject<SchemaProperties>(
@@ -143,7 +143,7 @@
             try
             {
                 using(var connection = await OpenConnection(cancellationToken))
-                using(var transaction = connection.BeginTransaction())
+                using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
                 {
                     var deletedMessageIds = new List<Guid>();
                     using(var command = BuildStoredProcedureCall(
@@ -228,7 +228,7 @@
         private async Task<MySqlConnection> OpenConnection(CancellationToken cancellationToken)
         {
             var connection = _createConnection();
-            await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+            await connection.OpenAsync(cancellationToken).NotOnCapturedContext(); 
             return connection;
         }
 
@@ -236,7 +236,7 @@
             => async cancellationToken =>
             {
                 using(var connection = await OpenConnection(cancellationToken))
-                using(var transaction = connection.BeginTransaction())
+                using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
                 using(var command = BuildStoredProcedureCall(
                     _schema.ReadJsonData,
                     transaction,

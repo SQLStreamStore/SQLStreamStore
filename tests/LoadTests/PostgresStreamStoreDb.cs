@@ -20,18 +20,14 @@
         {
             _schema = schema;
 
-            _databaseManager = new PostgresDockerDatabaseManager(
-                testOutputHelper, 
-                $"test_{Guid.NewGuid():n}");
+            _databaseManager = new PostgresContainer($"test_{Guid.NewGuid():n}");
         }
 
         public PostgresStreamStoreDb(string schema, string connectionString)
         {
             _schema = schema;
 
-            _databaseManager = new PostgresDockerDatabaseManager(
-                new ConsoleTestoutputHelper(),
-                $"test_{Guid.NewGuid():n}");
+            _databaseManager = new PostgresContainer($"test_{Guid.NewGuid():n}");
         }
 
         public async Task<PostgresStreamStore> GetPostgresStreamStore(bool scavengeAsynchronously = false)

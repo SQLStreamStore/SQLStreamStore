@@ -4,6 +4,7 @@ on:
   push:
     branches:
     - master
+    - releases/*
     tags:
     - v*
 
@@ -14,14 +15,10 @@ jobs:
     env: 
       FEEDZ_SSS_API_KEY: ${{secrets.FEEDZ_SSS_API_KEY}}
     steps:
-    - name: Checkout
-      uses: actions/checkout@v2
-    - run: |
-        git fetch --prune --unshallow
-    - name: Generate build number
-      uses: einaregilsson/build-number@v2
-      with:
-        token: ${{secrets.github_token}}
-    - name: Build and Test
-      run: bash build.sh
-      shell: bash
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 100
+      - name: Build and Test
+        run: bash build.sh
+        shell: bash

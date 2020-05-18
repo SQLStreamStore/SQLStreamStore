@@ -14,7 +14,7 @@
         private readonly string _databaseNameOverride;
         private readonly bool _deleteDatabaseOnDispose;
         private readonly string _databaseName;
-        private readonly DockerMsSqlServerDatabase _databaseInstance;
+        private readonly SqlServerContainer _containerInstance;
 
         public MsSqlStreamStoreDbV3(
             string schema,
@@ -27,7 +27,7 @@
             _databaseNameOverride = databaseNameOverride;
             _deleteDatabaseOnDispose = deleteDatabaseOnDispose;
             _databaseName = databaseNameOverride ?? $"sss-v3-{Guid.NewGuid():n}";
-            _databaseInstance = new DockerMsSqlServerDatabase(_databaseName);
+            _containerInstance = new SqlServerContainer(_databaseName);
 
             ConnectionString = CreateConnectionString();
         }
@@ -61,7 +61,7 @@
 
             SqlConnection.ClearAllPools();
 
-            using (var connection = _databaseInstance.CreateConnection())
+            using (var connection = _containerInstance.CreateConnection())
             {
                 connection.Open();
                 using (var command = new SqlCommand($"ALTER DATABASE [{_databaseName}] SET SINGLE_USER WITH ROLLBACK IMMEDIATE", connection))
@@ -79,13 +79,14 @@
         {
             if (_databaseNameOverride == null)
             {
-                await _databaseInstance.CreateDatabase();
+                await _containerInstance.Start();
+                await _containerInstance.CreateDatabase();
             }
         }
 
         private string CreateConnectionString()
         {
-            var connectionStringBuilder = _databaseInstance.CreateConnectionStringBuilder();
+            var connectionStringBuilder = _containerInstance.CreateConnectionStringBuilder();
             connectionStringBuilder.MultipleActiveResultSets = true;
             connectionStringBuilder.InitialCatalog = _databaseName;
 

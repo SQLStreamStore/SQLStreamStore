@@ -2,19 +2,17 @@ namespace SqlStreamStore
 {
     using System;
     using System.Threading.Tasks;
-    using Microsoft.Data.SqlClient;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.TestUtils.MsSql;
 
     public class MsSqlStreamStoreFixture : IStreamStoreFixture
     {
         private readonly Action _onDispose;
-        private bool _preparedPreviously;
         private readonly MsSqlStreamStoreSettings _settings;
 
         public MsSqlStreamStoreFixture(
             string schema,
-            DockerMsSqlServerDatabase dockerInstance,
+            SqlServerContainer dockerInstance,
             string databaseName,
             Action onDispose)
         {
@@ -57,42 +55,8 @@ namespace SqlStreamStore
         {
             MsSqlStreamStore = new MsSqlStreamStore(_settings);
 
+            await MsSqlStreamStore.DropAll();
             await MsSqlStreamStore.CreateSchema();
-            if (_preparedPreviously)
-            {
-                using (var connection = new SqlConnection(_settings.ConnectionString))
-                {
-                    connection.Open();
-
-                    var schema = _settings.Schema;
-
-                    var commandText = $"DELETE FROM [{schema}].[Messages]";
-                    using (var command = new SqlCommand(commandText, connection))
-                    {
-                        command.ExecuteNonQuery();
-                    }
-
-                    commandText = $"DELETE FROM [{schema}].[Streams]";
-                    using (var command = new SqlCommand(commandText, connection))
-                    {
-                        command.ExecuteNonQuery();
-                    }
-
-                    commandText = $"DBCC CHECKIDENT ('[{schema}].[Streams]', RESEED, 0);";
-                    using (var command = new SqlCommand(commandText, connection))
-                    {
-                        command.ExecuteNonQuery();
-                    }
-
-                    commandText = $"DBCC CHECKIDENT ('[{schema}].[Messages]', RESEED, -1);";
-                    using (var command = new SqlCommand(commandText, connection))
-                    {
-                        command.ExecuteNonQuery();
-                    }
-                }
-            }
-
-            _preparedPreviously = true;
         }
 
         public void Dispose()

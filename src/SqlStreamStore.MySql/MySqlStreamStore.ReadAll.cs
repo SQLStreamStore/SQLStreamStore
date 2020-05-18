@@ -25,7 +25,7 @@ namespace SqlStreamStore
             try
             {
                 using(var connection = await OpenConnection(cancellationToken))
-                using(var transaction = connection.BeginTransaction())
+                using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
                 using(var command = BuildStoredProcedureCall(
                     _schema.ReadAll,
                     transaction,
@@ -105,7 +105,7 @@ namespace SqlStreamStore
             try
             {
                 using(var connection = await OpenConnection(cancellationToken))
-                using(var transaction = connection.BeginTransaction())
+                using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
                 using(var command = BuildStoredProcedureCall(
                     _schema.ReadAll,
                     transaction,

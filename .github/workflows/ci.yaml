@@ -19,6 +19,9 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
+      - name: Pull Containers
+        shell: bash
+        run: docker pull damianh/dotnet-core-lts-sdks:1 && docker pull microsoft/mssql-server-linux:2017-CU9 && docker pull mysql:5.6 && docker pull postgres:10.4-alpine
       - name: Build and Test
         shell: bash
         run: bash build.sh

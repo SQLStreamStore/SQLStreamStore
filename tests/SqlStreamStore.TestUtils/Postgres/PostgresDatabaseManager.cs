@@ -1,17 +1,14 @@
 namespace SqlStreamStore.TestUtils.Postgres
 {
-    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using Npgsql;
     using Npgsql.Logging;
     using SqlStreamStore.Infrastructure;
-    using Xunit.Abstractions;
 
     public abstract class PostgresDatabaseManager
     {
         protected readonly string DatabaseName;
-        protected readonly ITestOutputHelper TestOutputHelper;
 
         private bool _started;
 
@@ -30,9 +27,8 @@ namespace SqlStreamStore.TestUtils.Postgres
 #endif
         }
 
-        protected PostgresDatabaseManager(ITestOutputHelper testOutputHelper, string databaseName)
+        protected PostgresDatabaseManager(string databaseName)
         {
-            TestOutputHelper = testOutputHelper;
             DatabaseName = databaseName;
         }
 
@@ -54,18 +50,10 @@ namespace SqlStreamStore.TestUtils.Postgres
         {
             var commandText = $"SELECT 1 FROM pg_database WHERE datname = '{DatabaseName}'";
 
-            try
+            using(var command = new NpgsqlCommand(commandText, connection))
             {
-                using(var command = new NpgsqlCommand(commandText, connection))
-                {
-                    return await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext()
-                           != null;
-                }
-            }
-            catch(Exception ex)
-            {
-                TestOutputHelper.WriteLine($@"Attempted to execute ""{commandText}"" but failed: {ex}");
-                throw;
+                return await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext()
+                       != null;
             }
         }
 
@@ -73,17 +61,9 @@ namespace SqlStreamStore.TestUtils.Postgres
         {
             var commandText = $"CREATE DATABASE {DatabaseName}";
 
-            try
+            using(var command = new NpgsqlCommand(commandText, connection))
             {
-                using(var command = new NpgsqlCommand(commandText, connection))
-                {
-                    await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
-                }
-            }
-            catch(Exception ex)
-            {
-                TestOutputHelper.WriteLine($@"Attempted to execute ""{commandText}"" but failed: {ex}");
-                throw;
+                await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
             }
         }
 
@@ -94,29 +74,22 @@ namespace SqlStreamStore.TestUtils.Postgres
                 return;
             }
 
-            try
+            using(var connection = new NpgsqlConnection(DefaultConnectionString))
             {
-                using(var connection = new NpgsqlConnection(DefaultConnectionString))
+                connection.Open();
+
+                using(var command =
+                    new NpgsqlCommand(
+                        $"SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity  WHERE pg_stat_activity.datname = '{DatabaseName}' AND pid <> pg_backend_pid()",
+                        connection))
                 {
-                    connection.Open();
-
-                    using(var command =
-                        new NpgsqlCommand(
-                            $"SELECT pg_terminate_backend(pg_stat_activity.pid) FROM pg_stat_activity  WHERE pg_stat_activity.datname = '{DatabaseName}' AND pid <> pg_backend_pid()",
-                            connection))
-                    {
-                        command.ExecuteNonQuery();
-                    }
-
-                    using(var command = new NpgsqlCommand($"DROP DATABASE {DatabaseName}", connection))
-                    {
-                        command.ExecuteNonQuery();
-                    }
+                    command.ExecuteNonQuery();
                 }
-            }
-            catch(Exception ex)
-            {
-                TestOutputHelper.WriteLine($@"Attempted to execute ""{$"DROP DATABASE {DatabaseName}"}"" but failed: {ex}");
+
+                using(var command = new NpgsqlCommand($"DROP DATABASE {DatabaseName}", connection))
+                {
+                    command.ExecuteNonQuery();
+                }
             }
         }
     }

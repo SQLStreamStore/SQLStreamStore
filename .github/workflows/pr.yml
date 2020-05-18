@@ -7,12 +7,38 @@ jobs:
   build:
 
     runs-on: ubuntu-latest
+
+    services:
+      mssql:
+        image: microsoft/mssql-server-linux:2017-CU9
+        ports:
+          - 11433:1433
+        env:
+          ACCEPT_EULA: Y
+          SA_PASSWORD: E@syP@ssw0rd
+        options: --name sql-stream-store-tests-mssql
+      mysql:
+        image: mysql:5.6
+        ports:
+          - 3306:3306
+        env:
+          MYSQL_ALLOW_EMPTY_PASSWORD=1: 1
+        options: --name sql-stream-store-tests-mysql
+      postgres:
+        image: postgres:10.4-alpine
+        ports:
+          - 5432:5432
+        options: --name sql-stream-store-tests-postgres
+
     steps:
     - name: Checkout
       uses: actions/checkout@v2
-    - shell: bash
-    - run: |
-        git fetch --prune --unshallow
-    - name: Build and Test
-      run: bash build.sh
+      with:
+        fetch-depth: 0
+    - name: Pull Containers
       shell: bash
+      run: docker pull damianh/dotnet-core-lts-sdks:1
+    - name: Build and Test
+      shell: bash
+      run: bash build.sh
+      

@@ -24,6 +24,7 @@
         private readonly Scripts _scripts;
         private readonly SqlMetaData[] _appendToStreamSqlMetadata;
         private readonly MsSqlStreamStoreV3Settings _settings;
+        private readonly int _commandTimeout;
         public const int FirstSchemaVersion = 1;
         public const int CurrentSchemaVersion = 3;
 
@@ -66,6 +67,7 @@
             }
 
             _appendToStreamSqlMetadata = sqlMetaData.ToArray();
+            _commandTimeout = settings.CommandTimeout;
         }
 
         /// <summary>
@@ -95,6 +97,7 @@
                         EXEC sp_executesql N'CREATE SCHEMA {_scripts.Schema}'
                         END", connection))
                     {
+                        command.CommandTimeout = _commandTimeout;
                         await command
                             .ExecuteNonQueryAsync(cancellationToken)
                             .NotOnCapturedContext();
@@ -103,6 +106,7 @@
 
                 using (var command = new SqlCommand(_scripts.CreateSchema, connection))
                 {
+                    command.CommandTimeout = _commandTimeout;
                     await command
                         .ExecuteNonQueryAsync(cancellationToken)
                         .NotOnCapturedContext();
@@ -126,6 +130,7 @@
 
                 using (var command = new SqlCommand(_scripts.GetSchemaVersion, connection))
                 {
+                    command.CommandTimeout = _commandTimeout;
                     var extendedProperties =  await command
                         .ExecuteReaderAsync(cancellationToken)
                         .NotOnCapturedContext();
@@ -163,6 +168,7 @@
 
                 using(var command = new SqlCommand(_scripts.DropAll, connection))
                 {
+                    command.CommandTimeout = _commandTimeout;
                     await command
                         .ExecuteNonQueryAsync(cancellationToken)
                         .NotOnCapturedContext();
@@ -183,6 +189,7 @@
                 using(var command = new SqlCommand(_scripts.GetStreamMessageCount, connection))
                 {
                     var streamIdInfo = new StreamIdInfo(streamId);
+                    command.CommandTimeout = _commandTimeout;
                     command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = streamIdInfo.SqlStreamId.Id });
 
                     var result = await command
@@ -235,6 +242,7 @@
 
                     using(var command = new SqlCommand(_scripts.Migration_v3, connection))
                     {
+                        command.CommandTimeout = _commandTimeout;
                         await command
                             .ExecuteNonQueryAsync(cancellationToken)
                             .NotOnCapturedContext();
@@ -280,6 +288,7 @@
 
                             using(var command = new SqlCommand(_scripts.SetStreamMetadata, connection))
                             {
+                                command.CommandTimeout = _commandTimeout;
                                 command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = new StreamIdInfo(streamId).SqlStreamId.Id });
                                 command.Parameters.AddWithValue("streamIdOriginal", "ignored");
                                 command.Parameters.Add("maxAge", SqlDbType.Int);
@@ -311,6 +320,7 @@
 
                 using(var command = new SqlCommand(_scripts.ReadHeadPosition, connection))
                 {
+                    command.CommandTimeout = _commandTimeout;
                     var result = await command
                         .ExecuteScalarAsync(cancellationToken)
                         .NotOnCapturedContext();

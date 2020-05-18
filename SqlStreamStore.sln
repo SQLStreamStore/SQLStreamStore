@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 15
-VisualStudioVersion = 15.0.26430.13
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29926.136
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore", "src\SqlStreamStore\SqlStreamStore.csproj", "{8F86833A-6686-409C-B0E4-6FBFB70F7DE1}"
 EndProject
@@ -31,9 +31,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.HAL.Tests", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.HAL.DevServer", "src\SqlStreamStore.HAL.DevServer\SqlStreamStore.HAL.DevServer.csproj", "{4C205CF0-D939-4071-AB84-FB8B7CB4AFD5}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.MySql", "src\SqlStreamStore.MySql\SqlStreamStore.MySql.csproj", "{8B802321-4183-4FEB-9FD7-8562879AB9EB}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.MySql", "src\SqlStreamStore.MySql\SqlStreamStore.MySql.csproj", "{8B802321-4183-4FEB-9FD7-8562879AB9EB}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.MySql.Tests", "tests\SqlStreamStore.MySql.Tests\SqlStreamStore.MySql.Tests.csproj", "{69B2EE47-1F3C-4843-A471-C02F961CFEAC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.MySql.Tests", "tests\SqlStreamStore.MySql.Tests\SqlStreamStore.MySql.Tests.csproj", "{69B2EE47-1F3C-4843-A471-C02F961CFEAC}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.Sqlite.Tests", "tests\SqlStreamStore.Sqlite.Tests\SqlStreamStore.Sqlite.Tests.csproj", "{53BD01A4-B1C4-414B-B424-1DE694E5704C}"
 EndProject

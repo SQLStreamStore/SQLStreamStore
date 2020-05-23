@@ -316,8 +316,8 @@ namespace SqlStreamStore.Infrastructure
             ReadNextStreamPage readNext, CancellationToken cancellationToken);
 
         protected abstract Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken);
-        protected abstract Task<long> ReadStreamHeadPositionInternal(StreamId streamId, CancellationToken cancellationToken);
-        protected abstract Task<int> ReadStreamHeadVersionInternal(StreamId streamId, CancellationToken cancellationToken);
+        protected abstract Task<long> ReadStreamHeadPositionInternal(string streamId, CancellationToken cancellationToken);
+        protected abstract Task<int> ReadStreamHeadVersionInternal(string streamId, CancellationToken cancellationToken);
 
         protected abstract IStreamSubscription SubscribeToStreamInternal(
             string streamId,

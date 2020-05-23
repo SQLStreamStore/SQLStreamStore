@@ -697,21 +697,19 @@ namespace SqlStreamStore
             return message == null ? Task.FromResult(-1L) : Task.FromResult(message.Position);
         }
 
-        protected override Task<long> ReadStreamHeadPositionInternal(StreamId streamId, CancellationToken cancellationToken)
+        protected override Task<long> ReadStreamHeadPositionInternal(string streamId, CancellationToken cancellationToken)
         {
             using(_lock.UseReadLock())
             {
-                InMemoryStream stream;
-                return !_streams.TryGetValue(streamId, out stream) ? Task.FromResult(-1L) : Task.FromResult(Convert.ToInt64(stream.CurrentPosition));
+                return !_streams.TryGetValue(streamId, out InMemoryStream stream) ? Task.FromResult(-1L) : Task.FromResult(Convert.ToInt64(stream.CurrentPosition));
             }
         }
 
-        protected override Task<int> ReadStreamHeadVersionInternal(StreamId streamId, CancellationToken cancellationToken)
+        protected override Task<int> ReadStreamHeadVersionInternal(string streamId, CancellationToken cancellationToken)
         {
             using(_lock.UseReadLock())
             {
-                InMemoryStream stream;
-                return !_streams.TryGetValue(streamId, out stream) ? Task.FromResult(-1) : Task.FromResult(stream.CurrentVersion);
+                return !_streams.TryGetValue(streamId, out InMemoryStream stream) ? Task.FromResult(-1) : Task.FromResult(stream.CurrentVersion);
             }
         }
 

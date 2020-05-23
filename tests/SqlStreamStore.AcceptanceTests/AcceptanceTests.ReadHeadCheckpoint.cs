@@ -24,5 +24,65 @@
 
             head.ShouldBe(2);
         }
+
+        [Fact]
+        public async Task Given_no_stream_when_get_head_position_then_returns_expected_result()
+        {
+            await Store.AppendToStream("other-stream", ExpectedVersion.NoStream, CreateNewStreamMessages(1));
+
+            var head = await Store.ReadStreamHeadPosition("this-stream");
+
+            head.ShouldBe(-1);
+        }
+
+        [Fact]
+        public async Task Given_no_stream_when_get_head_version_then_returns_expected_result()
+        {
+            await Store.AppendToStream("other-stream", ExpectedVersion.NoStream, CreateNewStreamMessages(1));
+
+            var head = await Store.ReadStreamHeadVersion("this-stream");
+
+            head.ShouldBe(-1);
+        }
+
+        [Fact]
+        public async Task Given_empty_stream_when_get_head_position_then_returns_expected_result()
+        {
+            await Store.AppendToStream("this-stream", ExpectedVersion.NoStream, CreateNewStreamMessages());
+
+            var head = await Store.ReadStreamHeadPosition("this-stream");
+
+            head.ShouldBe(-1);
+        }
+
+        [Fact]
+        public async Task Given_empty_stream_when_get_head_version_then_returns_expected_result()
+        {
+            await Store.AppendToStream("this-stream", ExpectedVersion.NoStream, CreateNewStreamMessages());
+
+            var head = await Store.ReadStreamHeadVersion("this-stream");
+
+            head.ShouldBe(-1);
+        }
+
+        [Fact]
+        public async Task Given_filled_stream_when_get_head_position_then_returns_expected_result()
+        {
+            await Store.AppendToStream("this-stream", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+
+            var head = await Store.ReadStreamHeadPosition("this-stream");
+
+            head.ShouldBe(2L);
+        }
+
+        [Fact]
+        public async Task Given_filled_stream_when_get_head_version_then_returns_expected_result()
+        {
+            await Store.AppendToStream("this-stream", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));
+
+            var head = await Store.ReadStreamHeadVersion("this-stream");
+
+            head.ShouldBe(2);
+        }
     }
 }

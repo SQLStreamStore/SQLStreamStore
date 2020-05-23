@@ -256,7 +256,7 @@
         {
             using(var connection = await OpenConnection(cancellationToken))
             using(var transaction = connection.BeginTransaction())
-            using(var command = BuildFunctionCommand(_schema.ReadAllHeadPosition, transaction, Parameters.StreamId(new PostgresqlStreamId(streamId))))
+            using(var command = BuildFunctionCommand(_schema.ReadStreamHeadPosition, transaction, Parameters.StreamId(new PostgresqlStreamId(streamId))))
             {
                 var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
 
@@ -268,11 +268,11 @@
         {
             using(var connection = await OpenConnection(cancellationToken))
             using(var transaction = connection.BeginTransaction())
-            using(var command = BuildFunctionCommand(_schema.ReadAllHeadPosition, transaction, Parameters.StreamId(new PostgresqlStreamId(streamId))))
+            using(var command = BuildFunctionCommand(_schema.ReadStreamHeadVersion, transaction, Parameters.StreamId(new PostgresqlStreamId(streamId))))
             {
                 var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
 
-                return result == DBNull.Value ? -1 : (int) result;
+                return result == DBNull.Value ? StreamVersion.End : (int) result;
             }
         }
     }

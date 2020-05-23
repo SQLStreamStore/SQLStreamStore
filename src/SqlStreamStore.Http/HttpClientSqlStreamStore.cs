@@ -74,38 +74,14 @@
         {
             GuardAgainstDisposed();
 
-            var client = CreateClient();
-            var response = await client.Client.HeadAsync(LinkFormatter.ReadStreamBackwards(streamId, StreamVersion.End, 1, false), cancellationToken);
-
-            response.EnsureSuccessStatusCode();
-
-            var resource = client.Current.First();
-
-            if(client.StatusCode == HttpStatusCode.NotFound)
-            {
-                return -1L;
-            }
-
-            return resource.Data<HalReadPage>().LastStreamPosition;
+            return (await ReadStreamBackwards(streamId, StreamVersion.End, 1, false, cancellationToken)).LastStreamPosition;
         }
 
         public async Task<int> ReadStreamHeadVersion(StreamId streamId, CancellationToken cancellationToken = default)
         {
             GuardAgainstDisposed();
 
-            var client = CreateClient();
-            var response = await client.Client.HeadAsync(LinkFormatter.ReadStreamBackwards(streamId, StreamVersion.End, 1, false), cancellationToken);
-
-            response.EnsureSuccessStatusCode();
-
-            var resource = client.Current.First();
-
-            if(client.StatusCode == HttpStatusCode.NotFound)
-            {
-                return -1;
-            }
-
-            return resource.Data<HalReadPage>().LastStreamVersion;
+            return (await ReadStreamBackwards(streamId, StreamVersion.End, 1, false, cancellationToken)).LastStreamVersion;
         }
 
         private static void ThrowOnError(IHalClient client)

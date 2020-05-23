@@ -1,5 +1,5 @@
 CREATE OR REPLACE FUNCTION __schema__.read_stream_head_position(
-  _stream_id      CHAR(42),
+  _stream_id      CHAR(42)
 )
   RETURNS BIGINT
 AS $F$

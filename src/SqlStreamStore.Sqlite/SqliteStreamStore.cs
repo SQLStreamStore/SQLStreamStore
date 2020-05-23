@@ -84,6 +84,33 @@ namespace SqlStreamStore
             }
         }
 
+        protected override async Task<long> ReadStreamHeadPositionInternal(string streamId, CancellationToken cancellationToken)
+        {
+            GuardAgainstDisposed();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            using(var connection = OpenConnection())
+            {
+                return (await connection
+                    .Streams(streamId)
+                    .StreamHeadPosition() ?? Position.End);
+            }
+        }
+
+        protected override async Task<int> ReadStreamHeadVersionInternal(string streamId, CancellationToken cancellationToken)
+        {
+            GuardAgainstDisposed();
+            cancellationToken.ThrowIfCancellationRequested();
+
+            using(var connection = OpenConnection())
+            {
+                return (await connection
+                    .Streams(streamId)
+                    .StreamHeadVersion() ?? StreamVersion.End);
+            }
+        }
+
+
         internal void CreateSchemaIfNotExists()
         {
             using(var connection = OpenConnection(false))

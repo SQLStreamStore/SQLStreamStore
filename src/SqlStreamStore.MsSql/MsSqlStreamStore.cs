@@ -10,6 +10,7 @@
     using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.ScriptsV2;
+    using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
 
     /// <summary>
@@ -280,7 +281,7 @@
 
                     if(result == DBNull.Value)
                     {
-                        return -1L;
+                        return Position.End;
                     }
                     return (long) result;
                 }
@@ -295,7 +296,7 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using(var command = new SqlCommand(_scripts.ReadHeadPosition, connection))
+                using(var command = new SqlCommand(_scripts.ReadStreamHeadPosition, connection))
                 {
                     command.CommandTimeout = _commandTimeout;
                     command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = new StreamIdInfo(streamId).SqlStreamId.Id });
@@ -303,9 +304,9 @@
                         .ExecuteScalarAsync(cancellationToken)
                         .NotOnCapturedContext();
 
-                    if(result == DBNull.Value)
+                    if(result == null)
                     {
-                        return -1L;
+                        return Position.End;
                     }
                     return (long) result;
                 }
@@ -320,7 +321,7 @@
             {
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
 
-                using(var command = new SqlCommand(_scripts.ReadHeadPosition, connection))
+                using(var command = new SqlCommand(_scripts.ReadStreamHeadVersion, connection))
                 {
                     command.CommandTimeout = _commandTimeout;
                     command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = new StreamIdInfo(streamId).SqlStreamId.Id });
@@ -328,9 +329,9 @@
                         .ExecuteScalarAsync(cancellationToken)
                         .NotOnCapturedContext();
 
-                    if(result == DBNull.Value)
+                    if(result == null)
                     {
-                        return -1;
+                        return StreamVersion.End;
                     }
                     return (int) result;
                 }

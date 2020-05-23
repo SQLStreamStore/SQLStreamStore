@@ -16,6 +16,16 @@
         }
 
         [Fact]
+        public async Task Given_store_with_empty_stream_when_get_head_position_Then_should_be_minus_one()
+        {
+            await Store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages());
+            
+            var head = await Store.ReadHeadPosition();
+
+            head.ShouldBe(-1);
+        }
+
+        [Fact]
         public async Task Given_store_with_messages_then_can_get_head_position()
         {
             await Store.AppendToStream("stream-1", ExpectedVersion.NoStream, CreateNewStreamMessages(1, 2, 3));

@@ -278,7 +278,7 @@ namespace SqlStreamStore
                 {
                     var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
 
-                    return result == DBNull.Value
+                    return result == null
                         ? Position.End
                         : ConvertPosition.FromMySqlToStreamStore((long) result);
                 }
@@ -299,8 +299,8 @@ namespace SqlStreamStore
                 {
                     var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
 
-                    return result == DBNull.Value
-                        ? -1
+                    return result == null
+                        ? StreamVersion.End
                         : (int) result;
                 }
             }

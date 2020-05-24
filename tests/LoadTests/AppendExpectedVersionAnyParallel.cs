@@ -51,6 +51,7 @@
             var tasks = new List<Task>();
             int count = 0;
             string jsonData = new string('a', messageJsonDataSize);
+            jsonData = "{ \"p\":\"" + jsonData + "\"}";
             var stopwatch = Stopwatch.StartNew();
             for (int i = 0; i < parallelTasks; i++)
             {
@@ -86,7 +87,7 @@
                         catch (Exception ex) when (!(ex is TaskCanceledException))
                         {
                             Log.Logger.Error(ex, ex.Message);
-                            Output.WriteLine(ex.ToString());
+                            Output.WriteLine(ex.ToString().Replace("{", "{{").Replace("}", "}}"));
                         }
                     }
                 }, ct);

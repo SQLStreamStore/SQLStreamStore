@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netcoreapp3.1</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\src\SqlStreamStore.Oracle\SqlStreamStore.Oracle.csproj" />
+      <ProjectReference Include="..\SqlStreamStore.Tests\SqlStreamStore.Tests.csproj" />
+      <ProjectReference Include="..\SqlStreamStore.TestUtils\SqlStreamStore.TestUtils.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="xunit.runner.visualstudio" Version="2.4.1" />
+    </ItemGroup>
+
+</Project>

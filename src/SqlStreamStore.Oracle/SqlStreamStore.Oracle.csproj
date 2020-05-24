@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+    <PropertyGroup>
+        <TargetFramework>netstandard2.0</TargetFramework>
+    </PropertyGroup>
+
+    <ItemGroup>
+      <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.70" />
+      <PackageReference Include="System.Data.DataSetExtensions" Version="4.5.0" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Scripts\Schema.sql" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <EmbeddedResource Include="Migrations\CreateSchema -REVERSED.sql" />
+      <EmbeddedResource Include="Migrations\CreateSchema.sql" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Scripts" />
+    </ItemGroup>
+
+</Project>

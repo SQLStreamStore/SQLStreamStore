@@ -39,6 +39,10 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.Sqlite.Tests
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.Sqlite", "src\SqlStreamStore.Sqlite\SqlStreamStore.Sqlite.csproj", "{496DF6AD-94C5-4B9E-BB12-3C2DC8AC43E2}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.Oracle", "src\SqlStreamStore.Oracle\SqlStreamStore.Oracle.csproj", "{FE2A6F77-F1C4-4A84-8523-26EA9AF6834A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SqlStreamStore.Oracle.Tests", "tests\SqlStreamStore.Oracle.Tests\SqlStreamStore.Oracle.Tests.csproj", "{84C4FBDB-362E-4B3F-8CE4-A6BFBC4DD200}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -109,6 +113,14 @@ Global
 		{69B2EE47-1F3C-4843-A471-C02F961CFEAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{69B2EE47-1F3C-4843-A471-C02F961CFEAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{69B2EE47-1F3C-4843-A471-C02F961CFEAC}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FE2A6F77-F1C4-4A84-8523-26EA9AF6834A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FE2A6F77-F1C4-4A84-8523-26EA9AF6834A}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FE2A6F77-F1C4-4A84-8523-26EA9AF6834A}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FE2A6F77-F1C4-4A84-8523-26EA9AF6834A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{84C4FBDB-362E-4B3F-8CE4-A6BFBC4DD200}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{84C4FBDB-362E-4B3F-8CE4-A6BFBC4DD200}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{84C4FBDB-362E-4B3F-8CE4-A6BFBC4DD200}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{84C4FBDB-362E-4B3F-8CE4-A6BFBC4DD200}.Release|Any CPU.Build.0 = Release|Any CPU
 		{53BD01A4-B1C4-414B-B424-1DE694E5704C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{53BD01A4-B1C4-414B-B424-1DE694E5704C}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{53BD01A4-B1C4-414B-B424-1DE694E5704C}.Release|Any CPU.ActiveCfg = Release|Any CPU

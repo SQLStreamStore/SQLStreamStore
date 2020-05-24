@@ -20,4 +20,9 @@
     <PackageReference Include="MinVer" Version="2.0.0" PrivateAssets="All" />
     <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.0.0" PrivateAssets="All"/>
   </ItemGroup>
+  <Target Name="Adjust_Version_1_Releases_AssemblyVersion" AfterTargets="MinVer" Condition="'$(MinVerMajor)' == '1'">
+    <PropertyGroup>
+      <AssemblyVersion>$(MinVerMajor).$(MinVerMinor).$(MinVerPatch).0</AssemblyVersion>
+    </PropertyGroup>
+  </Target>
 </Project>

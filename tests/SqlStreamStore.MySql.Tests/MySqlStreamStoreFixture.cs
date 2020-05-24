@@ -13,7 +13,7 @@ namespace SqlStreamStore
         private readonly MySqlStreamStoreSettings _settings;
 
         public MySqlStreamStoreFixture(
-            MySqlDockerDatabaseManager dockerInstance,
+            MySqlContainer dockerInstance,
             string databaseName,
             Action onDispose)
         {

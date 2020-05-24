@@ -252,7 +252,7 @@ namespace SqlStreamStore
             try
             {
                 using(var connection = await OpenConnection(cancellationToken))
-                using(var transaction = connection.BeginTransaction())
+                using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
                 using(var command = BuildStoredProcedureCall(_schema.ReadAllHeadPosition, transaction))
                 {
                     var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();

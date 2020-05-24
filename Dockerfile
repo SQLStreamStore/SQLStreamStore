@@ -1,6 +1,4 @@
-FROM mcr.microsoft.com/dotnet/core/sdk:3.1.201-alpine3.11 AS build
-
-RUN apk add git
+FROM damianh/dotnet-core-lts-sdks:1
 
 WORKDIR /repo
 

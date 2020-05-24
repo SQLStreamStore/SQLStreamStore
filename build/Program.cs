@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using SimpleExec;
@@ -12,13 +13,133 @@ namespace build
         private const string ArtifactsDir = "artifacts";
         private const string BuildHalDocs = "build-hal-docs";
         private const string Build = "build";
-        private const string Test = "test";
+        private const string Clean = "clean";
+        private const string TestAll = "test-all";
+        private const string TestInMem = "test-inmem";
+        private const string TestMySql = "test-mysql";
+        private const string TestMsSql = "test-mssql";
+        private const string TestMsSqlV3 = "test-mssql-v3";
+        private const string TestPostgres = "test-postgres";
+        private const string TestHal = "test-hal";
+        private const string TestHttp = "test-http";
         private const string Pack = "pack";
         private const string Publish = "publish";
-        private static bool s_oneOrMoreTestsFailed;
+        private static List<string> TestProjectsWithFailures = new List<string>();
 
         private static void Main(string[] args)
         {
+            Target(Clean,
+                () =>
+                {
+                    if (Directory.Exists(ArtifactsDir))
+                    {
+                        var directoriesToDelete = Directory.GetDirectories(ArtifactsDir);
+                        foreach (var directory in directoriesToDelete)
+                        {
+                            Console.WriteLine($"Deleting directory {directory}");
+                            Directory.Delete(directory, true);
+                        }
+
+                        var filesToDelete = Directory
+                            .GetFiles(ArtifactsDir, "*.*", SearchOption.AllDirectories)
+                            .Where(f => !f.EndsWith(".gitignore"));
+                        foreach (var file in filesToDelete)
+                        {
+                            Console.WriteLine($"Deleting file {file}");
+                            File.SetAttributes(file, FileAttributes.Normal);
+                            File.Delete(file);
+                        }
+                    }
+                });
+
+            Target(Build, () => Run("dotnet", "build --configuration=Release"));
+
+            void RunTest(string project)
+            {
+                try
+                {
+                    Run("dotnet",
+                        $"test tests/{project}/{project}.csproj --configuration=Release --no-build --no-restore --verbosity=normal"
+                        + $" --logger \"trx;logfilename=..\\..\\..\\{ArtifactsDir}\\{project}.trx\"");
+                }
+                catch (NonZeroExitCodeException)
+                {
+                    TestProjectsWithFailures.Add(project);
+                }
+            }
+
+            Target(
+                TestInMem,
+                DependsOn(Build),
+                () => RunTest("SqlStreamStore.Tests"));
+
+            Target(
+                TestHal,
+                DependsOn(Build),
+                () => RunTest("SqlStreamStore.HAL.Tests"));
+
+            Target(
+                TestHttp,
+                DependsOn(Build),
+                () => RunTest("SqlStreamStore.Http.Tests"));
+
+            Target(
+                TestMsSql,
+                DependsOn(Build),
+                () => RunTest("SqlStreamStore.MsSql.Tests"));
+
+            Target(
+                TestMsSqlV3,
+                DependsOn(Build),
+                () => RunTest("SqlStreamStore.MsSql.V3.Tests"));
+
+            Target(
+                TestMySql,
+                DependsOn(Build),
+                () => RunTest("SqlStreamStore.MySql.Tests"));
+
+            Target(
+                TestPostgres,
+                DependsOn(Build),
+                () => RunTest("SqlStreamStore.Postgres.Tests"));
+
+            Target(
+                TestAll,
+                DependsOn(TestInMem, TestHal, TestHttp, TestMsSql, TestMsSqlV3, TestMySql, TestPostgres));
+
+            Target(
+                Pack,
+                DependsOn(Clean, Build),
+                ForEach(
+                    "SqlStreamStore",
+                    "SqlStreamStore.MsSql",
+                    "SqlStreamStore.MySql",
+                    "SqlStreamStore.Postgres",
+                    "SqlStreamStore.HAL",
+                    "SqlStreamStore.Http"),
+                project => Run("dotnet", $"pack src/{project}/{project}.csproj -c Release -o {ArtifactsDir} --no-build"));
+
+            Target(Publish, 
+                DependsOn(Pack),
+                () =>
+                {
+                    var packagesToPush = Directory.GetFiles(ArtifactsDir, "*.nupkg", SearchOption.TopDirectoryOnly);
+                    Console.WriteLine($"Found packages to publish: {string.Join("; ", packagesToPush)}");
+
+                    var apiKey = Environment.GetEnvironmentVariable("FEEDZ_SSS_API_KEY");
+
+                    if (string.IsNullOrWhiteSpace(apiKey))
+                    {
+                        Console.WriteLine("Feedz API key not available. Packages will not be pushed.");
+                        return;
+                    }
+
+                    foreach (var packageToPush in packagesToPush)
+                    {
+                        Run("dotnet", $"nuget push {packageToPush} -s https://f.feedz.io/logicality/streamstore-ci/nuget/index.json -k {apiKey} --skip-duplicate", noEcho: true);
+                    }
+                });
+
             Target(BuildHalDocs, () =>
             {
                 Run("yarn", workingDirectory: "./tools/hal-docs");
@@ -33,75 +154,19 @@ namespace build
                 foreach (var schemaDirectory in schemaDirectories)
                 {
                     Run("node",
-                    $"node_modules/@adobe/jsonschema2md/cli.js -n --input {schemaDirectory} --out {schemaDirectory} --schema-out=-",
-                    "tools/hal-docs");
-                }
-            });
-
-            Target(Build, () => Run("dotnet", "build --configuration=Release"));
-
-            Target(
-                Test,
-                DependsOn(Build),
-                ForEach(
-                    "SqlStreamStore.Tests",
-                    "SqlStreamStore.MsSql.Tests",
-                    "SqlStreamStore.MsSql.V3.Tests",
-                    "SqlStreamStore.MySql.Tests",
-                    "SqlStreamStore.Postgres.Tests",
-                    "SqlStreamStore.HAL.Tests",
-                    "SqlStreamStore.Http.Tests"), 
-                project =>
-                {
-                    try
-                    {
-                        Run("dotnet",
-                            $"test tests/{project}/{project}.csproj --configuration=Release --no-build --no-restore --verbosity=normal");
-                    }
-                    catch (NonZeroExitCodeException)
-                    {
-                        s_oneOrMoreTestsFailed = true;
-                    }
-                });
-
-            Target(
-                Pack,
-                DependsOn(Build),
-                ForEach(
-                    "SqlStreamStore",
-                    "SqlStreamStore.MsSql",
-                    "SqlStreamStore.MySql",
-                    "SqlStreamStore.Postgres",
-                    "SqlStreamStore.HAL",
-                    "SqlStreamStore.Http"),
-                project => Run("dotnet", $"pack src/{project}/{project}.csproj -c Release -o ../../../{ArtifactsDir} --no-build"));
-
-            Target(Publish, DependsOn(Pack), () =>
-            {
-                var packagesToPush = Directory.GetFiles($"../{ArtifactsDir}", "*.nupkg", SearchOption.TopDirectoryOnly);
-                Console.WriteLine($"Found packages to publish: {string.Join("; ", packagesToPush)}");
-
-                var apiKey = Environment.GetEnvironmentVariable("FEEDZ_SSS_API_KEY");
-
-                if (string.IsNullOrWhiteSpace(apiKey))
-                {
-                    Console.WriteLine("Feedz API key not available. Packages will not be pushed.");
-                    return;
-                }
-
-                foreach (var packageToPush in packagesToPush)
-                {
-                    Run("dotnet", $"nuget push {packageToPush} -s https://f.feedz.io/logicality/streamstore-ci/nuget/index.json -k {apiKey} --skip-duplicate", noEcho: true);
+                        $"node_modules/@adobe/jsonschema2md/cli.js -n --input {schemaDirectory} --out {schemaDirectory} --schema-out=-",
+                        "tools/hal-docs");
                 }
             });
 
             Target("default",
-                DependsOn(Test, Publish),
+                DependsOn(Clean, TestAll, Publish),
                 () =>
                 {
-                    if (s_oneOrMoreTestsFailed)
+                    if (TestProjectsWithFailures.Any())
                     {
-                        throw new Exception("One or more tests failed.");
+                        var projects = string.Join(", ", TestProjectsWithFailures);
+                        throw new Exception($"One or more tests failed in the following projects: {projects}");
                     }
                 });
 

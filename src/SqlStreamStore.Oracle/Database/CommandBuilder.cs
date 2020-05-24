@@ -21,44 +21,7 @@
             GetUtcNow = getUtcNow;
         }
 
-        internal OracleCommand AppendToStreamAnyVersion(
-            OracleTransaction transaction,
-            StreamIdInfo streamInfo,
-            NewStreamMessage[] messages)
-        {
-            var parameters = new List<OracleParameter>()
-            {
-                Parameters.StreamId(streamInfo.StreamId),
-                Parameters.StreamIdOriginal(streamInfo.StreamId),
-                Parameters.MetadataStreamId(streamInfo.MetaStreamId)
-            };
-            
-            var callFunc = $"{_dbObjects.AppendToStreamAnyVersion}(:StreamId, :MetaStreamId, :StreamIdOriginal, V_NewStreamMessages, :oDeletedEvents)";
-
-            
-            return BuildAppend(transaction, callFunc, messages, parameters);
-        }
-        
-        internal OracleCommand AppendToStreamNoStream(
-            OracleTransaction transaction,
-            StreamIdInfo streamInfo,
-            NewStreamMessage[] messages)
-        {
-            var parameters = new List<OracleParameter>()
-            {
-                Parameters.StreamId(streamInfo.StreamId),
-                Parameters.StreamIdOriginal(streamInfo.StreamId),
-                Parameters.MetadataStreamId(streamInfo.MetaStreamId)
-            };
-            
-            var callFunc = $"{_dbObjects.AppendToStreamNoStream}(:StreamId, :MetaStreamId, :StreamIdOriginal, V_NewStreamMessages, :oDeletedEvents)";
-
-            
-            return BuildAppend(transaction, callFunc, messages, parameters);
-        }
-
-        internal OracleCommand AppendToStreamExpectedVersion(
-            
+        internal OracleCommand Append(
             OracleTransaction transaction,
             StreamIdInfo streamInfo,
             int expectedVersion,
@@ -66,13 +29,13 @@
         {
             var parameters = new List<OracleParameter>()
             {
-                Parameters.ExpectedVersion(expectedVersion),
                 Parameters.StreamId(streamInfo.StreamId),
+                Parameters.MetadataStreamId(streamInfo.MetaStreamId),
                 Parameters.StreamIdOriginal(streamInfo.StreamId),
-                Parameters.MetadataStreamId(streamInfo.MetaStreamId)
+                Parameters.ExpectedVersion(expectedVersion),
             };
 
-            var callFunc = $"{_dbObjects.AppendToStreamExpectedVersion}(:StreamId, :ExpectedVersion, V_NewStreamMessages, :oDeletedEvents)";
+            var callFunc = $"{_dbObjects.Append}(:StreamId, :MetaStreamId, :StreamIdOriginal, :ExpectedVersion, V_NewStreamMessages, :oDeletedEvents)";
 
             return BuildAppend(transaction, callFunc, messages, parameters);
         }

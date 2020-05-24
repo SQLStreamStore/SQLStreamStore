@@ -9,25 +9,18 @@
             var package = "StreamStore.";
             _schemaAndPrefix = $"{schema}.";
 
-            AppendToStreamExpectedVersion = $"{package}STREAM_APPEND_EXPECTEDVERSION";
-            AppendToStreamNoStream = $"{package}STREAM_APPEND_NOSTREAM";
-            AppendToStreamAnyVersion = $"{package}STREAM_APPEND_ANYVERSION";
-            ReadStream = $"{package}STREAM_READ";
-            ReadAll = $"{package}STREAM_READALL";
-            DeleteStreamExpectedVersion = $"{package}STREAM_DELETESTREAM_EXPECTEDVERSION";
-            DeleteStreamAnyVersion = $"{package}STREAM_DELETESTREAM_ANYVERSION";
-            SetStreamMeta = $"{package}STREAM_SETMETA";
+            Append = $"{package}APPEND";
+            ReadStream = $"{package}READ";
+            ReadAll = $"{package}READALL";
+            DeleteStreamExpectedVersion = $"{package}DELETESTREAM_EXPECTEDVERSION";
+            DeleteStreamAnyVersion = $"{package}DELETESTREAM_ANYVERSION";
+            SetStreamMeta = $"{package}SETMETA";
             
             TableStreamEvents = $"{_schemaAndPrefix}STREAMEVENTS";
             TableStreams = $"{_schemaAndPrefix}STREAMS";
         }
 
-        public string AppendToStreamExpectedVersion { get; }
-        
-        public string AppendToStreamNoStream { get; }
-        
-        public string AppendToStreamAnyVersion { get; }
-        
+        public string Append { get; }
         public string ReadStream { get; }
         public string ReadAll { get; }
         

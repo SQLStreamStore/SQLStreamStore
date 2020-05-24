@@ -115,9 +115,10 @@
             if(deletedMessages == null || !deletedMessages.Any())
                 return;
             
-            await AppendToStreamAnyVersion(
+            await AppendToStreamInternal(
                 transaction,
                 StreamIdInfo.Deleted,
+                ExpectedVersion.Any,
                 deletedMessages.Select(deleted => Deleted.CreateMessageDeletedMessage(deleted.Item1, deleted.Item2)).ToArray(),
                 cancellationToken);
         }
@@ -130,9 +131,10 @@
             if(streams == null || !streams.Any())
                 return;
             
-            await AppendToStreamAnyVersion(
+            await AppendToStreamInternal(
                 transaction,
                 StreamIdInfo.Deleted,
+                ExpectedVersion.Any,
                 streams.Select(deleted => Deleted.CreateStreamDeletedMessage(deleted.IdOriginal)).ToArray(),
                 cancellationToken);
         }

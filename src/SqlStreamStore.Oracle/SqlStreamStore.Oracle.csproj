@@ -22,4 +22,8 @@
       <EmbeddedResource Include="Migrations\CreateSchema.sql" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Scripts" />
+    </ItemGroup>
+
 </Project>

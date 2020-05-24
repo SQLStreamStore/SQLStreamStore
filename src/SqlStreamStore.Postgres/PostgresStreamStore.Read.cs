@@ -251,5 +251,29 @@
                 return result == DBNull.Value ? Position.End : (long) result;
             }
         }
+
+        protected override async Task<long> ReadStreamHeadPositionInternal(string streamId, CancellationToken cancellationToken)
+        {
+            using(var connection = await OpenConnection(cancellationToken))
+            using(var transaction = connection.BeginTransaction())
+            using(var command = BuildFunctionCommand(_schema.ReadStreamHeadPosition, transaction, Parameters.StreamId(new PostgresqlStreamId(streamId))))
+            {
+                var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+
+                return result == DBNull.Value ? Position.End : (long) result;
+            }
+        }
+
+        protected override async Task<int> ReadStreamHeadVersionInternal(string streamId, CancellationToken cancellationToken)
+        {
+            using(var connection = await OpenConnection(cancellationToken))
+            using(var transaction = connection.BeginTransaction())
+            using(var command = BuildFunctionCommand(_schema.ReadStreamHeadVersion, transaction, Parameters.StreamId(new PostgresqlStreamId(streamId))))
+            {
+                var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+
+                return result == DBNull.Value ? StreamVersion.End : (int) result;
+            }
+        }
     }
 }

@@ -21,6 +21,8 @@
         public string Read => "`read`";
         public string ReadAll => "read_all";
         public string ReadAllHeadPosition => "read_head_position";
+        public string ReadStreamHeadPosition => "read_stream_head_position";
+        public string ReadStreamHeadVersion => "read_stream_head_version";
         public string ReadJsonData => "read_json_data";
         public string ReadProperties => "read_properties";
 

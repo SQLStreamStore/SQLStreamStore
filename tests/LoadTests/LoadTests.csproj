@@ -17,7 +17,9 @@
   <ItemGroup>
     <ProjectReference Include="..\..\src\SqlStreamStore.MsSql\SqlStreamStore.MsSql.csproj" />
     <ProjectReference Include="..\..\src\SqlStreamStore.MySql\SqlStreamStore.MySql.csproj" />
+    <ProjectReference Include="..\..\src\SqlStreamStore.Oracle\SqlStreamStore.Oracle.csproj" />
     <ProjectReference Include="..\..\src\SqlStreamStore.Postgres\SqlStreamStore.Postgres.csproj" />
+    <ProjectReference Include="..\SqlStreamStore.Oracle.Tests\SqlStreamStore.Oracle.Tests.csproj" />
     <ProjectReference Include="..\SqlStreamStore.TestUtils\SqlStreamStore.TestUtils.csproj" />
     <ProjectReference Include="..\..\src\SqlStreamStore\SqlStreamStore.csproj" />
   </ItemGroup>

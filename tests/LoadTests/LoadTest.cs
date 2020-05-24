@@ -5,6 +5,7 @@
     using System.Threading.Tasks;
     using EasyConsole;
     using SqlStreamStore;
+    using SqlStreamStore.Oracle.Tests;
 
     public abstract class LoadTest
     {
@@ -58,6 +59,18 @@
                         var fixture = new PostgresStreamStoreDb("dbo", connectionString);
                         Console.WriteLine(fixture.ConnectionString);
                         streamStore = await fixture.GetPostgresStreamStore(true);
+                        disposable = fixture;
+                    })
+                .Add("Oracle (Server)",
+                    async ct =>
+                    {
+                        var connString = "user id=REL;password=REL;data source=localhost:41521/ORCLCDB;" +
+                                         "Min Pool Size=50;Connection Lifetime=120;Connection Timeout=60;" +
+                                         "Incr Pool Size=5; Decr Pool Size=2";
+
+                        var fixture = await OracleFixture.CreateFixture(connString);
+                        
+                        streamStore = fixture.Store;
                         disposable = fixture;
                     })
                 /*.Add("MySql (Docker)",

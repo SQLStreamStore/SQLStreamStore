@@ -1,6 +1,5 @@
 ﻿namespace SqlStreamStore.Oracle
 {
-    using System;
     using System.Threading;
     using System.Threading.Tasks;
     using global::Oracle.ManagedDataAccess.Client;
@@ -76,11 +75,6 @@
                             ((OracleDecimal) command.Parameters["oPosition"]
                                 .Value).ToInt64();
 
-                        if(!(command.Parameters["oDeletedEvents"].Value is DBNull))
-                        {
-                            await HandleDeletedEventsFeedback(command.Transaction, command, (OracleRefCursor) command.Parameters["oDeletedEvents"].Value, cancellationToken);
-                        }
-                        
                         return new AppendResult(currentVersion, currentPosition);
                     }
                 }

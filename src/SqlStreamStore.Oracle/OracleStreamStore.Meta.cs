@@ -1,9 +1,7 @@
 ﻿namespace SqlStreamStore.Oracle
 {
-    using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using global::Oracle.ManagedDataAccess.Types;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Streams;
     using StreamStoreStore.Json;
@@ -79,11 +77,6 @@
                 using(var cmd = _commandBuilder.SetMeta(trans, streamIdInfo, maxAge, maxCount))
                 {
                     await cmd.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
-
-                    if(!(cmd.Parameters["oDeletedEvents"].Value is DBNull))
-                    {
-                        await HandleDeletedEventsFeedback(trans, cmd, (OracleRefCursor)cmd.Parameters["oDeletedEvents"].Value, cancellationToken);
-                    }
                 }
                 
                 trans.Commit();

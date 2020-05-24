@@ -60,8 +60,7 @@ CREATE OR REPLACE PACKAGE StreamStore AS
         P_MetaStreamId           in CHAR,
         P_StreamIdOriginal   in NVARCHAR2,
         P_ExpectedVersion    in NUMBER,
-        P_NewStreamMessages in STREAMNEWMESSAGES,
-        oDeleted            OUT SYS_REFCURSOR)
+        P_NewStreamMessages in STREAMNEWMESSAGES)
         RETURN STREAMAPPENDED;
 
     PROCEDURE DELETESTREAM_EXPECTEDVERSION(
@@ -81,57 +80,14 @@ CREATE OR REPLACE PACKAGE StreamStore AS
         P_StreamId           in CHAR,
         P_MetaStreamId           in CHAR,
         P_MaxAge            IN NUMBER,
-        P_MaxCount            IN NUMBER,
-        oDeleted            OUT SYS_REFCURSOR
+        P_MaxCount            IN NUMBER
     );
 
 END StreamStore;
 /
 CREATE OR REPLACE PACKAGE BODY StreamStore AS
 
-    FUNCTION TRUNCATE(
-        P_StreamIdInternal IN NUMBER
-    ) RETURN STREAMDELETEDMESSAGES
-        IS
-        V_StreamIdOriginal VARCHAR(1000);
-        V_MaxCount          NUMBER(10);
-        V_Count             INT;
-        V_Result            STREAMDELETEDMESSAGES;
-    BEGIN
-        BEGIN
-            SELECT MaxCount, IdOriginal INTO V_MaxCount, V_StreamIdOriginal FROM STREAMS WHERE STREAMS.IDINTERNAL = P_StreamIdInternal;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN RETURN STREAMDELETEDMESSAGES();
-        END;
 
-        IF (V_MaxCount IS NULL)
-        THEN
-            RETURN STREAMDELETEDMESSAGES();
-        END IF;
-
-        BEGIN
-            SELECT COUNT(Id) INTO V_Count FROM STREAMEVENTS WHERE STREAMEVENTS.STREAMIDINTERNAL = P_StreamIdInternal;
-        EXCEPTION
-            WHEN NO_DATA_FOUND THEN RETURN STREAMDELETEDMESSAGES();
-        END;
-
-        IF (V_Count <= V_MaxCount)
-        THEN
-            RETURN STREAMDELETEDMESSAGES();
-        END IF;
-
-        DELETE FROM STREAMEVENTS
-        WHERE STREAMEVENTS.ID IN (SELECT STREAMEVENTS.ID FROM STREAMEVENTS
-                                  WHERE STREAMEVENTS.StreamIdInternal = P_StreamIdInternal
-                                  ORDER BY STREAMEVENTS.POSITION ASC
-                                      OFFSET 0 ROWS FETCH FIRST (V_Count - V_MaxCount) ROWS ONLY
-        )
-        RETURNING STREAMDELETEDMESSAGE(STREAMEVENTS.ID, V_StreamIdOriginal)
-            BULK COLLECT INTO V_Result;
-
-        RETURN V_Result;
-
-    END;
 
     PROCEDURE READ(
         P_StreamId IN CHAR,
@@ -296,8 +252,7 @@ CREATE OR REPLACE PACKAGE BODY StreamStore AS
     FUNCTION APPEND_EXPECTEDVERSION(
         P_StreamId           in CHAR,
         P_ExpectedVersion    in NUMBER,
-        P_NewStreamMessages in STREAMNEWMESSAGES,
-        oDeleted            OUT SYS_REFCURSOR)
+        P_NewStreamMessages in STREAMNEWMESSAGES)
         RETURN STREAMAPPENDED
     AS
 
@@ -306,7 +261,6 @@ CREATE OR REPLACE PACKAGE BODY StreamStore AS
         V_LatestPosition     INT;
         V_LatestVersion   NUMBER(10);
         V_NewMessage      STREAMNEWMESSAGE;
-        V_Deleted           STREAMDELETEDMESSAGES;
         V_InsertedCount NUMBER(10);
     BEGIN
         BEGIN
@@ -362,11 +316,6 @@ CREATE OR REPLACE PACKAGE BODY StreamStore AS
                 STREAMS.Position = V_LatestPosition
             WHERE STREAMS.IdInternal = V_StreamIdInternal;
 
-            V_Deleted := TRUNCATE(V_StreamIdInternal);
-
-            OPEN oDeleted FOR SELECT * FROM TABLE(V_Deleted);
-
-            /* MsSql implementation also returns maxCount = dbo.Streams.MaxCount */
             RETURN STREAMAPPENDED(V_LatestVersion, V_LatestPosition);
         EXCEPTION
             WHEN dup_val_on_index THEN NULL;
@@ -400,8 +349,7 @@ CREATE OR REPLACE PACKAGE BODY StreamStore AS
         P_StreamId           in CHAR,
         P_MetaStreamId           in CHAR,
         P_StreamIdOriginal   in NVARCHAR2,
-        P_NewStreamMessages in STREAMNEWMESSAGES,
-        oDeleted            OUT SYS_REFCURSOR)
+        P_NewStreamMessages in STREAMNEWMESSAGES)
         RETURN STREAMAPPENDED
     AS
         AppendedResult STREAMAPPENDED;
@@ -444,7 +392,7 @@ CREATE OR REPLACE PACKAGE BODY StreamStore AS
         END IF;
 
         /* Continue with append with expected version zero */
-        RETURN APPEND_EXPECTEDVERSION(P_StreamId, -1, P_NewStreamMessages, oDeleted);
+        RETURN APPEND_EXPECTEDVERSION(P_StreamId, -1, P_NewStreamMessages);
 
     END;
 
@@ -452,8 +400,7 @@ CREATE OR REPLACE PACKAGE BODY StreamStore AS
         P_StreamId           in CHAR,
         P_MetaStreamId           in CHAR,
         P_StreamIdOriginal   in NVARCHAR2,
-        P_NewStreamMessages in STREAMNEWMESSAGES,
-        oDeleted            OUT SYS_REFCURSOR)
+        P_NewStreamMessages in STREAMNEWMESSAGES)
         RETURN STREAMAPPENDED
     AS
         V_StreamIdInternal NUMBER(10);
@@ -499,10 +446,6 @@ CREATE OR REPLACE PACKAGE BODY StreamStore AS
                 STREAMS.Position = V_LatestPosition
             WHERE STREAMS.IdInternal = V_StreamIdInternal;
 
-            V_Deleted := TRUNCATE(V_StreamIdInternal);
-
-            OPEN oDeleted FOR SELECT * FROM TABLE(V_Deleted);
-
             RETURN STREAMAPPENDED(V_LatestVersion, V_LatestPosition);
 
         EXCEPTION
@@ -538,26 +481,90 @@ CREATE OR REPLACE PACKAGE BODY StreamStore AS
         RETURN STREAMAPPENDED(V_LatestVersion, V_LatestPosition);
     END;
 
-    FUNCTION APPEND(
+    FUNCTION APPEND_INTERNAL(
         P_StreamId           in CHAR,
         P_MetaStreamId           in CHAR,
         P_StreamIdOriginal   in NVARCHAR2,
         P_ExpectedVersion    in NUMBER,
-        P_NewStreamMessages in STREAMNEWMESSAGES,
-        oDeleted            OUT SYS_REFCURSOR)
+        P_NewStreamMessages in STREAMNEWMESSAGES)
         RETURN STREAMAPPENDED
         IS
     BEGIN
 
         IF (P_ExpectedVersion = -2)
         THEN
-            RETURN APPEND_ANYVERSION(P_StreamId, P_MetaStreamId, P_StreamIdOriginal, P_NewStreamMessages, oDeleted => oDeleted);
+            RETURN APPEND_ANYVERSION(P_StreamId, P_MetaStreamId, P_StreamIdOriginal, P_NewStreamMessages);
         ELSIF (P_ExpectedVersion = -3)
         THEN
-            RETURN APPEND_NOSTREAM(P_StreamId, P_MetaStreamId, P_StreamIdOriginal, P_NewStreamMessages, oDeleted => oDeleted);
+            RETURN APPEND_NOSTREAM(P_StreamId, P_MetaStreamId, P_StreamIdOriginal, P_NewStreamMessages);
         END IF;
 
-        RETURN APPEND_EXPECTEDVERSION(P_StreamId, P_ExpectedVersion, P_NewStreamMessages, oDeleted => oDeleted);
+        RETURN APPEND_EXPECTEDVERSION(P_StreamId, P_ExpectedVersion, P_NewStreamMessages);
+
+    END;
+
+    PROCEDURE TRUNCATE(
+        P_StreamId IN CHAR
+    )
+        IS
+        V_StreamIdOriginal VARCHAR(1000);
+        V_StreamIdInternal  NUMBER(10);
+        V_MaxCount          NUMBER(10);
+        V_Count             INT;
+        V_DeletedMessages   STREAMNEWMESSAGES;
+        V_Result    STREAMAPPENDED;
+    BEGIN
+        BEGIN
+            SELECT MaxCount, IdOriginal, IdInternal INTO V_MaxCount, V_StreamIdOriginal, V_StreamIdInternal FROM STREAMS WHERE STREAMS.ID = P_StreamId;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN RETURN;
+        END;
+
+        IF (V_MaxCount IS NULL)
+        THEN
+            RETURN;
+        END IF;
+
+        BEGIN
+            SELECT COUNT(Id) INTO V_Count FROM STREAMEVENTS WHERE STREAMEVENTS.STREAMIDINTERNAL = V_StreamIdInternal;
+        EXCEPTION
+            WHEN NO_DATA_FOUND THEN RETURN;
+        END;
+
+        IF (V_Count <= V_MaxCount)
+        THEN
+            RETURN;
+        END IF;
+
+        DELETE FROM STREAMEVENTS
+        WHERE STREAMEVENTS.ID IN (SELECT STREAMEVENTS.ID FROM STREAMEVENTS
+                                  WHERE STREAMEVENTS.StreamIdInternal = V_StreamIdInternal
+                                  ORDER BY STREAMEVENTS.POSITION ASC
+                                      OFFSET 0 ROWS FETCH FIRST (V_Count - V_MaxCount) ROWS ONLY
+        )
+        RETURNING STREAMNEWMESSAGE(NULL, '$message-deleted', NULL, '{"StreamId":"' || V_StreamIdOriginal || '","MessageId":"' || STREAMEVENTS.ID || '"}', NULL)
+            BULK COLLECT INTO V_DeletedMessages;
+
+        V_Result := APPEND_INTERNAL('3A6B2F0A2C8DE85A87ACD69A74E8B58B0233C7AA', '92C1448CD20ED4210BBF4BBCDC4952FCE917D145', '$deleted', -2, V_DeletedMessages);
+
+    END;
+
+    FUNCTION APPEND(
+        P_StreamId           in CHAR,
+        P_MetaStreamId           in CHAR,
+        P_StreamIdOriginal   in NVARCHAR2,
+        P_ExpectedVersion    in NUMBER,
+        P_NewStreamMessages in STREAMNEWMESSAGES)
+        RETURN STREAMAPPENDED
+        IS
+        V_Result    STREAMAPPENDED;
+    BEGIN
+
+        V_Result := APPEND_INTERNAL(P_StreamId, P_MetaStreamId, P_StreamIdOriginal, P_ExpectedVersion, P_NewStreamMessages);
+
+        TRUNCATE(P_StreamId);
+
+        return V_Result;
 
     END;
 
@@ -614,13 +621,11 @@ CREATE OR REPLACE PACKAGE BODY StreamStore AS
         P_StreamId           in CHAR,
         P_MetaStreamId           in CHAR,
         P_MaxAge            IN NUMBER,
-        P_MaxCount            IN NUMBER,
-        oDeleted            OUT SYS_REFCURSOR
+        P_MaxCount            IN NUMBER
     )
         IS
         V_StreamIdInternal  NUMBER(10);
         V_StreamIdOriginal  NVARCHAR2(1000);
-        V_Deleted            STREAMDELETEDMESSAGES;
     BEGIN
 
         UPDATE STREAMS SET STREAMS.MaxAge = P_MaxAge, STREAMS.MaxCount = P_MaxCount WHERE STREAMS.Id = P_MetaStreamid;
@@ -637,11 +642,7 @@ CREATE OR REPLACE PACKAGE BODY StreamStore AS
             RETURN;
         END IF;
 
-        V_Deleted := TRUNCATE(V_StreamIdInternal);
+        TRUNCATE(P_StreamId);
 
-        OPEN oDeleted FOR SELECT * FROM TABLE(V_Deleted);
-
-        RETURN;
     END;
 END StreamStore;
-    

@@ -35,7 +35,7 @@
                 Parameters.ExpectedVersion(expectedVersion),
             };
 
-            var callFunc = $"{_dbObjects.Append}(:StreamId, :MetaStreamId, :StreamIdOriginal, :ExpectedVersion, V_NewStreamMessages, :oDeletedEvents)";
+            var callFunc = $"{_dbObjects.Append}(:StreamId, :MetaStreamId, :StreamIdOriginal, :ExpectedVersion, V_NewStreamMessages)";
 
             return BuildAppend(transaction, callFunc, messages, parameters);
         }
@@ -84,8 +84,7 @@
             parameters.AddRange(new []
             {
                 new OracleParameter("oVersion", OracleDbType.Int32, ParameterDirection.Output),
-                new OracleParameter("oPosition", OracleDbType.Int64, ParameterDirection.Output),
-                new OracleParameter("oDeletedEvents", OracleDbType.RefCursor, ParameterDirection.Output)
+                new OracleParameter("oPosition", OracleDbType.Int64, ParameterDirection.Output)
             });
             
             builder.AppendLine(":oVersion := V_Result.CURRENTVERSION;");
@@ -237,14 +236,13 @@
             {
                 Connection = transaction.Connection,
                 BindByName = true,
-                CommandText = $"BEGIN {_dbObjects.SetStreamMeta}(:StreamId, :MetaStreamId, :MaxAge, :MaxCount, :oDeletedEvents); END;"
+                CommandText = $"BEGIN {_dbObjects.SetStreamMeta}(:StreamId, :MetaStreamId, :MaxAge, :MaxCount); END;"
             };
             
             cmd.Parameters.Add(Parameters.StreamId(streamId.StreamId));
             cmd.Parameters.Add(Parameters.MetadataStreamId(streamId.MetaStreamId));
             cmd.Parameters.Add(new OracleParameter("MaxAge", OracleDbType.Int64, maxAge, ParameterDirection.Input));
             cmd.Parameters.Add(new OracleParameter("MaxCount", OracleDbType.Int64, maxCount, ParameterDirection.Input));
-            cmd.Parameters.Add(new OracleParameter("oDeletedEvents", OracleDbType.RefCursor, ParameterDirection.Output));
             
             return cmd;
         }

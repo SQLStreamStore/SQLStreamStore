@@ -1,4 +1,7 @@
-﻿namespace SqlStreamStore.Oracle
+﻿using System.Runtime.CompilerServices;
+
+[assembly: InternalsVisibleTo("SqlStreamStore.Oracle.Tests")]
+namespace SqlStreamStore.Oracle
 {
     using SqlStreamStore.Imports.Ensure.That;
 

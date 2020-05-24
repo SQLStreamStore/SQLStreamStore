@@ -3,11 +3,9 @@
     using System;
     using System.Collections.Generic;
     using System.Data;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
     using global::Oracle.ManagedDataAccess.Client;
-    using global::Oracle.ManagedDataAccess.Types;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Oracle.Database;
     using SqlStreamStore.OracleDatabase;
@@ -127,29 +125,6 @@
 
                 return new ListStreamsPage(afterIdInternal.ToString(), streamIds.ToArray(), listNextStreamsPage);
             }
-        }
-
-        private async Task HandleDeletedEventsFeedback(
-            OracleTransaction transaction,
-            OracleCommand command,
-            OracleRefCursor cursor,
-            CancellationToken cancellationToken)
-        {
-            if(cursor.IsNull)
-                return;
-            
-            OracleDataAdapter adapter = new OracleDataAdapter(command);
-                
-            DataSet dsResult = new DataSet();
-            adapter.Fill(dsResult, "oDeletedEvents",  cursor);
-
-            var deletedMessages = dsResult
-                .Tables["oDeletedEvents"]
-                .AsEnumerable()
-                .Select(row => (row.Field<string>("StreamIdOriginal"), Guid.Parse(row.Field<string>("Id"))))
-                .ToArray();
-
-            await AppendDeletedMessages(transaction, deletedMessages, cancellationToken);
         }
         
         private async Task<OracleConnection> OpenConnection(CancellationToken cancellationToken)

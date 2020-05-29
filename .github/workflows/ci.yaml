@@ -10,9 +10,13 @@ on:
 
 jobs:
   build:
+    strategy:
+      fail-fast: false
+      matrix:
+        test: ["inmem", "mssql", "mssql-v3", "mysql", "postgres", "hal", "http"]
 
     runs-on: ubuntu-latest
-
+    name: Test ${{ matrix.test }}
     services:
       mssql:
         image: microsoft/mssql-server-linux:2017-CU9
@@ -35,8 +39,6 @@ jobs:
           - 5432:5432
         options: --name sql-stream-store-tests-postgres
 
-    env: 
-      FEEDZ_SSS_API_KEY: ${{secrets.FEEDZ_SSS_API_KEY}}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
@@ -47,4 +49,18 @@ jobs:
         run: docker pull damianh/dotnet-core-lts-sdks:1
       - name: Build and Test
         shell: bash
-        run: bash build.sh
+        run: ./build.sh test-${{ matrix.test }}
+  publish:
+    runs-on: ubuntu-latest
+    depends-on: [build]
+    name: Publish
+    env:
+      FEEDZ_SSS_API_KEY: ${{secrets.FEEDZ_SSS_API_KEY}}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - name: Package and Publish
+        shell: bash
+        run: ./build.sh publish

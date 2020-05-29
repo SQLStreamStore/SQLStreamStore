@@ -10,6 +10,7 @@
     using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.ScriptsV2;
+    using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
 
     /// <summary>
@@ -280,9 +281,59 @@
 
                     if(result == DBNull.Value)
                     {
-                        return -1;
+                        return Position.End;
                     }
                     return (long) result;
+                }
+            }
+        }
+
+        protected override async Task<long> ReadStreamHeadPositionInternal(string streamId, CancellationToken cancellationToken)
+        {
+            GuardAgainstDisposed();
+
+            using(var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                using(var command = new SqlCommand(_scripts.ReadStreamHeadPosition, connection))
+                {
+                    command.CommandTimeout = _commandTimeout;
+                    command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = new StreamIdInfo(streamId).SqlStreamId.Id });
+                    var result = await command
+                        .ExecuteScalarAsync(cancellationToken)
+                        .NotOnCapturedContext();
+
+                    if(result == null)
+                    {
+                        return Position.End;
+                    }
+                    return (long) result;
+                }
+            }
+        }
+
+        protected override async Task<int> ReadStreamHeadVersionInternal(string streamId, CancellationToken cancellationToken)
+        {
+            GuardAgainstDisposed();
+
+            using(var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+
+                using(var command = new SqlCommand(_scripts.ReadStreamHeadVersion, connection))
+                {
+                    command.CommandTimeout = _commandTimeout;
+                    command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = new StreamIdInfo(streamId).SqlStreamId.Id });
+                    var result = await command
+                        .ExecuteScalarAsync(cancellationToken)
+                        .NotOnCapturedContext();
+
+                    if(result == null)
+                    {
+                        return StreamVersion.End;
+                    }
+                    return (int) result;
                 }
             }
         }

@@ -70,6 +70,20 @@
             return headPosition;
         }
 
+        public async Task<long> ReadStreamHeadPosition(StreamId streamId, CancellationToken cancellationToken = default)
+        {
+            GuardAgainstDisposed();
+
+            return (await ReadStreamBackwards(streamId, StreamVersion.End, 1, false, cancellationToken)).LastStreamPosition;
+        }
+
+        public async Task<int> ReadStreamHeadVersion(StreamId streamId, CancellationToken cancellationToken = default)
+        {
+            GuardAgainstDisposed();
+
+            return (await ReadStreamBackwards(streamId, StreamVersion.End, 1, false, cancellationToken)).LastStreamVersion;
+        }
+
         private static void ThrowOnError(IHalClient client)
         {
             switch(client.StatusCode ?? default)

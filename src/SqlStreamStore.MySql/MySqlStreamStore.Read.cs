@@ -267,5 +267,47 @@ namespace SqlStreamStore
                 throw new ObjectDisposedException(disposedException.Message, exception);
             }
         }
+
+        protected override async Task<long> ReadStreamHeadPositionInternal(string streamId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using(var connection = await OpenConnection(cancellationToken))
+                using(var transaction = connection.BeginTransaction())
+                using(var command = BuildStoredProcedureCall(_schema.ReadStreamHeadPosition, transaction, Parameters.StreamId(new MySqlStreamId(streamId))))
+                {
+                    var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+
+                    return result == null
+                        ? Position.End
+                        : ConvertPosition.FromMySqlToStreamStore((long) result);
+                }
+            }
+            catch(MySqlException exception) when(exception.InnerException is ObjectDisposedException disposedException)
+            {
+                throw new ObjectDisposedException(disposedException.Message, exception);
+            }
+        }
+
+        protected override async Task<int> ReadStreamHeadVersionInternal(string streamId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                using(var connection = await OpenConnection(cancellationToken))
+                using(var transaction = connection.BeginTransaction())
+                using(var command = BuildStoredProcedureCall(_schema.ReadStreamHeadVersion, transaction, Parameters.StreamId(new MySqlStreamId(streamId))))
+                {
+                    var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+
+                    return result == null
+                        ? StreamVersion.End
+                        : (int) result;
+                }
+            }
+            catch(MySqlException exception) when(exception.InnerException is ObjectDisposedException disposedException)
+            {
+                throw new ObjectDisposedException(disposedException.Message, exception);
+            }
+        }
     }
 }

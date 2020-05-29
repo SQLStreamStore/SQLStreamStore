@@ -40,6 +40,32 @@ namespace SqlStreamStore
             return Task.CompletedTask;
         }
 
+        public Task<long?> StreamHeadPosition()
+        {
+            using(var command = CreateCommand())
+            {
+                command.CommandText = @"SELECT streams.position
+                                    FROM streams
+                                    WHERE streams.id_original = @streamId;";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamId", _streamId);
+                return Task.FromResult(command.ExecuteScalar<long?>());
+            }
+        }
+
+        public Task<int?> StreamHeadVersion()
+        {
+            using(var command = CreateCommand())
+            {
+                command.CommandText = @"SELECT streams.version
+                                    FROM streams
+                                    WHERE streams.id_original = @streamId;";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@streamId", _streamId);
+                return Task.FromResult(command.ExecuteScalar<int?>());
+            }
+        }
+
         public Task<long?> AllStreamPosition(ReadDirection direction, long? version)
         {
             using(var command = CreateCommand())

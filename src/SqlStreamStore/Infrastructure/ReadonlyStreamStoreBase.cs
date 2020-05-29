@@ -231,6 +231,24 @@ namespace SqlStreamStore.Infrastructure
             return ReadHeadPositionInternal(cancellationToken);
         }
 
+        public Task<long> ReadStreamHeadPosition(StreamId streamId, CancellationToken cancellationToken = default)
+        {
+            if (streamId == null) throw new ArgumentNullException(nameof(streamId));
+
+            GuardAgainstDisposed();
+
+            return ReadStreamHeadPositionInternal(streamId, cancellationToken);
+        }
+
+        public Task<int> ReadStreamHeadVersion(StreamId streamId, CancellationToken cancellationToken = default)
+        {
+            if (streamId == null) throw new ArgumentNullException(nameof(streamId));
+
+            GuardAgainstDisposed();
+
+            return ReadStreamHeadVersionInternal(streamId, cancellationToken);
+        }
+
         public Task<ListStreamsPage> ListStreams(
             int maxCount = 100,
             string continuationToken = default,
@@ -298,6 +316,8 @@ namespace SqlStreamStore.Infrastructure
             ReadNextStreamPage readNext, CancellationToken cancellationToken);
 
         protected abstract Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken);
+        protected abstract Task<long> ReadStreamHeadPositionInternal(string streamId, CancellationToken cancellationToken);
+        protected abstract Task<int> ReadStreamHeadVersionInternal(string streamId, CancellationToken cancellationToken);
 
         protected abstract IStreamSubscription SubscribeToStreamInternal(
             string streamId,

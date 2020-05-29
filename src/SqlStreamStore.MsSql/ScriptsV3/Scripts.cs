@@ -40,6 +40,10 @@
 
         internal string ReadHeadPosition => GetScript(nameof(ReadHeadPosition));
 
+        internal string ReadStreamHeadPosition => GetScript(nameof(ReadStreamHeadPosition));
+
+        internal string ReadStreamHeadVersion => GetScript(nameof(ReadStreamHeadVersion));
+
         internal string ReadAllForward => GetScript(nameof(ReadAllForward));
 
         internal string ReadAllForwardWithData => GetScript(nameof(ReadAllForwardWithData));

@@ -75,7 +75,8 @@ namespace SqlStreamStore.TestUtils.MySql
 
         private string DefaultConnectionString => new MySqlConnectionStringBuilder(ConnectionString)
             {
-                Database = null
+                Database = null,
+                IgnorePrepare = false
             }.ConnectionString;
 
         private MySqlConnectionStringBuilder ConnectionStringBuilder => new MySqlConnectionStringBuilder
@@ -84,6 +85,7 @@ namespace SqlStreamStore.TestUtils.MySql
             Port = Port,
             UserID = "root",
             Pooling = true,
+            IgnorePrepare = false,
             MaximumPoolSize = 1000,
         };
     }

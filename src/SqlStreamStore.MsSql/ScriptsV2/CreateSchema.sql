@@ -6,6 +6,13 @@ DECLARE @SQL varchar(1000);
 SET @SQL = 'ALTER DATABASE ['+@DBName+'] SET ALLOW_SNAPSHOT_ISOLATION ON; ALTER DATABASE ['+@DBName+'] SET READ_COMMITTED_SNAPSHOT ON;'; 
 exec(@sql)
 
+IF NOT EXISTS ( SELECT  schema_name
+                FROM    information_schema.schemata
+                WHERE   schema_name = 'dbo' ) 
+BEGIN
+   EXEC sp_executesql N'CREATE SCHEMA dbo'
+END
+
 IF OBJECT_ID('dbo.Streams', 'U') IS NULL
 BEGIN
     CREATE TABLE dbo.Streams(

@@ -25,6 +25,7 @@
 
         public string EnableExplainAnalyze => GetScript(nameof(EnableExplainAnalyze));
 
+        private string Schema => GetScript(nameof(Schema));
         private string Tables => GetScript(nameof(Tables));
 
         private string AppendToStream => GetScript(nameof(AppendToStream));
@@ -58,6 +59,7 @@
 
         public string CreateSchema => string.Join(
             Environment.NewLine,
+            Schema,
             Tables,
             AppendToStream,
             DeleteStream,

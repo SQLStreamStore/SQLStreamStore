@@ -1,6 +1,8 @@
 ﻿namespace SqlStreamStore
 {
     using System.Threading.Tasks;
+    using Shouldly;
+    using SqlStreamStore.PgSqlScripts;
     using Xunit;
     using Xunit.Abstractions;
 
@@ -124,7 +126,7 @@
                 result.IsMatch.ShouldBeTrue();
             }
         }
-
+        */
 
         [Fact]
         public void Can_export_database_creation_script()
@@ -138,6 +140,18 @@
             var sqlScript = store.GetSchemaCreationScript();
             sqlScript.ShouldBe(new Scripts(schema).CreateSchema);
         }
-        */
+
+        [Fact]
+        public void Schema_creation_script_should_include_schema()
+        {
+            string schema = "custom_schema";
+            var store = new PostgresStreamStore(new PostgresStreamStoreSettings("server=.;database=sss")
+            {
+                Schema = schema,
+            });
+
+            var sqlScript = store.GetSchemaCreationScript();
+            sqlScript.ToLowerInvariant().ShouldMatch("create schema if not exists " + schema);
+        }
     }
 }

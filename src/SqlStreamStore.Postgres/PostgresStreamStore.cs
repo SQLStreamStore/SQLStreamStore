@@ -80,11 +80,6 @@
                 await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
                 using(var transaction = connection.BeginTransaction())
                 {
-                    using(var command = BuildCommand($"CREATE SCHEMA IF NOT EXISTS {_settings.Schema}", transaction))
-                    {
-                        await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
-                    }
-
                     using(var command = BuildCommand(_schema.Definition, transaction))
                     {
                         await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();

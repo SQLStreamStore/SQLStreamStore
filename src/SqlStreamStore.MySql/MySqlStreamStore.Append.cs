@@ -295,7 +295,6 @@ namespace SqlStreamStore
                 currentVersion,
                 currentPosition))
             {
-                await command.PrepareAsync(cancellationToken).NotOnCapturedContext();
                 var nextExpectedVersion = Convert.ToInt32(
                     await command
                         .ExecuteScalarAsync(cancellationToken)

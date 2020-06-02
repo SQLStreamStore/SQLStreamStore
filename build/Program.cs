@@ -20,6 +20,7 @@ namespace build
         private const string TestMsSql = "test-mssql";
         private const string TestMsSqlV3 = "test-mssql-v3";
         private const string TestPostgres = "test-postgres";
+        private const string TestSqlite = "test-sqlite";
         private const string TestHal = "test-hal";
         private const string TestHttp = "test-http";
         private const string Pack = "pack";
@@ -104,8 +105,13 @@ namespace build
                 () => RunTest("SqlStreamStore.Postgres.Tests"));
 
             Target(
+                TestSqlite,
+                DependsOn(Build),
+                () => RunTest("SqlStreamStore.Sqlite.Tests"));
+
+            Target(
                 TestAll,
-                DependsOn(TestInMem, TestHal, TestHttp, TestMsSql, TestMsSqlV3, TestMySql, TestPostgres));
+                DependsOn(TestInMem, TestHal, TestHttp, TestMsSql, TestMsSqlV3, TestMySql, TestPostgres, TestSqlite));
 
             Target(
                 Pack,
@@ -117,6 +123,7 @@ namespace build
                     "SqlStreamStore.Postgres",
                     "SqlStreamStore.HAL",
                     "SqlStreamStore.Http",
+                    "SqlStreamStore.Sqlite",
                     "SqlStreamStore.SchemaCreationScriptTool"),
                 project => Run("dotnet", $"pack src/{project}/{project}.csproj -c Release -o {ArtifactsDir} --no-build"));
 

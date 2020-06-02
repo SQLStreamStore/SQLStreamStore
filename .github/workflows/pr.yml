@@ -8,7 +8,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test: ["inmem", "mssql", "mssql-v3", "mysql", "postgres", "hal", "http"]
+        test: ["inmem", "mssql", "mssql-v3", "mysql", "postgres", "sqlite", "hal", "http"]
 
     runs-on: ubuntu-latest
     name: Test ${{ matrix.test }}

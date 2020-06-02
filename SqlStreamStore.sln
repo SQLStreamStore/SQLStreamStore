@@ -39,6 +39,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.Sqlite.Tests
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.Sqlite", "src\SqlStreamStore.Sqlite\SqlStreamStore.Sqlite.csproj", "{496DF6AD-94C5-4B9E-BB12-3C2DC8AC43E2}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.SchemaCreationScriptTool", "src\SqlStreamStore.SchemaCreationScriptTool\SqlStreamStore.SchemaCreationScriptTool.csproj", "{22509EC4-3F7A-4027-8639-F068F64BD117}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -117,6 +119,10 @@ Global
 		{496DF6AD-94C5-4B9E-BB12-3C2DC8AC43E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{496DF6AD-94C5-4B9E-BB12-3C2DC8AC43E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{496DF6AD-94C5-4B9E-BB12-3C2DC8AC43E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{22509EC4-3F7A-4027-8639-F068F64BD117}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{22509EC4-3F7A-4027-8639-F068F64BD117}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{22509EC4-3F7A-4027-8639-F068F64BD117}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{22509EC4-3F7A-4027-8639-F068F64BD117}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

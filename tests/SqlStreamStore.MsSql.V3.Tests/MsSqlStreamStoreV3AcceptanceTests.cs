@@ -3,6 +3,7 @@
     using System;
     using System.Diagnostics;
     using System.Threading.Tasks;
+    using Microsoft.Data.SqlClient;
     using Shouldly;
     using SqlStreamStore.Streams;
     using Xunit;
@@ -102,6 +103,75 @@
             var readStreamPage = await Fixture.Store.ReadStreamForwards(streamId, StreamVersion.Start, prefetchJsonData: false, maxCount: 1);
             var jsonData = await readStreamPage.Messages[0].GetJsonData();
             TestOutputHelper.WriteLine($"Read: {stopwatch.Elapsed}");
+        }
+        [Fact]
+        public async Task Can_Not_Read_When_No_Rights()
+        {
+            using (var fixture = await _fixturePool.Get(TestOutputHelper))
+            {
+                await fixture.CreateUser("can_not_read");
+                var streamId = Guid.NewGuid().ToString();
+
+                var newStreamMessage = CreateNewStreamMessages(1);
+                await fixture.Store.AppendToStream(streamId, ExpectedVersion.Any, newStreamMessage);
+
+                var store = fixture.StoreFor("can_not_read");
+                var exception = await Record.ExceptionAsync(() => store.ReadStreamForwards(streamId, StreamVersion.Start, 1));
+                exception.ShouldBeOfType<SqlException>()
+                    .Message.ShouldContain("The SELECT permission was denied");
+            }
+        }
+        [Fact]
+        public async Task Can_Not_Read_When_Rights()
+        {
+            using (var fixture = await _fixturePool.Get(TestOutputHelper))
+            {
+                await fixture.CreateUser("can_read");
+                await fixture.MsSqlStreamStoreV3.GrantRead("can_read");
+
+                var streamId = Guid.NewGuid().ToString();
+                var newStreamMessage = CreateNewStreamMessages(1);
+                await fixture.Store.AppendToStream(streamId, ExpectedVersion.Any, newStreamMessage);
+
+                var store = fixture.StoreFor("can_read");
+                var exception = await Record.ExceptionAsync(() => store.ReadStreamForwards(streamId, StreamVersion.Start, 1));
+                exception.ShouldBeNull();
+            }
+        }
+
+        [Fact]
+        public async Task Can_Not_Append_When_No_Rights()
+        {
+            using (var fixture = await _fixturePool.Get(TestOutputHelper))
+            {
+                await fixture.CreateUser("can_not_append");
+                var store = fixture.StoreFor("can_not_append");
+
+                var streamId = Guid.NewGuid().ToString();
+                var newStreamMessage = CreateNewStreamMessages(1);
+
+                var exception = await Record.ExceptionAsync(() => store.AppendToStream(streamId, ExpectedVersion.Any, newStreamMessage));
+                exception.ShouldBeOfType<SqlException>()
+                    .Message.ShouldStartWith("The EXECUTE permission was denied on the object 'NewStreamMessages'");
+            }
+        }
+        [Fact]
+        public async Task Can_Append_When_Rights()
+        {
+            using (var fixture = await _fixturePool.Get(TestOutputHelper))
+            {
+                await fixture.CreateUser("can_append");
+                await fixture.MsSqlStreamStoreV3.GrantAppend("can_append");
+
+                var store = fixture.StoreFor("can_append");
+
+                var streamId = Guid.NewGuid().ToString();
+                var newStreamMessage = CreateNewStreamMessages(1);
+
+                var exception = await Record.ExceptionAsync(() =>
+                    store.AppendToStream(streamId, ExpectedVersion.Any, newStreamMessage));
+                exception.ShouldBeNull();
+            }
         }
     }
 }

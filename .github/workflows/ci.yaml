@@ -52,7 +52,7 @@ jobs:
         run: ./build.sh test-${{ matrix.test }}
   publish:
     runs-on: ubuntu-latest
-    depends-on: [build]
+    needs: build
     name: Publish
     env:
       FEEDZ_SSS_API_KEY: ${{secrets.FEEDZ_SSS_API_KEY}}

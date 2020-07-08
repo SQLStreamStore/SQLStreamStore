@@ -8,13 +8,7 @@
     <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" Exclude="..\SqlStreamStore.AcceptanceTests\AcceptanceTests.DeletionTracking.cs" LinkBase="InMemory" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SqlStreamStore.TestUtils\SqlStreamStore.TestUtils.csproj" />
+    <ProjectReference Include="..\..\src\SqlStreamStore.TestUtils\SqlStreamStore.TestUtils.csproj" />
     <ProjectReference Include="..\..\src\SqlStreamStore\SqlStreamStore.csproj" />
-  </ItemGroup>
-  <ItemGroup>
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.2">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 </Project>

@@ -12,21 +12,13 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Remove="SqlStreamStore.Http.Tests.v3.ncrunchproject" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\..\src\SqlStreamStore.HAL\SqlStreamStore.HAL.csproj" />
     <ProjectReference Include="..\..\src\SqlStreamStore.Http\SqlStreamStore.Http.csproj" />
-    <ProjectReference Include="..\SqlStreamStore.TestUtils\SqlStreamStore.TestUtils.csproj" />
+    <ProjectReference Include="..\..\src\SqlStreamStore.TestUtils\SqlStreamStore.TestUtils.csproj" />
     <ProjectReference Include="..\..\src\SqlStreamStore\SqlStreamStore.csproj" />
   </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="3.1.5" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.4.2">
-      <PrivateAssets>all</PrivateAssets>
-      <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-    </PackageReference>
   </ItemGroup>
 </Project>

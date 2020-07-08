@@ -1,4 +1,4 @@
-FROM damianh/dotnet-core-lts-sdks:1
+FROM damianh/dotnet-core-lts-sdks:2
 
 WORKDIR /repo
 

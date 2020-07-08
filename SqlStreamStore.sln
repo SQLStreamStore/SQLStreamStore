@@ -23,7 +23,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.Http", "src\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.Http.Tests", "tests\SqlStreamStore.Http.Tests\SqlStreamStore.Http.Tests.csproj", "{81CE2F7B-75BC-4C02-A36B-EC1B21369BC3}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.TestUtils", "tests\SqlStreamStore.TestUtils\SqlStreamStore.TestUtils.csproj", "{22EA7D5D-824B-4C81-8DBF-7C049B90D48B}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.TestUtils", "src\SqlStreamStore.TestUtils\SqlStreamStore.TestUtils.csproj", "{22EA7D5D-824B-4C81-8DBF-7C049B90D48B}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.HAL", "src\SqlStreamStore.HAL\SqlStreamStore.HAL.csproj", "{345AE3D5-A2F2-43FE-8250-B6519907CE81}"
 EndProject

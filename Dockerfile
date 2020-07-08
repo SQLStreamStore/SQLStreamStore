@@ -7,6 +7,9 @@ WORKDIR /repo
 # We don't want to specify each csproj either - it creates pointless layers and it looks ugly
 # https://code-maze.com/aspnetcore-app-dockerfiles/
 COPY ./*.sln ./
+
+COPY ./build/ ./build/
+
 COPY ./src/*/*.csproj ./src/
 RUN for file in $(ls src/*.csproj); do mkdir -p ./${file%.*}/ && mv $file ./${file%.*}/; done
 

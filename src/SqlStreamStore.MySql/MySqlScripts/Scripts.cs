@@ -44,7 +44,7 @@
 
         private string Read => GetScript(nameof(Read));
 
-        private string ReadAll => GetScript(nameof(ReadAll));
+        private string ReadAllObsolete => GetScript(nameof(ReadAllObsolete));
 
         private string ReadAllBackwards => GetScript(nameof(ReadAllBackwards));
 
@@ -87,7 +87,7 @@
             ListStreamsStartingWith,
             ListStreamsEndingWith,
             Read,
-            ReadAll,
+            ReadAllObsolete,
             ReadAllBackwards,
             ReadAllBackwardsWithData,
             ReadAllForwards,

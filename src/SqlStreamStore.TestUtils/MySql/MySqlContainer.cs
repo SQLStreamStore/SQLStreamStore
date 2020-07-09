@@ -13,23 +13,25 @@ namespace SqlStreamStore.TestUtils.MySql
     {
         private const string Image = "mysql:5.6";
         private const string ContainerName = "sql-stream-store-tests-mysql";
-        private const int Port = 3306;
+        private const int ContainerPort = 3306;
 
         private readonly string _databaseName;
+        private readonly uint _hostPort;
         private readonly IContainerService _containerService;
 
-        public MySqlContainer(string databaseName)
+        public MySqlContainer(string databaseName, string name = ContainerName, uint hostPort = ContainerPort)
         {
             _databaseName = databaseName;
+            _hostPort = hostPort;
 
             _containerService = new Builder()
                 .UseContainer()
-                .WithName(ContainerName)
+                .WithName(name)
                 .UseImage(Image)
                 .KeepRunning()
                 .ReuseIfExists()
                 .WithEnvironment("MYSQL_ALLOW_EMPTY_PASSWORD=1")
-                .ExposePort(Port, Port)
+                .ExposePort((int)hostPort, ContainerPort)
                 .Build();
         }
 
@@ -76,13 +78,14 @@ namespace SqlStreamStore.TestUtils.MySql
         private string DefaultConnectionString => new MySqlConnectionStringBuilder(ConnectionString)
             {
                 Database = null,
-                IgnorePrepare = false
+                IgnorePrepare = false,
+                Port = _hostPort,
             }.ConnectionString;
 
         private MySqlConnectionStringBuilder ConnectionStringBuilder => new MySqlConnectionStringBuilder
         {
             Database = _databaseName,
-            Port = Port,
+            Port = _hostPort,
             UserID = "root",
             Pooling = true,
             IgnorePrepare = false,

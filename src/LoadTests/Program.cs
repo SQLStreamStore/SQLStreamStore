@@ -25,8 +25,11 @@
                     "Append with ExpectedVersion.Any",
                     async ct => await new AppendExpectedVersionAnyParallel().Run(ct))
                 .Add(
-                    "Read all",
-                    async ct => await new ReadAll().Run(ct))
+                    "Read all forwards",
+                    async ct => await new ReadAllForwards().Run(ct))
+                .Add(
+                    "Read all backwards",
+                    async ct => await new ReadAllBackwards().Run(ct))
                 .Add(
                     "Append max count",
                     async ct => await new AppendMaxCount().Run(ct))

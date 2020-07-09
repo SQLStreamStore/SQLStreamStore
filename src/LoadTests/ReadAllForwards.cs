@@ -7,7 +7,7 @@
     using EasyConsole;
     using SqlStreamStore.Streams;
 
-    public class ReadAll : LoadTest
+    public class ReadAllForwards : LoadTest
     {
         public override async Task Run(CancellationToken ct)
         {

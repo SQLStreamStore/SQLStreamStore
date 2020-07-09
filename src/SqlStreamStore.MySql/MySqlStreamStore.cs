@@ -22,6 +22,7 @@
         private readonly Func<MySqlConnection> _createConnection;
         private readonly Schema _schema;
         private readonly Lazy<IStreamStoreNotifier> _streamStoreNotifier;
+        private readonly ScriptsV1.Scripts _scripts;
 
         public const int CurrentVersion = 1;
 
@@ -46,6 +47,7 @@
                 return settings.CreateStreamStoreNotifier.Invoke(this);
             });
             _schema = new Schema();
+            _scripts = new ScriptsV1.Scripts();
         }
 
         /// <summary>

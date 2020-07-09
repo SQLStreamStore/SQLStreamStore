@@ -7,10 +7,14 @@
     <AssemblyName>SqlStreamStore.MySql</AssemblyName>
     <PackageId>SqlStreamStore.MySql</PackageId>
     <RootNamespace>SqlStreamStore</RootNamespace>
-    <NetStandardImplicitPackageVersion Condition=" '$(TargetFramework)' == 'netstandard1.3' ">1.6.0</NetStandardImplicitPackageVersion>
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="MySqlScripts\*.sql" Exclude="bin\**;obj\**;packages\**;@(EmbeddedResource)" />
+    <EmbeddedResource Include="ScriptsV1\*.sql"/>
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="ScriptsV1\ReadAllForward.sql" />
+    <None Remove="ScriptsV1\ReadAllForwardWIthData.sql" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MySqlConnector" Version="0.69.6" />

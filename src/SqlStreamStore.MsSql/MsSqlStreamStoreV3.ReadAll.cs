@@ -36,7 +36,6 @@ namespace SqlStreamStore
                         .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
                         .NotOnCapturedContext();
 
-                    var messages = new List<(StreamMessage, int?)>();
                     if (!reader.HasRows)
                     {
                         return new ReadAllPage(
@@ -47,6 +46,8 @@ namespace SqlStreamStore
                             readNext,
                             Array.Empty<StreamMessage>());
                     }
+
+                    var messages = new List<(StreamMessage, int?)>();
 
                     while (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
                     {

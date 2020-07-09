@@ -24,66 +24,68 @@ namespace SqlStreamStore
 
             try
             {
+                var commandText = prefetch ? _scripts.ReadAllForwardWithData : _scripts.ReadAllForward;
+
                 using(var connection = await OpenConnection(cancellationToken))
-                using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
-                using(var command = BuildStoredProcedureCall(
-                    _schema.ReadAll,
-                    transaction,
-                    Parameters.Count(maxCount + 1),
-                    Parameters.Position(fromPositionExclusive),
-                    Parameters.ReadDirection(ReadDirection.Forward),
-                    Parameters.Prefetch(prefetch)))
-                using(var reader = await command
-                    .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
-                    .NotOnCapturedContext())
                 {
-                    if(!reader.HasRows)
+                    using(var command = new MySqlCommand(commandText, connection))
                     {
-                        return new ReadAllPage(
-                            fromPositionExclusive,
-                            fromPositionExclusive,
-                            true,
-                            ReadDirection.Forward,
-                            readNext,
-                            Array.Empty<StreamMessage>());
-                    }
+                        command.Parameters.Add(Parameters.Count(maxCount + 1)); //Read extra row to see if at end or not
+                        command.Parameters.Add(Parameters.Position(fromPositionExclusive));
 
-                    var messages = new List<(StreamMessage message, int? maxAge)>();
-
-                    while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
-                    {
-                        if(messages.Count == maxCount)
+                        using(var reader = await command
+                            .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
+                            .NotOnCapturedContext())
                         {
-                            messages.Add(default);
-                        }
-                        else
-                        {
-                            var streamIdInfo = new StreamIdInfo(reader.GetString(0));
-                            var (message, maxAge, _) =
-                                await ReadAllStreamMessage(reader, streamIdInfo.MySqlStreamId, prefetch);
-                            messages.Add((message, maxAge));
+                            if (!reader.HasRows)
+                            {
+                                return new ReadAllPage(
+                                    fromPositionExclusive,
+                                    fromPositionExclusive,
+                                    true,
+                                    ReadDirection.Forward,
+                                    readNext,
+                                    Array.Empty<StreamMessage>());
+                            }
+
+                            var messages = new List<(StreamMessage message, int? maxAge)>();
+
+                            while (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                            {
+                                if (messages.Count == maxCount)
+                                {
+                                    messages.Add(default);
+                                }
+                                else
+                                {
+                                    var streamIdInfo = new StreamIdInfo(reader.GetString(0));
+                                    var (message, maxAge, _) =
+                                        await ReadAllStreamMessageTemp(reader, streamIdInfo.MySqlStreamId, prefetch);
+                                    messages.Add((message, maxAge));
+                                }
+                            }
+
+                            bool isEnd = true;
+
+                            if (messages.Count == maxCount + 1) // An extra row was read, we're not at the end
+                            {
+                                isEnd = false;
+                                messages.RemoveAt(maxCount);
+                            }
+
+                            var filteredMessages = FilterExpired(messages);
+
+                            var nextPosition = filteredMessages[filteredMessages.Count - 1].Position + 1;
+
+                            return new ReadAllPage(
+                                fromPositionExclusive,
+                                nextPosition,
+                                isEnd,
+                                ReadDirection.Forward,
+                                readNext,
+                                filteredMessages.ToArray());
                         }
                     }
-
-                    bool isEnd = true;
-
-                    if(messages.Count == maxCount + 1) // An extra row was read, we're not at the end
-                    {
-                        isEnd = false;
-                        messages.RemoveAt(maxCount);
-                    }
-
-                    var filteredMessages = FilterExpired(messages);
-
-                    var nextPosition = filteredMessages[filteredMessages.Count - 1].Position + 1;
-
-                    return new ReadAllPage(
-                        fromPositionExclusive,
-                        nextPosition,
-                        isEnd,
-                        ReadDirection.Forward,
-                        readNext,
-                        filteredMessages.ToArray());
                 }
             }
             catch(MySqlException exception) when(exception.InnerException is ObjectDisposedException disposedException)
@@ -172,18 +174,18 @@ namespace SqlStreamStore
         }
 
         private async Task<(StreamMessage message, int? maxAge, long position)> ReadAllStreamMessage(
-            DbDataReader reader,
-            MySqlStreamId streamId,
-            bool prefetch)
+                    DbDataReader reader,
+                    MySqlStreamId streamId,
+                    bool prefetch)
         {
             async Task<string> ReadString(int ordinal)
             {
-                if(reader.IsDBNull(ordinal))
+                if (reader.IsDBNull(ordinal))
                 {
                     return null;
                 }
 
-                using(var textReader = reader.GetTextReader(ordinal))
+                using (var textReader = reader.GetTextReader(ordinal))
                 {
                     return await textReader.ReadToEndAsync().NotOnCapturedContext();
                 }
@@ -196,7 +198,7 @@ namespace SqlStreamStore
             var type = reader.GetString(5);
             var jsonMetadata = await ReadString(6);
 
-            if(prefetch)
+            if (prefetch)
             {
                 return (
                     new StreamMessage(
@@ -228,6 +230,64 @@ namespace SqlStreamStore
                     ? default
                     : reader.GetInt32(8),
                 position);
+        }
+
+        private async Task<(StreamMessage message, int? maxAge, long position)> ReadAllStreamMessageTemp(
+            DbDataReader reader,
+            MySqlStreamId streamId,
+            bool prefetch)
+        {
+            async Task<string> ReadString(int ordinal)
+            {
+                if (await reader.IsDBNullAsync(ordinal))
+                {
+                    return null;
+                }
+
+                using (var textReader = reader.GetTextReader(ordinal))
+                {
+                    return await textReader.ReadToEndAsync().NotOnCapturedContext();
+                }
+            }
+
+            var maxAge = await reader.IsDBNullAsync(1)
+                ? default
+                : reader.GetInt32(1);
+            var messageId = reader.GetGuid(2);
+            var streamVersion = reader.GetInt32(3);
+            var position = reader.GetInt64(4);
+            var createdUtc = reader.GetDateTime(5);
+            var type = reader.GetString(6);
+            var jsonMetadata = await ReadString(7);
+
+            StreamMessage streamMessage;
+
+            if (prefetch)
+            {
+                streamMessage = new StreamMessage(
+                    streamId.IdOriginal,
+                    messageId,
+                    streamVersion,
+                    position,
+                    createdUtc,
+                    type,
+                    jsonMetadata,
+                    await ReadString(8));
+            }
+            else
+            {
+                streamMessage = new StreamMessage(
+                    streamId.IdOriginal,
+                    messageId,
+                    streamVersion,
+                    position,
+                    createdUtc,
+                    type,
+                    jsonMetadata,
+                    ct => GetJsonData(streamId, streamVersion)(ct));
+            }
+
+            return (streamMessage, maxAge, position);
         }
     }
 }

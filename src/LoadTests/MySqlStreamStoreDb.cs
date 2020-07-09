@@ -21,15 +21,6 @@
             _databaseManager = new MySqlContainer($"test_{Guid.NewGuid():n}");
         }
 
-        public async Task<MySqlStreamStore> GetStreamStore()
-        {
-            var store = await GetUninitializedMySqlStreamStore();
-
-            await store.CreateSchemaIfNotExists();
-
-            return store;
-        }
-
         public async Task<MySqlStreamStore> GetMySqlStreamStore()
         {
             await CreateDatabase();

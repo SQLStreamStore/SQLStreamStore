@@ -71,7 +71,7 @@
                     async ct =>
                     {
                         var db = new MySqlStreamStoreDb();
-                        streamStore = await db.GetStreamStore();
+                        streamStore = await db.GetMySqlStreamStore();
                         disposable = db;
                     })
                 /*.Add("MySql (Server)",

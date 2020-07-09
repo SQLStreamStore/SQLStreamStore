@@ -63,7 +63,7 @@ namespace SqlStreamStore
                         {
                             var streamIdInfo = new StreamIdInfo(reader.GetString(0));
                             var (message, maxAge, _) =
-                                await ReadAllStreamMessageTemp(reader, streamIdInfo.MySqlStreamId, prefetch);
+                                await ReadAllStreamMessage(reader, streamIdInfo.MySqlStreamId, prefetch);
                             messages.Add((message, maxAge));
                         }
                     }
@@ -142,7 +142,7 @@ namespace SqlStreamStore
                     {
                         var streamIdInfo = new StreamIdInfo(reader.GetString(0));
                         var (message, maxAge, position) =
-                            await ReadAllStreamMessageTemp(reader, streamIdInfo.MySqlStreamId, prefetch);
+                            await ReadAllStreamMessage(reader, streamIdInfo.MySqlStreamId, prefetch);
                         messages.Add((message, maxAge));
 
                         lastOrdinal = position;
@@ -176,7 +176,7 @@ namespace SqlStreamStore
             }
         }
 
-        private async Task<(StreamMessage message, int? maxAge, long position)> ReadAllStreamMessageTemp(
+        private async Task<(StreamMessage message, int? maxAge, long position)> ReadAllStreamMessage(
             DbDataReader reader,
             MySqlStreamId streamId,
             bool prefetch)

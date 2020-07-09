@@ -33,13 +33,35 @@
         private string DeleteStream => GetScript(nameof(DeleteStream));
 
         private string DeleteStreamMessage => GetScript(nameof(DeleteStreamMessage));
-        private string GetStreamMetadata => GetScript(nameof(GetStreamMetadata));
-        private string ListStreams => GetScript(nameof(ListStreams));
-        private string ListStreamsStartingWith => GetScript(nameof(ListStreamsStartingWith));
-        private string ListStreamsEndingWith => GetScript(nameof(ListStreamsEndingWith));
-        private string ReadAll => GetScript(nameof(ReadAll));
 
-        private string Read => GetScript(nameof(Read));
+        private string GetStreamMetadata => GetScript(nameof(GetStreamMetadata));
+
+        private string ListStreams => GetScript(nameof(ListStreams));
+
+        private string ListStreamsStartingWith => GetScript(nameof(ListStreamsStartingWith));
+
+        private string ListStreamsEndingWith => GetScript(nameof(ListStreamsEndingWith));
+
+        private string ReadObsolete => GetScript(nameof(ReadObsolete));
+
+        private string ReadStreamForwards => GetScript(nameof(ReadStreamForwards));
+
+        private string ReadStreamForwardsWithData => GetScript(nameof(ReadStreamForwardsWithData));
+
+        private string ReadStreamBackwards => GetScript(nameof(ReadStreamBackwards));
+
+        private string ReadStreamBackwardsWithData => GetScript(nameof(ReadStreamBackwardsWithData));
+
+        private string ReadAllObsolete => GetScript(nameof(ReadAllObsolete));
+
+        private string ReadAllBackwards => GetScript(nameof(ReadAllBackwards));
+
+        private string ReadAllBackwardsWithData => GetScript(nameof(ReadAllBackwardsWithData));
+
+        private string ReadAllForwards => GetScript(nameof(ReadAllForwards));
+
+        private string ReadAllForwardsWithData => GetScript(nameof(ReadAllForwardsWithData));
+
 
         private string ReadJsonData => GetScript(nameof(ReadJsonData));
 
@@ -72,8 +94,16 @@
             ListStreams,
             ListStreamsStartingWith,
             ListStreamsEndingWith,
-            Read,
-            ReadAll,
+            ReadObsolete,
+            ReadStreamForwards,
+            ReadStreamForwardsWithData,
+            ReadStreamBackwards,
+            ReadStreamBackwardsWithData,
+            ReadAllObsolete,
+            ReadAllBackwards,
+            ReadAllBackwardsWithData,
+            ReadAllForwards,
+            ReadAllForwardsWithData,
             ReadJsonData,
             ReadHeadPosition,
             ReadStreamHeadPosition,

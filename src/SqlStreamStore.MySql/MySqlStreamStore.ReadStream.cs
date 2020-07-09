@@ -100,42 +100,30 @@ namespace SqlStreamStore
             var streamVersion = start == StreamVersion.End ? int.MaxValue : start;
 
             var messages = new List<(StreamMessage message, int? maxAge)>();
-
+            string procedure;
             Func<List<StreamMessage>, int, int> getNextVersion;
 
             if(direction == ReadDirection.Forward)
             {
-                getNextVersion = (events, lastVersion) =>
-                {
-                    if(events.Any())
-                    {
-                        return events.Last().StreamVersion + 1;
-                    }
-
-                    return lastVersion + 1;
-                };
+                procedure = prefetch ? _schema.ReadStreamForwardsWithData : _schema.ReadStreamForwards;
+                getNextVersion = (events, lastVersion) => events.Any() 
+                    ? events.Last().StreamVersion + 1 
+                    : lastVersion + 1;
             }
             else
             {
-                getNextVersion = (events, lastVersion) =>
-                {
-                    if(events.Any())
-                    {
-                        return events.Last().StreamVersion - 1;
-                    }
-
-                    return -1;
-                };
+                procedure = prefetch ? _schema.ReadStreamBackwardsWithData : _schema.ReadStreamBackwards;
+                getNextVersion = (events, lastVersion) => events.Any()
+                    ? events.Last().StreamVersion - 1
+                    : -1;
             }
 
             using(var command = BuildStoredProcedureCall(
-                _schema.Read,
+                procedure,
                 transaction,
                 Parameters.StreamId(streamId),
                 Parameters.Count(count + 1),
-                Parameters.Version(streamVersion),
-                Parameters.ReadDirection(direction),
-                Parameters.Prefetch(prefetch)))
+                Parameters.Version(streamVersion)))
             using(var reader = await command
                 .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
                 .NotOnCapturedContext())
@@ -205,7 +193,7 @@ namespace SqlStreamStore
         {
             async Task<string> ReadString(int ordinal)
             {
-                if(reader.IsDBNull(ordinal))
+                if(await reader.IsDBNullAsync(ordinal).ConfigureAwait(false))
                 {
                     return null;
                 }
@@ -299,9 +287,7 @@ namespace SqlStreamStore
                 {
                     var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
 
-                    return result == null
-                        ? StreamVersion.End
-                        : (int) result;
+                    return (int?) result ?? StreamVersion.End;
                 }
             }
             catch(MySqlException exception) when(exception.InnerException is ObjectDisposedException disposedException)

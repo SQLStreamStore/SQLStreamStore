@@ -6,7 +6,7 @@
     using SqlStreamStore.TestUtils.MySql;
     using Xunit.Abstractions;
 
-    public class MySqlStreamStoreDb
+    public class MySqlStreamStoreDb : IDisposable
     {
         private string ConnectionString => _databaseManager.ConnectionString;
         private readonly MySqlContainer _databaseManager;
@@ -19,6 +19,15 @@
         public MySqlStreamStoreDb(ITestOutputHelper testOutputHelper)
         {
             _databaseManager = new MySqlContainer($"test_{Guid.NewGuid():n}");
+        }
+
+        public async Task<MySqlStreamStore> GetStreamStore()
+        {
+            var store = await GetUninitializedMySqlStreamStore();
+
+            await store.CreateSchemaIfNotExists();
+
+            return store;
         }
 
         public async Task<MySqlStreamStore> GetUninitializedMySqlStreamStore()
@@ -37,6 +46,11 @@
             public void WriteLine(string message) => Console.Write(message);
 
             public void WriteLine(string format, params object[] args) => Console.WriteLine(format, args);
+        }
+
+        public void Dispose()
+        {
+            
         }
     }
 }

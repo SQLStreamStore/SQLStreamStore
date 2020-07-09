@@ -83,6 +83,7 @@
             var streamVersion = start == StreamVersion.End ? int.MaxValue : start;
             string commandText;
             Func<List<(StreamMessage, int?)>, int, int> getNextVersion;
+
             if(direction == ReadDirection.Forward)
             {
                 commandText = prefetch ? _scripts.ReadStreamForwardWithData : _scripts.ReadStreamForward;
@@ -112,7 +113,7 @@
                     .NotOnCapturedContext())
                 {
                     await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
-                    if(reader.IsDBNull(0))
+                    if(await reader.IsDBNullAsync(0, cancellationToken).ConfigureAwait(false))
                     {
                         return (new ReadStreamPage(
                               sqlStreamId.IdOriginal,

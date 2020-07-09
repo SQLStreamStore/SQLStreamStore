@@ -1,0 +1,31 @@
+DROP PROCEDURE IF EXISTS `read_stream_backwards`;
+CREATE PROCEDURE `read_stream_backwards`(_stream_id CHAR(42),
+                      _count INT,
+                      _version INT)
+BEGIN
+  DECLARE _stream_id_internal INT;
+
+  SELECT streams.id_internal INTO _stream_id_internal
+  FROM streams
+  WHERE streams.id = _stream_id;
+
+  SELECT streams.version  as stream_version,
+         streams.position as position,
+         streams.max_age  as max_age
+  FROM streams
+  WHERE streams.id_internal = _stream_id_internal;
+
+  SELECT streams.id_original AS stream_id,
+         messages.message_id,
+         messages.stream_version,
+         messages.position - 1,
+         messages.created_utc,
+         messages.type,
+         messages.json_metadata
+  FROM messages
+         STRAIGHT_JOIN streams ON messages.stream_id_internal = streams.id_internal
+  WHERE messages.stream_version <= _version AND id_internal = _stream_id_internal
+  ORDER BY messages.stream_version DESC
+  LIMIT _count;
+
+END;

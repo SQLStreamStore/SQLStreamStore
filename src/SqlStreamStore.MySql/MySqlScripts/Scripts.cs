@@ -42,7 +42,15 @@
 
         private string ListStreamsEndingWith => GetScript(nameof(ListStreamsEndingWith));
 
-        private string Read => GetScript(nameof(Read));
+        private string ReadObsolete => GetScript(nameof(ReadObsolete));
+
+        private string ReadStreamForwards => GetScript(nameof(ReadStreamForwards));
+
+        private string ReadStreamForwardsWithData => GetScript(nameof(ReadStreamForwardsWithData));
+
+        private string ReadStreamBackwards => GetScript(nameof(ReadStreamBackwards));
+
+        private string ReadStreamBackwardsWithData => GetScript(nameof(ReadStreamBackwardsWithData));
 
         private string ReadAllObsolete => GetScript(nameof(ReadAllObsolete));
 
@@ -86,7 +94,11 @@
             ListStreams,
             ListStreamsStartingWith,
             ListStreamsEndingWith,
-            Read,
+            ReadObsolete,
+            ReadStreamForwards,
+            ReadStreamForwardsWithData,
+            ReadStreamBackwards,
+            ReadStreamBackwardsWithData,
             ReadAllObsolete,
             ReadAllBackwards,
             ReadAllBackwardsWithData,

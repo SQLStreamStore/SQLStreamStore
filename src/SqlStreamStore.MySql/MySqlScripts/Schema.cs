@@ -34,6 +34,14 @@
 
         public string Read => "`read`";
 
+        public string ReadStreamForwards => "`read_stream_forwards`";
+
+        public string ReadStreamForwardsWithData => "`read_stream_forwards_with_data`";
+
+        public string ReadStreamBackwards => "`read_stream_backwards`";
+
+        public string ReadStreamBackwardsWithData => "`read_stream_backwards_with_data`";
+
         public string ReadAllBackwards => "read_all_backwards";
 
         public string ReadAllBackwardsWithData => "read_all_backwards_with_data";

@@ -193,7 +193,7 @@ namespace SqlStreamStore
         {
             async Task<string> ReadString(int ordinal)
             {
-                if(reader.IsDBNull(ordinal))
+                if(await reader.IsDBNullAsync(ordinal).ConfigureAwait(false))
                 {
                     return null;
                 }
@@ -287,9 +287,7 @@ namespace SqlStreamStore
                 {
                     var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
 
-                    return result == null
-                        ? StreamVersion.End
-                        : (int) result;
+                    return (int?) result ?? StreamVersion.End;
                 }
             }
             catch(MySqlException exception) when(exception.InnerException is ObjectDisposedException disposedException)

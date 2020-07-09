@@ -55,19 +55,18 @@
                     {
                         Console.Write("Enter the connection string: ");
                         var connectionString = Console.ReadLine();
-                        var fixture = new PostgresStreamStoreDb("dbo", connectionString);
-                        Console.WriteLine(fixture.ConnectionString);
-                        streamStore = await fixture.GetPostgresStreamStore(true);
-                        disposable = fixture;
+                        var postgresStreamStoreDb = new PostgresStreamStoreDb("dbo", connectionString);
+                        Console.WriteLine(postgresStreamStoreDb.ConnectionString);
+                        streamStore = await postgresStreamStoreDb.GetPostgresStreamStore(true);
+                        disposable = postgresStreamStoreDb;
                     })
-                /*.Add("MySql (Docker)",
+                .Add("MySql (Docker)",
                     async ct =>
                     {
-                        var fixture = new MySqlStreamStoreDb();
-                        Console.WriteLine(fixture.ConnectionString);
-                        streamStore = await fixture.GetMySqlStreamStore(true);
-                        disposable = fixture;
-                    })*/
+                        var db = new MySqlStreamStoreDb();
+                        streamStore = await db.GetStreamStore();
+                        disposable = db;
+                    })
                 /*.Add("MySql (Server)",
                     async ct =>
                     {

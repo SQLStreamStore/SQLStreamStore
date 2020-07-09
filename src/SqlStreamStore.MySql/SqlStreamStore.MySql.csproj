@@ -10,11 +10,6 @@
   </PropertyGroup>
   <ItemGroup>
     <EmbeddedResource Include="MySqlScripts\*.sql" Exclude="bin\**;obj\**;packages\**;@(EmbeddedResource)" />
-    <EmbeddedResource Include="ScriptsV1\*.sql"/>
-  </ItemGroup>
-  <ItemGroup>
-    <None Remove="ScriptsV1\ReadAllForward.sql" />
-    <None Remove="ScriptsV1\ReadAllForwardWIthData.sql" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="MySqlConnector" Version="0.69.6" />

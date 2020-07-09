@@ -33,13 +33,27 @@
         private string DeleteStream => GetScript(nameof(DeleteStream));
 
         private string DeleteStreamMessage => GetScript(nameof(DeleteStreamMessage));
+
         private string GetStreamMetadata => GetScript(nameof(GetStreamMetadata));
+
         private string ListStreams => GetScript(nameof(ListStreams));
+
         private string ListStreamsStartingWith => GetScript(nameof(ListStreamsStartingWith));
+
         private string ListStreamsEndingWith => GetScript(nameof(ListStreamsEndingWith));
-        private string ReadAll => GetScript(nameof(ReadAll));
 
         private string Read => GetScript(nameof(Read));
+
+        private string ReadAll => GetScript(nameof(ReadAll));
+
+        private string ReadAllBackwards => GetScript(nameof(ReadAllBackwards));
+
+        private string ReadAllBackwardsWithData => GetScript(nameof(ReadAllBackwardsWithData));
+
+        private string ReadAllForwards => GetScript(nameof(ReadAllForwards));
+
+        private string ReadAllForwardsWithData => GetScript(nameof(ReadAllForwardsWithData));
+
 
         private string ReadJsonData => GetScript(nameof(ReadJsonData));
 
@@ -74,6 +88,10 @@
             ListStreamsEndingWith,
             Read,
             ReadAll,
+            ReadAllBackwards,
+            ReadAllBackwardsWithData,
+            ReadAllForwards,
+            ReadAllForwardsWithData,
             ReadJsonData,
             ReadHeadPosition,
             ReadStreamHeadPosition,

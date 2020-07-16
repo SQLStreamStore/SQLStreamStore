@@ -16,6 +16,7 @@ namespace SqlStreamStore.Infrastructure
     public abstract class ReadonlyStreamStoreBase : IReadonlyStreamStore
     {
         private const int DefaultReloadInterval = 3000;
+        private const int DefaultReloadWindow = 5000; // TODO make configurable?
         protected readonly GetUtcNow GetUtcNow;
         protected readonly ILog Logger;
         private bool _isDisposed;
@@ -65,25 +66,30 @@ namespace SqlStreamStore.Infrastructure
             // https://github.com/damianh/SqlStreamStore/issues/31
             // Under heavy parallel load, gaps may appear in the position sequence due to sequence
             // number reservation of in-flight transactions.
-            // Here we check if there are any gaps, and in the unlikely event there is, we delay a little bit
-            // and re-issue the read. This is expected 
-            if(!page.IsEnd || page.Messages.Length <= 1)
-            {
-                return await FilterExpired(page, ReadNext, cancellationToken).NotOnCapturedContext();
-            }
 
             // Check for gap between last page and this.
-            if (page.Messages[0].Position != fromPositionInclusive)
+            if(page.Messages[0].Position != fromPositionInclusive)
             {
-                page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken);
+                page = await ReloadAfterDelay(
+                    fromPositionInclusive,
+                    maxCount,
+                    prefetchJsonData,
+                    ReadNext,
+                    cancellationToken);
             }
 
             // check for gap in messages collection
             for(int i = 0; i < page.Messages.Length - 1; i++)
             {
-                if(page.Messages[i].Position + 1 != page.Messages[i + 1].Position)
+                if(page.Messages[i].Position + 1 != page.Messages[i + 1].Position
+                   && page.Messages[i].CreatedUtc >= GetUtcNow().AddMilliseconds(-DefaultReloadWindow))
                 {
-                    page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken);
+                    page = await ReloadAfterDelay(
+                        fromPositionInclusive,
+                        maxCount,
+                        prefetchJsonData,
+                        ReadNext,
+                        cancellationToken);
                     break;
                 }
             }

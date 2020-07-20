@@ -1,7 +1,7 @@
 namespace SqlStreamStore
 {
     using System;
-    using MySql.Data.MySqlClient;
+    using MySqlConnector;
     using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Subscriptions;

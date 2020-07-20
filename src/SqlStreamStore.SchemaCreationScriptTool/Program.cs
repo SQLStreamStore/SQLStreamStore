@@ -5,7 +5,7 @@
     using System.Data.SqlClient;
     using System.IO;
     using McMaster.Extensions.CommandLineUtils;
-    using MySql.Data.MySqlClient;
+    using MySqlConnector;
     using Npgsql;
     using Serilog;
 

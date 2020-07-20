@@ -1,6 +1,6 @@
 namespace SqlStreamStore
 {
-    using MySql.Data.MySqlClient;
+    using MySqlConnector;
 
     internal static class MySqlExceptionExtensions
     {

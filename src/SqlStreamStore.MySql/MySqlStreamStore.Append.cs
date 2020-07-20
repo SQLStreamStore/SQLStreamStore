@@ -4,7 +4,7 @@ namespace SqlStreamStore
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
-    using MySql.Data.MySqlClient;
+    using MySqlConnector;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.MySqlScripts;
     using SqlStreamStore.Streams;

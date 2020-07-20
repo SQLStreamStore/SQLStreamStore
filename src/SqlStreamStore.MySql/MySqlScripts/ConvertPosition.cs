@@ -1,6 +1,6 @@
 namespace SqlStreamStore.MySqlScripts
 {
-    using MySql.Data.MySqlClient;
+    using MySqlConnector;
     using SqlStreamStore.Streams;
 
     internal static class ConvertPosition

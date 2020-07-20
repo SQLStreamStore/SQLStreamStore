@@ -5,7 +5,7 @@
     using System.Data;
     using System.Threading;
     using System.Threading.Tasks;
-    using MySql.Data.MySqlClient;
+    using MySqlConnector;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Logging;
     using SqlStreamStore.MySqlScripts;

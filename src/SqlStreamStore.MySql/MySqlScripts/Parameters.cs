@@ -2,7 +2,7 @@ namespace SqlStreamStore.MySqlScripts
 {
     using System;
     using System.Data;
-    using MySql.Data.MySqlClient;
+    using MySqlConnector;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Streams;
 

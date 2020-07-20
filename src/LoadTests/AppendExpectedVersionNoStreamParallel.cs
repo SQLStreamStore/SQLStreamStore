@@ -52,10 +52,10 @@
             //    1,
             //    10000000);
 
-            int messageJsonDataSize = 10000;
+            int messageJsonDataSize = 1024;
             //int messageJsonDataSize = Input.ReadInt("Size of Json (bytes): ", 1, 10 * 1024 * 1024);
 
-            int numberOfMessagesPerAmend = 100;
+            int numberOfMessagesPerAmend = 2;
             //int numberOfMessagesPerAmend = Input.ReadInt("Number of messages per append: ", 1, 1000);
 
             var tasks = new List<Task>();

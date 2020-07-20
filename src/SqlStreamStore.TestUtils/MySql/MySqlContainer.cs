@@ -5,7 +5,7 @@ namespace SqlStreamStore.TestUtils.MySql
     using System.Threading.Tasks;
     using Ductus.FluentDocker.Builders;
     using Ductus.FluentDocker.Services;
-    using global::MySql.Data.MySqlClient;
+    using MySqlConnector;
     using Polly;
     using SqlStreamStore.Infrastructure;
 

@@ -2,7 +2,7 @@ namespace SqlStreamStore
 {
     using System;
     using System.Threading.Tasks;
-    using global::MySql.Data.MySqlClient;
+    using MySqlConnector;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.TestUtils.MySql;
 

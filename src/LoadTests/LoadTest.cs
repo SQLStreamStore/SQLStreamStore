@@ -42,6 +42,13 @@
                         streamStore = sqlLocalDb.StreamStore;
                         disposable = sqlLocalDb;
                     })
+                .Add("MYSQL V3 (Docker)",
+                    async ct =>
+                    {
+                        var mysqlDb = new MySqlStreamStoreDb();
+                        streamStore = await mysqlDb.GetMySqlStreamStore();
+                        disposable = streamStore;
+                    })
                 .Add("Postgres (Docker)",
                     async ct =>
                     {
@@ -64,7 +71,7 @@
                     async ct =>
                     {
                         var db = new MySqlStreamStoreDb();
-                        streamStore = await db.GetStreamStore();
+                        streamStore = await db.GetMySqlStreamStore();
                         disposable = db;
                     })
                 /*.Add("MySql (Server)",

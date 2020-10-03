@@ -162,11 +162,11 @@
         ///     3. When expectedVersion = ExpectedVersion.Any and the collection of messages IDs exist in the stream,
         ///        then idempotency is applied and nothing happens.
         ///     4. When expectedVersion = ExpectedVersion.Any and of the collection of messages Ids some exist in the 
-        ///        stream and some don't then a <see cref="WrongExpectedVersionException"/> will be throwm.
+        ///        stream and some don't then a <see cref="WrongExpectedVersionException"/> will be thrown.
         ///     5. When expectedVersion is specified and the stream current version does not match the 
         ///        collection of message IDs are are checked against the stream in the correct position then the 
         ///        operation is considered idempotent. Otherwise a <see cref="WrongExpectedVersionException"/> will be
-        ///        throwm.
+        ///        thrown.
         /// </remarks>
         /// <param name="store">
         ///     The stream store instance.

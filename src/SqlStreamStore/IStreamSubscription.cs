@@ -14,7 +14,7 @@
         string Name { get; }
 
         /// <summary>
-        /// Gets the stream id the subsription is associated with.
+        /// Gets the stream id the subscription is associated with.
         /// </summary>
         string StreamId { get; }
 

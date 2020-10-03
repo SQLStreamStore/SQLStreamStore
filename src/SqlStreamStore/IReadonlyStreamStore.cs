@@ -181,7 +181,7 @@
         ///     A delegate that is invoked when a the subscription is dropped. This will be invoked once and only once.
         /// </param>
         /// <param name="hasCaughtUp">
-        ///     A delegate that is invoked with value=true when the subscription has catught up with the all stream
+        ///     A delegate that is invoked with value=true when the subscription has caught up with the all stream
         ///     (when the underlying page read has IsEnd=true) and when it falls behind (when the underlying page read
         ///     has IsEnd=false). 
         /// </param>

@@ -16,7 +16,7 @@
             _fixturePool = fixturePool;
         }
 
-        protected override async Task<IStreamStoreFixture> CreateFixture() 
+        protected override async Task<IStreamStoreFixture> CreateFixture()
             => await _fixturePool.Get(TestOutputHelper);
 
         /*
@@ -97,12 +97,12 @@
 
                 using(var connection = new NpgsqlConnection(fixture.ConnectionString))
                 {
-                    await connection.OpenAsync().NotOnCapturedContext();
+                    await connection.OpenAsync().ConfigureAwait(false);
 
                     using(var command = new NpgsqlCommand(commandText, connection))
-                    using(var reader = await command.ExecuteReaderAsync().NotOnCapturedContext())
+                    using(var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
                     {
-                        while(await reader.ReadAsync().NotOnCapturedContext())
+                        while(await reader.ReadAsync().ConfigureAwait(false))
                         {
                             streamStoreObjects.Add(reader.GetString(0));
                         }

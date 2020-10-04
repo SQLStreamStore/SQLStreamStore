@@ -48,10 +48,10 @@ namespace SqlStreamStore.TestUtils.MySql
                 {
                     using(var connection = new MySqlConnection(DefaultConnectionString))
                     {
-                        await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                         // Crude way to work around the max_connections issue that occurs in heavy parallel tests
-                        using (var command = connection.CreateCommand()) 
+                        using (var command = connection.CreateCommand())
                         {
                             command.CommandText = "set global max_connections = 1024;";
 
@@ -66,11 +66,11 @@ namespace SqlStreamStore.TestUtils.MySql
             var commandText = $"CREATE DATABASE IF NOT EXISTS `{_databaseName}`";
             using (var connection = new MySqlConnection(DefaultConnectionString))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                 using (var command = new MySqlCommand(commandText, connection))
                 {
-                    await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                    await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
         }

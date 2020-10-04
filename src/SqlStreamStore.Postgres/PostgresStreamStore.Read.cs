@@ -25,7 +25,7 @@
             NpgsqlTransaction transaction,
             CancellationToken cancellationToken)
         {
-            // If the count is int.MaxValue, TSql will see it as a negative number. 
+            // If the count is int.MaxValue, TSql will see it as a negative number.
             // Users shouldn't be using int.MaxValue in the first place anyway.
             count = count == int.MaxValue ? count - 1 : count;
 
@@ -73,9 +73,9 @@
                 Parameters.Prefetch(prefetch)))
             using(var reader = await command
                 .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
-                .NotOnCapturedContext())
+                .ConfigureAwait(false))
             {
-                while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                while(await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
                     refcursorSql.AppendLine(Schema.FetchAll(reader.GetString(0)));
                 }
@@ -84,7 +84,7 @@
             using(var command = new NpgsqlCommand(refcursorSql.ToString(), transaction.Connection, transaction))
             using(var reader = await command
                 .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
-                .NotOnCapturedContext())
+                .ConfigureAwait(false))
             {
                 if(!reader.HasRows)
                 {
@@ -105,15 +105,15 @@
                     messages.Add(default);
                 }
 
-                await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
+                await reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 
                 var lastVersion = reader.GetInt32(0);
                 var lastPosition = reader.GetInt64(1);
                 var maxAge = reader.GetFieldValue<int?>(2);
 
-                await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
+                await reader.NextResultAsync(cancellationToken).ConfigureAwait(false);
 
-                while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                while(await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
                     messages.Add((await ReadStreamMessage(reader, streamId, prefetch), maxAge));
                 }
@@ -204,7 +204,7 @@
 
                 using(var textReader = reader.GetTextReader(ordinal))
                 {
-                    return await textReader.ReadToEndAsync().NotOnCapturedContext();
+                    return await textReader.ReadToEndAsync().ConfigureAwait(false);
                 }
             }
 
@@ -246,7 +246,7 @@
             using(var transaction = connection.BeginTransaction())
             using(var command = BuildFunctionCommand(_schema.ReadAllHeadPosition, transaction))
             {
-                var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                var result = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
 
                 return result == DBNull.Value ? Position.End : (long) result;
             }
@@ -258,7 +258,7 @@
             using(var transaction = connection.BeginTransaction())
             using(var command = BuildFunctionCommand(_schema.ReadStreamHeadPosition, transaction, Parameters.StreamId(new PostgresqlStreamId(streamId))))
             {
-                var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                var result = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
 
                 return result == DBNull.Value ? Position.End : (long) result;
             }
@@ -270,7 +270,7 @@
             using(var transaction = connection.BeginTransaction())
             using(var command = BuildFunctionCommand(_schema.ReadStreamHeadVersion, transaction, Parameters.StreamId(new PostgresqlStreamId(streamId))))
             {
-                var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                var result = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
 
                 return result == DBNull.Value ? StreamVersion.End : (int) result;
             }

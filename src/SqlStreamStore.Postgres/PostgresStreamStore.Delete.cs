@@ -32,7 +32,7 @@
                     transaction,
                     cancellationToken);
 
-                await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -55,11 +55,11 @@
             {
                 try
                 {
-                    await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                    await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                 }
                 catch(PostgresException ex) when(ex.IsWrongExpectedVersion())
                 {
-                    await transaction.RollbackAsync(cancellationToken).NotOnCapturedContext();
+                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
 
                     throw new WrongExpectedVersionException(
                         ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamId.IdOriginal, expectedVersion),
@@ -82,7 +82,7 @@
             {
                 await DeleteEventsInternal(streamIdInfo, new[] { eventId }, transaction, cancellationToken);
 
-                await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -105,7 +105,7 @@
                     ? Parameters.Empty()
                     : Parameters.DeletedMessages(streamIdInfo.PostgresqlStreamId, eventIds)))
             {
-                await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
             }
         }
     }

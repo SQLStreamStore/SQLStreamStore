@@ -32,7 +32,7 @@ namespace SqlStreamStore
                     transaction,
                     cancellationToken);
 
-                await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -71,11 +71,11 @@ namespace SqlStreamStore
             {
                 try
                 {
-                    await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                    await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                 }
                 catch(MySqlException ex) when(ex.IsWrongExpectedVersion())
                 {
-                    await transaction.RollbackAsync(cancellationToken).NotOnCapturedContext();
+                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
 
                     throw new WrongExpectedVersionException(
                         ErrorMessages.DeleteStreamFailedWrongExpectedVersion(streamId.IdOriginal, expectedVersion),
@@ -98,7 +98,7 @@ namespace SqlStreamStore
             {
                 await DeleteEventInternal(streamIdInfo, eventId, transaction, cancellationToken);
 
-                await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -133,7 +133,7 @@ namespace SqlStreamStore
                 _settings.DisableDeletionTracking ? deletedMessageType.Empty() : deletedMessageType,
                 _settings.DisableDeletionTracking ? deletedMessageJsonData.Empty() : deletedMessageJsonData))
             {
-                await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
             }
         }
     }

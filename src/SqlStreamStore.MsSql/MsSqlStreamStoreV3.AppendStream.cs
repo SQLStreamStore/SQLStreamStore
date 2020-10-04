@@ -48,7 +48,7 @@
             MsSqlAppendResult result;
             using(var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
                 var streamIdInfo = new StreamIdInfo(streamId);
                 result = await AppendToStreamInternal(
                     connection,
@@ -174,9 +174,9 @@
                 {
                     using(var reader = await command
                         .ExecuteReaderAsync(cancellationToken)
-                        .NotOnCapturedContext())
+                        .ConfigureAwait(false))
                     {
-                        await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
+                        await reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 
                         var currentVersion = reader.GetInt32(0);
                         var currentPosition = reader.GetInt64(1);
@@ -209,7 +209,7 @@
                         connection,
                         transaction,
                         cancellationToken)
-                        .NotOnCapturedContext();
+                        .ConfigureAwait(false);
 
                     if(messages.Length > page.Messages.Length)
                     {
@@ -281,9 +281,9 @@
                 {
                     using(var reader = await command
                         .ExecuteReaderAsync(cancellationToken)
-                        .NotOnCapturedContext())
+                        .ConfigureAwait(false))
                     {
-                        await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
+                        await reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 
                         var currentVersion = reader.GetInt32(0);
                         var currentPosition = reader.GetInt64(1);
@@ -309,7 +309,7 @@
                                 connection,
                                 transaction,
                                 cancellationToken)
-                            .NotOnCapturedContext();
+                            .ConfigureAwait(false);
 
                         if(messages.Length > page.Messages.Length)
                         {
@@ -375,9 +375,9 @@
                 {
                     using (var reader = await command
                         .ExecuteReaderAsync(cancellationToken)
-                        .NotOnCapturedContext())
+                        .ConfigureAwait(false))
                     {
-                        await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
+                        await reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 
                         var currentVersion = reader.GetInt32(0);
                         var currentPosition = reader.GetInt64(1);
@@ -486,7 +486,7 @@
                 command.Parameters.AddWithValue("messageId", messageId);
 
                 var result = await command.ExecuteScalarAsync(cancellationToken)
-                    .NotOnCapturedContext();
+                    .ConfigureAwait(false);
 
                 return (int) result;
             }

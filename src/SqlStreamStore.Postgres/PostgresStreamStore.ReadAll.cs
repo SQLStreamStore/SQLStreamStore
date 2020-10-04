@@ -32,7 +32,7 @@
                 Parameters.Prefetch(prefetch)))
             using(var reader = await command
                 .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
-                .NotOnCapturedContext())
+                .ConfigureAwait(false))
             {
                 if(!reader.HasRows)
                 {
@@ -47,7 +47,7 @@
 
                 var messages = new List<(StreamMessage message, int? maxAge)>();
 
-                while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                while(await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
                     if(messages.Count == maxCount)
                     {
@@ -105,7 +105,7 @@
                 Parameters.Prefetch(prefetch)))
             using(var reader = await command
                 .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
-                .NotOnCapturedContext())
+                .ConfigureAwait(false))
             {
                 if(!reader.HasRows)
                 {
@@ -123,7 +123,7 @@
                 var messages = new List<(StreamMessage message, int? maxAge)>();
 
                 long lastOrdinal = 0;
-                while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                while(await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
                     var streamIdInfo = new StreamIdInfo(reader.GetString(0));
                     var (message, maxAge, position) = await ReadAllStreamMessage(reader, streamIdInfo.PostgresqlStreamId, prefetch);
@@ -169,7 +169,7 @@
 
                 using(var textReader = reader.GetTextReader(ordinal))
                 {
-                    return await textReader.ReadToEndAsync().NotOnCapturedContext();
+                    return await textReader.ReadToEndAsync().ConfigureAwait(false);
                 }
             }
 

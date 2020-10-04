@@ -49,7 +49,7 @@
         {
             var connection = _createConnection();
 
-            await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
             connection.ReloadTypes();
 
@@ -59,7 +59,7 @@
             {
                 using(var command = new NpgsqlCommand(_schema.EnableExplainAnalyze, connection))
                 {
-                    await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                    await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -77,20 +77,20 @@
         {
             using(var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
                 using(var transaction = connection.BeginTransaction())
                 {
                     using(var command = BuildCommand($"CREATE SCHEMA IF NOT EXISTS {_settings.Schema}", transaction))
                     {
-                        await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                        await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                     }
 
                     using(var command = BuildCommand(_schema.Definition, transaction))
                     {
-                        await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                        await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                     }
 
-                    await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                    await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -106,15 +106,15 @@
 
             using(var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
                 using(var transaction = connection.BeginTransaction())
                 using(var command = BuildCommand(_schema.DropAll, transaction))
                 {
                     await command
                         .ExecuteNonQueryAsync(cancellationToken)
-                        .NotOnCapturedContext();
+                        .ConfigureAwait(false);
 
-                    await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                    await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -128,11 +128,11 @@
         {
             using(var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
                 using(var transaction = connection.BeginTransaction())
                 using(var command = BuildFunctionCommand(_schema.ReadSchemaVersion, transaction))
                 {
-                    var result = (int) await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                    var result = (int) await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
 
                     return new CheckSchemaResult(result, CurrentVersion);
                 }
@@ -151,16 +151,16 @@
                     Parameters.Version(version)))
                 using(var reader = await command
                     .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
-                    .NotOnCapturedContext())
+                    .ConfigureAwait(false))
                 {
-                    if(!await reader.ReadAsync(cancellationToken).NotOnCapturedContext() || reader.IsDBNull(0))
+                    if(!await reader.ReadAsync(cancellationToken).ConfigureAwait(false) || reader.IsDBNull(0))
                     {
                         return null;
                     }
 
                     using(var textReader = reader.GetTextReader(0))
                     {
-                        return await textReader.ReadToEndAsync().NotOnCapturedContext();
+                        return await textReader.ReadToEndAsync().ConfigureAwait(false);
                     }
                 }
             };
@@ -208,9 +208,9 @@
                         Parameters.StreamId(streamIdInfo.PostgresqlStreamId)))
                     using(var reader = await command
                         .ExecuteReaderAsync(cancellationToken)
-                        .NotOnCapturedContext())
+                        .ConfigureAwait(false))
                     {
-                        while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                        while(await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                         {
                             deletedMessageIds.Add(reader.GetGuid(0));
                         }
@@ -232,10 +232,10 @@
                             streamIdInfo,
                             deletedMessageIds.ToArray(),
                             transaction,
-                            cancellationToken).NotOnCapturedContext();
+                            cancellationToken).ConfigureAwait(false);
                     }
 
-                    await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                    await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
                     return deletedMessageIds.Count;
                 }

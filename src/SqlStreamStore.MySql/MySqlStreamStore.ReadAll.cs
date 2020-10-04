@@ -38,7 +38,7 @@ namespace SqlStreamStore
 
                 using (var reader = await command
                             .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
-                            .NotOnCapturedContext())
+                            .ConfigureAwait(false))
                 {
                     if (!reader.HasRows)
                     {
@@ -53,7 +53,7 @@ namespace SqlStreamStore
 
                     var messages = new List<(StreamMessage message, int? maxAge)>();
 
-                    while (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                    while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                     {
                         if (messages.Count == maxCount)
                         {
@@ -107,8 +107,8 @@ namespace SqlStreamStore
 
             try
             {
-                var commandText = prefetch 
-                    ? _schema.ReadAllBackwardsWithData 
+                var commandText = prefetch
+                    ? _schema.ReadAllBackwardsWithData
                     : _schema.ReadAllBackwards;
 
                 using (var connection = await OpenConnection(cancellationToken))
@@ -120,7 +120,7 @@ namespace SqlStreamStore
                     Parameters.Position(ordinal)))
                 using (var reader = await command
                     .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
-                    .NotOnCapturedContext())
+                    .ConfigureAwait(false))
                 {
                     if(!reader.HasRows)
                     {
@@ -138,7 +138,7 @@ namespace SqlStreamStore
                     var messages = new List<(StreamMessage message, int? maxAge)>();
 
                     long lastOrdinal = 0;
-                    while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                    while(await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                     {
                         var streamIdInfo = new StreamIdInfo(reader.GetString(0));
                         var (message, maxAge, position) =
@@ -190,7 +190,7 @@ namespace SqlStreamStore
 
                 using (var textReader = reader.GetTextReader(ordinal))
                 {
-                    return await textReader.ReadToEndAsync().NotOnCapturedContext();
+                    return await textReader.ReadToEndAsync().ConfigureAwait(false);
                 }
             }
 

@@ -17,7 +17,7 @@
             ReadStreamPage page;
             using (var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
                 page = await ReadStreamInternal(
                     streamIdInfo.MetadataSqlStreamId,
                     StreamVersion.End,
@@ -56,7 +56,7 @@
             MsSqlAppendResult result;
             using(var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                 using(var transaction = connection.BeginTransaction())
                 {

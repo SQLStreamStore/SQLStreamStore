@@ -13,9 +13,9 @@ namespace SqlStreamStore
         {
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
-            
+
             var idInfo = new StreamIdInfo(streamId);
-            
+
             var page = await ReadStreamBackwardsInternal(
                 idInfo.MetadataSqlStreamId.IdOriginal,
                 StreamVersion.End,
@@ -23,7 +23,7 @@ namespace SqlStreamStore
                 true,
                 null,
                 cancellationToken
-            ).NotOnCapturedContext();
+            ).ConfigureAwait(false);
 
             if(page.Status == PageReadStatus.StreamNotFound)
             {
@@ -31,8 +31,8 @@ namespace SqlStreamStore
             }
 
             var payload = page.Messages.FirstOrDefault(); //TODO: What to do when page.Messages.Count() == 0?
-            
-            var json = await payload.GetJsonData(cancellationToken).NotOnCapturedContext();
+
+            var json = await payload.GetJsonData(cancellationToken).ConfigureAwait(false);
             var msg = SimpleJson.DeserializeObject<MetadataMessage>(json);
             return new StreamMetadataResult(streamId, page.LastStreamVersion, msg.MaxAge, msg.MaxCount, msg.MetaJson);
         }
@@ -47,7 +47,7 @@ namespace SqlStreamStore
         {
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
-            
+
             var metadataMessage = new MetadataMessage
             {
                 StreamId = streamId,
@@ -61,15 +61,15 @@ namespace SqlStreamStore
                 expectedVersion,
                 json
             );
-            var message = new NewStreamMessage(messageId, "$stream-metadata", json); 
-            
+            var message = new NewStreamMessage(messageId, "$stream-metadata", json);
+
             var idinfo = new StreamIdInfo(streamId);
             var result = await AppendToStreamInternal(
                 idinfo.MetadataSqlStreamId.IdOriginal,
                 expectedVersion,
                 new[] { message },
-                cancellationToken).NotOnCapturedContext();
-            
+                cancellationToken).ConfigureAwait(false);
+
 
             CheckStreamMaxCount(streamId, maxCount, cancellationToken).Wait(cancellationToken);
 

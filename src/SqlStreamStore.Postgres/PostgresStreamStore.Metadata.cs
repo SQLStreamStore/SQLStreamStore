@@ -85,13 +85,13 @@
                 Parameters.ExpectedVersion(expectedStreamMetadataVersion),
                 Parameters.CreatedUtc(_settings.GetUtcNow?.Invoke()),
                 Parameters.MetadataStreamMessage(
-                    streamIdInfo.MetadataPosgresqlStreamId, 
-                    expectedStreamMetadataVersion, 
+                    streamIdInfo.MetadataPosgresqlStreamId,
+                    expectedStreamMetadataVersion,
                     metadata)))
             {
-                currentVersion = (int) await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                currentVersion = (int) await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
 
-                await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             }
 
             await TryScavenge(streamIdInfo, cancellationToken);

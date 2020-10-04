@@ -1,0 +1,1 @@
+CREATE SCHEMA IF NOT EXISTS __schema__;

@@ -19,7 +19,7 @@
         /// 
         ///     1. When expectedVersion = ExpectedVersion.NoStream and the stream already exists and the collection of
         ///        message IDs are not already in the stream, then <see cref="WrongExpectedVersionException"/> is
-        ///        throw.
+        ///        thrown.
         ///     2. When expectedVersion = ExpectedVersion.Any and the collection of messages IDs don't exist in the
         ///        stream, then they are appended
         ///     3. When expectedVersion = ExpectedVersion.Any and the collection of messages IDs exist in the stream,

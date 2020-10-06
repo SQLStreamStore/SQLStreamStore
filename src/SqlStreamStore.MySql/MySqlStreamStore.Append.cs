@@ -119,10 +119,10 @@ namespace SqlStreamStore
                     }
                 }
 
-                await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            await TryScavenge(streamId, cancellationToken).NotOnCapturedContext();
+            await TryScavenge(streamId, cancellationToken).ConfigureAwait(false);
 
             return appendResult;
         }
@@ -181,7 +181,7 @@ namespace SqlStreamStore
                 var nextExpectedVersion = Convert.ToInt32(
                     await command
                         .ExecuteScalarAsync(cancellationToken)
-                        .NotOnCapturedContext());
+                        .ConfigureAwait(false));
                 return (
                     nextExpectedVersion,
                     new AppendResult(
@@ -220,7 +220,7 @@ namespace SqlStreamStore
                 var nextExpectedVersion = Convert.ToInt32(
                     await command
                         .ExecuteScalarAsync(cancellationToken)
-                        .NotOnCapturedContext());
+                        .ConfigureAwait(false));
                 return (
                     nextExpectedVersion,
                     new AppendResult(
@@ -259,7 +259,7 @@ namespace SqlStreamStore
                 var nextExpectedVersion = Convert.ToInt32(
                     await command
                         .ExecuteScalarAsync(cancellationToken)
-                        .NotOnCapturedContext());
+                        .ConfigureAwait(false));
                 return (
                     nextExpectedVersion,
                     new AppendResult(
@@ -298,7 +298,7 @@ namespace SqlStreamStore
                 var nextExpectedVersion = Convert.ToInt32(
                     await command
                         .ExecuteScalarAsync(cancellationToken)
-                        .NotOnCapturedContext());
+                        .ConfigureAwait(false));
                 return (
                     nextExpectedVersion,
                     new AppendResult(
@@ -326,15 +326,15 @@ namespace SqlStreamStore
                 Parameters.StreamIdOriginal(streamId.MySqlStreamId),
                 Parameters.MetadataStreamId(streamId.MetadataMySqlStreamId),
                 Parameters.ExpectedVersion(expectedVersion)))
-            using(var reader = await command.ExecuteReaderAsync(cancellationToken).NotOnCapturedContext())
+            using(var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
             {
-                await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
+                await reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 
                 appendResult = new AppendResult(reader.GetInt32(0), reader.GetInt64(1));
 
                 reader.Close();
 
-                await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             }
 
             return appendResult;

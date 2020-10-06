@@ -67,7 +67,7 @@ namespace SqlStreamStore.HAL.DevServer
                 InitialCatalog = "master"
             }.ConnectionString))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                 using(var command = new SqlCommand(
                     $@"
@@ -78,7 +78,7 @@ END;
 ",
                     connection))
                 {
-                    await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                    await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
 
@@ -109,13 +109,13 @@ END;
             }.ConnectionString))
             {
                 bool exists;
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                 using(var command = new NpgsqlCommand(
                     $"SELECT 1 FROM pg_database WHERE datname = '{connectionStringBuilder.Database}'",
                     connection))
                 {
-                    exists = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext()
+                    exists = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false)
                              != null;
                 }
 
@@ -125,7 +125,7 @@ END;
                         $"CREATE DATABASE {connectionStringBuilder.Database}",
                         connection))
                     {
-                        await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                        await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                     }
                 }
 

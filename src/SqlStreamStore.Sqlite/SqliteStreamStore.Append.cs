@@ -17,19 +17,19 @@ namespace SqlStreamStore
         {
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
-            
+
             SqliteAppendResult result;
-            
+
             switch(expectedVersion)
             {
                 case ExpectedVersion.Any:
-                    result = await AppendToStreamAnyVersion(streamId, messages, cancellationToken).NotOnCapturedContext();
+                    result = await AppendToStreamAnyVersion(streamId, messages, cancellationToken).ConfigureAwait(false);
                     break;
                 case ExpectedVersion.EmptyStream:
-                    result = await AppendToStreamEmpty(streamId, messages, cancellationToken).NotOnCapturedContext();
+                    result = await AppendToStreamEmpty(streamId, messages, cancellationToken).ConfigureAwait(false);
                     break;
                 case ExpectedVersion.NoStream:
-                    result = await AppendToNonexistentStream(streamId, messages, cancellationToken).NotOnCapturedContext();
+                    result = await AppendToNonexistentStream(streamId, messages, cancellationToken).ConfigureAwait(false);
                     break;
                 default:
                     result = AppendToStreamExpectedVersion(streamId, expectedVersion, messages, cancellationToken);
@@ -38,7 +38,7 @@ namespace SqlStreamStore
 
             if(result.MaxCount.HasValue)
             {
-                await CheckStreamMaxCount(streamId, result.MaxCount, cancellationToken).NotOnCapturedContext();
+                await CheckStreamMaxCount(streamId, result.MaxCount, cancellationToken).ConfigureAwait(false);
             }
 
             await TryScavengeAsync(streamId, cancellationToken);
@@ -157,14 +157,14 @@ namespace SqlStreamStore
             using(var connection = OpenConnection(false))
             {
                 var stream = connection.Streams(streamId);
-                
+
                 if(await stream.Exists())
                 {
                     var position = await stream.AllStreamPosition(ReadDirection.Forward, StreamVersion.Start);
                     var eventIds = (await stream.Read(ReadDirection.Forward, position, false, int.MaxValue - 1))
                         .Select(message => message.MessageId)
                         .ToArray();
-                    
+
                     if(eventIds.Length > 0)
                     {
                         for(var i = 0; i < Math.Min(eventIds.Length, messages.Length); i++)
@@ -192,7 +192,7 @@ namespace SqlStreamStore
 
                         var header = stream.Properties(false, cancellationToken)
                             .GetAwaiter().GetResult();
-                        
+
                         return new SqliteAppendResult(header.Version, header.Position, null);
                     }
                 }
@@ -225,15 +225,15 @@ namespace SqlStreamStore
                         streamId,
                         expectedVersion);
                 }
-                
+
                 var props = connection.Streams(streamId)
                     .Properties(initializeIfNotFound: false, cancellationToken)
                     .GetAwaiter().GetResult();
-                
+
                 if(messages.Length == 1)
                 {
                     var msg = messages.First();
-                    
+
                     // tries to fix "When_append_single_message_to_stream_with_correct_expected_version_second_time_with_same_initial_messages_then_should_have_expected_result"
                     if(stream.ExistsAtExpectedPosition(msg.MessageId, expectedVersion).GetAwaiter().GetResult())
                     {
@@ -245,7 +245,7 @@ namespace SqlStreamStore
                     }
                     // end - tries to fix "When_append_single_message_to_stream_with_correct_expected_version_second_time_with_same_initial_messages_then_should_have_expected_result"
 
-                    
+
                     // tries to fix "When_append_stream_with_expected_version_and_duplicate_message_Id_then_should_throw"
                     if(stream.Exists(msg.MessageId, expectedVersion).GetAwaiter().GetResult())
                     {
@@ -262,7 +262,7 @@ namespace SqlStreamStore
                         .GetAwaiter().GetResult()
                         .Select(message => message.MessageId)
                         .ToArray();
-                    
+
                     if(eventIds.Contains(msg.MessageId))
                     {
                         if(eventIds.Length > messages.Length)
@@ -285,18 +285,18 @@ namespace SqlStreamStore
                 if(expectedVersion != props.Version)
                 {
                     var msg = messages.First();
-                    
+
                     var position = stream.AllStreamPosition(ReadDirection.Forward, msg.MessageId)
                         .GetAwaiter().GetResult();
-                    
+
                     // retrieve next series of messages from the first message being requested to
-                    var eventIds = position.HasValue 
+                    var eventIds = position.HasValue
                         ? stream.Read(ReadDirection.Forward, position, false, messages.Length)
                         .GetAwaiter().GetResult()
                         .Select(message => message.MessageId)
                         .ToArray()
                         : new Guid[0];
-                    
+
                     if(messages.Length != eventIds.Length)
                     {
                         throw new WrongExpectedVersionException(
@@ -307,7 +307,7 @@ namespace SqlStreamStore
                             expectedVersion);
                     }
 
-                    // tests for positional inequality between what we know and what is stored. 
+                    // tests for positional inequality between what we know and what is stored.
                     for(var i = 0; i < Math.Min(messages.Length, eventIds.Length); i++)
                     {
                         var nextMessageId = eventIds.Skip(i).Take(1).SingleOrDefault();
@@ -336,7 +336,7 @@ namespace SqlStreamStore
                 {
                     var result = allStream.Append(streamId, messages)
                         .GetAwaiter().GetResult();
-                    
+
                     allStream.Commit(cancellationToken)
                         .GetAwaiter().GetResult();
 
@@ -344,28 +344,28 @@ namespace SqlStreamStore
                 }
             }
         }
-       
+
         private async Task CheckStreamMaxCount(
-            string streamId, 
+            string streamId,
             int? maxCount,
             CancellationToken cancellationToken)
         {
             var count = await OpenConnection()
                 .Streams(streamId)
                 .Length(cancellationToken);
-            
+
             if (count > maxCount)
             {
                 int toPurge = count - maxCount.Value;
 
                 var streamMessagesPage = await ReadStreamForwardsInternal(streamId, StreamVersion.Start, toPurge, false, null, cancellationToken)
-                    .NotOnCapturedContext();
+                    .ConfigureAwait(false);
 
                 if (streamMessagesPage.Status == PageReadStatus.Success)
                 {
                     foreach (var message in streamMessagesPage.Messages)
                     {
-                        await DeleteEventInternal(streamId, message.MessageId, cancellationToken).NotOnCapturedContext();
+                        await DeleteEventInternal(streamId, message.MessageId, cancellationToken).ConfigureAwait(false);
                     }
                 }
             }

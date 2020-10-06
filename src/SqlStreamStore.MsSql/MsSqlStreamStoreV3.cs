@@ -84,7 +84,7 @@
 
             using(var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                 if(_scripts.Schema != "dbo")
                 {
@@ -101,7 +101,7 @@
                         command.CommandTimeout = _commandTimeout;
                         await command
                             .ExecuteNonQueryAsync(cancellationToken)
-                            .NotOnCapturedContext();
+                            .ConfigureAwait(false);
                     }
                 }
 
@@ -110,7 +110,7 @@
                     command.CommandTimeout = _commandTimeout;
                     await command
                         .ExecuteNonQueryAsync(cancellationToken)
-                        .NotOnCapturedContext();
+                        .ConfigureAwait(false);
                 }
             }
         }
@@ -127,14 +127,14 @@
 
             using(var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                 using (var command = new SqlCommand(_scripts.GetSchemaVersion, connection))
                 {
                     command.CommandTimeout = _commandTimeout;
                     var extendedProperties =  await command
                         .ExecuteReaderAsync(cancellationToken)
-                        .NotOnCapturedContext();
+                        .ConfigureAwait(false);
 
                     int? version = null;
                     while(await extendedProperties.ReadAsync(cancellationToken))
@@ -147,7 +147,7 @@
                         break;
                     }
 
-                    return version == null 
+                    return version == null
                         ? new CheckSchemaResult(FirstSchemaVersion, CurrentSchemaVersion)  // First schema (1) didn't have extended properties.
                         : new CheckSchemaResult(int.Parse(version.ToString()), CurrentSchemaVersion);
                 }
@@ -165,14 +165,14 @@
 
             using(var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                 using(var command = new SqlCommand(_scripts.DropAll, connection))
                 {
                     command.CommandTimeout = _commandTimeout;
                     await command
                         .ExecuteNonQueryAsync(cancellationToken)
-                        .NotOnCapturedContext();
+                        .ConfigureAwait(false);
                 }
             }
         }
@@ -185,7 +185,7 @@
 
             using(var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                 using(var command = new SqlCommand(_scripts.GetStreamMessageCount, connection))
                 {
@@ -195,7 +195,7 @@
 
                     var result = await command
                         .ExecuteScalarAsync(cancellationToken)
-                        .NotOnCapturedContext();
+                        .ConfigureAwait(false);
 
                     return (int) result;
                 }
@@ -208,7 +208,7 @@
         ///      performance reasons. This modifies the schema and iterates over
         ///      all streams lifting `MaxAge` and `MaxCount` if the stream has
         ///      metadata. Migration progress is logged and reported.
-        /// 
+        ///
         ///      As usual, ensure you have the database backed up.
         ///  </summary>
         /// <param name="progress">A provider that can receive progress updates.</param>
@@ -239,14 +239,14 @@
                 // Migrate the schema
                 using (var connection = _createConnection())
                 {
-                    await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                    await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                     using(var command = new SqlCommand(_scripts.Migration_v3, connection))
                     {
                         command.CommandTimeout = _commandTimeout;
                         await command
                             .ExecuteNonQueryAsync(cancellationToken)
-                            .NotOnCapturedContext();
+                            .ConfigureAwait(false);
                     }
                 }
                 progress.Report(new MigrateProgress(MigrateProgress.MigrateStage.SchemaMigrated));
@@ -285,7 +285,7 @@
 
                         using (var connection = _createConnection())
                         {
-                            await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                             using(var command = new SqlCommand(_scripts.SetStreamMetadata, connection))
                             {
@@ -317,14 +317,14 @@
 
             using(var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                 using(var command = new SqlCommand(_scripts.ReadHeadPosition, connection))
                 {
                     command.CommandTimeout = _commandTimeout;
                     var result = await command
                         .ExecuteScalarAsync(cancellationToken)
-                        .NotOnCapturedContext();
+                        .ConfigureAwait(false);
 
                     if(result == DBNull.Value)
                     {
@@ -341,7 +341,7 @@
 
             using(var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                 using(var command = new SqlCommand(_scripts.ReadStreamHeadPosition, connection))
                 {
@@ -349,7 +349,7 @@
                     command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = new StreamIdInfo(streamId).SqlStreamId.Id });
                     var result = await command
                         .ExecuteScalarAsync(cancellationToken)
-                        .NotOnCapturedContext();
+                        .ConfigureAwait(false);
 
                     if(result == null)
                     {
@@ -366,7 +366,7 @@
 
             using(var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                 using(var command = new SqlCommand(_scripts.ReadStreamHeadVersion, connection))
                 {
@@ -374,7 +374,7 @@
                     command.Parameters.Add(new SqlParameter("streamId", SqlDbType.Char, 42) { Value = new StreamIdInfo(streamId).SqlStreamId.Id });
                     var result = await command
                         .ExecuteScalarAsync(cancellationToken)
-                        .NotOnCapturedContext();
+                        .ConfigureAwait(false);
 
                     if(result == null)
                     {

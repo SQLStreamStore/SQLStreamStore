@@ -13,7 +13,7 @@ namespace SqlStreamStore
         {
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
-            
+
 
             return expectedVersion == ExpectedVersion.Any
                 ? DeleteStreamAnyVersion(streamId, cancellationToken)
@@ -35,11 +35,11 @@ namespace SqlStreamStore
                     await stream.Commit(cancellationToken);
                 }
             }
-            
+
             if(hasBeenDeleted)
             {
                 var deletedEvent = CreateMessageDeletedMessage(streamId, eventId);
-                await AppendToStreamInternal(DeletedStreamId, ExpectedVersion.Any, new[] { deletedEvent }, cancellationToken).NotOnCapturedContext();
+                await AppendToStreamInternal(DeletedStreamId, ExpectedVersion.Any, new[] { deletedEvent }, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -70,7 +70,7 @@ namespace SqlStreamStore
             {
                 var streamDeletedEvent = CreateStreamDeletedMessage(streamIdInfo.MetadataSqlStreamId.IdOriginal);
                 AppendToStreamInternal(DeletedStreamId, ExpectedVersion.Any, new[] { streamDeletedEvent }, cancellationToken).Wait(cancellationToken);
-            }            
+            }
         }
 
         private async Task DeleteStreamExpectedVersion(string streamId, int expectedVersion, CancellationToken cancellationToken)
@@ -86,7 +86,7 @@ namespace SqlStreamStore
             }
 
             (bool StreamDeleted, bool MetadataDeleted) result;
-            
+
             using(var connection = OpenConnection(false))
             {
                 result = await connection.AllStream()

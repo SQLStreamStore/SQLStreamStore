@@ -98,9 +98,9 @@ namespace SqlStreamStore
                     currentVersion,
                     Parameters.CurrentPosition()))
                 {
-                    await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                    await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
 
-                    await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                    await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
                 }
 
                 await TryScavenge(streamIdInfo, cancellationToken);

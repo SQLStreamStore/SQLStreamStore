@@ -64,10 +64,10 @@
             {
                 using(var command = BuildCommand(_schema.Definition, transaction))
                 {
-                    await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                    await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                 }
 
-                await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -82,15 +82,15 @@
 
             using(var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
                 using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
                 using(var command = BuildCommand(_schema.DropAll, transaction))
                 {
                     await command
                         .ExecuteNonQueryAsync(cancellationToken)
-                        .NotOnCapturedContext();
+                        .ConfigureAwait(false);
 
-                    await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                    await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
                 }
             }
         }
@@ -106,12 +106,12 @@
 
             using(var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
                 using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
                 using(var command = BuildStoredProcedureCall(_schema.ReadProperties, transaction))
                 {
                     var properties = SimpleJson.DeserializeObject<SchemaProperties>(
-                        (string) await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext());
+                        (string) await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false));
 
                     return new CheckSchemaResult(properties.version, CurrentVersion);
                 }
@@ -152,9 +152,9 @@
                         Parameters.StreamId(streamId.MySqlStreamId)))
                     using(var reader = await command
                         .ExecuteReaderAsync(cancellationToken)
-                        .NotOnCapturedContext())
+                        .ConfigureAwait(false))
                     {
-                        while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                        while(await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                         {
                             deletedMessageIds.Add(reader.GetGuid(0));
                         }
@@ -178,7 +178,7 @@
                         await DeleteEventInternal(streamId, deletedMessageId, transaction, cancellationToken);
                     }
 
-                    await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                    await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
 
                     return deletedMessageIds.Count;
                 }
@@ -228,7 +228,7 @@
         private async Task<MySqlConnection> OpenConnection(CancellationToken cancellationToken)
         {
             var connection = _createConnection();
-            await connection.OpenAsync(cancellationToken).NotOnCapturedContext(); 
+            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
             return connection;
         }
 
@@ -244,16 +244,16 @@
                     Parameters.Version(version)))
                 using(var reader = await command
                     .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
-                    .NotOnCapturedContext())
+                    .ConfigureAwait(false))
                 {
-                    if(!await reader.ReadAsync(cancellationToken).NotOnCapturedContext() || reader.IsDBNull(0))
+                    if(!await reader.ReadAsync(cancellationToken).ConfigureAwait(false) || reader.IsDBNull(0))
                     {
                         return null;
                     }
 
                     using(var textReader = reader.GetTextReader(0))
                     {
-                        return await textReader.ReadToEndAsync().NotOnCapturedContext();
+                        return await textReader.ReadToEndAsync().ConfigureAwait(false);
                     }
                 }
             };

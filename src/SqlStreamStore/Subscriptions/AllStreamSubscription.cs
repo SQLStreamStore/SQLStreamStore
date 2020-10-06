@@ -47,7 +47,7 @@
             _streamMessageReceived = streamMessageReceived;
             _prefetchJsonData = prefetchJsonData;
             _subscriptionDropped = subscriptionDropped ?? ((_, __, ___) => { });
-            _hasCaughtUp = hasCaughtUp ?? (_ => { }); 
+            _hasCaughtUp = hasCaughtUp ?? (_ => { });
             Name = string.IsNullOrWhiteSpace(name) ? Guid.NewGuid().ToString() : name;
 
             readonlyStreamStore.OnDispose += ReadonlyStreamStoreOnOnDispose;
@@ -60,7 +60,7 @@
             Task.Run(PullAndPush);
 
             s_logger.Info(
-                "AllStream subscription created {name} continuing after position {position}", 
+                "AllStream subscription created {name} continuing after position {position}",
                 Name,
                 continueAfterPosition?.ToString() ?? "<null>");
         }
@@ -132,10 +132,10 @@
                     pause = page.IsEnd && page.Messages.Length == 0;
                 }
 
-                // Wait for notification before starting again. 
+                // Wait for notification before starting again.
                 try
                 {
-                    await _streamStoreNotification.WaitAsync(_disposed.Token).NotOnCapturedContext();
+                    await _streamStoreNotification.WaitAsync(_disposed.Token).ConfigureAwait(false);
                 }
                 catch (TaskCanceledException)
                 {
@@ -154,7 +154,7 @@
                 eventsPage = await _readonlyStreamStore.ReadAllBackwards(
                     Position.End,
                     1,
-                    _disposed.Token).NotOnCapturedContext();
+                    _disposed.Token).ConfigureAwait(false);
             }
             catch (ObjectDisposedException)
             {
@@ -185,7 +185,7 @@
             {
                 readAllPage = await _readonlyStreamStore
                     .ReadAllForwards(_nextPosition, MaxCountPerRead, _prefetchJsonData, _disposed.Token)
-                    .NotOnCapturedContext();
+                    .ConfigureAwait(false);
             }
             catch(ObjectDisposedException)
             {
@@ -219,7 +219,7 @@
                 LastPosition = message.Position;
                 try
                 {
-                    await _streamMessageReceived(this, message, _disposed.Token).NotOnCapturedContext();
+                    await _streamMessageReceived(this, message, _disposed.Token).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {

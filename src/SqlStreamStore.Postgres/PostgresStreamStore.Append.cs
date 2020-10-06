@@ -44,18 +44,18 @@
                         {
                             using(var reader = await command
                                 .ExecuteReaderAsync(cancellationToken)
-                                .NotOnCapturedContext())
+                                .ConfigureAwait(false))
                             {
-                                await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
+                                await reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 
                                 result = new AppendResult(reader.GetInt32(0), reader.GetInt64(1));
                             }
 
-                            await transaction.CommitAsync(cancellationToken).NotOnCapturedContext();
+                            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
                         }
                         catch(PostgresException ex) when(ex.IsWrongExpectedVersion())
                         {
-                            await transaction.RollbackAsync(cancellationToken).NotOnCapturedContext();
+                            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
 
                             throw new WrongExpectedVersionException(
                                 ErrorMessages.AppendFailedWrongExpectedVersion(streamIdInfo.PostgresqlStreamId.IdOriginal, expectedVersion),
@@ -73,7 +73,7 @@
                     }
                     else
                     {
-                        await TryScavenge(streamIdInfo, cancellationToken).NotOnCapturedContext();
+                        await TryScavenge(streamIdInfo, cancellationToken).ConfigureAwait(false);
                     }
 
                     return result;

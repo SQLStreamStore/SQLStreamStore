@@ -29,9 +29,9 @@ namespace SqlStreamStore
             using(var command = GetListStreamsCommand(pattern, maxCount, afterIdInternal, transaction))
             using(var reader = await command
                 .ExecuteReaderAsync(cancellationToken)
-                .NotOnCapturedContext())
+                .ConfigureAwait(false))
             {
-                while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                while(await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
                     streamIds.Add(reader.GetString(0));
                     afterIdInternal = reader.GetInt32(1);

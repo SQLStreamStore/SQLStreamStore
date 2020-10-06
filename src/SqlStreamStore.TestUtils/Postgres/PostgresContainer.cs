@@ -43,7 +43,7 @@ namespace SqlStreamStore.TestUtils.Postgres
                 {
                     using(var connection = new NpgsqlConnection(DefaultConnectionString))
                     {
-                        await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
                     }
                 });
         }

@@ -22,7 +22,7 @@
         public SqlServerContainer(string databaseName)
         {
             _databaseName = databaseName;
-            
+
             _containerService = new Builder()
                 .UseContainer()
                 .WithName(ContainerName)
@@ -51,7 +51,7 @@
                 {
                     using (var connection = new SqlConnection(CreateConnectionStringBuilder().ConnectionString))
                     {
-                        await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
                     }
                 });
         }
@@ -66,7 +66,7 @@
             {
                 using(var connection = CreateConnection())
                 {
-                    await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                    await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                     var createCommand = $@"CREATE DATABASE [{_databaseName}]
 ALTER DATABASE [{_databaseName}] SET SINGLE_USER
@@ -75,11 +75,10 @@ ALTER DATABASE [{_databaseName}] SET MULTI_USER";
 
                     using(var command = new SqlCommand(createCommand, connection))
                     {
-                        await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                        await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                     }
                 }
             });
         }
     }
 }
- 

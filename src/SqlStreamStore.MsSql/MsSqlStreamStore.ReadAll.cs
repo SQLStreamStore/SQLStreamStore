@@ -24,7 +24,7 @@ namespace SqlStreamStore
 
             using (var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                 var commandText = prefetch ? _scripts.ReadAllForwardWithData : _scripts.ReadAllForward;
                 using (var command = new SqlCommand(commandText, connection))
@@ -34,7 +34,7 @@ namespace SqlStreamStore
                     command.Parameters.AddWithValue("count", maxCount + 1); //Read extra row to see if at end or not
                     var reader = await command
                         .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
-                        .NotOnCapturedContext();
+                        .ConfigureAwait(false);
 
                     List<StreamMessage> messages = new List<StreamMessage>();
                     if (!reader.HasRows)
@@ -48,7 +48,7 @@ namespace SqlStreamStore
                             messages.ToArray());
                     }
 
-                    while (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                    while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                     {
                         if(messages.Count == maxCount)
                         {
@@ -122,7 +122,7 @@ namespace SqlStreamStore
 
             using (var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                 var commandText = prefetch ? _scripts.ReadAllBackwardWithData : _scripts.ReadAllBackward;
                 using (var command = new SqlCommand(commandText, connection))
@@ -132,7 +132,7 @@ namespace SqlStreamStore
                     command.Parameters.AddWithValue("count", maxCount + 1); //Read extra row to see if at end or not
                     var reader = await command
                         .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
-                        .NotOnCapturedContext();
+                        .ConfigureAwait(false);
 
                     List<StreamMessage> messages = new List<StreamMessage>();
                     if (!reader.HasRows)
@@ -149,7 +149,7 @@ namespace SqlStreamStore
                     }
 
                     long lastPosition = 0;
-                    while (await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                    while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                     {
                         var streamId = reader.GetString(0);
                         var streamVersion = reader.GetInt32(1);

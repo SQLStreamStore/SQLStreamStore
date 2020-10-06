@@ -88,12 +88,12 @@
 
                 using(var connection = new MySqlConnection(fixture.ConnectionString))
                 {
-                    await connection.OpenAsync().NotOnCapturedContext();
+                    await connection.OpenAsync().ConfigureAwait(false);
 
                     using(var command = new MySqlCommand(commandText, connection))
-                    using(var reader = await command.ExecuteReaderAsync().NotOnCapturedContext())
+                    using(var reader = await command.ExecuteReaderAsync().ConfigureAwait(false))
                     {
-                        while(await reader.ReadAsync().NotOnCapturedContext())
+                        while(await reader.ReadAsync().ConfigureAwait(false))
                         {
                             streamStoreObjects.Add(reader.GetString(0));
                         }

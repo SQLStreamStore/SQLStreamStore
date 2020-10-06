@@ -92,7 +92,7 @@ namespace SqlStreamStore
             MySqlTransaction transaction,
             CancellationToken cancellationToken)
         {
-            // If the count is int.MaxValue, TSql will see it as a negative number. 
+            // If the count is int.MaxValue, TSql will see it as a negative number.
             // Users shouldn't be using int.MaxValue in the first place anyway.
             count = count == int.MaxValue ? count - 1 : count;
 
@@ -106,8 +106,8 @@ namespace SqlStreamStore
             if(direction == ReadDirection.Forward)
             {
                 procedure = prefetch ? _schema.ReadStreamForwardsWithData : _schema.ReadStreamForwards;
-                getNextVersion = (events, lastVersion) => events.Any() 
-                    ? events.Last().StreamVersion + 1 
+                getNextVersion = (events, lastVersion) => events.Any()
+                    ? events.Last().StreamVersion + 1
                     : lastVersion + 1;
             }
             else
@@ -126,7 +126,7 @@ namespace SqlStreamStore
                 Parameters.Version(streamVersion)))
             using(var reader = await command
                 .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
-                .NotOnCapturedContext())
+                .ConfigureAwait(false))
             {
                 if(!reader.HasRows)
                 {
@@ -147,7 +147,7 @@ namespace SqlStreamStore
                     messages.Add(default);
                 }
 
-                await reader.ReadAsync(cancellationToken).NotOnCapturedContext();
+                await reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 
                 var lastVersion = reader.GetInt32(0);
                 var lastPosition = reader.GetInt64(1);
@@ -155,9 +155,9 @@ namespace SqlStreamStore
                     ? default
                     : reader.GetInt32(2);
 
-                await reader.NextResultAsync(cancellationToken).NotOnCapturedContext();
+                await reader.NextResultAsync(cancellationToken).ConfigureAwait(false);
 
-                while(await reader.ReadAsync(cancellationToken).NotOnCapturedContext())
+                while(await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
                     messages.Add((await ReadStreamMessage(reader, streamId, prefetch), maxAge));
                 }
@@ -200,7 +200,7 @@ namespace SqlStreamStore
 
                 using(var textReader = reader.GetTextReader(ordinal))
                 {
-                    return await textReader.ReadToEndAsync().NotOnCapturedContext();
+                    return await textReader.ReadToEndAsync().ConfigureAwait(false);
                 }
             }
 
@@ -243,7 +243,7 @@ namespace SqlStreamStore
                 using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
                 using(var command = BuildStoredProcedureCall(_schema.ReadAllHeadPosition, transaction))
                 {
-                    var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                    var result = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
 
                     return result == DBNull.Value
                         ? Position.End
@@ -264,7 +264,7 @@ namespace SqlStreamStore
                 using(var transaction = connection.BeginTransaction())
                 using(var command = BuildStoredProcedureCall(_schema.ReadStreamHeadPosition, transaction, Parameters.StreamId(new MySqlStreamId(streamId))))
                 {
-                    var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                    var result = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
 
                     return result == null
                         ? Position.End
@@ -285,7 +285,7 @@ namespace SqlStreamStore
                 using(var transaction = connection.BeginTransaction())
                 using(var command = BuildStoredProcedureCall(_schema.ReadStreamHeadVersion, transaction, Parameters.StreamId(new MySqlStreamId(streamId))))
                 {
-                    var result = await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext();
+                    var result = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
 
                     return (int?) result ?? StreamVersion.End;
                 }

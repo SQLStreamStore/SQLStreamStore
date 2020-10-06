@@ -36,7 +36,7 @@ namespace SqlStreamStore.TestUtils.Postgres
         {
             using(var connection = new NpgsqlConnection(DefaultConnectionString))
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                 if(!await DatabaseExists(connection, cancellationToken))
                 {
@@ -52,7 +52,7 @@ namespace SqlStreamStore.TestUtils.Postgres
 
             using(var command = new NpgsqlCommand(commandText, connection))
             {
-                return await command.ExecuteScalarAsync(cancellationToken).NotOnCapturedContext()
+                return await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false)
                        != null;
             }
         }
@@ -63,7 +63,7 @@ namespace SqlStreamStore.TestUtils.Postgres
 
             using(var command = new NpgsqlCommand(commandText, connection))
             {
-                await command.ExecuteNonQueryAsync(cancellationToken).NotOnCapturedContext();
+                await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 

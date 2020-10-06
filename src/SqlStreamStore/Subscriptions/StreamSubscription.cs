@@ -63,7 +63,7 @@
             Task.Run(PullAndPush);
 
             s_logger.Info(
-                "Stream subscription created {name} continuing after version {version}", 
+                "Stream subscription created {name} continuing after version {version}",
                 name,
                 continueAfterVersion?.ToString() ?? "<null>");
         }
@@ -144,10 +144,10 @@
                     pause = page.IsEnd && page.Messages.Length == 0;
                 }
 
-                // Wait for notification before starting again. 
+                // Wait for notification before starting again.
                 try
                 {
-                    await _streamStoreNotification.WaitAsync(_disposed.Token).NotOnCapturedContext();
+                    await _streamStoreNotification.WaitAsync(_disposed.Token).ConfigureAwait(false);
                 }
                 catch(TaskCanceledException)
                 {
@@ -167,7 +167,7 @@
                     StreamId,
                     StreamVersion.End,
                     1,
-                    _disposed.Token).NotOnCapturedContext();
+                    _disposed.Token).ConfigureAwait(false);
             }
             catch (ObjectDisposedException)
             {
@@ -186,7 +186,7 @@
                 throw;
             }
 
-            //Only new Messages, i.e. the one after the current last one 
+            //Only new Messages, i.e. the one after the current last one
             _nextVersion = eventsPage.LastStreamVersion + 1;
             LastVersion = _nextVersion;
         }
@@ -198,7 +198,7 @@
             {
                 readStreamPage = await _readonlyStreamStore
                     .ReadStreamForwards(StreamId, _nextVersion, MaxCountPerRead, _prefectchJsonData, _disposed.Token)
-                    .NotOnCapturedContext();
+                    .ConfigureAwait(false);
             }
             catch (ObjectDisposedException)
             {
@@ -232,7 +232,7 @@
                 LastVersion = message.StreamVersion;
                 try
                 {
-                    await _streamMessageReceived(this, message, _disposed.Token).NotOnCapturedContext();
+                    await _streamMessageReceived(this, message, _disposed.Token).ConfigureAwait(false);
                 }
                 catch (Exception ex)
                 {

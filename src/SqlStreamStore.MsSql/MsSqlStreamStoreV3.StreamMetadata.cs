@@ -19,7 +19,7 @@
             ReadStreamPage page;
             using (var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
                 (page, _) = await ReadStreamInternal(
                     streamIdInfo.MetadataSqlStreamId,
                     StreamVersion.End,
@@ -60,7 +60,7 @@
             {
                 var streamIdInfo = new StreamIdInfo(streamId);
 
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 
                 using(var transaction = connection.BeginTransaction())
                 {

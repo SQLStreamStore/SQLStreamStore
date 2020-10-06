@@ -21,7 +21,7 @@ namespace SqlStreamStore
         private static readonly Assembly s_assembly = typeof(SqliteStreamStore)
             .GetTypeInfo()
             .Assembly;
-        
+
         private readonly Lazy<IStreamStoreNotifier> _streamStoreNotifier;
         private readonly SqliteStreamStoreSettings _settings;
         private readonly Func<IEnumerable<StreamMessage>, ReadDirection, int, int> _resolveNextVersion;
@@ -34,7 +34,7 @@ namespace SqlStreamStore
         {
             _settings = settings;
             SqliteCommandExtensions.WithSettings(settings);
-            
+
             _streamStoreNotifier = new Lazy<IStreamStoreNotifier>(() =>
             {
                 if(_settings.CreateStreamStoreNotifier == null)
@@ -45,7 +45,7 @@ namespace SqlStreamStore
 
                 return settings.CreateStreamStoreNotifier.Invoke(this);
             });
-            
+
             _resolveNextVersion = (messages, direction, currentVersion) =>
             {
                 if(messages.Any())
@@ -61,7 +61,7 @@ namespace SqlStreamStore
                 currentVersion = direction == ReadDirection.Forward
                     ? currentVersion + 1
                     : currentVersion == StreamVersion.End ? StreamVersion.End : currentVersion - 1;
-                
+
                 return currentVersion;
             };
         }
@@ -131,7 +131,7 @@ namespace SqlStreamStore
                                         PRAGMA journal_mode = WAL;";
                 command.ExecuteNonQuery();
             }
-            
+
             // register functions.
             connection.CreateFunction("split", (string source) => source.Split(new[]{','}, StringSplitOptions.RemoveEmptyEntries));
             connection.CreateFunction("contains",
@@ -157,7 +157,7 @@ namespace SqlStreamStore
             {
                 long idInternal = 0;
                 long? maxCount = default;
-                
+
                 command.CommandText = @"SELECT streams.id_internal, streams.max_count 
                                         FROM streams 
                                         WHERE streams.id_original = @streamId";
@@ -216,11 +216,11 @@ namespace SqlStreamStore
 
                 foreach(var deletedMessageId in deletedMessageIds)
                 {
-                    await DeleteEventInternal(streamId, deletedMessageId, ct).NotOnCapturedContext();
+                    await DeleteEventInternal(streamId, deletedMessageId, ct).ConfigureAwait(false);
                 }
             }
         }
-        
+
         private string GetScript(string name) => _scripts.GetOrAdd(name,
             key =>
             {
@@ -249,7 +249,7 @@ namespace SqlStreamStore
                 command.Parameters.Clear();
                 command.Parameters.AddWithValue("@streamId", streamId);
                 var result = command.ExecuteScalar<int?>();
-                
+
                 if(throwIfNotExists && result == null)
                 {
                     throw new Exception("Stream does not exist.");

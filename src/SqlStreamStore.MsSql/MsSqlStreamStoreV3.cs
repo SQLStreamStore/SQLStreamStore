@@ -407,5 +407,63 @@
         {
             return _scripts.CreateSchema;
         }
+
+
+        /// <summary> Grant the necessary access for Read operations, adds the user to 'db_datareader' database roles </summary>
+        public async Task GrantRead (string to, CancellationToken cancellationToken = default)
+        {
+            GuardAgainstDisposed();
+            using (var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await GrantReadInternal(to, connection, cancellationToken);
+            }
+        }
+        /// <summary> Grants the necessary access for Append operations, adds the user to 'db_datareader', 'db_datawriter' database roles and Execute permission on User Defined Table 'NewStreamMessages'  </summary>
+        public async Task GrantAppend(string to, CancellationToken cancellationToken = default)
+        {
+            GuardAgainstDisposed();
+            using (var connection = _createConnection())
+            {
+                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await GrantAppendInternal(to, connection, cancellationToken);
+                await GrantReadInternal(to, connection, cancellationToken);
+            }
+        }
+
+        private async Task GrantReadInternal(string to, SqlConnection connection, CancellationToken cancellationToken)
+        {
+            using (var command = new SqlCommand("sp_addrolemember", connection))
+            {
+                command.CommandTimeout = _commandTimeout;
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.Add(new SqlParameter("@rolename", "db_datareader"));
+                command.Parameters.Add(new SqlParameter("@membername", to));
+                await command
+                    .ExecuteNonQueryAsync(cancellationToken)
+                    .NotOnCapturedContext();
+            }
+        }
+        private async Task GrantAppendInternal(string to, SqlConnection connection, CancellationToken cancellationToken)
+        {
+            using(var command = new SqlCommand($"GRANT EXECUTE ON TYPE::[{_settings.Schema}].[NewStreamMessages] TO [{to}]",
+                connection))
+            {
+                command.CommandTimeout = _commandTimeout;
+                await command
+                    .ExecuteNonQueryAsync(cancellationToken)
+                    .NotOnCapturedContext();
+            }
+            using (var command = new SqlCommand("sp_addrolemember", connection))
+            {
+                command.CommandTimeout = _commandTimeout;
+                command.CommandType = CommandType.StoredProcedure;
+                command.Parameters.Add(new SqlParameter("@rolename", "db_datawriter"));
+                command.Parameters.Add(new SqlParameter("@membername", to));
+                await command
+                    .ExecuteNonQueryAsync(cancellationToken)
+                    .NotOnCapturedContext();
+            }
+        }
     }
 }

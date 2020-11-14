@@ -1,7 +1,9 @@
 ﻿namespace SqlStreamStore
 {
     using System;
+    using System.Threading;
     using System.Threading.Tasks;
+    using Microsoft.Data.SqlClient;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.TestUtils.MsSql;
 
@@ -38,6 +40,46 @@
             MsSqlStreamStoreV3 = null;
             _onDispose();
         }
+        public IStreamStore  StoreFor(string user)
+        {
+            var connectionStringBuilder = new SqlConnectionStringBuilder(_settings.ConnectionString)
+            {
+                UserID = user,
+                Password = Password(user),
+            };
+            var connectionString = connectionStringBuilder.ToString();
+            var settings = new MsSqlStreamStoreV3Settings(connectionString)
+            {
+                Schema = _settings.Schema,
+                GetUtcNow = () => _settings.GetUtcNow(),
+                CommandTimeout = _settings.CommandTimeout,
+                CreateStreamStoreNotifier = _settings.CreateStreamStoreNotifier,
+                DisableDeletionTracking = _settings.DisableDeletionTracking,
+                LogName = _settings.LogName,
+            };
+            return new MsSqlStreamStoreV3(settings);
+        }
+
+        public async Task CreateUser(string user, CancellationToken cancellationToken = default)
+        {
+            string createUser = $"USE [{DatabaseName}];" +
+                                $"IF SUSER_ID('{user}') IS NULL CREATE LOGIN [{user}] WITH PASSWORD='{Password(user)}';" +
+                                $"IF DATABASE_PRINCIPAL_ID('{user}') IS NULL CREATE USER [{user}] FOR LOGIN[{user}] ;";
+
+            using(var connection = new SqlConnection(_settings.ConnectionString))
+            {
+                using(var command = new SqlCommand(createUser, connection))
+                {
+                    await connection
+                        .OpenAsync(cancellationToken)
+                        .NotOnCapturedContext();
+                    await command
+                        .ExecuteScalarAsync(cancellationToken)
+                        .NotOnCapturedContext();
+                }
+            }
+        }
+        private static string Password(string user) => $"{user}@1EasyPassword";
 
         public string DatabaseName { get; }
 

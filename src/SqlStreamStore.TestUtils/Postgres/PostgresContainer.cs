@@ -7,7 +7,6 @@ namespace SqlStreamStore.TestUtils.Postgres
     using Ductus.FluentDocker.Services;
     using Npgsql;
     using Polly;
-    using SqlStreamStore.Infrastructure;
 
     public class PostgresContainer : PostgresDatabaseManager
     {

@@ -7,8 +7,6 @@ namespace SqlStreamStore.HAL.DevServer
     using Microsoft.Data.SqlClient;
     using Npgsql;
     using Serilog;
-    using SqlStreamStore.Infrastructure;
-
     internal static class SqlStreamStoreFactory
     {
         private delegate Task<IStreamStore> CreateStreamStore(

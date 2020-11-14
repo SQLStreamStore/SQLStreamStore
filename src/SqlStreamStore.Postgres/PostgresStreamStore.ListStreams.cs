@@ -4,7 +4,6 @@ namespace SqlStreamStore
     using System.Threading;
     using System.Threading.Tasks;
     using Npgsql;
-    using SqlStreamStore.Infrastructure;
     using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Streams;
 

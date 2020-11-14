@@ -6,7 +6,6 @@
     using System.Data.Common;
     using System.Threading;
     using System.Threading.Tasks;
-    using SqlStreamStore.Infrastructure;
     using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Streams;
 

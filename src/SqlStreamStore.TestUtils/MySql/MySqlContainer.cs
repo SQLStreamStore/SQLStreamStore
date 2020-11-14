@@ -7,7 +7,6 @@ namespace SqlStreamStore.TestUtils.MySql
     using Ductus.FluentDocker.Services;
     using MySqlConnector;
     using Polly;
-    using SqlStreamStore.Infrastructure;
 
     public class MySqlContainer
     {

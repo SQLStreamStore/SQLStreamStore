@@ -3,7 +3,6 @@ namespace SqlStreamStore
     using System;
     using System.Threading;
     using System.Threading.Tasks;
-    using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Streams;
     using static Streams.Deleted;
 

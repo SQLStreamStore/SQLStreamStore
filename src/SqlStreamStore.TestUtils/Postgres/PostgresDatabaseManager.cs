@@ -4,7 +4,6 @@ namespace SqlStreamStore.TestUtils.Postgres
     using System.Threading.Tasks;
     using Npgsql;
     using Npgsql.Logging;
-    using SqlStreamStore.Infrastructure;
 
     public abstract class PostgresDatabaseManager
     {

@@ -10,7 +10,6 @@
     using Microsoft.Data.SqlClient.Server;
     using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Streams;
-    using SqlStreamStore.Infrastructure;
     using StreamStoreStore.Json;
 
     public partial class MsSqlStreamStore

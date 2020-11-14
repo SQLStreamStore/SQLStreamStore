@@ -4,7 +4,6 @@ namespace SqlStreamStore
     using System.Threading;
     using System.Threading.Tasks;
     using Microsoft.Data.SqlClient;
-    using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Streams;
 
     partial class MsSqlStreamStoreV3

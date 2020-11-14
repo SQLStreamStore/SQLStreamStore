@@ -4,7 +4,6 @@ namespace SqlStreamStore
     using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
-    using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Streams;
 
     public partial class SqliteStreamStore

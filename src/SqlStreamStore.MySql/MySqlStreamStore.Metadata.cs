@@ -3,7 +3,6 @@ namespace SqlStreamStore
     using System.Threading;
     using System.Threading.Tasks;
     using MySqlConnector;
-    using SqlStreamStore.Infrastructure;
     using SqlStreamStore.MySqlScripts;
     using SqlStreamStore.Streams;
     using StreamStoreStore.Json;

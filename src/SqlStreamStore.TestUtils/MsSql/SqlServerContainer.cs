@@ -7,7 +7,6 @@
     using Ductus.FluentDocker.Services;
     using Microsoft.Data.SqlClient;
     using Polly;
-    using SqlStreamStore.Infrastructure;
 
     public class SqlServerContainer
     {

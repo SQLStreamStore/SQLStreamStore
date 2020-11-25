@@ -415,7 +415,7 @@
             GuardAgainstDisposed();
             using (var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
                 await GrantReadInternal(to, connection, cancellationToken);
             }
         }
@@ -425,7 +425,7 @@
             GuardAgainstDisposed();
             using (var connection = _createConnection())
             {
-                await connection.OpenAsync(cancellationToken).NotOnCapturedContext();
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
                 await GrantAppendInternal(to, connection, cancellationToken);
                 await GrantReadInternal(to, connection, cancellationToken);
             }
@@ -441,7 +441,7 @@
                 command.Parameters.Add(new SqlParameter("@membername", to));
                 await command
                     .ExecuteNonQueryAsync(cancellationToken)
-                    .NotOnCapturedContext();
+                    .ConfigureAwait(false);
             }
         }
         private async Task GrantAppendInternal(string to, SqlConnection connection, CancellationToken cancellationToken)
@@ -452,7 +452,7 @@
                 command.CommandTimeout = _commandTimeout;
                 await command
                     .ExecuteNonQueryAsync(cancellationToken)
-                    .NotOnCapturedContext();
+                    .ConfigureAwait(false);
             }
             using (var command = new SqlCommand("sp_addrolemember", connection))
             {
@@ -462,7 +462,7 @@
                 command.Parameters.Add(new SqlParameter("@membername", to));
                 await command
                     .ExecuteNonQueryAsync(cancellationToken)
-                    .NotOnCapturedContext();
+                    .ConfigureAwait(false);
             }
         }
     }

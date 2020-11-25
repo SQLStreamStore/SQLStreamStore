@@ -72,10 +72,10 @@
                 {
                     await connection
                         .OpenAsync(cancellationToken)
-                        .NotOnCapturedContext();
+                        .ConfigureAwait(false);
                     await command
                         .ExecuteScalarAsync(cancellationToken)
-                        .NotOnCapturedContext();
+                        .ConfigureAwait(false);
                 }
             }
         }

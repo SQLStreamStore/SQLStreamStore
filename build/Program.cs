@@ -63,10 +63,12 @@ namespace build
                         $"test tests/{project}/{project}.csproj --configuration=Release --no-build --no-restore --verbosity=normal"
                         + $" --logger \"trx;logfilename=..\\..\\..\\{ArtifactsDir}\\{project}.trx\"");
                 }
-                catch (NonZeroExitCodeException)
+                catch (NonZeroExitCodeException) when (ShouldCatch())
                 {
                     TestProjectsWithFailures.Add(project);
                 }
+                bool ShouldCatch() => args.All(arg => !arg.StartsWith("test-"));
+
             }
 
             Target(

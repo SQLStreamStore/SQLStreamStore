@@ -8,8 +8,6 @@ WORKDIR /repo
 # https://code-maze.com/aspnetcore-app-dockerfiles/
 COPY ./*.sln ./
 
-COPY ./build/ ./build/
-
 COPY ./src/*/*.csproj ./src/
 RUN for file in $(ls src/*.csproj); do mkdir -p ./${file%.*}/ && mv $file ./${file%.*}/; done
 

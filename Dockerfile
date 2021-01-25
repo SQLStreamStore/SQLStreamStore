@@ -14,7 +14,8 @@ RUN for file in $(ls src/*.csproj); do mkdir -p ./${file%.*}/ && mv $file ./${fi
 COPY ./tests/*/*.csproj ./tests/
 RUN for file in $(ls tests/*.csproj); do mkdir -p ./${file%.*}/ && mv $file ./${file%.*}/; done
 
-RUN dotnet restore
+RUN find src -name "*.csproj"  | xargs -n1 dotnet restore && \
+    find tests -name "*.csproj"  | xargs -n1 dotnet restore
 
 COPY ./assets ./assets/
 

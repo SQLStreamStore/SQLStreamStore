@@ -39,6 +39,7 @@ BEGIN
       ORDER BY (CASE
                   WHEN _forwards THEN __schema__.messages.position
                   ELSE -__schema__.messages.position END)
+      LIMIT _count
   )
   SELECT * FROM messages LIMIT _count;
 END;

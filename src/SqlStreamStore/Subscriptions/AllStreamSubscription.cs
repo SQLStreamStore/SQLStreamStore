@@ -147,14 +147,12 @@
 
         private async Task Initialize()
         {
-            ReadAllPage eventsPage;
+            long headPosition;
             try
             {
                 // Get the last stream version and subscribe from there.
-                eventsPage = await _readonlyStreamStore.ReadAllBackwards(
-                    Position.End,
-                    1,
-                    _disposed.Token).ConfigureAwait(false);
+                headPosition = await _readonlyStreamStore.ReadHeadPosition(_disposed.Token)
+                    .ConfigureAwait(false);
             }
             catch (ObjectDisposedException)
             {
@@ -175,7 +173,7 @@
 
             // Only new Messages, i.e. the one after the current last one.
             // Edge case for empty store where Next position 0 (when FromPosition = 0)
-            _nextPosition = eventsPage.FromPosition == 0 ? 0 : eventsPage.FromPosition + 1;
+            _nextPosition = headPosition == 0 ? 0 : headPosition + 1;
         }
 
         private async Task<ReadAllPage> Pull()

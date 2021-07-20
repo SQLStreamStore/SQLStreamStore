@@ -14,7 +14,7 @@ jobs:
     name: Test ${{ matrix.test }}
     services:
       mssql:
-        image: microsoft/mssql-server-linux:2017-CU9
+        image: mcr.microsoft.com/mssql/server:2017-latest
         ports:
           - 11433:1433
         env:

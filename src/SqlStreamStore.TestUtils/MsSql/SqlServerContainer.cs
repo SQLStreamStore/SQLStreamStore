@@ -14,7 +14,7 @@
         private IContainerService _containerService;
         private const string ContainerName = "sql-stream-store-tests-mssql";
         private const string Password = "E@syP@ssw0rd";
-        private const string Image = "microsoft/mssql-server-linux:2017-CU9";
+        private const string Image = "mcr.microsoft.com/mssql/server:2017-latest";
         private const int HostPort = 11433;
         private const int ContainerPort = 1433;
 

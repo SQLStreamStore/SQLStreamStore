@@ -89,6 +89,14 @@ END
 
 IF NOT EXISTS(
     SELECT * 
+    FROM sys.indexes
+    WHERE name='IX_Messages_StreamIdInternal' AND object_id = OBJECT_ID('dbo.Messages'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Messages_StreamIdInternal ON dbo.Messages (StreamIdInternal);
+END
+
+IF NOT EXISTS(
+    SELECT * 
     FROM sys.table_types tt JOIN sys.schemas s ON tt.schema_id = s.schema_id
     WHERE s.name + '.' + tt.name='dbo.NewStreamMessages')
 BEGIN

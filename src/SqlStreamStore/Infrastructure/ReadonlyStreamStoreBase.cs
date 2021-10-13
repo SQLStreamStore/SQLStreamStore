@@ -1,3 +1,5 @@
+using System.Linq;
+
 namespace SqlStreamStore.Infrastructure
 {
     using System;
@@ -62,29 +64,55 @@ namespace SqlStreamStore.Infrastructure
             var page = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken)
                 .ConfigureAwait(false);
 
-            // https://github.com/damianh/SqlStreamStore/issues/31
-            // Under heavy parallel load, gaps may appear in the position sequence due to sequence
-            // number reservation of in-flight transactions.
-            // Here we check if there are any gaps, and in the unlikely event there is, we delay a little bit
-            // and re-issue the read. This is expected
-            if(!page.IsEnd || page.Messages.Length <= 1)
-            {
-                return await FilterExpired(page, ReadNext, cancellationToken).ConfigureAwait(false);
-            }
 
-            // Check for gap between last page and this.
-            if (page.Messages[0].Position != fromPositionInclusive)
-            {
-                page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken);
-            }
+
+            //// https://github.com/damianh/SqlStreamStore/issues/31
+            //// Under heavy parallel load, gaps may appear in the position sequence due to sequence
+            //// number reservation of in-flight transactions.
+            //// Here we check if there are any gaps, and in the unlikely event there is, we delay a little bit
+            //// and re-issue the read. This is expected
+            //if(!page.IsEnd || page.Messages.Length <= 1)
+            //{
+            //    return await FilterExpired(page, ReadNext, cancellationToken).ConfigureAwait(false);
+            //}
+
+            // only short circuit now for empty pages or 'old' pages, where
+            // 'old' is defined as pages whose last message is older than _positionWriteDelayThreshold ago
+            if(page.Messages.Length == 0 || ((DateTime.UtcNow - page.Messages[page.Messages.Length-1].CreatedUtc) > TimeSpan.FromMinutes(5)))
+                return await FilterExpired(page, ReadNext, cancellationToken).ConfigureAwait(false);
+
+
+
+            //// Check for gap between last page and this.
+            //if(page.Messages[0].Position != fromPositionInclusive)
+            //{
+            //    if(!page.IsEnd || page.Messages.Length == 1)
+            //        Logger.DebugFormat("Gap detected at lower page boundary.  Potentially could have lost {lostMessageCount} events if the gap is transient", page.Messages[0].Position - fromPositionInclusive);
+            //    page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken);
+            //}
 
             // check for gap in messages collection
             for(int i = 0; i < page.Messages.Length - 1; i++)
             {
-                if(page.Messages[i].Position + 1 != page.Messages[i + 1].Position)
+                var expectedNextPosition = page.Messages[i].Position + 1;
+                if(expectedNextPosition != page.Messages[i + 1].Position)
                 {
-                    page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken);
-                    break;
+                    Logger.InfoFormat("Gap detected in "+(page.IsEnd?"last":"(NOT the last)")+" page.  Returning partial page {fromPosition}-{toPosition}", fromPositionInclusive, fromPositionInclusive+i+1);
+
+                    ReadAllPage requeryPage;
+                    var maxPosition =  page.Messages[page.Messages.Length - 1].Position;
+                    do
+                    {
+                        requeryPage = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken, maxPosition);
+                    } while(page.TxSnapshot.CurrentTxIds.Intersect(requeryPage.TxSnapshot.CurrentTxIds).Any());
+
+                    return await FilterExpired(requeryPage, ReadNext, cancellationToken).ConfigureAwait(false);
+
+                    // switched this to return the partial page, then re-issue load starting at gap
+                    // this speeds up the retry instead of taking a 3 second delay immediately
+                    //var messagesBeforeGap = new StreamMessage[i+1];
+                    //page.Messages.Take(i+1).ToArray().CopyTo(messagesBeforeGap, 0);
+                    //return new ReadAllPage(page.FromPosition, maxPosition, page.IsEnd, page.Direction, ReadNext, messagesBeforeGap);
                 }
             }
 
@@ -291,7 +319,8 @@ namespace SqlStreamStore.Infrastructure
             int maxCount,
             bool prefetch,
             ReadNextAllPage readNext,
-            CancellationToken cancellationToken);
+            CancellationToken cancellationToken,
+            long fromMaxPositionInclusive = -1);
 
         protected abstract Task<ReadAllPage> ReadAllBackwardsInternal(
             long fromPositionExclusive,

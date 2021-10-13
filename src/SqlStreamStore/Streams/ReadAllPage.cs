@@ -1,5 +1,8 @@
 ﻿namespace SqlStreamStore.Streams
 {
+    using System;
+    using System.Collections.Generic;
+    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
 
@@ -35,6 +38,8 @@
         /// </summary>
         public readonly StreamMessage[] Messages;
 
+        public readonly TxSnapshot TxSnapshot;
+
         /// <summary>
         ///     Initializes a new instance of <see cref="ReadAllPage"/>
         /// </summary>
@@ -50,7 +55,8 @@
             bool isEnd,
             ReadDirection direction,
             ReadNextAllPage readNext,
-            StreamMessage[] messages = null)
+            StreamMessage[] messages = null,
+            string txSnapshot = null)
         {
             FromPosition = fromPosition;
             NextPosition = nextPosition;
@@ -58,6 +64,7 @@
             Direction = direction;
             _readNext = readNext;
             Messages = messages ?? new StreamMessage[0];
+            TxSnapshot = new TxSnapshot(txSnapshot);
         }
 
         /// <inheritdoc />
@@ -75,6 +82,25 @@
         public Task<ReadAllPage> ReadNext(CancellationToken cancellationToken = default)
         {
             return _readNext(NextPosition, cancellationToken);
+        }
+    }
+
+    public class TxSnapshot
+    {
+        private readonly long MinTx;
+        private readonly long MaxTx;
+
+        public readonly List<long> CurrentTxIds = new List<long>();
+        public TxSnapshot(string txSnapshot)
+        {
+            var splitted = txSnapshot.Split(':');
+            MinTx = Convert.ToInt64(splitted[0]);
+            MaxTx = Convert.ToInt64(splitted[1]);
+
+            if(splitted.Length > 2 && !string.IsNullOrWhiteSpace(splitted[2]))
+            {
+                CurrentTxIds = splitted[2].Split(',').Select(x => Convert.ToInt64(x)).ToList();
+            }
         }
     }
 }

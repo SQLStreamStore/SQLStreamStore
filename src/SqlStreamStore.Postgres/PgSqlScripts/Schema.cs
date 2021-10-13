@@ -20,7 +20,7 @@
         public string ListStreamsStartingWith => $"{_schema}.list_streams_starting_with";
         public string ListStreamsEndingWith => $"{_schema}.list_streams_ending_with";
         public string Read => $"{_schema}.read";
-        public string ReadAll => $"{_schema}.read_all";
+        public string ReadAll => $"{_schema}.read_all2";
         public string ReadAllHeadPosition => $"{_schema}.read_head_position";
         public string ReadStreamHeadPosition => $"{_schema}.read_stream_head_position";
         public string ReadStreamHeadVersion => $"{_schema}.read_stream_head_version";

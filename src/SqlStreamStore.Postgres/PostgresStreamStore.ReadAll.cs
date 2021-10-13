@@ -4,8 +4,12 @@
     using System.Collections.Generic;
     using System.Data;
     using System.Data.Common;
+    using System.Text;
     using System.Threading;
     using System.Threading.Tasks;
+
+    using Npgsql;
+
     using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Streams;
 
@@ -20,66 +24,90 @@
         {
             maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;
 
+            var refcursorSql = new StringBuilder();
+
             using(var connection = await OpenConnection(cancellationToken))
             using(var transaction = connection.BeginTransaction())
-            using(var command = BuildFunctionCommand(
+            {
+                using(var command = BuildFunctionCommand(
                 _schema.ReadAll,
                 transaction,
                 Parameters.Count(maxCount + 1),
                 Parameters.Position(fromPositionExclusive),
                 Parameters.ReadDirection(ReadDirection.Forward),
                 Parameters.Prefetch(prefetch)))
-            using(var reader = await command
-                .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
-                .ConfigureAwait(false))
-            {
-                if(!reader.HasRows)
+                using(var reader = await command
+                    .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
+                    .ConfigureAwait(false))
                 {
+                    while(await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        refcursorSql.AppendLine(Schema.FetchAll(reader.GetString(0)));
+                    }
+                }
+
+                using(var command2 = new NpgsqlCommand(refcursorSql.ToString(), transaction.Connection, transaction))
+                using(var reader2 = await command2
+                    .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
+                    .ConfigureAwait(false))
+                {
+
+                    if(!reader2.HasRows)
+                    {
+                        return new ReadAllPage(
+                            fromPositionExclusive,
+                            fromPositionExclusive,
+                            true,
+                            ReadDirection.Forward,
+                            readNext,
+                            Array.Empty<StreamMessage>());
+                    }
+
+                    var messages = new List<(StreamMessage message, int? maxAge)>();
+
+                    while(await reader2.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        if(messages.Count == maxCount)
+                        {
+                            messages.Add(default);
+                        }
+                        else
+                        {
+                            var streamIdInfo = new StreamIdInfo(reader2.GetString(0));
+                            var (message, maxAge, _) =
+                                await ReadAllStreamMessage(reader2, streamIdInfo.PostgresqlStreamId, prefetch);
+                            messages.Add((message, maxAge));
+                        }
+                    }
+
+                    string txSnapshot = string.Empty;
+                    await reader2.NextResultAsync(cancellationToken).ConfigureAwait(false);
+                    while (await reader2.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        txSnapshot = await reader2.GetFieldValueAsync<string>(0);
+                    }
+
+                    bool isEnd = true;
+
+                    if(messages.Count == maxCount + 1) // An extra row was read, we're not at the end
+                    {
+                        isEnd = false;
+                        messages.RemoveAt(maxCount);
+                    }
+
+                    var filteredMessages = FilterExpired(messages);
+
+                    var nextPosition = filteredMessages[filteredMessages.Count - 1].Position + 1;
+
                     return new ReadAllPage(
                         fromPositionExclusive,
-                        fromPositionExclusive,
-                        true,
+                        nextPosition,
+                        isEnd,
                         ReadDirection.Forward,
                         readNext,
-                        Array.Empty<StreamMessage>());
+                        filteredMessages.ToArray(),
+                        txSnapshot);
                 }
-
-                var messages = new List<(StreamMessage message, int? maxAge)>();
-
-                while(await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
-                {
-                    if(messages.Count == maxCount)
-                    {
-                        messages.Add(default);
-                    }
-                    else
-                    {
-                        var streamIdInfo = new StreamIdInfo(reader.GetString(0));
-                        var (message, maxAge, _) =
-                            await ReadAllStreamMessage(reader, streamIdInfo.PostgresqlStreamId, prefetch);
-                        messages.Add((message, maxAge));
-                    }
-                }
-
-                bool isEnd = true;
-
-                if(messages.Count == maxCount + 1) // An extra row was read, we're not at the end
-                {
-                    isEnd = false;
-                    messages.RemoveAt(maxCount);
-                }
-
-                var filteredMessages = FilterExpired(messages);
-
-                var nextPosition = filteredMessages[filteredMessages.Count - 1].Position + 1;
-
-                return new ReadAllPage(
-                    fromPositionExclusive,
-                    nextPosition,
-                    isEnd,
-                    ReadDirection.Forward,
-                    readNext,
-                    filteredMessages.ToArray());
             }
         }
 

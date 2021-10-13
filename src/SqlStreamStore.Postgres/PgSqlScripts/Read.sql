@@ -42,6 +42,7 @@ BEGIN
   WHERE (CASE
            WHEN _forwards THEN __schema__.messages.stream_version >= _version AND id_internal = _stream_id_internal
            ELSE __schema__.messages.stream_version <= _version AND id_internal = _stream_id_internal END)
+         AND __schema__.messages.tx_id < txid_snapshot_xmin(txid_current_snapshot())
   ORDER BY (CASE
               WHEN _forwards THEN __schema__.messages.stream_version
               ELSE -__schema__.messages.stream_version END)

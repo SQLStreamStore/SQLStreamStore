@@ -396,8 +396,8 @@ namespace SqlStreamStore.Infrastructure
             ReadNextAllPage readNext,
             CancellationToken cancellationToken)
         {
-            Logger.Info("ReadAllForwards: gap detected in position, reloading after {DefaultReloadInterval}ms", DefaultReloadInterval);
-            await Task.Delay(DefaultReloadInterval, cancellationToken);
+            Logger.Info("ReadAllForwards: gap detected in position, reloading after {DefaultReloadInterval}ms, position: {fromPositionInclusive}", DefaultReloadInterval, fromPositionInclusive);
+            //await Task.Delay(DefaultReloadInterval, cancellationToken);
             var reloadedPage = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, prefetch, readNext, cancellationToken)
                 .ConfigureAwait(false);
             return await FilterExpired(reloadedPage, readNext, cancellationToken).ConfigureAwait(false);

@@ -64,7 +64,7 @@
             Direction = direction;
             _readNext = readNext;
             Messages = messages ?? new StreamMessage[0];
-            TxSnapshot = new TxSnapshot(txSnapshot);
+            TxSnapshot = txSnapshot == null ? null : new TxSnapshot(txSnapshot);
         }
 
         /// <inheritdoc />

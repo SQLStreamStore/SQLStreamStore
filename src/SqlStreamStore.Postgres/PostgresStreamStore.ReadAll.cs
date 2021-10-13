@@ -20,7 +20,8 @@
             int maxCount,
             bool prefetch,
             ReadNextAllPage readNext,
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken, 
+            long fromMaxPositionInclusive = -1)
         {
             maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;
 
@@ -35,7 +36,8 @@
                 Parameters.Count(maxCount + 1),
                 Parameters.Position(fromPositionExclusive),
                 Parameters.ReadDirection(ReadDirection.Forward),
-                Parameters.Prefetch(prefetch)))
+                Parameters.Prefetch(prefetch),
+                Parameters.Position(fromMaxPositionInclusive)))
                 using(var reader = await command
                     .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
                     .ConfigureAwait(false))

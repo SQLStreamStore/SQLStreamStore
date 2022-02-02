@@ -17,6 +17,7 @@
     using SqlStreamStore.HAL.StreamMessage;
     using SqlStreamStore.HAL.StreamMetadata;
     using SqlStreamStore.HAL.Streams;
+    using SqlStreamStore.Streams;
     using MidFunc = System.Func<
         Microsoft.AspNetCore.Http.HttpContext,
         System.Func<System.Threading.Tasks.Task>,
@@ -52,7 +53,7 @@
 
         public static IApplicationBuilder UseSqlStreamStoreHal(
             this IApplicationBuilder builder,
-            IStreamStore streamStore,
+            IStreamStore<ReadAllPage> streamStore,
             SqlStreamStoreMiddlewareOptions options = default)
         {
             if(builder == null)

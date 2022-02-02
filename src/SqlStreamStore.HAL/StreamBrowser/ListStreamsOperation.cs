@@ -48,7 +48,7 @@ namespace SqlStreamStore.HAL.StreamBrowser
                 : 100;
         }
 
-        public Task<ListStreamsPage> Invoke(IStreamStore streamStore, CancellationToken cancellationToken)
+        public Task<ListStreamsPage> Invoke(IStreamStore<ReadAllPage> streamStore, CancellationToken cancellationToken)
             => streamStore.ListStreams(Pattern, MaxCount, ContinuationToken, cancellationToken);
     }
 }

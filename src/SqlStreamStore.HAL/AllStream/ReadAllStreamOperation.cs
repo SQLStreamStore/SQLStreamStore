@@ -66,7 +66,7 @@ namespace SqlStreamStore.HAL.AllStream
         public bool IsUriCanonical { get; }
         public PathString Path { get; }
 
-        public Task<ReadAllPage> Invoke(IStreamStore streamStore, CancellationToken ct)
+        public Task<ReadAllPage> Invoke(IStreamStore<ReadAllPage> streamStore, CancellationToken ct)
             => ReadDirection == Constants.ReadDirection.Forwards
                 ? streamStore.ReadAllForwards(_fromPositionInclusive, _maxCount, EmbedPayload, ct)
                 : streamStore.ReadAllBackwards(_fromPositionInclusive, _maxCount, EmbedPayload, ct);

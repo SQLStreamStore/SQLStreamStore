@@ -9,12 +9,12 @@ namespace SqlStreamStore.HAL.Streams
 
     internal class StreamResource : IResource
     {
-        private readonly IStreamStore _streamStore;
+        private readonly IStreamStore<ReadAllPage> _streamStore;
         private readonly string _relativePathToRoot;
         private readonly bool _useCanonicalUrls;
         public SchemaSet Schema { get; }
 
-        public StreamResource(IStreamStore streamStore, bool useCanonicalUrls)
+        public StreamResource(IStreamStore<ReadAllPage> streamStore, bool useCanonicalUrls)
         {
             if(streamStore == null)
                 throw new ArgumentNullException(nameof(streamStore));

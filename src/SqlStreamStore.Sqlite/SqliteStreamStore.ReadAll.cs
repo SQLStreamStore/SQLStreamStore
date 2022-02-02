@@ -12,8 +12,9 @@ namespace SqlStreamStore
             long fromPositionExclusive,
             int maxCount,
             bool prefetch,
-            ReadNextAllPage readNext,
-            CancellationToken cancellationToken)
+            ReadNextAllPage<ReadAllPage> readNext,
+            CancellationToken cancellationToken,
+            long fromMaxPositionInclusive = -1)
         {
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
@@ -83,7 +84,7 @@ namespace SqlStreamStore
             long fromPosition,
             int maxCount,
             bool prefetch,
-            ReadNextAllPage readNext,
+            ReadNextAllPage<ReadAllPage> readNext,
             CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();

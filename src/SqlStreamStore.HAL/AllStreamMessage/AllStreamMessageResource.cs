@@ -8,11 +8,11 @@
 
     internal class AllStreamMessageResource : IResource
     {
-        private readonly IStreamStore _streamStore;
+        private readonly IStreamStore<ReadAllPage> _streamStore;
 
         public SchemaSet Schema { get; }
 
-        public AllStreamMessageResource(IStreamStore streamStore)
+        public AllStreamMessageResource(IStreamStore<ReadAllPage> streamStore)
         {
             if(streamStore == null)
                 throw new ArgumentNullException(nameof(streamStore));

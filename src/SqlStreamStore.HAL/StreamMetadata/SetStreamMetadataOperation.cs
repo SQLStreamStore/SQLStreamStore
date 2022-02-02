@@ -7,6 +7,7 @@ namespace SqlStreamStore.HAL.StreamMetadata
     using Microsoft.AspNetCore.Routing;
     using Newtonsoft.Json;
     using Newtonsoft.Json.Linq;
+    using SqlStreamStore.Streams;
 
     internal class SetStreamMetadataOperation : IStreamStoreOperation<Unit>
     {
@@ -41,7 +42,7 @@ namespace SqlStreamStore.HAL.StreamMetadata
         public int? MaxCount { get; }
         public int? MaxAge { get; }
 
-        public async Task<Unit> Invoke(IStreamStore streamStore, CancellationToken ct)
+        public async Task<Unit> Invoke(IStreamStore<ReadAllPage> streamStore, CancellationToken ct)
         {
             await streamStore.SetStreamMetadata(
                 StreamId,

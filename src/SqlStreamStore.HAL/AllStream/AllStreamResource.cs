@@ -9,12 +9,12 @@
 
     internal class AllStreamResource : IResource
     {
-        private readonly IStreamStore _streamStore;
+        private readonly IStreamStore<ReadAllPage> _streamStore;
         private readonly bool _useCanonicalUrls;
 
         public SchemaSet Schema { get; }
 
-        public AllStreamResource(IStreamStore streamStore, bool useCanonicalUrls)
+        public AllStreamResource(IStreamStore<ReadAllPage> streamStore, bool useCanonicalUrls)
         {
             if(streamStore == null)
                 throw new ArgumentNullException(nameof(streamStore));

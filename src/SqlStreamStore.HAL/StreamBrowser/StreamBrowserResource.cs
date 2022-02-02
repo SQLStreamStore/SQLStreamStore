@@ -5,14 +5,15 @@ namespace SqlStreamStore.HAL.StreamBrowser
     using System.Threading.Tasks;
     using Halcyon.HAL;
     using SqlStreamStore.HAL.StreamBrowser;
+    using SqlStreamStore.Streams;
 
     internal class StreamBrowserResource : IResource
     {
-        private readonly IStreamStore _streamStore;
+        private readonly IStreamStore<ReadAllPage> _streamStore;
 
         public SchemaSet Schema { get; }
 
-        public StreamBrowserResource(IStreamStore streamStore)
+        public StreamBrowserResource(IStreamStore<ReadAllPage> streamStore)
         {
             _streamStore = streamStore;
             Schema = new SchemaSet<StreamBrowserResource>();

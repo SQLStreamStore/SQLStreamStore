@@ -1,44 +1,55 @@
 ﻿namespace SqlStreamStore.Streams
 {
-    using System;
-    using System.Collections.Generic;
-    using System.Linq;
     using System.Threading;
     using System.Threading.Tasks;
+
+
+    public interface IReadAllPage
+    {
+        long FromPosition { get; }
+        long NextPosition { get; }
+        bool IsEnd { get; }
+        ReadDirection Direction { get; }
+        StreamMessage[] Messages { get; }
+    }
+
+    public class ReadAllPage : ReadAllPage<ReadAllPage>
+    {
+        public ReadAllPage(long fromPosition, long nextPosition, bool isEnd, ReadDirection direction, ReadNextAllPage<ReadAllPage> readNext, StreamMessage[] messages = null) : base(fromPosition, nextPosition, isEnd, direction, readNext, messages)
+        { }
+    }
 
     /// <summary>
     ///     Represents the result of a read of all streams.
     /// </summary>
-    public sealed class ReadAllPage
+    public abstract class ReadAllPage<TReadAllPage> : IReadAllPage where TReadAllPage : IReadAllPage
     {
-        private readonly ReadNextAllPage _readNext;
+        private readonly ReadNextAllPage<TReadAllPage> _readNext;
 
         /// <summary>
         ///     A long representing the position where this page was read from.
         /// </summary>
-        public readonly long FromPosition;
+        public long FromPosition { get; }
 
         /// <summary>
         ///     A long representing the position where the next page should be read from.
         /// </summary>
-        public readonly long NextPosition;
+        public long NextPosition { get; }
    
         /// <summary>
         ///     True if page reach end of the all stream at time of reading. Otherwise false.
         /// </summary>
-        public readonly bool IsEnd;
+        public bool IsEnd { get; }
 
         /// <summary>
         ///     The direction of the the read request.
         /// </summary>
-        public readonly ReadDirection Direction;
+        public ReadDirection Direction { get; }
 
         /// <summary>
         ///     The collection of <see cref="StreamMessage"/>s returned as part of the read.
         /// </summary>
-        public readonly StreamMessage[] Messages;
-
-        public readonly TxSnapshot TxSnapshot;
+        public StreamMessage[] Messages { get; }
 
         /// <summary>
         ///     Initializes a new instance of <see cref="ReadAllPage"/>
@@ -49,14 +60,13 @@
         /// <param name="direction">The direction of the the read request.</param>
         /// <param name="readNext">An operation to read the next page of messages.</param>
         /// <param name="messages">The collection messages read.</param>
-        public ReadAllPage(
+        protected ReadAllPage(
             long fromPosition,
             long nextPosition,
             bool isEnd,
             ReadDirection direction,
-            ReadNextAllPage readNext,
-            StreamMessage[] messages = null,
-            string txSnapshot = null)
+            ReadNextAllPage<TReadAllPage> readNext,
+            StreamMessage[] messages = null)
         {
             FromPosition = fromPosition;
             NextPosition = nextPosition;
@@ -64,7 +74,6 @@
             Direction = direction;
             _readNext = readNext;
             Messages = messages ?? new StreamMessage[0];
-            TxSnapshot = txSnapshot == null ? null : new TxSnapshot(txSnapshot);
         }
 
         /// <inheritdoc />
@@ -79,28 +88,9 @@
         /// </summary>
         /// <param name="cancellationToken">A token to cancel the operations.</param>
         /// <returns>A task the represents the asyncronous operation.</returns>
-        public Task<ReadAllPage> ReadNext(CancellationToken cancellationToken = default)
+        public Task<TReadAllPage> ReadNext(CancellationToken cancellationToken = default)
         {
             return _readNext(NextPosition, cancellationToken);
-        }
-    }
-
-    public class TxSnapshot
-    {
-        private readonly long MinTx;
-        private readonly long MaxTx;
-
-        public readonly List<long> CurrentTxIds = new List<long>();
-        public TxSnapshot(string txSnapshot)
-        {
-            var splitted = txSnapshot.Split(':');
-            MinTx = Convert.ToInt64(splitted[0]);
-            MaxTx = Convert.ToInt64(splitted[1]);
-
-            if(splitted.Length > 2 && !string.IsNullOrWhiteSpace(splitted[2]))
-            {
-                CurrentTxIds = splitted[2].Split(',').Select(x => Convert.ToInt64(x)).ToList();
-            }
         }
     }
 }

@@ -9,6 +9,7 @@
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Logging;
     using SqlStreamStore.MySqlScripts;
+    using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
     using StreamStoreStore.Json;
 
@@ -16,7 +17,7 @@
     /// <summary>
     ///     Represents a MySql stream store implementation.
     /// </summary>
-    public partial class MySqlStreamStore : StreamStoreBase
+    public partial class MySqlStreamStore : StreamStoreBase<ReadAllPage>
     {
         private readonly MySqlStreamStoreSettings _settings;
         private readonly Func<MySqlConnection> _createConnection;

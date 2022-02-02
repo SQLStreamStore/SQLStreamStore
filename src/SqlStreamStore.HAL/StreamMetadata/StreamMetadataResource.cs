@@ -5,13 +5,14 @@ namespace SqlStreamStore.HAL.StreamMetadata
     using System.Threading.Tasks;
     using Halcyon.HAL;
     using Newtonsoft.Json.Linq;
+    using SqlStreamStore.Streams;
 
     internal class StreamMetadataResource : IResource
     {
-        private readonly IStreamStore _streamStore;
+        private readonly IStreamStore<ReadAllPage> _streamStore;
         public SchemaSet Schema { get; }
 
-        public StreamMetadataResource(IStreamStore streamStore)
+        public StreamMetadataResource(IStreamStore<ReadAllPage> streamStore)
         {
             if(streamStore == null)
                 throw new ArgumentNullException(nameof(streamStore));

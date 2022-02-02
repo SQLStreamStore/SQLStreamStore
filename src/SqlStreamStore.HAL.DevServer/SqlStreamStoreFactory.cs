@@ -30,7 +30,7 @@ namespace SqlStreamStore.HAL.DevServer
                 [mssql] = CreateMssqlStreamStore
             };
 
-        public static Task<IStreamStore> Create(CancellationToken cancellationToken = default)
+        public static Task<IStreamStore<ReadAllPage>> Create(CancellationToken cancellationToken = default)
         {
             var provider = Environment.GetEnvironmentVariable(SQLSTREAMSTORE_PROVIDER)?.ToLowerInvariant()
                            ?? inmemory;

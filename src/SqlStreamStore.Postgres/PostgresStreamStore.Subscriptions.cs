@@ -2,6 +2,7 @@
 {
     using System;
     using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
 
     public partial class PostgresStreamStore
@@ -32,7 +33,7 @@
             HasCaughtUp hasCaughtUp,
             bool prefetchJsonData,
             string name)
-            => new AllStreamSubscription(
+            => new AllStreamSubscription<PostgresReadAllPage>(
                 fromPosition,
                 this,
                 GetStoreObservable,

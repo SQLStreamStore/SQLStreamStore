@@ -12,7 +12,7 @@ namespace SqlStreamStore.Infrastructure
     ///     Represents a base implementation of a stream store. It's primary purpose is to handle 
     ///     common needs across all derived implementations such as guard clauses and logging.
     /// </summary>
-    public abstract class StreamStoreBase : ReadonlyStreamStoreBase, IStreamStore
+    public abstract class StreamStoreBase<TReadAllPage> : ReadonlyStreamStoreBase<TReadAllPage>, IStreamStore where TReadAllPage : IReadAllPage
     {
         private readonly TaskQueue _taskQueue = new TaskQueue();
 

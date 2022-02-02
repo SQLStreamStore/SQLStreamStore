@@ -121,4 +121,9 @@
             string metadataJson = null,
             CancellationToken cancellationToken = default);
     }
+
+    // TODO
+    public interface IStreamStore<TReadPage> : IStreamStore, IReadonlyStreamStore<TReadPage> where TReadPage : IReadAllPage
+    {
+    }
 }

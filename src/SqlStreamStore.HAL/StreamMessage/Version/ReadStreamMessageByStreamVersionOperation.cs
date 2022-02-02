@@ -23,7 +23,7 @@ namespace SqlStreamStore.HAL.StreamMessage.Version
         public int StreamVersion { get; }
         public string StreamId { get; }
 
-        public async Task<StreamMessage> Invoke(IStreamStore streamStore, CancellationToken ct)
+        public async Task<StreamMessage> Invoke(IStreamStore<ReadAllPage> streamStore, CancellationToken ct)
             => (await streamStore.ReadStreamBackwards(StreamId, StreamVersion, 1, true, ct))
                 .Messages.FirstOrDefault(message => StreamVersion == SqlStreamStore.Streams.StreamVersion.End
                                                     || message.StreamVersion == StreamVersion);

@@ -10,10 +10,10 @@ namespace SqlStreamStore.HAL.StreamMessage
 
     internal class StreamMessageResource : IResource
     {
-        private readonly IStreamStore _streamStore;
+        private readonly IStreamStore<ReadAllPage> _streamStore;
         public SchemaSet Schema { get; }
 
-        public StreamMessageResource(IStreamStore streamStore)
+        public StreamMessageResource(IStreamStore<ReadAllPage> streamStore)
         {
             if(streamStore == null)
                 throw new ArgumentNullException(nameof(streamStore));

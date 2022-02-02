@@ -29,11 +29,11 @@
         ///     An <see cref="ReadAllPage"/> presenting the result of the read. If all messages read have expired
         ///     then the message collection MAY be empty.
         /// </returns>
-        public static Task<ReadAllPage> ReadAllForwards(
-            this IReadonlyStreamStore readonlyStreamStore,
+        public static Task<TReadAllPage> ReadAllForwards<TReadAllPage>(
+            this IReadonlyStreamStore<TReadAllPage> readonlyStreamStore,
             long fromPositionInclusive,
             int maxCount,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default) where TReadAllPage : IReadAllPage
         {
             return readonlyStreamStore.ReadAllForwards(
                 fromPositionInclusive,
@@ -61,11 +61,11 @@
         ///     An <see cref="ReadAllPage"/> presenting the result of the read. If all messages read have expired
         ///     then the message collection MAY be empty.
         /// </returns>
-        public static Task<ReadAllPage> ReadAllBackwards(
-            this IReadonlyStreamStore readonlyStreamStore,
+        public static Task<TReadAllPage> ReadAllBackwards<TReadAllPage>(
+            this IReadonlyStreamStore<TReadAllPage> readonlyStreamStore,
             long fromPositionInclusive,
             int maxCount,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default) where TReadAllPage : ReadAllPage, new()
         {
             return readonlyStreamStore.ReadAllBackwards(
                 fromPositionInclusive,
@@ -96,12 +96,12 @@
         ///     An <see cref="ReadStreamPage"/> represent the result of the operation. If all the messages read
         ///     have expired then the message collection MAY be empty.
         /// </returns>
-        public static Task<ReadStreamPage> ReadStreamForwards(
-            this IReadonlyStreamStore readonlyStreamStore,
+        public static Task<ReadStreamPage> ReadStreamForwards<TReadAllPage>(
+            this IReadonlyStreamStore<TReadAllPage> readonlyStreamStore,
             string streamId,
             int fromVersionInclusive,
             int maxCount,
-            CancellationToken cancellationToken = default)
+            CancellationToken cancellationToken = default) where TReadAllPage : ReadAllPage, new()
         {
             return readonlyStreamStore.ReadStreamForwards(
                 streamId,

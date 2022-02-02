@@ -15,8 +15,9 @@ namespace SqlStreamStore
             long fromPosition,
             int maxCount,
             bool prefetch,
-            ReadNextAllPage readNext,
-            CancellationToken cancellationToken)
+            ReadNextAllPage<ReadAllPage> readNext,
+            CancellationToken cancellationToken,
+            long fromMaxPositionInclusive = -1)
         {
             maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;
             long position = fromPosition;
@@ -113,7 +114,7 @@ namespace SqlStreamStore
             long fromPositionExclusive,
             int maxCount,
             bool prefetch,
-            ReadNextAllPage readNext,
+            ReadNextAllPage<ReadAllPage> readNext,
             CancellationToken cancellationToken)
         {
             maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;

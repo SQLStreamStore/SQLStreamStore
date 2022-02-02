@@ -2,6 +2,7 @@ namespace SqlStreamStore
 {
     using System;
     using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
 
     partial class MySqlStreamStore
@@ -31,7 +32,7 @@ namespace SqlStreamStore
             HasCaughtUp hasCaughtUp,
             bool prefetchJsonData,
             string name)
-            => new AllStreamSubscription(
+            => new AllStreamSubscription<ReadAllPage>(
                 fromPosition,
                 this,
                 GetStoreObservable,

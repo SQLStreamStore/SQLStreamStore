@@ -17,7 +17,7 @@
     ///     Represents a Microsoft SQL Server stream store implementation.
     /// </summary>
     [Obsolete("Use MsSqlStreamStoreV3 instead. Note: this will require a schema and data migration.", false)]
-    public sealed partial class MsSqlStreamStore : StreamStoreBase
+    public sealed partial class MsSqlStreamStore : StreamStoreBase<ReadAllPage>
     {
         private readonly Func<SqlConnection> _createConnection;
         private readonly Lazy<IStreamStoreNotifier> _streamStoreNotifier;

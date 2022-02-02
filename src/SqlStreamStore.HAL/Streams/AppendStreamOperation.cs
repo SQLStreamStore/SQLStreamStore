@@ -86,7 +86,7 @@ namespace SqlStreamStore.HAL.Streams
         public NewStreamMessageDto[] NewStreamMessages { get; }
         public PathString Path { get; }
 
-        public Task<AppendResult> Invoke(IStreamStore streamStore, CancellationToken ct)
+        public Task<AppendResult> Invoke(IStreamStore<ReadAllPage> streamStore, CancellationToken ct)
             => streamStore.AppendToStream(
                 StreamId,
                 ExpectedVersion,

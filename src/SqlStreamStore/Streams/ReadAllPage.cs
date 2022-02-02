@@ -1,9 +1,5 @@
 ﻿namespace SqlStreamStore.Streams
 {
-    using System.Threading;
-    using System.Threading.Tasks;
-
-
     public interface IReadAllPage
     {
         long FromPosition { get; }
@@ -15,7 +11,7 @@
 
     public class ReadAllPage : ReadAllPage<ReadAllPage>
     {
-        public ReadAllPage(long fromPosition, long nextPosition, bool isEnd, ReadDirection direction, ReadNextAllPage<ReadAllPage> readNext, StreamMessage[] messages = null) : base(fromPosition, nextPosition, isEnd, direction, readNext, messages)
+        public ReadAllPage(long fromPosition, long nextPosition, bool isEnd, ReadDirection direction, StreamMessage[] messages = null) : base(fromPosition, nextPosition, isEnd, direction, messages)
         { }
     }
 
@@ -24,7 +20,7 @@
     /// </summary>
     public abstract class ReadAllPage<TReadAllPage> : IReadAllPage where TReadAllPage : IReadAllPage
     {
-        private readonly ReadNextAllPage<TReadAllPage> _readNext;
+        //private readonly ReadNextAllPage<TReadAllPage> _readNext;
 
         /// <summary>
         ///     A long representing the position where this page was read from.
@@ -58,21 +54,18 @@
         /// <param name="nextPosition">A long representing the position where the next page should be read from.</param>
         /// <param name="isEnd">True if page reach end of the all stream at time of reading. Otherwise false.</param>
         /// <param name="direction">The direction of the the read request.</param>
-        /// <param name="readNext">An operation to read the next page of messages.</param>
         /// <param name="messages">The collection messages read.</param>
         protected ReadAllPage(
             long fromPosition,
             long nextPosition,
             bool isEnd,
             ReadDirection direction,
-            ReadNextAllPage<TReadAllPage> readNext,
             StreamMessage[] messages = null)
         {
             FromPosition = fromPosition;
             NextPosition = nextPosition;
             IsEnd = isEnd;
             Direction = direction;
-            _readNext = readNext;
             Messages = messages ?? new StreamMessage[0];
         }
 
@@ -83,14 +76,14 @@
                    $"IsEnd: {IsEnd}, Direction: {Direction}, SteamEventCount: {Messages.Length}";
         }
 
-        /// <summary>
-        ///     Reads the next page.
-        /// </summary>
-        /// <param name="cancellationToken">A token to cancel the operations.</param>
-        /// <returns>A task the represents the asyncronous operation.</returns>
-        public Task<TReadAllPage> ReadNext(CancellationToken cancellationToken = default)
-        {
-            return _readNext(NextPosition, cancellationToken);
-        }
+        ///// <summary>
+        /////     Reads the next page.
+        ///// </summary>
+        ///// <param name="cancellationToken">A token to cancel the operations.</param>
+        ///// <returns>A task the represents the asyncronous operation.</returns>
+        //public Task<TReadAllPage> ReadNext(CancellationToken cancellationToken = default)
+        //{
+        //    return _readNext(NextPosition, cancellationToken);
+        //}
     }
 }

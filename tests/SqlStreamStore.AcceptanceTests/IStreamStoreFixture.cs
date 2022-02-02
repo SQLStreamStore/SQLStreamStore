@@ -5,7 +5,7 @@ namespace SqlStreamStore
 
     public interface IStreamStoreFixture: IDisposable
     {
-        IStreamStore Store { get; }
+        IStreamStore<PostgresReadAllPage> Store { get; }
 
         GetUtcNow GetUtcNow { get; set; }
 

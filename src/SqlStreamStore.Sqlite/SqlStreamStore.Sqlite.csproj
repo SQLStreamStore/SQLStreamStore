@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Description>Sqlite provider for SQL Stream Store</Description>
     <AssemblyTitle>SQL Stream Store - Sqlite Provider</AssemblyTitle>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>SqlStreamStore.Sqlite</AssemblyName>
     <PackageId>SqlStreamStore.Sqlite</PackageId>

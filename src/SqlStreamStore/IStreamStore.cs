@@ -123,7 +123,7 @@
     }
 
     // TODO
-    public interface IStreamStore<TReadPage> : IStreamStore, IReadonlyStreamStore<TReadPage> where TReadPage : IReadAllPage
+    public interface IStreamStore<out TReadPage> : IStreamStore, IReadonlyStreamStore<TReadPage> where TReadPage : IReadAllPage
     {
     }
 }

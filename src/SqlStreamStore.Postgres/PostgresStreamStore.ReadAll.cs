@@ -22,9 +22,8 @@
             long nextPosition,
             bool isEnd,
             ReadDirection direction,
-            ReadNextAllPage<PostgresReadAllPage> readNext,
             StreamMessage[] messages = null,
-            string transactionSnapshot = null) : base(fromPosition, nextPosition, isEnd, direction, readNext, messages)
+            string transactionSnapshot = null) : base(fromPosition, nextPosition, isEnd, direction, messages)
         {
             TransactionIds = ParseTransactionSnapshot(transactionSnapshot);
         }
@@ -51,7 +50,6 @@
             long fromPositionExclusive,
             int maxCount,
             bool prefetch,
-            ReadNextAllPage<PostgresReadAllPage> readNext,
             CancellationToken cancellationToken,
             long fromMaxPositionInclusive = -1)
         {
@@ -93,7 +91,6 @@
                             fromPositionExclusive,
                             true,
                             ReadDirection.Forward,
-                            readNext,
                             Array.Empty<StreamMessage>());
                     }
 
@@ -138,7 +135,6 @@
                         nextPosition,
                         isEnd,
                         ReadDirection.Forward,
-                        readNext,
                         filteredMessages.ToArray(),
                         transactionSnapshot);
                 }
@@ -149,7 +145,6 @@
             long fromPositionExclusive,
             int maxCount,
             bool prefetch,
-            ReadNextAllPage<PostgresReadAllPage> readNext,
             CancellationToken cancellationToken)
         {
             maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;
@@ -195,7 +190,6 @@
                             Position.Start,
                             true,
                             ReadDirection.Backward,
-                            readNext,
                             Array.Empty<StreamMessage>());
                     }
 
@@ -229,7 +223,6 @@
                         nextPosition,
                         isEnd,
                         ReadDirection.Backward,
-                        readNext,
                         filteredMessages.ToArray());
                 }
             }

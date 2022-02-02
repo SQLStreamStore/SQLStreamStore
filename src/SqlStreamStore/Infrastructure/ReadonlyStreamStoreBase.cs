@@ -4,6 +4,7 @@ namespace SqlStreamStore.Infrastructure
     using System.Collections.Generic;
     using System.Threading;
     using System.Threading.Tasks;
+    using MorseCode.ITask;
     using SqlStreamStore.Logging;
     using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
@@ -42,7 +43,7 @@ namespace SqlStreamStore.Infrastructure
             _disableMetadataCache = true;
         }
 
-        public async Task<TReadAllPage> ReadAllForwards(
+        public async ITask<TReadAllPage> ReadAllForwards(
             long fromPositionInclusive,
             int maxCount,
             bool prefetchJsonData,
@@ -57,14 +58,14 @@ namespace SqlStreamStore.Infrastructure
             Logger.DebugFormat("ReadAllForwards from position {fromPositionInclusive} with max count " +
                                    "{maxCount}.", fromPositionInclusive, maxCount);
 
-            Task<TReadAllPage> ReadNext(long nextPosition, CancellationToken ct) => ReadAllForwards(nextPosition, maxCount, prefetchJsonData, ct);
+            //Task<TReadAllPage> ReadNext(long nextPosition, CancellationToken ct) => ReadAllForwards(nextPosition, maxCount, prefetchJsonData, ct);
 
-            var page = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken)
+            var page = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, prefetchJsonData, cancellationToken)
                 .ConfigureAwait(false);
 
-            var pageHandled = await HandleGap(page, fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken);
+            var pageHandled = await HandleGap(page, fromPositionInclusive, maxCount, prefetchJsonData, cancellationToken);
 
-            return await FilterExpired(pageHandled, ReadNext, cancellationToken).ConfigureAwait(false);
+            return await FilterExpired(pageHandled, cancellationToken).ConfigureAwait(false);
 
             //// https://github.com/damianh/SqlStreamStore/issues/31
             //// Under heavy parallel load, gaps may appear in the position sequence due to sequence
@@ -173,7 +174,7 @@ namespace SqlStreamStore.Infrastructure
         //    return page;
         //}
 
-        protected virtual async Task<TReadAllPage> HandleGap(TReadAllPage page, long fromPositionInclusive, int maxCount, bool prefetchJsonData, ReadNextAllPage<TReadAllPage> readNext, CancellationToken cancellationToken)
+        protected virtual async Task<TReadAllPage> HandleGap(TReadAllPage page, long fromPositionInclusive, int maxCount, bool prefetchJsonData, CancellationToken cancellationToken)
         {
             // https://github.com/damianh/SqlStreamStore/issues/31
             // Under heavy parallel load, gaps may appear in the position sequence due to sequence
@@ -188,7 +189,7 @@ namespace SqlStreamStore.Infrastructure
             // Check for gap between last page and this.
             if (page.Messages[0].Position != fromPositionInclusive)
             {
-                return await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, readNext, cancellationToken);
+                return await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, cancellationToken);
             }
 
             // check for gap in messages collection
@@ -196,14 +197,14 @@ namespace SqlStreamStore.Infrastructure
             {
                 if(page.Messages[i].Position + 1 != page.Messages[i + 1].Position)
                 {
-                    return await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, readNext, cancellationToken);
+                    return await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, cancellationToken);
                 }
             }
 
             return page;
         }
 
-        public async Task<TReadAllPage> ReadAllBackwards(
+        public async ITask<TReadAllPage> ReadAllBackwards(
             long fromPositionInclusive,
             int maxCount,
             bool prefetchJsonData,
@@ -220,9 +221,9 @@ namespace SqlStreamStore.Infrastructure
                 fromPositionInclusive,
                 maxCount);
 
-            ReadNextAllPage<TReadAllPage> readNext = (nextPosition, ct) => ReadAllBackwards(nextPosition, maxCount, prefetchJsonData, ct);
-            var page = await ReadAllBackwardsInternal(fromPositionInclusive, maxCount, prefetchJsonData, readNext, cancellationToken);
-            return await FilterExpired(page, readNext, cancellationToken);
+            //ReadNextAllPage<TReadAllPage> readNext = (nextPosition, ct) => ReadAllBackwards(nextPosition, maxCount, prefetchJsonData, ct);
+            var page = await ReadAllBackwardsInternal(fromPositionInclusive, maxCount, prefetchJsonData, cancellationToken);
+            return await FilterExpired(page, cancellationToken);
         }
 
         public async Task<ReadStreamPage> ReadStreamForwards(
@@ -402,7 +403,6 @@ namespace SqlStreamStore.Infrastructure
             long fromPositionExclusive,
             int maxCount,
             bool prefetch,
-            ReadNextAllPage<TReadAllPage> readNext,
             CancellationToken cancellationToken,
             long fromMaxPositionInclusive = -1);
 
@@ -410,7 +410,6 @@ namespace SqlStreamStore.Infrastructure
             long fromPositionExclusive,
             int maxCount,
             bool prefetch,
-            ReadNextAllPage<TReadAllPage> readNext,
             CancellationToken cancellationToken);
 
         protected abstract Task<ReadStreamPage> ReadStreamForwardsInternal(
@@ -477,14 +476,13 @@ namespace SqlStreamStore.Infrastructure
             long fromPositionInclusive,
             int maxCount,
             bool prefetch,
-            ReadNextAllPage<TReadAllPage> readNext,
             CancellationToken cancellationToken)
         {
             Logger.Info("ReadAllForwards: gap detected in position, reloading after {DefaultReloadInterval}ms, position: {fromPositionInclusive}", DefaultReloadInterval, fromPositionInclusive);
             //await Task.Delay(DefaultReloadInterval, cancellationToken);
-            var reloadedPage = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, prefetch, readNext, cancellationToken)
+            var reloadedPage = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, prefetch, cancellationToken)
                 .ConfigureAwait(false);
-            return await FilterExpired(reloadedPage, readNext, cancellationToken).ConfigureAwait(false);
+            return await FilterExpired(reloadedPage, cancellationToken).ConfigureAwait(false);
         }
 
         private async Task<ReadStreamPage> FilterExpired(
@@ -531,7 +529,6 @@ namespace SqlStreamStore.Infrastructure
         }
 
         private async Task<TReadAllPage> FilterExpired(TReadAllPage readAllPage,
-           ReadNextAllPage<TReadAllPage> readNext,
            CancellationToken cancellationToken)
         {
             return readAllPage;

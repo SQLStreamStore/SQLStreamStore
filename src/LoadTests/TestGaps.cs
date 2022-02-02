@@ -65,7 +65,7 @@
             }
         }
 
-        private static async Task WriteActualGaps(CancellationToken ct, IStreamStore streamStore)
+        private static async Task WriteActualGaps(CancellationToken ct, IStreamStore<IReadAllPage> streamStore)
         {
             var stopwatch = Stopwatch.StartNew();
             var count = 0;
@@ -83,7 +83,7 @@
             }
             while(!page.IsEnd)
             {
-                page = await page.ReadNext(ct);
+                page = await streamStore.ReadAllForwards(page.NextPosition, 73, false, ct);
                 count += page.Messages.Length;
                 for(int i = 0; i < page.Messages.Length; i++)
                 {
@@ -101,7 +101,7 @@
         }
 
 
-        private static async Task RunRead(CancellationToken ct, IStreamStore streamStore, int readPageSize)
+        private static async Task RunRead(CancellationToken ct, IStreamStore<IReadAllPage> streamStore, int readPageSize)
         {
             int count = 0;
             var stopwatch = Stopwatch.StartNew();

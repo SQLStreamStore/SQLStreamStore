@@ -5,14 +5,16 @@
     using System.Threading.Tasks;
     using EasyConsole;
     using SqlStreamStore;
+    using SqlStreamStore.Streams;
+
 
     public abstract class LoadTest
     {
         public abstract Task Run(CancellationToken cancellationToken);
 
-        protected async Task<(IStreamStore, Action)> GetStore(CancellationToken cancellationToken)
+        protected async Task<(IStreamStore<IReadAllPage>, Action)> GetStore(CancellationToken cancellationToken)
         {
-            IStreamStore streamStore = null;
+            IStreamStore<IReadAllPage> streamStore = null;
             IDisposable disposable = null;
 
             Output.WriteLine(ConsoleColor.Yellow, "Store type:");

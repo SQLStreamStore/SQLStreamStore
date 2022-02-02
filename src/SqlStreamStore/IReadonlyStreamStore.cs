@@ -3,6 +3,7 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using MorseCode.ITask;
     using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
 
@@ -251,7 +252,7 @@
     /// <summary>
     ///     Represents a readonly stream store.
     /// </summary>
-    public interface IReadonlyStreamStore<TReadAllPage> : IReadonlyStreamStore where TReadAllPage : IReadAllPage
+    public interface IReadonlyStreamStore<out TReadAllPage> : IReadonlyStreamStore where TReadAllPage : IReadAllPage
     {
         /// <summary>
         ///     Reads messages from all streams forwards.
@@ -274,7 +275,7 @@
         ///     An <see cref="ReadAllPage"/> presenting the result of the read. If all messages read have expired
         ///     then the message collection MAY be empty.
         /// </returns>
-        Task<TReadAllPage> ReadAllForwards(
+        ITask<TReadAllPage> ReadAllForwards(
             long fromPositionInclusive,
             int maxCount,
             bool prefetchJsonData = true,
@@ -301,7 +302,7 @@
         ///     An <see cref="ReadAllPage"/> presenting the result of the read. If all messages read have expired
         ///     then the message collection MAY be empty.
         /// </returns>
-        Task<TReadAllPage> ReadAllBackwards(
+        ITask<TReadAllPage> ReadAllBackwards(
             long fromPositionInclusive,
             int maxCount,
             bool prefetchJsonData = true,

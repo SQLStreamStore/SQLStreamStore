@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Description>Http (HAL) provider for SQL Stream Store</Description>
     <AssemblyTitle>SQL Stream Store - Http (HAL) Provider</AssemblyTitle>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
+    <TargetFrameworks>net5.0</TargetFrameworks>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>SqlStreamStore.Http</AssemblyName>
     <PackageId>SqlStreamStore.Http</PackageId>

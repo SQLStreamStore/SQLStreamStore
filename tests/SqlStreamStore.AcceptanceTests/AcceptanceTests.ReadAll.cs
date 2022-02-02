@@ -31,7 +31,7 @@
             int count = 0;
             while(!page.IsEnd && count <20) //should not take more than 20 iterations.
             {
-                page = await page.ReadNext();
+                page = await Store.ReadAllForwards(page.NextPosition, 500);
                 messages.AddRange(page.Messages);
                 count++;
             }

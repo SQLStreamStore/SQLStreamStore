@@ -41,7 +41,7 @@ namespace SqlStreamStore
 
         public string DatabaseName { get; }
 
-        public IStreamStore Store => PostgresStreamStore;
+        public IStreamStore<PostgresReadAllPage> Store => PostgresStreamStore;
 
         public PostgresStreamStore PostgresStreamStore { get; private set; }
 

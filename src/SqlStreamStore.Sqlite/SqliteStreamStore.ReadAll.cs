@@ -12,7 +12,6 @@ namespace SqlStreamStore
             long fromPositionExclusive,
             int maxCount,
             bool prefetch,
-            ReadNextAllPage<ReadAllPage> readNext,
             CancellationToken cancellationToken,
             long fromMaxPositionInclusive = -1)
         {
@@ -30,8 +29,7 @@ namespace SqlStreamStore
                         Position.Start, 
                         Position.Start, 
                         true, 
-                        ReadDirection.Forward, 
-                        readNext);
+                        ReadDirection.Forward);
                 }
 
                 if(allStreamPosition < fromPositionExclusive)
@@ -40,8 +38,7 @@ namespace SqlStreamStore
                         fromPositionExclusive, 
                         fromPositionExclusive, 
                         true, 
-                        ReadDirection.Forward, 
-                        readNext);
+                        ReadDirection.Forward);
                 }
 
                 var remaining = await connection.AllStream()
@@ -53,8 +50,7 @@ namespace SqlStreamStore
                         fromPositionExclusive,
                         Position.End,
                         true,
-                        ReadDirection.Forward,
-                        readNext);
+                        ReadDirection.Forward);
                 }
 
                 var messages = await connection.AllStream()
@@ -75,7 +71,6 @@ namespace SqlStreamStore
                     nextPosition,
                     isEnd,
                     ReadDirection.Forward,
-                    readNext,
                     messages.ToArray());
             }
         }
@@ -84,7 +79,6 @@ namespace SqlStreamStore
             long fromPosition,
             int maxCount,
             bool prefetch,
-            ReadNextAllPage<ReadAllPage> readNext,
             CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
@@ -101,8 +95,7 @@ namespace SqlStreamStore
                         Position.Start,
                         Position.Start,
                         true,
-                        ReadDirection.Backward,
-                        readNext);
+                        ReadDirection.Backward);
                 }
 
                 if(fromPosition == Position.End)
@@ -116,8 +109,7 @@ namespace SqlStreamStore
                         fromPosition, 
                         fromPosition, 
                         true, 
-                        ReadDirection.Backward, 
-                        readNext);
+                        ReadDirection.Backward);
                 }
                 
                 // For reading $all, in the case where no events have been entered into
@@ -135,8 +127,7 @@ namespace SqlStreamStore
                         allStreamPosition ?? Position.Start,
                         Position.End,
                         true,
-                        ReadDirection.Backward,
-                        readNext);
+                        ReadDirection.Backward);
                 }
 
                 var messages = await connection.AllStream()
@@ -155,7 +146,6 @@ namespace SqlStreamStore
                     nextPosition,
                     isEnd,
                     ReadDirection.Backward,
-                    readNext,
                     messages.ToArray());
             }
         }

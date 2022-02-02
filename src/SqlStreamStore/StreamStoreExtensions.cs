@@ -2,6 +2,7 @@
 {
     using System.Threading;
     using System.Threading.Tasks;
+    using MorseCode.ITask;
     using SqlStreamStore.Streams;
 
     /// <summary>
@@ -29,7 +30,7 @@
         ///     An <see cref="ReadAllPage"/> presenting the result of the read. If all messages read have expired
         ///     then the message collection MAY be empty.
         /// </returns>
-        public static Task<TReadAllPage> ReadAllForwards<TReadAllPage>(
+        public static ITask<TReadAllPage> ReadAllForwards<TReadAllPage>(
             this IReadonlyStreamStore<TReadAllPage> readonlyStreamStore,
             long fromPositionInclusive,
             int maxCount,
@@ -61,7 +62,7 @@
         ///     An <see cref="ReadAllPage"/> presenting the result of the read. If all messages read have expired
         ///     then the message collection MAY be empty.
         /// </returns>
-        public static Task<TReadAllPage> ReadAllBackwards<TReadAllPage>(
+        public static ITask<TReadAllPage> ReadAllBackwards<TReadAllPage>(
             this IReadonlyStreamStore<TReadAllPage> readonlyStreamStore,
             long fromPositionInclusive,
             int maxCount,
@@ -101,7 +102,7 @@
             string streamId,
             int fromVersionInclusive,
             int maxCount,
-            CancellationToken cancellationToken = default) where TReadAllPage : ReadAllPage, new()
+            CancellationToken cancellationToken = default) where TReadAllPage : IReadAllPage
         {
             return readonlyStreamStore.ReadStreamForwards(
                 streamId,

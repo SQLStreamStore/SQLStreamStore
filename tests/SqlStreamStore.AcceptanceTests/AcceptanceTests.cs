@@ -27,7 +27,7 @@
             Fixture = await CreateFixture();
         }
 
-        private IStreamStore Store => Fixture.Store;
+        private IStreamStore<PostgresReadAllPage> Store => Fixture.Store;
 
         protected IStreamStoreFixture Fixture { get; private set; }
 

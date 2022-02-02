@@ -2,7 +2,7 @@
   <PropertyGroup>
     <Description>A library for writing and reading streams (also known as an 'event store') with a focus on SQL based implementations. This contains the core interfaces, abstractions and an in-memory implementation for tests.</Description>
     <AssemblyTitle>SQL Stream Store</AssemblyTitle>
-    <TargetFramework>netstandard2.0</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <DefineConstants>$(DefineConstants);LIBLOG_PUBLIC</DefineConstants>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>SqlStreamStore</AssemblyName>
@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="MorseCode.ITask" Version="2.0.0" />
     <PackageReference Include="LibLog" Version="5.0.8">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>

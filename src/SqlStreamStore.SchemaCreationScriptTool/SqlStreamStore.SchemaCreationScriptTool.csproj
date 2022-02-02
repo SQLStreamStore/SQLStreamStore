@@ -4,7 +4,7 @@
     <Description>A tool to generate the schema creation script of the various SQL based implementations.</Description>
     <AssemblyTitle>SQL Stream Store - Schema Creation Script Tool</AssemblyTitle>
     <OutputType>Exe</OutputType>
-    <TargetFramework>netcoreapp2.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <AssemblyName>SqlStreamStore.SchemaCreationScriptTool</AssemblyName>
     <PackageId>SqlStreamStore.SchemaCreationScriptTool</PackageId>

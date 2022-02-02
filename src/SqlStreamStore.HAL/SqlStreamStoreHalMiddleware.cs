@@ -54,7 +54,7 @@
         public static IApplicationBuilder UseSqlStreamStoreHal(
             this IApplicationBuilder builder,
             IStreamStore<ReadAllPage> streamStore,
-            SqlStreamStoreMiddlewareOptions options = default)
+            SqlStreamStoreMiddlewareOptions options = default) 
         {
             if(builder == null)
                 throw new ArgumentNullException(nameof(builder));

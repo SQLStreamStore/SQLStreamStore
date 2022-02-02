@@ -28,7 +28,7 @@
                 var stopwatch = Stopwatch.StartNew();
                 int count = 0;
                 var position = Position.End;
-                ReadAllPage page;
+                IReadAllPage page;
                 do
                 {
                     page = await streamStore.ReadAllBackwards(position,

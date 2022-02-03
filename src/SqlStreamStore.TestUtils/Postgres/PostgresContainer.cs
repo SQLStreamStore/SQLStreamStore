@@ -20,6 +20,7 @@ namespace SqlStreamStore.TestUtils.Postgres
         public PostgresContainer(string databaseName)
             : base(databaseName)
         {
+         
             _containerService = new Builder()
                 .UseContainer()
                 .WithName(ContainerName)
@@ -58,7 +59,7 @@ namespace SqlStreamStore.TestUtils.Postgres
             Host = "localhost",
             Pooling = true,
             MaxPoolSize = 1024,
-            IncludeErrorDetails = true
+            IncludeErrorDetails = false
         };
     }
 }

@@ -273,14 +273,14 @@
 
         //    // TODO: FIXIT
         //    // Check for gap between last page and this.
-        //    if (page.Messages[0].Position != fromPositionInclusive)
-        //    {
-        //        Logger.DebugFormat("Gap detected at lower page boundary. Potentially could have lost {lostMessageCount} events if the gap is transient", page.Messages[0].Position - fromPositionInclusive);
-        //        page = await HandleGap(page, fromPositionInclusive, maxCount, prefetchJsonData, cancellationToken);
-        //        //if (!page.IsEnd || page.Messages.Length == 1)
-        //        //    Logger.DebugFormat("Gap detected at lower page boundary.  Potentially could have lost {lostMessageCount} events if the gap is transient", page.Messages[0].Position - fromPositionInclusive);
-        //        //page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken);
-        //    }
+        //    //if (page.Messages[0].Position != fromPositionInclusive)
+        //    //{
+        //    //    Logger.InfoFormat("Gap detected at lower page boundary. Potentially could have lost {lostMessageCount} events if the gap is transient", page.Messages[0].Position - fromPositionInclusive);
+        //    //    page = await HandleGap(page, fromPositionInclusive, maxCount, prefetchJsonData, cancellationToken);
+        //    //    //if (!page.IsEnd || page.Messages.Length == 1)
+        //    //    //    Logger.DebugFormat("Gap detected at lower page boundary.  Potentially could have lost {lostMessageCount} events if the gap is transient", page.Messages[0].Position - fromPositionInclusive);
+        //    //    //page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken);
+        //    //}
 
         //    // check for gap in messages collection
         //    for (int i = 0; i < page.Messages.Length - 1; i++)

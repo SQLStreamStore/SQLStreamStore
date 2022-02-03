@@ -21,8 +21,8 @@ namespace SqlStreamStore.TestUtils.Postgres
         static PostgresDatabaseManager()
         {
 #if DEBUG
-            NpgsqlLogManager.IsParameterLoggingEnabled = true;
-            NpgsqlLogManager.Provider = new LibLogNpgsqlLogProvider();
+            NpgsqlLogManager.IsParameterLoggingEnabled = false;
+            //NpgsqlLogManager.Provider = new LibLogNpgsqlLogProvider();
 #endif
         }
 

@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0</TargetFrameworks>
+    <AssemblyName>SqlStreamStore.Postgres.V2.Tests</AssemblyName>
+    <RootNamespace>SqlStreamStore</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\SqlStreamStore.AcceptanceTests\*.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\SqlStreamStore.PostgresV2\SqlStreamStore.PostgresV2.csproj" />
+    <ProjectReference Include="..\..\src\SqlStreamStore.TestUtils\SqlStreamStore.TestUtils.csproj" />
+  </ItemGroup>
+  
+</Project>

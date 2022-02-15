@@ -8,12 +8,13 @@
     using Npgsql;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Logging;
-    using SqlStreamStore.PgSqlScripts;
+    using SqlStreamStore.PgSqlScriptsV1;
     using SqlStreamStore.Subscriptions;
 
     /// <summary>
     ///     Represents a PostgreSQL stream store implementation.
     /// </summary>
+    [Obsolete("Use PostgresStreamStoreV2 instead. Note: this will require a schema and data migration.", false)]
     public partial class PostgresStreamStore : StreamStoreBase
     {
         private readonly PostgresStreamStoreSettings _settings;

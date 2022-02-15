@@ -1,3 +1,3 @@
 @ECHO OFF
 
-dotnet run -p build/build.csproj -- %*
+dotnet run --project build/build.csproj -- %*

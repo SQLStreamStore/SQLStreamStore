@@ -12,7 +12,6 @@
     using SqlStreamStore.HAL.AllStreamMessage;
     using SqlStreamStore.HAL.Docs;
     using SqlStreamStore.HAL.Index;
-    using SqlStreamStore.HAL.Logging;
     using SqlStreamStore.HAL.StreamBrowser;
     using SqlStreamStore.HAL.StreamMessage;
     using SqlStreamStore.HAL.StreamMetadata;
@@ -25,8 +24,6 @@
 
     public static class SqlStreamStoreHalMiddleware
     {
-        private static ILog s_Log = LogProvider.GetLogger(typeof(SqlStreamStoreHalMiddleware));
-
         private static MidFunc Rfc1738 = (context, next) =>
         {
             if(context.Request.QueryString != QueryString.Empty)
@@ -77,8 +74,6 @@
                 streamMessages,
                 streamMetadata,
                 streamBrowser);
-
-            s_Log.Info(index.ToString);
 
             return builder
                 .UseExceptionHandling()

@@ -6,12 +6,9 @@ namespace SqlStreamStore.HAL
     using System.Net.Http;
     using Halcyon.HAL;
     using Microsoft.AspNetCore.Http;
-    using SqlStreamStore.HAL.Logging;
 
     internal class Links
     {
-        private static readonly ILog s_log = LogProvider.For<Links>();
-        
         private readonly PathString _path;
         private readonly List<(string rel, string href, string title)> _links;
         private readonly string _relativePathToRoot;
@@ -43,8 +40,6 @@ namespace SqlStreamStore.HAL
                 throw new ArgumentNullException(nameof(href));
             
             _links.Add((rel, href, title));
-
-            s_log.Debug("Added link {link} to response for request {path}", _links[_links.Count - 1], _path);
             return this;
         }
 

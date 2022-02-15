@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore.PgSqlScripts
+﻿namespace SqlStreamStore.PgSqlScriptsV2
 {
     using System;
     using System.Collections.Concurrent;
@@ -55,6 +55,7 @@
 
         private string SetStreamMetadata => GetScript(nameof(SetStreamMetadata));
 
+        public string Migration => GetScript(nameof(Migration));
 
         public string CreateSchema => string.Join(
             Environment.NewLine,

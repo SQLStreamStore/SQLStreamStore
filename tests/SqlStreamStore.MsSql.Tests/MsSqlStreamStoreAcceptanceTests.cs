@@ -1,10 +1,11 @@
 ﻿namespace SqlStreamStore
 {
     using System.Threading.Tasks;
+    using SqlStreamStore.Streams;
     using Xunit;
     using Xunit.Abstractions;
 
-    public class MsSqlStreamStoreAcceptanceTests : AcceptanceTests, IClassFixture<MsSqlStreamStoreFixturePool>
+    public class MsSqlStreamStoreAcceptanceTests : AcceptanceTests<ReadAllPage>, IClassFixture<MsSqlStreamStoreFixturePool>
     {
         private readonly MsSqlStreamStoreFixturePool _fixturePool;
 
@@ -14,7 +15,7 @@
             _fixturePool = fixturePool;
         }
 
-        protected override async Task<IStreamStoreFixture> CreateFixture()
+        protected override async Task<IStreamStoreFixture<ReadAllPage>> CreateFixture()
             => await _fixturePool.Get(TestOutputHelper);
 
         /*

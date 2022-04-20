@@ -2,7 +2,6 @@
 {
     using System;
     using SqlStreamStore.Infrastructure;
-    using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
 
     public partial class PostgresStreamStore

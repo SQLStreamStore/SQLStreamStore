@@ -1,9 +1,8 @@
 <Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
     <AssemblyName>SqlStreamStore.Sqlite.Tests</AssemblyName>
     <TargetFramework>net6.0</TargetFramework>
-	  <AssemblyName>SqlStreamStore.Sqlite.Tests</AssemblyName>
+	<AssemblyName>SqlStreamStore.Sqlite.Tests</AssemblyName>
     <RootNamespace>SqlStreamStore</RootNamespace>
   </PropertyGroup>
   <ItemGroup>

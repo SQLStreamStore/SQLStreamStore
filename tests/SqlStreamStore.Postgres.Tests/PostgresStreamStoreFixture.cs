@@ -6,7 +6,7 @@ namespace SqlStreamStore
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.TestUtils.Postgres;
 
-    public class PostgresStreamStoreFixture : IStreamStoreFixture
+    public class PostgresStreamStoreFixture : IStreamStoreFixture<PostgresReadAllPage>
     {
         private readonly Action _onDispose;
         private bool _preparedPreviously;

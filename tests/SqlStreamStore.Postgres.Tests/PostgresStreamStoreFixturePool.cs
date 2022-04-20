@@ -31,7 +31,7 @@
                     schema,
                     dockerInstance,
                     databaseName,
-                    onDispose:() => fixturePool.Enqueue(fixture));
+                    () => fixturePool.Enqueue(fixture));
 
                 outputHelper.WriteLine($"Using new fixture with db {databaseName}");
             }

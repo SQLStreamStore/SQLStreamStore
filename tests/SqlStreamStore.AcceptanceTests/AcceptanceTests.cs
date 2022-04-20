@@ -11,7 +11,7 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public abstract partial class AcceptanceTests : IAsyncLifetime
+    public abstract partial class AcceptanceTests<TReadAllPage> : IAsyncLifetime where TReadAllPage : IReadAllPage
     {
         private const string DefaultJsonData = @"{ ""data"": ""data"" }";
         private const string DefaultJsonMetadata = @"{ ""meta"": ""data"" }";
@@ -28,9 +28,9 @@
             Fixture = await CreateFixture();
         }
 
-        private IStreamStore<PostgresReadAllPage> Store => Fixture.Store;
+        private IStreamStore<TReadAllPage> Store => Fixture.Store;
 
-        protected IStreamStoreFixture Fixture { get; private set; }
+        protected IStreamStoreFixture<TReadAllPage> Fixture { get; private set; }
 
         protected ITestOutputHelper TestOutputHelper { get; }
 
@@ -41,7 +41,7 @@
             return Task.CompletedTask;
         }
 
-        protected abstract Task<IStreamStoreFixture> CreateFixture();
+        protected abstract Task<IStreamStoreFixture<TReadAllPage>> CreateFixture();
 
         private static IDisposable CaptureLogs(ITestOutputHelper testOutputHelper) 
             => LoggingHelper.Capture(testOutputHelper);

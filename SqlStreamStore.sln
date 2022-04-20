@@ -62,10 +62,6 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "src", "src", "{845ED623-9F0
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "build", "build\build.csproj", "{5273D70A-96D7-4775-B67C-BDE48D20CA36}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.Postgres.V2.Tests", "tests\SqlStreamStore.Postgres.V2.Tests\SqlStreamStore.Postgres.V2.Tests.csproj", "{A8D87EDC-E911-42F3-891F-82DEBBD4E0A3}"
-EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore.PostgresV2", "src\SqlStreamStore.PostgresV2\SqlStreamStore.PostgresV2.csproj", "{D1FA4E2A-9113-4F8E-987D-DDC1C1C583E2}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU

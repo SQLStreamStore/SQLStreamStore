@@ -2,10 +2,11 @@ namespace SqlStreamStore
 {
     using System;
     using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.Streams;
 
-    public interface IStreamStoreFixture: IDisposable
+    public interface IStreamStoreFixture<TReadPage> : IDisposable where TReadPage : IReadAllPage
     {
-        IStreamStore<PostgresReadAllPage> Store { get; }
+        IStreamStore<TReadPage> Store { get; }
 
         GetUtcNow GetUtcNow { get; set; }
 

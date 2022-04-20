@@ -2,16 +2,16 @@
   <PropertyGroup>
     <Description>Postgre SQL provider for SQL StreamStore</Description>
     <AssemblyTitle>Stream Store - Postgres</AssemblyTitle>
-    <TargetFrameworks>net5.0</TargetFrameworks>
+	<TargetFrameworks>netstandard2.0</TargetFrameworks>
     <AssemblyName>SqlStreamStore.Postgres</AssemblyName>
     <PackageId>SqlStreamStore.Postgres</PackageId>
     <RootNamespace>SqlStreamStore</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
-    <EmbeddedResource Include="PgSqlScriptsV1\*.sql" Exclude="bin\**;obj\**;packages\**;@(EmbeddedResource)" />
+    <EmbeddedResource Include="PgSqlScriptsV2\*.sql" Exclude="bin\**;obj\**;packages\**;@(EmbeddedResource)" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Npgsql" Version="4.1.10" />
+    <PackageReference Include="Npgsql" Version="6.0.3" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />

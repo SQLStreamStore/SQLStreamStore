@@ -15,7 +15,6 @@ namespace SqlStreamStore
             long fromPosition,
             int maxCount,
             bool prefetch,
-            ReadNextAllPage<ReadAllPage> readNext,
             CancellationToken cancellationToken,
             long fromMaxPositionInclusive = -1)
         {
@@ -43,7 +42,6 @@ namespace SqlStreamStore
                             fromPosition,
                             true,
                             ReadDirection.Forward,
-                            readNext,
                             Array.Empty<StreamMessage>());
                     }
 
@@ -102,7 +100,6 @@ namespace SqlStreamStore
                         nextPosition,
                         isEnd,
                         ReadDirection.Forward,
-                        readNext,
                         filteredMessages.ToArray());
                 }
             }
@@ -112,7 +109,6 @@ namespace SqlStreamStore
             long fromPositionExclusive,
             int maxCount,
             bool prefetch,
-            ReadNextAllPage<ReadAllPage> readNext,
             CancellationToken cancellationToken)
         {
             maxCount = maxCount == int.MaxValue ? maxCount - 1 : maxCount;
@@ -142,7 +138,6 @@ namespace SqlStreamStore
                             Position.Start,
                             true,
                             ReadDirection.Backward,
-                            readNext,
                             Array.Empty<StreamMessage>());
                     }
 
@@ -204,7 +199,6 @@ namespace SqlStreamStore
                         nextPosition,
                         isEnd,
                         ReadDirection.Backward,
-                        readNext,
                         filteredMessages.ToArray());
                 }
             }

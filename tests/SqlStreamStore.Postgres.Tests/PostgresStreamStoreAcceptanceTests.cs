@@ -1,10 +1,11 @@
 ﻿namespace SqlStreamStore
 {
     using System.Threading.Tasks;
+    using SqlStreamStore.Streams;
     using Xunit;
     using Xunit.Abstractions;
 
-    public class PostgresStreamStoreAcceptanceTests : AcceptanceTests, IClassFixture<PostgresStreamStoreV3FixturePool>
+    public class PostgresStreamStoreAcceptanceTests : AcceptanceTests<PostgresReadAllPage>, IClassFixture<PostgresStreamStoreV3FixturePool>
     {
         private readonly PostgresStreamStoreV3FixturePool _fixturePool;
 
@@ -16,7 +17,7 @@
             _fixturePool = fixturePool;
         }
 
-        protected override async Task<IStreamStoreFixture> CreateFixture()
+        protected override async Task<IStreamStoreFixture<PostgresReadAllPage>> CreateFixture()
             => await _fixturePool.Get(TestOutputHelper);
 
         /*

@@ -3,7 +3,7 @@
     <Authors>João P. Bragança, Damian Hickey</Authors>
     <Description>MySQL provider for SQL StreamStore</Description>
     <AssemblyTitle>Stream Store - MySQL</AssemblyTitle>
-    <TargetFrameworks>net5.0</TargetFrameworks>
+	<TargetFrameworks>netstandard2.0</TargetFrameworks>
     <AssemblyName>SqlStreamStore.MySql</AssemblyName>
     <PackageId>SqlStreamStore.MySql</PackageId>
     <RootNamespace>SqlStreamStore</RootNamespace>

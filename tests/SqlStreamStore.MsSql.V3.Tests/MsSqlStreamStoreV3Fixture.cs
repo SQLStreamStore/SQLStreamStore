@@ -5,9 +5,10 @@
     using System.Threading.Tasks;
     using Microsoft.Data.SqlClient;
     using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.Streams;
     using SqlStreamStore.TestUtils.MsSql;
 
-    public class MsSqlStreamStoreV3Fixture : IStreamStoreFixture
+    public class MsSqlStreamStoreV3Fixture : IStreamStoreFixture<ReadAllPage>
     {
         private readonly Action _onDispose;
         private readonly MsSqlStreamStoreV3Settings _settings;
@@ -83,7 +84,7 @@
 
         public string DatabaseName { get; }
 
-        public IStreamStore Store => MsSqlStreamStoreV3;
+        public IStreamStore<ReadAllPage> Store => MsSqlStreamStoreV3;
 
         public MsSqlStreamStoreV3 MsSqlStreamStoreV3 { get; private set; }
 

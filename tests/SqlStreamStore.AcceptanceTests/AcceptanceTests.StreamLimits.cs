@@ -7,7 +7,7 @@ namespace SqlStreamStore
     using SqlStreamStore.Streams;
     using Xunit;
 
-    public partial class AcceptanceTests
+    public partial class AcceptanceTests<TReadAllPage>
     {
         [Theory, Trait("Category", "StreamMetadata"),
          InlineData(ExpectedVersion.NoStream), InlineData(ExpectedVersion.Any)]

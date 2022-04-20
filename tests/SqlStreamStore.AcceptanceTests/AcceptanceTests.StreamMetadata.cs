@@ -7,7 +7,7 @@
     using SqlStreamStore.Streams;
     using Xunit;
 
-    public partial class AcceptanceTests
+    public partial class AcceptanceTests<TReadAllPage>
     {
         private const string DefaultStreamMetadataJson = @"{ ""meta"": ""meta"" }";
         //TODO: Port some of the tests from AppendStream with regard to expected version to verify behavior of Get/SetStreamMetadata.

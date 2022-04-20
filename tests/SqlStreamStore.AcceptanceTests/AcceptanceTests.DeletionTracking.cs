@@ -6,7 +6,7 @@ namespace SqlStreamStore
     using Xunit;
     using static Streams.Deleted;
 
-    partial class AcceptanceTests
+    partial class AcceptanceTests<TReadAllPage>
     {
         [Fact]
         public async Task When_deletion_tracking_is_disabled_deleted_message_should_not_be_tracked()

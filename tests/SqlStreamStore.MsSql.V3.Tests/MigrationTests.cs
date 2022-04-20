@@ -27,10 +27,10 @@
             var v2Store = v2Fixture.Store;
             await v2Store.AppendToStream("stream-1",
                 ExpectedVersion.NoStream,
-                AcceptanceTests.CreateNewStreamMessages(1, 2, 3));
+                AcceptanceTests<ReadAllPage>.CreateNewStreamMessages(1, 2, 3));
             await v2Store.AppendToStream("stream-2",
                 ExpectedVersion.NoStream,
-                AcceptanceTests.CreateNewStreamMessages(1, 2, 3));
+                AcceptanceTests<ReadAllPage>.CreateNewStreamMessages(1, 2, 3));
 
             await v2Store.SetStreamMetadata("stream-1", ExpectedVersion.Any, maxAge: 10, maxCount: 20);
             v2Store.Dispose();

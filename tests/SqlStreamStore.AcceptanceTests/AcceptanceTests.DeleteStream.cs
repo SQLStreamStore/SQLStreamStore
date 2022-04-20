@@ -8,7 +8,7 @@
     using Xunit;
     using static Streams.Deleted;
 
-    public partial class AcceptanceTests
+    public partial class AcceptanceTests<TReadAllPage>
     {
         [Fact, Trait("Category", "DeleteStream")]
         public async Task When_delete_stream_with_no_expected_version_and_read_then_should_get_StreamNotFound()

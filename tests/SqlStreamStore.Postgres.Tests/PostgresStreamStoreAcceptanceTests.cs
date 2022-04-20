@@ -1,7 +1,6 @@
 ﻿namespace SqlStreamStore
 {
     using System.Threading.Tasks;
-    using SqlStreamStore.Streams;
     using Xunit;
     using Xunit.Abstractions;
 

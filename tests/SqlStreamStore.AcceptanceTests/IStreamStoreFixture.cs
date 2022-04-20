@@ -4,7 +4,7 @@ namespace SqlStreamStore
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Streams;
 
-    public interface IStreamStoreFixture<TReadPage> : IDisposable where TReadPage : IReadAllPage
+    public interface IStreamStoreFixture<out TReadPage> : IDisposable where TReadPage : IReadAllPage
     {
         IStreamStore<TReadPage> Store { get; }
 

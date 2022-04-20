@@ -7,7 +7,7 @@
     using SqlStreamStore.Streams;
     using Xunit;
 
-    public partial class AcceptanceTests
+    public partial class AcceptanceTests<TReadAllPage>
     {
         [Fact, Trait("Category", "AppendStream")]
         public async Task

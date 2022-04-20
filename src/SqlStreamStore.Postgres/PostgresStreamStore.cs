@@ -270,60 +270,60 @@
             return _schema.Migration;
         }
 
-        protected override async Task<PostgresReadAllPage> HandleGap(
-           PostgresReadAllPage page,
-           long fromPositionInclusive,
-           int maxCount,
-           bool prefetchJsonData,
-           CancellationToken cancellationToken)
-        {
-           if (page.Messages.Length == 0 || DateTime.UtcNow - page.Messages[page.Messages.Length - 1].CreatedUtc > TimeSpan.FromMinutes(5))
-               return page;
+        //protected override async Task<PostgresReadAllPage> HandleGap(
+        //   PostgresReadAllPage page,
+        //   long fromPositionInclusive,
+        //   int maxCount,
+        //   bool prefetchJsonData,
+        //   CancellationToken cancellationToken)
+        //{
+        //   if (page.Messages.Length == 0 || DateTime.UtcNow - page.Messages[page.Messages.Length - 1].CreatedUtc > TimeSpan.FromMinutes(5))
+        //       return page;
 
-           // TODO: FIXIT
-           // Check for gap between last page and this.
-           //if (page.Messages[0].Position != fromPositionInclusive)
-           //{
-           //    Logger.InfoFormat("Gap detected at lower page boundary. Potentially could have lost {lostMessageCount} events if the gap is transient", page.Messages[0].Position - fromPositionInclusive);
-           //    page = await HandleGap(page, fromPositionInclusive, maxCount, prefetchJsonData, cancellationToken);
-           //    //if (!page.IsEnd || page.Messages.Length == 1)
-           //    //    Logger.DebugFormat("Gap detected at lower page boundary.  Potentially could have lost {lostMessageCount} events if the gap is transient", page.Messages[0].Position - fromPositionInclusive);
-           //    //page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken);
-           //}
+        //   // TODO: FIXIT
+        //   // Check for gap between last page and this.
+        //   //if (page.Messages[0].Position != fromPositionInclusive)
+        //   //{
+        //   //    Logger.InfoFormat("Gap detected at lower page boundary. Potentially could have lost {lostMessageCount} events if the gap is transient", page.Messages[0].Position - fromPositionInclusive);
+        //   //    page = await HandleGap(page, fromPositionInclusive, maxCount, prefetchJsonData, cancellationToken);
+        //   //    //if (!page.IsEnd || page.Messages.Length == 1)
+        //   //    //    Logger.DebugFormat("Gap detected at lower page boundary.  Potentially could have lost {lostMessageCount} events if the gap is transient", page.Messages[0].Position - fromPositionInclusive);
+        //   //    //page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken);
+        //   //}
 
-           // check for gap in messages collection
-           for (int i = 0; i < page.Messages.Length - 1; i++)
-           {
-               var expectedNextPosition = page.Messages[i].Position + 1;
-               if (expectedNextPosition != page.Messages[i + 1].Position)
-               {
-                   Logger.InfoFormat("Gap detected in " + (page.IsEnd ? "last" : "(NOT the last)") + " page.  Returning partial page {fromPosition}-{toPosition}", fromPositionInclusive, fromPositionInclusive + i + 1);
+        //   // check for gap in messages collection
+        //   for (int i = 0; i < page.Messages.Length - 1; i++)
+        //   {
+        //       var expectedNextPosition = page.Messages[i].Position + 1;
+        //       if (expectedNextPosition != page.Messages[i + 1].Position)
+        //       {
+        //           Logger.InfoFormat("Gap detected in " + (page.IsEnd ? "last" : "(NOT the last)") + " page.  Returning partial page {fromPosition}-{toPosition}", fromPositionInclusive, fromPositionInclusive + i + 1);
 
-                   PostgresReadAllPage requeryPage;
-                   var maxPosition = page.Messages[page.Messages.Length - 1].Position;
-                   do
-                   {
-                       requeryPage = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, prefetchJsonData, cancellationToken, maxPosition);
-                   } while (page.TransactionIds.Intersect(requeryPage.TransactionIds).Any());
+        //           PostgresReadAllPage requeryPage;
+        //           var maxPosition = page.Messages[page.Messages.Length - 1].Position;
+        //           do
+        //           {
+        //               requeryPage = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, prefetchJsonData, cancellationToken, maxPosition);
+        //           } while (page.TransactionIds.Intersect(requeryPage.TransactionIds).Any());
 
-                   return requeryPage;
+        //           return requeryPage;
 
-                   // switched this to return the partial page, then re-issue load starting at gap
-                   // this speeds up the retry instead of taking a 3 second delay immediately
-                   //var messagesBeforeGap = new StreamMessage[i+1];
-                   //page.Messages.Take(i+1).ToArray().CopyTo(messagesBeforeGap, 0);
-                   //return new ReadAllPage(page.FromPosition, maxPosition, page.IsEnd, page.Direction, ReadNext, messagesBeforeGap);
-               }
-           }
+        //           // switched this to return the partial page, then re-issue load starting at gap
+        //           // this speeds up the retry instead of taking a 3 second delay immediately
+        //           //var messagesBeforeGap = new StreamMessage[i+1];
+        //           //page.Messages.Take(i+1).ToArray().CopyTo(messagesBeforeGap, 0);
+        //           //return new ReadAllPage(page.FromPosition, maxPosition, page.IsEnd, page.Direction, ReadNext, messagesBeforeGap);
+        //       }
+        //   }
 
-           //ReadAllPage requeryPage;
-           //var maxPosition = pageWithGap.Messages[pageWithGap.Messages.Length - 1].Position;
-           //do
-           //{
-           //    requeryPage = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, prefetchJsonData, readNext, cancellationToken, maxPosition);
-           //} while (pageWithGap.TxSnapshot.CurrentTxIds.Intersect(requeryPage.TxSnapshot.CurrentTxIds).Any());
+        //   //ReadAllPage requeryPage;
+        //   //var maxPosition = pageWithGap.Messages[pageWithGap.Messages.Length - 1].Position;
+        //   //do
+        //   //{
+        //   //    requeryPage = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, prefetchJsonData, readNext, cancellationToken, maxPosition);
+        //   //} while (pageWithGap.TxSnapshot.CurrentTxIds.Intersect(requeryPage.TxSnapshot.CurrentTxIds).Any());
 
-           return page;
-        }
+        //   return page;
+        //}
     }
 }

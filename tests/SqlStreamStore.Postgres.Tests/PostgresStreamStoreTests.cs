@@ -41,8 +41,6 @@
 
             await writerStore.CreateSchemaIfNotExists();
 
-            var cancellationTokenSource = new CancellationTokenSource();
-
             var receiveMessages = new TaskCompletionSource<StreamMessage>();
             List<StreamMessage> receivedMessages = new List<StreamMessage>();
 
@@ -52,7 +50,7 @@
                 {
                     _testOutputHelper.WriteLine($"Received message {message.StreamId} " +
                                                $"{message.StreamVersion} {message.Position}");
-                    if (message.Position >= 100)
+                    if (message.Position >= 200)
                         receiveMessages.SetResult(message);
                     else
                         receivedMessages.Add(message);
@@ -60,9 +58,10 @@
                     return Task.CompletedTask;
                 });
 
-            var appendTask = AppendMessages(writerStore, 200, cancellationTokenSource.Token);
-            await Task.WhenAny(receiveMessages.Task.WithTimeout(100000), appendTask);
-            cancellationTokenSource.Cancel();
+            all.MaxCountPerRead = 500;
+
+            await AppendMessages(writerStore, 1000);
+            await receiveMessages.Task.WithTimeout(1000000);
 
             receivedMessages.Count.ShouldBe(100);
         }
@@ -78,12 +77,12 @@
             };
         }
 
-        private static async Task AppendMessages(IStreamStore streamStore, int numberOfEvents, CancellationToken ct)
+        private static async Task AppendMessages(IStreamStore streamStore, int numberOfEvents)
         {
             await Task.WhenAll(Enumerable.Range(0, numberOfEvents).Select(_ =>
             {
                 var newMessage = new NewStreamMessage(Guid.NewGuid(), "MyEvent", "{}");
-                return streamStore.AppendToStream(Guid.NewGuid().ToString(), ExpectedVersion.Any, newMessage, ct);
+                return streamStore.AppendToStream(Guid.NewGuid().ToString(), ExpectedVersion.Any, newMessage);
             }));
         }
 

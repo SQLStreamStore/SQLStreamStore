@@ -11,7 +11,7 @@
 
     using Npgsql;
 
-    using SqlStreamStore.PgSqlScripts;
+    using SqlStreamStore.PgSqlScriptsV1;
     using SqlStreamStore.Streams;
 
     public class PostgresReadAllPage : ReadAllPage<PostgresReadAllPage>

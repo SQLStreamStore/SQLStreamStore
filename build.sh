@@ -8,4 +8,4 @@ docker run --rm --name sss-build \
  --network host \
  -e FEEDZ_SSS_API_KEY=$FEEDZ_SSS_API_KEY \
  sss-build \
- dotnet run -p /repo/build/build.csproj -- "$@"
+ dotnet run --project /repo/build/build.csproj -- "$@"

@@ -9,9 +9,6 @@
     <PackageId>SqlStreamStore</PackageId>
   </PropertyGroup>
 
-  <ItemGroup>
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="MorseCode.ITask" Version="2.0.0" />
@@ -20,4 +17,5 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
     </PackageReference>
   </ItemGroup>
+
 </Project>

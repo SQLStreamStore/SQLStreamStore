@@ -13,7 +13,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        test: ["inmem", "mssql", "mssql-v3", "mysql", "postgres", "sqlite", "hal", "http"]
+        test: ["inmem", "mssql", "mssql-v3", "mysql", "postgres", "postgres-v2", "sqlite", "hal", "http"]
 
     runs-on: ubuntu-latest
     name: Test ${{ matrix.test }}
@@ -46,7 +46,7 @@ jobs:
           fetch-depth: 0
       - name: Pull Containers
         shell: bash
-        run: docker pull damianh/dotnet-core-lts-sdks:1
+        run: docker pull alpinelinux/docker-cli:latest-x86_64
       - name: Build and Test
         shell: bash
         run: ./build.sh test-${{ matrix.test }}

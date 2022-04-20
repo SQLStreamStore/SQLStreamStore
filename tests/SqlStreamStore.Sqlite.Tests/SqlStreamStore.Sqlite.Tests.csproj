@@ -2,6 +2,8 @@
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <AssemblyName>SqlStreamStore.Sqlite.Tests</AssemblyName>
+    <TargetFramework>net6.0</TargetFramework>
+	  <AssemblyName>SqlStreamStore.Sqlite.Tests</AssemblyName>
     <RootNamespace>SqlStreamStore</RootNamespace>
   </PropertyGroup>
   <ItemGroup>
@@ -11,5 +13,4 @@
     <ProjectReference Include="..\..\src\SqlStreamStore.Sqlite\SqlStreamStore.Sqlite.csproj" />
     <ProjectReference Include="..\..\src\SqlStreamStore.TestUtils\SqlStreamStore.TestUtils.csproj" />
   </ItemGroup>
-
 </Project>

@@ -37,7 +37,7 @@
             => new SqlConnection(CreateConnectionStringBuilder().ConnectionString);
 
         public SqlConnectionStringBuilder CreateConnectionStringBuilder()
-            => new SqlConnectionStringBuilder($"server=localhost,{HostPort};User Id=sa;Password={Password};Initial Catalog=master");
+            => new SqlConnectionStringBuilder($"server=localhost,{HostPort};User Id=sa;Password={Password};Initial Catalog=master;TrustServerCertificate=true");
 
         public async Task Start(CancellationToken cancellationToken = default)
         {

@@ -2,6 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>SqlStreamStore.Http.Tests</AssemblyName>
     <PackageId>SqlStreamStore.Http.Tests</PackageId>
     <RootNamespace>SqlStreamStore</RootNamespace>
@@ -19,6 +20,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="3.1.5" />
+    <PackageReference Include="Microsoft.AspNetCore.TestHost" Version="6.0.2" />
   </ItemGroup>
 </Project>

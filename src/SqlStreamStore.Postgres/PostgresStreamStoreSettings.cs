@@ -6,6 +6,7 @@
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Subscriptions;
 
+    [Obsolete("Use PostgresStreamStoreV2Settings instead. Note: this will require a schema and data migration.", false)]
     public class PostgresStreamStoreSettings
     {
         private string _schema = "public";

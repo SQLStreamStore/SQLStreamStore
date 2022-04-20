@@ -63,7 +63,7 @@ namespace SqlStreamStore
         [Fact, Trait("Category", "StreamMetadata")]
         public async Task When_stream_has_expired_messages_and_read_forwards_then_should_not_get_expired_messages()
         {
-            var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
+            var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             Fixture.GetUtcNow = () => currentUtc;
             string streamId = "stream-1";
             await Store
@@ -82,7 +82,7 @@ namespace SqlStreamStore
         [Fact, Trait("Category", "StreamMetadata")]
         public async Task When_stream_has_expired_messages_and_read_backward_then_should_not_get_expired_messages()
         {
-            var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
+            var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             Fixture.GetUtcNow = () => currentUtc;
             const string streamId = "stream-1";
             await Store
@@ -101,7 +101,7 @@ namespace SqlStreamStore
         [Fact, Trait("Category", "StreamMetadata")]
         public async Task When_streams_have_expired_messages_and_read_all_forwards_then_should_not_get_expired_messages()
         {
-            var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
+            var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             Fixture.GetUtcNow = () => currentUtc;
             // Arrange
             const string streamId1 = "stream-1";
@@ -134,7 +134,7 @@ namespace SqlStreamStore
         [Fact, Trait("Category", "StreamMetadata")]
         public async Task When_streams_have_expired_messages_and_read_all_backwards_then_should_not_get_expired_messages()
         {
-            var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0);
+            var currentUtc = new DateTime(2016, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             Fixture.GetUtcNow = () => currentUtc;
 
             // Arrange

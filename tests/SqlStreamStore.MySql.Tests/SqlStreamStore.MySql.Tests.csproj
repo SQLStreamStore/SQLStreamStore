@@ -1,6 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <AssemblyName>SqlStreamStore.MySql.Tests</AssemblyName>
     <RootNamespace>SqlStreamStore</RootNamespace>
   </PropertyGroup>
@@ -11,5 +12,4 @@
     <ProjectReference Include="..\..\src\SqlStreamStore.MySql\SqlStreamStore.MySql.csproj" />
     <ProjectReference Include="..\..\src\SqlStreamStore.TestUtils\SqlStreamStore.TestUtils.csproj" />
   </ItemGroup>
-
 </Project>

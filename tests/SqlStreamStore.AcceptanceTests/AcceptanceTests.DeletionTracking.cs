@@ -25,7 +25,7 @@ namespace SqlStreamStore
         public async Task When_deletion_tracking_is_disabled_deleted_stream_should_not_be_tracked()
         {
             Fixture.DisableDeletionTracking = true;
-            
+
             var messages = CreateNewStreamMessages(1);
             await Store.AppendToStream("stream", ExpectedVersion.NoStream, messages);
             await Store.DeleteStream("stream");

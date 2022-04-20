@@ -4,6 +4,7 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using MorseCode.ITask;
     using Shouldly;
     using SqlStreamStore.Streams;
     using SqlStreamStore.TestUtils;
@@ -50,7 +51,7 @@
         {
             Store.Dispose();
 
-            Func<Task> act = () => Store.ReadAllForwards(Position.Start, 10);
+            Func<Task> act = () => Store.ReadAllForwards(Position.Start, 10).AsTask();
 
             await act.ShouldThrowAsync<ObjectDisposedException>();
         }

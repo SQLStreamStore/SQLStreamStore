@@ -11,12 +11,12 @@ namespace SqlStreamStore.TestUtils.Postgres
 
         private bool _started;
 
-        protected string DefaultConnectionString => new NpgsqlConnectionStringBuilder(ConnectionString)
+        protected string DefaultConnectionString => new NpgsqlConnectionStringBuilder(GenerateConnectionString())
         {
             Database = null
         }.ConnectionString;
 
-        public abstract string ConnectionString { get; }
+        public abstract string GenerateConnectionString(string applicationName = "default");
 
         static PostgresDatabaseManager()
         {

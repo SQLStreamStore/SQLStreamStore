@@ -21,7 +21,7 @@ namespace SqlStreamStore
             _onDispose = onDispose;
 
             DatabaseName = databaseName;
-            var connectionString = dockerInstance.ConnectionString;
+            var connectionString = dockerInstance.GenerateConnectionString();
 
             _settings = new PostgresStreamStoreSettings(connectionString)
             {

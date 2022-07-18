@@ -5,7 +5,7 @@
     <PackageId>SqlStreamStore.HAL.Tests</PackageId>
   </PropertyGroup>
   <ItemGroup>
-	<PackageReference Include="Microsoft.AspNetCore.TestHost" Version="6.0.2" />
+	<PackageReference Include="Microsoft.AspNetCore.TestHost" Version="6.0.7" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\..\src\SqlStreamStore.HAL\SqlStreamStore.HAL.csproj" />

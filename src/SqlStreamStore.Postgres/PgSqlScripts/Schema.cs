@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore.PgSqlScriptsV2
+﻿namespace SqlStreamStore.PgSqlScripts
 {
     internal class Schema
     {

@@ -8,7 +8,7 @@ using static SimpleExec.Command;
 
 namespace build
 {
-    using System.Text;
+    using System.Threading.Tasks;
 
     class Program
     {
@@ -22,7 +22,6 @@ namespace build
         private const string TestMsSql = "test-mssql";
         private const string TestMsSqlV3 = "test-mssql-v3";
         private const string TestPostgres = "test-postgres";
-        private const string TestPostgresV2 = "test-postgres-v2";
         private const string TestSqlite = "test-sqlite";
         private const string TestHal = "test-hal";
         private const string TestHttp = "test-http";
@@ -30,7 +29,7 @@ namespace build
         private const string Publish = "publish";
         private static List<string> TestProjectsWithFailures = new List<string>();
 
-        private static void Main(string[] args)
+        private static async Task Main(string[] args)
         {
             Target(Clean,
                 () =>
@@ -109,11 +108,6 @@ namespace build
                 () => RunTest("SqlStreamStore.Postgres.Tests"));
 
             Target(
-                TestPostgresV2,
-                DependsOn(Build),
-                () => RunTest("SqlStreamStore.Postgres.V2.Tests"));
-
-            Target(
                 TestSqlite,
                 DependsOn(Build),
                 () => RunTest("SqlStreamStore.Sqlite.Tests"));
@@ -130,7 +124,6 @@ namespace build
                     "SqlStreamStore.MsSql",
                     "SqlStreamStore.MySql",
                     "SqlStreamStore.Postgres",
-                    "SqlStreamStore.PostgresV2",
                     "SqlStreamStore.HAL",
                     "SqlStreamStore.Http",
                     "SqlStreamStore.Sqlite",
@@ -188,7 +181,7 @@ namespace build
                     }
                 });
 
-            RunTargetsAndExit(args);
+            await RunTargetsAndExitAsync(args);
         }
     }
 }

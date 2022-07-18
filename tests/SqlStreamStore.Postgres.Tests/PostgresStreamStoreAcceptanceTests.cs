@@ -1,6 +1,8 @@
 ﻿namespace SqlStreamStore
 {
     using System.Threading.Tasks;
+    using Shouldly;
+    using SqlStreamStore.PgSqlScripts;
     using Xunit;
     using Xunit.Abstractions;
 
@@ -18,6 +20,29 @@
 
         protected override async Task<IStreamStoreFixture> CreateFixture()
             => await _fixturePool.Get(TestOutputHelper);
+
+        [Fact]
+        public async Task Can_check_schema()
+        {
+            using(var fixture = await _fixturePool.Get(TestOutputHelper))
+            {
+                var result = await fixture.PostgresStreamStore.CheckSchema();
+
+                result.ShouldBe(new CheckSchemaResult(2, 2));
+                result.IsMatch.ShouldBeTrue();
+            }
+        }
+
+        [Fact]
+        public async Task Can_export_database_migration_script()
+        {
+            var schema = "custom_schema";
+            using(var fixture = await _fixturePool.Get(TestOutputHelper, schema))
+            {
+                var sqlScript = fixture.PostgresStreamStore.GetMigrationScript();
+                sqlScript.ShouldBe(new Scripts(schema).Migration);
+            }
+        }
 
         /*
         [Fact]
@@ -111,21 +136,9 @@
 
                 streamStoreObjects.ShouldBeEmpty();
             }
-        }
-
-        [Fact]
-        public async Task Can_check_schema()
-        {
-            using(var fixture = await PostgresStreamStoreFixture.Create(testOutputHelper: TestOutputHelper))
-            {
-                var result = await fixture.Store.CheckSchema();
-
-                result.ShouldBe(new CheckSchemaResult(1, 1));
-                result.IsMatch.ShouldBeTrue();
-            }
-        }
-
-
+        }        
+        
+         
         [Fact]
         public void Can_export_database_creation_script()
         {
@@ -139,5 +152,6 @@
             sqlScript.ShouldBe(new Scripts(schema).CreateSchema);
         }
         */
+
     }
 }

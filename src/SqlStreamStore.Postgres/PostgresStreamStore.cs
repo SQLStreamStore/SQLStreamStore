@@ -8,13 +8,12 @@
     using Npgsql;
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.Logging;
-    using SqlStreamStore.PgSqlScriptsV1;
+    using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Subscriptions;
 
     /// <summary>
     ///     Represents a PostgreSQL stream store implementation.
     /// </summary>
-    [Obsolete("Use PostgresStreamStoreV2 instead. Note: this will require a schema and data migration.", false)]
     public partial class PostgresStreamStore : StreamStoreBase
     {
         private readonly PostgresStreamStoreSettings _settings;
@@ -22,7 +21,7 @@
         private readonly Schema _schema;
         private readonly Lazy<IStreamStoreNotifier> _streamStoreNotifier;
 
-        public const int CurrentVersion = 1;
+        public const int CurrentVersion = 2;
 
         /// <summary>
         ///     Initializes a new instance of <see cref="PostgresStreamStore"/>
@@ -259,6 +258,15 @@
         public string GetSchemaCreationScript()
         {
             return _schema.Definition;
+        }
+
+        /// <summary>
+        /// Returns the script that can be used to migrate to the latest schema version 2.
+        /// </summary>
+        /// <returns>The database creation script.</returns>
+        public string GetMigrationScript()
+        {
+            return _schema.Migration;
         }
     }
 }

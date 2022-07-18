@@ -4,7 +4,7 @@ namespace SqlStreamStore
     using System.Threading;
     using System.Threading.Tasks;
     using Npgsql;
-    using SqlStreamStore.PgSqlScriptsV1;
+    using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Streams;
 
     public partial class PostgresStreamStore

@@ -6,7 +6,7 @@
     using System.Data.Common;
     using System.Threading;
     using System.Threading.Tasks;
-    using SqlStreamStore.PgSqlScriptsV1;
+    using SqlStreamStore.PgSqlScripts;
     using SqlStreamStore.Streams;
 
     partial class PostgresStreamStore

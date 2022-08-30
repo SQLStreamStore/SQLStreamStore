@@ -17,8 +17,6 @@
     <None Include="..\..\assets\sqlstreamstore-logo.png" Pack="true" PackagePath="/" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SqlStreamStore.MsSql\SqlStreamStore.MsSql.csproj" />
-    <ProjectReference Include="..\SqlStreamStore.MySql\SqlStreamStore.MySql.csproj" />
     <ProjectReference Include="..\SqlStreamStore.Postgres\SqlStreamStore.Postgres.csproj" />
     <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />
   </ItemGroup>

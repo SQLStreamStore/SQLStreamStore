@@ -19,33 +19,37 @@
             var cts = new CancellationTokenSource();
             Console.CancelKeyPress += (_, __) => cts.Cancel();
 
-            Output.WriteLine(ConsoleColor.Yellow, "Choose a test:");
-            await new Menu()
-                .Add(
-                    "Append with ExpectedVersion.Any",
-                    async ct => await new AppendExpectedVersionAnyParallel().Run(ct))
-                .Add(
-                    "Append with ExpectedVersion.NoStream",
-                    async ct => await new AppendExpectedVersionNoStreamParallel().Run(ct))
-                .Add(
-                    "Read all forwards",
-                    async ct => await new ReadAllForwards().Run(ct))
-                .Add(
-                    "Read all backwards",
-                    async ct => await new ReadAllBackwards().Run(ct))
-                .Add(
-                    "Append max count",
-                    async ct => await new AppendMaxCount().Run(ct))
-                .Add(
-                    "Many steam subscriptions",
-                    async ct => await new StreamSubscription().Run(ct))
-                .Add(
-                    "Test gaps",
-                    async ct => await new TestGaps().Run(ct))
-                .Add(
-                    "Append Read Deadlocks",
-                    async ct => await new AppendsReadsDeadlocks().Run(ct))
-                .Display(cts.Token);
+            //Output.WriteLine(ConsoleColor.Yellow, "Choose a test:");
+            //await new Menu()
+            //    .Add(
+            //        "Append with ExpectedVersion.Any",
+            //        async ct => await new AppendExpectedVersionAnyParallel().Run(ct))
+            //    .Add(
+            //        "Append with ExpectedVersion.NoStream",
+            //        async ct => await new AppendExpectedVersionNoStreamParallel().Run(ct))
+            //    .Add(
+            //        "Read all forwards",
+            //        async ct => await new ReadAllForwards().Run(ct))
+            //    .Add(
+            //        "Read all backwards",
+            //        async ct => await new ReadAllBackwards().Run(ct))
+            //    .Add(
+            //        "Append max count",
+            //        async ct => await new AppendMaxCount().Run(ct))
+            //    .Add(
+            //        "Many steam subscriptions",
+            //        async ct => await new StreamSubscription().Run(ct))
+            //    .Add(
+            //        "Test gaps",
+            //        async ct => await new TestGaps().Run(ct))
+            //    .Add(
+            //        "Append Read Deadlocks",
+            //        async ct => await new AppendsReadsDeadlocks().Run(ct))
+            //    .Display(cts.Token);
+
+            await new TestGaps().Run(default);
+            //await new ReadAllForwards().Run(default);
+            //await new BasicRead().Run(default);
 
             if(Debugger.IsAttached)
             {

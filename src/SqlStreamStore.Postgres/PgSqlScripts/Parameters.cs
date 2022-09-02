@@ -188,6 +188,20 @@
             };
         }
 
+        public static NpgsqlParameter OptionalPosition(long? value)
+        {
+            return value.HasValue
+                ? (NpgsqlParameter) new NpgsqlParameter<long>
+                {
+                    NpgsqlDbType = NpgsqlDbType.Integer,
+                    TypedValue = value.Value
+                }
+                : new NpgsqlParameter<DBNull>
+                {
+                    TypedValue = DBNull.Value
+                };
+        }
+
         public static NpgsqlParameter OptionalMaxAge(int? value)
         {
             return new NpgsqlParameter

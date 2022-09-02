@@ -1,24 +1,20 @@
 CREATE OR REPLACE FUNCTION __schema__.read_all(
   _count    INT,
   _position BIGINT,
+  _to_position BIGINT,
   _forwards BOOLEAN,
   _prefetch BOOLEAN
 )
-  RETURNS TABLE(
-    stream_id      VARCHAR(1000),
-    message_id     UUID,
-    stream_version INT,
-    "position"     BIGINT,
-    create_utc     TIMESTAMP,
-    "type"         VARCHAR(128),
-    json_metadata  JSONB,
-    json_data      JSONB,
-    max_age        INT
-  )
+  RETURNS SETOF REFCURSOR
+
 AS $F$
+
+DECLARE
+  _messages           REFCURSOR := 'messages';
+  _txinfo             REFCURSOR := 'tx_info';
 BEGIN
 
-  RETURN QUERY
+  OPEN _messages FOR
   WITH messages AS (
       SELECT __schema__.streams.id_original,
              __schema__.messages.message_id,
@@ -34,7 +30,8 @@ BEGIN
       FROM __schema__.messages
              INNER JOIN __schema__.streams ON __schema__.messages.stream_id_internal = __schema__.streams.id_internal
       WHERE (CASE
-               WHEN _forwards THEN __schema__.messages.position >= _position
+               WHEN _forwards AND _to_position IS NULL THEN __schema__.messages.position >= _position
+               WHEN _forwards THEN __schema__.messages.position >= _position AND __schema__.messages.position <= _to_position
                ELSE __schema__.messages.position <= _position END)
       ORDER BY
           (CASE WHEN _forwards THEN __schema__.messages.position END),
@@ -42,6 +39,12 @@ BEGIN
       LIMIT _count
   )
   SELECT * FROM messages LIMIT _count;
+
+  RETURN NEXT _messages;
+
+  OPEN _txinfo FOR
+  SELECT txid_current_snapshot()::TEXT;
+  RETURN NEXT _txinfo;
 END;
 $F$
 LANGUAGE 'plpgsql';

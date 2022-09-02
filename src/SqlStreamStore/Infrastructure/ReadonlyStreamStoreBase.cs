@@ -62,31 +62,31 @@ namespace SqlStreamStore.Infrastructure
             var page = await ReadAllForwardsInternal(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken)
                 .ConfigureAwait(false);
 
-            // https://github.com/damianh/SqlStreamStore/issues/31
-            // Under heavy parallel load, gaps may appear in the position sequence due to sequence
-            // number reservation of in-flight transactions.
-            // Here we check if there are any gaps, and in the unlikely event there is, we delay a little bit
-            // and re-issue the read. This is expected
-            if(!page.IsEnd || page.Messages.Length <= 1)
-            {
-                return await FilterExpired(page, ReadNext, cancellationToken).ConfigureAwait(false);
-            }
+            //// https://github.com/damianh/SqlStreamStore/issues/31
+            //// Under heavy parallel load, gaps may appear in the position sequence due to sequence
+            //// number reservation of in-flight transactions.
+            //// Here we check if there are any gaps, and in the unlikely event there is, we delay a little bit
+            //// and re-issue the read. This is expected
+            //if(!page.IsEnd || page.Messages.Length <= 1)
+            //{
+            //    return await FilterExpired(page, ReadNext, cancellationToken).ConfigureAwait(false);
+            //}
 
-            // Check for gap between last page and this.
-            if (page.Messages[0].Position != fromPositionInclusive)
-            {
-                page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken);
-            }
+            //// Check for gap between last page and this.
+            //if (page.Messages[0].Position != fromPositionInclusive)
+            //{
+            //    page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken);
+            //}
 
-            // check for gap in messages collection
-            for(int i = 0; i < page.Messages.Length - 1; i++)
-            {
-                if(page.Messages[i].Position + 1 != page.Messages[i + 1].Position)
-                {
-                    page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken);
-                    break;
-                }
-            }
+            //// check for gap in messages collection
+            //for(int i = 0; i < page.Messages.Length - 1; i++)
+            //{
+            //    if(page.Messages[i].Position + 1 != page.Messages[i + 1].Position)
+            //    {
+            //        page = await ReloadAfterDelay(fromPositionInclusive, maxCount, prefetchJsonData, ReadNext, cancellationToken);
+            //        break;
+            //    }
+            //}
 
             return await FilterExpired(page, ReadNext, cancellationToken).ConfigureAwait(false);
         }

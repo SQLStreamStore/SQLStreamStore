@@ -176,7 +176,7 @@
                         ExpectedVersion.Any,
                         newmessages,
                         ct);
-                    //Console.Write($"> {messageNumbers[numberOfMessagesPerAmend - 1]}");
+                    Console.Write($"> {messageNumbers[numberOfMessagesPerAmend - 1]}");
                 }
                 catch(SqlException ex) when(ex.Number == -2)
                 {
@@ -184,7 +184,7 @@
                 }
                 catch(Exception ex) when(!(ex is TaskCanceledException))
                 {
-                    Output.WriteLine(ex.ToString());
+                    //Output.WriteLine(ex.ToString());
                 }
             }
             stopwatch.Stop();

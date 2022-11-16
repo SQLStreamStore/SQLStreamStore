@@ -18,13 +18,7 @@ namespace build
         private const string Clean = "clean";
         private const string TestAll = "test-all";
         private const string TestInMem = "test-inmem";
-        private const string TestMySql = "test-mysql";
-        private const string TestMsSql = "test-mssql";
-        private const string TestMsSqlV3 = "test-mssql-v3";
         private const string TestPostgres = "test-postgres";
-        private const string TestSqlite = "test-sqlite";
-        private const string TestHal = "test-hal";
-        private const string TestHttp = "test-http";
         private const string Pack = "pack";
         private const string Publish = "publish";
         private static List<string> TestProjectsWithFailures = new List<string>();
@@ -78,55 +72,20 @@ namespace build
                 () => RunTest("SqlStreamStore.Tests"));
 
             Target(
-                TestHal,
-                DependsOn(Build),
-                () => RunTest("SqlStreamStore.HAL.Tests"));
-
-            Target(
-                TestHttp,
-                DependsOn(Build),
-                () => RunTest("SqlStreamStore.Http.Tests"));
-
-            Target(
-                TestMsSql,
-                DependsOn(Build),
-                () => RunTest("SqlStreamStore.MsSql.Tests"));
-
-            Target(
-                TestMsSqlV3,
-                DependsOn(Build),
-                () => RunTest("SqlStreamStore.MsSql.V3.Tests"));
-
-            Target(
-                TestMySql,
-                DependsOn(Build),
-                () => RunTest("SqlStreamStore.MySql.Tests"));
-
-            Target(
                 TestPostgres,
                 DependsOn(Build),
                 () => RunTest("SqlStreamStore.Postgres.Tests"));
 
             Target(
-                TestSqlite,
-                DependsOn(Build),
-                () => RunTest("SqlStreamStore.Sqlite.Tests"));
-
-            Target(
                 TestAll,
-                DependsOn(TestInMem, TestHal, TestHttp, TestMsSql, TestMsSqlV3, TestMySql, TestPostgres, TestSqlite));
+                DependsOn(TestInMem, TestPostgres));
 
             Target(
                 Pack,
                 DependsOn(Clean, Build),
                 ForEach(
                     "SqlStreamStore",
-                    "SqlStreamStore.MsSql",
-                    "SqlStreamStore.MySql",
                     "SqlStreamStore.Postgres",
-                    "SqlStreamStore.HAL",
-                    "SqlStreamStore.Http",
-                    "SqlStreamStore.Sqlite",
                     "SqlStreamStore.SchemaCreationScriptTool"),
                 project => Run("dotnet", $"pack src/{project}/{project}.csproj -c Release -o {ArtifactsDir} --no-build"));
 

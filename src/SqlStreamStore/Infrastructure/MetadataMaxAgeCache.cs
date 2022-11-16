@@ -50,7 +50,7 @@ namespace SqlStreamStore.Infrastructure
                 }
             }
 
-            var result = await _store.GetStreamMetadata(streamId, cancellationToken);
+            var result = await _store.GetStreamMetadata(streamId, cancellationToken).ConfigureAwait(false);
 
             cacheItem = new MaxAgeCacheItem(streamId, utcNow, result.MaxAge);
             _byStreamId.AddOrUpdate(streamId, cacheItem, (_, __) => cacheItem);

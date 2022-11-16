@@ -11,23 +11,25 @@ namespace SqlStreamStore.TestUtils.Postgres
     public class PostgresContainer : PostgresDatabaseManager
     {
         private readonly IContainerService _containerService;
-        private const string Image = "postgres:10.4-alpine";
         private const string ContainerName = "sql-stream-store-tests-postgres";
         private const int Port = 5432;
 
         public override string ConnectionString => ConnectionStringBuilder.ConnectionString;
 
-        public PostgresContainer(string databaseName)
+        public PostgresContainer(string databaseName, Version version)
             : base(databaseName)
         {
+            var v = $"{version.Major}.{version.Minor}";
+
             _containerService = new Builder()
                 .UseContainer()
-                .WithName(ContainerName)
-                .UseImage(Image)
+                .WithName($"{ContainerName}{v}")
+                .UseImage($"postgres:{v}")
                 .KeepRunning()
                 .ReuseIfExists()
+                .WithEnvironment("POSTGRES_PASSWORD=password")
                 .ExposePort(Port, Port)
-                .Command("-N", "500")
+                .Command("", "-c max_connections=500 -c shared_buffers=128MB")
                 .Build();
         }
 
@@ -50,14 +52,12 @@ namespace SqlStreamStore.TestUtils.Postgres
         private NpgsqlConnectionStringBuilder ConnectionStringBuilder => new NpgsqlConnectionStringBuilder
         {
             Database = DatabaseName,
-            Password = Environment.OSVersion.IsWindows()
-                ? "password"
-                : null,
+            Password = "password",
             Port = Port,
             Username = "postgres",
-            Host = "localhost",
+            Host = "127.0.0.1",
             Pooling = true,
-            MaxPoolSize = 1024
+            MaxPoolSize = 500
         };
     }
 }

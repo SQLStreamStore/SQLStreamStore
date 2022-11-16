@@ -10,80 +10,57 @@
     {
         public abstract Task Run(CancellationToken cancellationToken);
 
-        protected async Task<(IStreamStore, Action)> GetStore(CancellationToken cancellationToken)
+        protected async Task<(IStreamStore, Action, string)> GetStore(CancellationToken cancellationToken, string schema = "dbo")
         {
             IStreamStore streamStore = null;
             IDisposable disposable = null;
+            string connectionString = null;
 
             Output.WriteLine(ConsoleColor.Yellow, "Store type:");
             await new Menu()
                 .AddSync("InMem", () => streamStore = new InMemoryStreamStore())
-                .Add("MS SQL V2 (Docker)",
-                    async _ =>
-                    {
-                        var fixture = new MsSqlStreamStoreDb("dbo");
-                        Console.WriteLine(fixture.ConnectionString);
-                        streamStore = await fixture.GetStreamStore();
-                        disposable = fixture;
-                    })
-                .Add("MS SQL V3 (Docker)",
-                    async _ =>
-                    {
-                        var fixture = new MsSqlStreamStoreDbV3("dbo");
-                        Console.WriteLine(fixture.ConnectionString);
-                        streamStore = await fixture.GetStreamStore();
-                        disposable = fixture;
-                    })
-                .AddSync("MS SQL V3 (LocalDB)",
-                    () =>
-                    {
-                        var sqlLocalDb = new SqlLocalDb();
-                        Console.WriteLine(sqlLocalDb.ConnectionString);
-                        streamStore = sqlLocalDb.StreamStore;
-                        disposable = sqlLocalDb;
-                    })
-                .Add("MYSQL V3 (Docker)",
+                .Add("Postgres 9.6 (Docker)",
                     async ct =>
                     {
-                        var mysqlDb = new MySqlStreamStoreDb();
-                        streamStore = await mysqlDb.GetMySqlStreamStore();
-                        disposable = streamStore;
+                        var fixture = new PostgresStreamStoreDb(schema, new Version(9, 6));
+                        Console.WriteLine(fixture.ConnectionString);
+                        
+                        var gapHandlingInput = Input.ReadString("Use new gap handling (y/n): ");
+                        var newGapHandlingEnabled = gapHandlingInput.ToLower() == "y";
+
+                        await fixture.Start();
+                        streamStore = await fixture.GetPostgresStreamStore(newGapHandlingEnabled ? new GapHandlingSettings(6000, 12000) : null);
+                        disposable = fixture;
+                        connectionString = fixture.ConnectionString;
                     })
-                .Add("Postgres (Docker)",
+                .Add("Postgres 14.5 (Docker)",
                     async ct =>
                     {
-                        var fixture = new PostgresStreamStoreDb("dbo");
+                        var fixture = new PostgresStreamStoreDb(schema, new Version(14, 5));
                         Console.WriteLine(fixture.ConnectionString);
-                        streamStore = await fixture.GetPostgresStreamStore(true);
+                        
+                        var gapHandlingInput = Input.ReadString("Use new gap handling (y/n): ");
+                        var newGapHandlingEnabled = gapHandlingInput.ToLower() == "y";
+                        
+                        await fixture.Start();
+                        streamStore = await fixture.GetPostgresStreamStore(newGapHandlingEnabled ? new GapHandlingSettings(6000, 12000) : null);
                         disposable = fixture;
+                        connectionString = fixture.ConnectionString;
                     })
                 .Add("Postgres (Server)",
                     async ct =>
                     {
                         Console.Write("Enter the connection string: ");
-                        var connectionString = Console.ReadLine();
-                        var postgresStreamStoreDb = new PostgresStreamStoreDb("dbo", connectionString);
+                        connectionString = Console.ReadLine();
+                        var postgresStreamStoreDb = new PostgresStreamStoreDb("dbo", new Version(9, 6), connectionString);
                         Console.WriteLine(postgresStreamStoreDb.ConnectionString);
-                        streamStore = await postgresStreamStoreDb.GetPostgresStreamStore(true);
+                        
+                        var gapHandlingInput = Input.ReadString("Use new gap handling (y/n): ");
+                        var newGapHandlingEnabled = gapHandlingInput.ToLower() == "y";
+                        
+                        streamStore = await postgresStreamStoreDb.GetPostgresStreamStore(newGapHandlingEnabled ? new GapHandlingSettings(6000, 12000) : null);
                         disposable = postgresStreamStoreDb;
                     })
-                .Add("MySql (Docker)",
-                    async ct =>
-                    {
-                        var db = new MySqlStreamStoreDb();
-                        streamStore = await db.GetMySqlStreamStore();
-                        disposable = db;
-                    })
-                /*.Add("MySql (Server)",
-                    async ct =>
-                    {
-                        Console.Write("Enter the connection string: ");
-                        var connectionString = Console.ReadLine();
-                        var fixture = new MySqlStreamStoreDb(connectionString);
-                        Console.WriteLine(fixture.ConnectionString);
-                        streamStore = await fixture.GetMySqlStreamStore(true);
-                        disposable = fixture;
-                    })*/
                 .Display(cancellationToken);
 
             return (
@@ -92,7 +69,8 @@
                 {
                     streamStore.Dispose();
                     disposable?.Dispose();
-                });
+                },
+                connectionString);
         }
     }
 }

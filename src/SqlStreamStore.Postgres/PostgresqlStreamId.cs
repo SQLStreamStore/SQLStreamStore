@@ -22,7 +22,7 @@
             using(var sha1 = SHA1.Create())
             {
                 var hashBytes = sha1.ComputeHash(Encoding.UTF8.GetBytes(idOriginal));
-                return BitConverter.ToString(hashBytes).Replace("-", string.Empty);
+                return Convert.ToHexString(hashBytes);
             }
         }
 

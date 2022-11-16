@@ -27,8 +27,8 @@
                     AppendResult result;
                     var streamIdInfo = new StreamIdInfo(streamId);
 
-                    using(var connection = await OpenConnection(cancellationToken))
-                    using(var transaction = connection.BeginTransaction())
+                    using(var connection = await OpenConnection(cancellationToken).ConfigureAwait(false))
+                    using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
                     using(var command = BuildFunctionCommand(
                         _schema.AppendToStream,
                         transaction,

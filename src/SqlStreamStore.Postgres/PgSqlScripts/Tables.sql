@@ -21,7 +21,7 @@ CREATE INDEX IF NOT EXISTS ix_id_original_reversed
   ON __schema__.streams (REVERSE(id_original));
 
 COMMENT ON SCHEMA __schema__
-IS '{ "version": 2 }';
+IS '{ "version": 3 }';
 
 ALTER SEQUENCE __schema__.streams_seq
   OWNED BY __schema__.streams.id_internal;

@@ -48,7 +48,7 @@ DROP FUNCTION IF EXISTS __schema__.read(
   BOOLEAN,
   BOOLEAN
 ) CASCADE;
-DROP FUNCTION IF EXISTS __schema__.read_all(
+DROP FUNCTION IF EXISTS __schema__.read_all2(
   INT,
   BIGINT,
   BOOLEAN,

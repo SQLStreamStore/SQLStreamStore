@@ -105,7 +105,7 @@
         {
             if (FromPosition == Position.End)
             {
-                await Initialize();
+                await Initialize().ConfigureAwait(false);
             }
             _started.SetResult(null);
 
@@ -116,9 +116,9 @@
 
                 while (!pause)
                 {
-                    var page = await Pull();
+                    var page = await Pull().ConfigureAwait(false);
 
-                    await Push(page);
+                    await Push(page).ConfigureAwait(false);
 
                     if ((!lastHasCaughtUp.HasValue && page.IsEnd) ||
                        ((!lastHasCaughtUp.HasValue || lastHasCaughtUp.Value != page.IsEnd)

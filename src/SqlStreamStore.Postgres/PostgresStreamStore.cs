@@ -21,14 +21,14 @@
         private readonly Schema _schema;
         private readonly Lazy<IStreamStoreNotifier> _streamStoreNotifier;
 
-        public const int CurrentVersion = 2;
+        public const int CurrentVersion = 3;
 
         /// <summary>
         ///     Initializes a new instance of <see cref="PostgresStreamStore"/>
         /// </summary>
         /// <param name="settings">A settings class to configure this instance.</param>
         public PostgresStreamStore(PostgresStreamStoreSettings settings)
-            : base(settings.GetUtcNow, settings.LogName)
+            : base(settings.GetUtcNow, settings.LogName, settings.GapHandlingSettings)
         {
             _settings = settings;
             _createConnection = () => _settings.ConnectionFactory(_settings.ConnectionString);
@@ -78,14 +78,14 @@
             using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-                using(var transaction = connection.BeginTransaction())
+                using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
                 {
                     using(var command = BuildCommand($"CREATE SCHEMA IF NOT EXISTS {_settings.Schema}", transaction))
                     {
                         await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                     }
 
-                    using(var command = BuildCommand(_schema.Definition, transaction))
+                    using(var command = BuildCommand(_schema.Definition(_settings.Version), transaction))
                     {
                         await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
                     }
@@ -107,7 +107,7 @@
             using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-                using(var transaction = connection.BeginTransaction())
+                using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
                 using(var command = BuildCommand(_schema.DropAll, transaction))
                 {
                     await command
@@ -129,7 +129,7 @@
             using(var connection = _createConnection())
             {
                 await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-                using(var transaction = connection.BeginTransaction())
+                using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
                 using(var command = BuildFunctionCommand(_schema.ReadSchemaVersion, transaction))
                 {
                     var result = (int) await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
@@ -142,8 +142,8 @@
         private Func<CancellationToken, Task<string>> GetJsonData(PostgresqlStreamId streamId, int version)
             => async cancellationToken =>
             {
-                using(var connection = await OpenConnection(cancellationToken))
-                using(var transaction = connection.BeginTransaction())
+                using(var connection = await OpenConnection(cancellationToken).ConfigureAwait(false))
+                using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
                 using(var command = BuildFunctionCommand(
                     _schema.ReadJsonData,
                     transaction,
@@ -198,8 +198,8 @@
 
             try
             {
-                using(var connection = await OpenConnection(cancellationToken))
-                using(var transaction = connection.BeginTransaction())
+                using(var connection = await OpenConnection(cancellationToken).ConfigureAwait(false))
+                using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
                 {
                     var deletedMessageIds = new List<Guid>();
                     using(var command = BuildFunctionCommand(
@@ -257,7 +257,7 @@
         /// <returns>The database creation script.</returns>
         public string GetSchemaCreationScript()
         {
-            return _schema.Definition;
+            return _schema.Definition(_settings.Version);
         }
 
         /// <summary>
@@ -266,7 +266,7 @@
         /// <returns>The database creation script.</returns>
         public string GetMigrationScript()
         {
-            return _schema.Migration;
+            return _schema.Migration(_settings.Version);
         }
     }
 }

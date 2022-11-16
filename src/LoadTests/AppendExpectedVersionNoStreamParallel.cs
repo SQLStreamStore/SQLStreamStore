@@ -23,7 +23,7 @@
             Output.WriteLine(" - The more parallel tasks, the more chance of contention of writes to a stream.");
             Output.WriteLine("");
 
-            var (streamStore, dispose) = await GetStore(ct);
+            var (streamStore, dispose, _) = await GetStore(ct);
 
             try
             {
@@ -39,7 +39,6 @@
         {
             var numberOfStreams = 100;
             int parallelTasks = 16;
-            int numberOfMessagesToWrite = 100;
             //var numberOfStreams = Input.ReadInt("Number of streams: ", 1, 100000000);
 
             //int parallelTasks = Input.ReadInt(
@@ -63,7 +62,7 @@
 
             Queue<int> streamsToInsert = new Queue<int>(Enumerable.Range(0, numberOfStreams));
 
-            string jsonData = new string('a', messageJsonDataSize);
+            string jsonData = $@"{{""b"": ""{new string('a', messageJsonDataSize * 1024)}""}}";
             var stopwatch = Stopwatch.StartNew();
             for(int i = 0; i < parallelTasks; i++)
             {
@@ -81,7 +80,7 @@
                                     messageNumbers[j] = Interlocked.Increment(ref count);
                                 }
 
-                                var newmessages = MessageFactory
+                                var newMessages = MessageFactory
                                     .CreateNewStreamMessages(jsonData, messageNumbers);
 
                                 var info = $"{streamNumber}";
@@ -90,7 +89,7 @@
                                 await streamStore.AppendToStream(
                                     $"stream-{streamNumber}",
                                     ExpectedVersion.NoStream,
-                                    newmessages,
+                                    newMessages,
                                     ct);
                                 Log.Logger.Information($"End   {info}");
                                 Console.Write($"\r> {messageNumbers[numberOfMessagesPerAmend - 1]}");

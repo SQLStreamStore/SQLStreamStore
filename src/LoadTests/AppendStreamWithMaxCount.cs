@@ -16,7 +16,7 @@
             Output.WriteLine(ConsoleColor.Green, "Appends events to a single stream that has a maxCount.");
             Output.WriteLine("");
 
-            var (streamStore, dispose) = await GetStore(ct);
+            var (streamStore, dispose, _) = await GetStore(ct);
 
             try
             {
@@ -40,7 +40,7 @@
                     cancellationToken: ct);
 
                 var messageNumbers = new int[numberOfMessagesPerAmend];
-                string jsonData = new string('a', messageJsonDataSize * 1024);
+                string jsonData = $@"{{""b"": ""{new string('a', messageJsonDataSize * 1024)}""}}";
 
                 var stopwatch = Stopwatch.StartNew();
                 while(count < numberOfMessagesToWrite)

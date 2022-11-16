@@ -43,8 +43,14 @@
                     "Test gaps",
                     async ct => await new TestGaps().Run(ct))
                 .Add(
+                    "Test tailing",
+                    async ct => await new TestTailing().Run(ct))
+                .Add(
                     "Append Read Deadlocks",
                     async ct => await new AppendsReadsDeadlocks().Run(ct))
+                .Add(
+                    "Basic Read",
+                    async ct => await new BasicRead().Run(ct))
                 .Display(cts.Token);
 
             if(Debugger.IsAttached)

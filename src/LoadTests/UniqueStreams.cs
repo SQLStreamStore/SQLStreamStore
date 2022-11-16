@@ -21,7 +21,7 @@
             Output.WriteLine(" - The more parallel tasks, the more chance of contention of writes to a stream.");
             Output.WriteLine("");
 
-            var (streamStore, dispose) = await GetStore(ct);
+            var (streamStore, dispose, _) = await GetStore(ct);
 
             try
             {
@@ -41,7 +41,7 @@
 
             int numberOfMessagesPerAmend = Input.ReadInt("Number of messages per stream append: ", 1, 1000);
 
-            string jsonData = new string('a', messageJsonDataSize);
+            string jsonData = $@"{{""b"": ""{new string('a', messageJsonDataSize * 1024)}""}}";
 
             var stopwatch = Stopwatch.StartNew();
             var messageNumbers = new int[numberOfMessagesPerAmend];
@@ -56,13 +56,13 @@
                         messageNumbers[j] = count++;
                     }
 
-                    var newmessages = MessageFactory
+                    var newMessages = MessageFactory
                         .CreateNewStreamMessages(jsonData, messageNumbers);
 
                     await streamStore.AppendToStream(
                         $"stream-{i}",
                         ExpectedVersion.Any,
-                        newmessages,
+                        newMessages,
                         ct);
                     Console.Write($"\r> {messageNumbers[numberOfMessagesPerAmend - 1]}");
                 }

@@ -41,7 +41,7 @@ BEGIN
   RETURN NEXT _messages;
 
   OPEN _txinfo FOR	
-  SELECT pg_snapshot_xip(pg_current_snapshot());
+  SELECT txid_snapshot_xip(txid_current_snapshot());
   RETURN NEXT _txinfo;
 
 END;

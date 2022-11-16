@@ -16,20 +16,20 @@
         {
             var streamIdInfo = new StreamIdInfo(streamId);
 
-            using(var connection = await OpenConnection(cancellationToken))
-            using(var transaction = connection.BeginTransaction())
+            using(var connection = await OpenConnection(cancellationToken).ConfigureAwait(false))
+            using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
             {
                 await DeleteStreamInternal(
                     streamIdInfo.PostgresqlStreamId,
                     expectedVersion,
                     transaction,
-                    cancellationToken);
+                    cancellationToken).ConfigureAwait(false);
 
                 await DeleteStreamInternal(
                     streamIdInfo.MetadataPosgresqlStreamId,
                     ExpectedVersion.Any,
                     transaction,
-                    cancellationToken);
+                    cancellationToken).ConfigureAwait(false);
 
                 await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             }
@@ -76,10 +76,10 @@
         {
             var streamIdInfo = new StreamIdInfo(streamId);
 
-            using(var connection = await OpenConnection(cancellationToken))
-            using(var transaction = connection.BeginTransaction())
+            using(var connection = await OpenConnection(cancellationToken).ConfigureAwait(false))
+            using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
             {
-                await DeleteEventsInternal(streamIdInfo, new[] { eventId }, transaction, cancellationToken);
+                await DeleteEventsInternal(streamIdInfo, new[] { eventId }, transaction, cancellationToken).ConfigureAwait(false);
 
                 await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             }

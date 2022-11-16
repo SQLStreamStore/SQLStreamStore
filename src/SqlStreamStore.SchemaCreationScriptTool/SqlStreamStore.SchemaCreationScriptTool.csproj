@@ -17,15 +17,12 @@
     <None Include="..\..\assets\sqlstreamstore-logo.png" Pack="true" PackagePath="/" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\SqlStreamStore.MsSql\SqlStreamStore.MsSql.csproj" />
-    <ProjectReference Include="..\SqlStreamStore.MySql\SqlStreamStore.MySql.csproj" />
     <ProjectReference Include="..\SqlStreamStore.Postgres\SqlStreamStore.Postgres.csproj" />
     <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />
   </ItemGroup>
   <ItemGroup>
     <PackageReference Include="McMaster.Extensions.CommandLineUtils" Version="4.0.1" />
-    <PackageReference Include="Serilog" Version="2.11.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="4.0.1" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.8.3" />
+    <PackageReference Include="Serilog" Version="2.12.0" />
+    <PackageReference Include="Serilog.Sinks.Console" Version="4.1.0" />
   </ItemGroup>
 </Project>

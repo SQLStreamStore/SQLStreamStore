@@ -14,10 +14,10 @@
         {
             var streamIdInfo = new StreamIdInfo(streamId);
 
-            using(var connection = await OpenConnection(cancellationToken))
-            using(var transaction = connection.BeginTransaction())
+            using(var connection = await OpenConnection(cancellationToken).ConfigureAwait(false))
+            using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
             {
-                return await GetStreamMetadataInternal(streamIdInfo, transaction, cancellationToken);
+                return await GetStreamMetadataInternal(streamIdInfo, transaction, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -34,14 +34,14 @@
                 true,
                 null,
                 transaction,
-                cancellationToken);
+                cancellationToken).ConfigureAwait(false);
 
             if(page.Status == PageReadStatus.StreamNotFound)
             {
                 return new StreamMetadataResult(streamIdInfo.PostgresqlStreamId.IdOriginal, -1);
             }
 
-            var metadataMessage = await page.Messages[0].GetJsonDataAs<MetadataMessage>(cancellationToken);
+            var metadataMessage = await page.Messages[0].GetJsonDataAs<MetadataMessage>(cancellationToken).ConfigureAwait(false);
 
             return new StreamMetadataResult(
                 streamIdInfo.PostgresqlStreamId.IdOriginal,
@@ -71,8 +71,8 @@
 
             var streamIdInfo = new StreamIdInfo(streamId);
 
-            using(var connection = await OpenConnection(cancellationToken))
-            using(var transaction = connection.BeginTransaction())
+            using(var connection = await OpenConnection(cancellationToken).ConfigureAwait(false))
+            using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
             using(var command = BuildFunctionCommand(
                 _schema.SetStreamMetadata,
                 transaction,
@@ -93,7 +93,7 @@
                 await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             }
 
-            await TryScavenge(streamIdInfo, cancellationToken);
+            await TryScavenge(streamIdInfo, cancellationToken).ConfigureAwait(false);
 
             return new SetStreamMetadataResult(currentVersion);
         }

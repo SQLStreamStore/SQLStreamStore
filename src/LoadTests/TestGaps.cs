@@ -6,7 +6,6 @@
     using System.Threading;
     using System.Threading.Tasks;
     using EasyConsole;
-    using Microsoft.Data.SqlClient;
     using SqlStreamStore;
     using SqlStreamStore.Streams;
 
@@ -18,7 +17,7 @@
             Output.WriteLine(ConsoleColor.Green, "Appends events to streams and reads them all back in a single task.");
             Output.WriteLine("");
 
-            var (streamStore, dispose) = await GetStore(ct);
+            var (streamStore, dispose, _) = await GetStore(ct);
 
             try
             {
@@ -28,8 +27,7 @@
 
                 int readPageSize = Input.ReadInt("Read page size: ", 1, 10000);
 
-                string jsonData = new string('a', messageJsonDataSize * 1024);
-
+                string jsonData = $@"{{""b"": ""{new string('a', messageJsonDataSize * 1024)}""}}";
 
                 var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(ct);
                 for(int i = 0; i < 10; i++)
@@ -54,6 +52,7 @@
                 await Task.WhenAll(list);
 
                 Output.WriteLine("Writes finished");
+                await Task.Delay(10000, ct);
                 linkedToken.Cancel();
 
                 await WriteActualGaps(ct, streamStore);
@@ -168,19 +167,15 @@
                         messageNumbers[j] = count++;
                     }
 
-                    var newmessages = MessageFactory
+                    var newMessages = MessageFactory
                         .CreateNewStreamMessages(jsonData, messageNumbers);
 
                     await streamStore.AppendToStream(
                         $"stream-{i + offset}",
                         ExpectedVersion.Any,
-                        newmessages,
+                        newMessages,
                         ct);
                     //Console.Write($"> {messageNumbers[numberOfMessagesPerAmend - 1]}");
-                }
-                catch(SqlException ex) when(ex.Number == -2)
-                {
-                    // just timeout
                 }
                 catch(Exception ex) when(!(ex is TaskCanceledException))
                 {

@@ -16,7 +16,7 @@
         public static async Task<T> GetJsonDataAs<T>(this StreamMessage streamMessage,
             CancellationToken cancellationToken = default)
         {
-            return SimpleJson.DeserializeObject<T>(await streamMessage.GetJsonData(cancellationToken));
+            return SimpleJson.DeserializeObject<T>(await streamMessage.GetJsonData(cancellationToken).ConfigureAwait(false));
         }
 
         /// <summary>

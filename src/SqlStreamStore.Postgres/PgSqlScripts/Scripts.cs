@@ -35,6 +35,7 @@
         private string ListStreams => GetScript(nameof(ListStreams));
         private string ListStreamsStartingWith => GetScript(nameof(ListStreamsStartingWith));
         private string ListStreamsEndingWith => GetScript(nameof(ListStreamsEndingWith));
+        private string ReadAllOld => GetScript(nameof(ReadAllOld));
         private string ReadAll => GetScript(nameof(ReadAll));
 
         private string Read => GetScript(nameof(Read));
@@ -45,6 +46,9 @@
 
         private string ReadStreamHeadPosition => GetScript(nameof(ReadStreamHeadPosition));
 
+        private string ReadAnyTransactionsInProgress => GetScript(nameof(ReadAnyTransactionsInProgress));
+        private string ReadAnyTransactionsInProgressOld => GetScript(nameof(ReadAnyTransactionsInProgressOld));
+
         private string ReadStreamHeadVersion => GetScript(nameof(ReadStreamHeadVersion));
 
         private string ReadSchemaVersion => GetScript(nameof(ReadSchemaVersion));
@@ -54,10 +58,9 @@
         private string Scavenge => GetScript(nameof(Scavenge));
 
         private string SetStreamMetadata => GetScript(nameof(SetStreamMetadata));
+        public string Migration(Version version) => version < new Version("13.0") ? GetScript("MigrationOld") : GetScript("Migration");
 
-        public string Migration => GetScript(nameof(Migration));
-
-        public string CreateSchema => string.Join(
+        public string CreateSchema(Version version) => string.Join(
             Environment.NewLine,
             Tables,
             AppendToStream,
@@ -68,13 +71,14 @@
             ListStreamsStartingWith,
             ListStreamsEndingWith,
             Read,
-            ReadAll,
+            version < new Version("13.0") ? ReadAllOld : ReadAll,
             ReadJsonData,
             ReadHeadPosition,
             ReadStreamHeadPosition,
             ReadStreamHeadVersion,
             ReadSchemaVersion,
             ReadStreamVersionOfMessageId,
+            version < new Version("13.0") ? ReadAnyTransactionsInProgressOld : ReadAnyTransactionsInProgress,
             Scavenge,
             SetStreamMetadata);
 

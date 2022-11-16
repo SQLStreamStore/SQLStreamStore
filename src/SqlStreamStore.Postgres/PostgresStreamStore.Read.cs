@@ -2,6 +2,7 @@
 {
     using System;
     using System.Collections.Generic;
+    using System.Collections.ObjectModel;
     using System.Data;
     using System.Data.Common;
     using System.Linq;
@@ -31,9 +32,9 @@
             // To read backwards from end, need to use int MaxValue
             var streamVersion = start == StreamVersion.End ? int.MaxValue : start;
 
-            var messages = new List<(StreamMessage message, int? maxAge)>();
+            var messages = new List<StreamMessage>();
 
-            Func<List<StreamMessage>, int, int> getNextVersion;
+            Func<ReadOnlyCollection<StreamMessage>, int, int> getNextVersion;
 
             if(direction == ReadDirection.Forward)
             {
@@ -62,17 +63,14 @@
 
             var refcursorSql = new StringBuilder();
 
-            using(var command = BuildFunctionCommand(
-                _schema.Read,
-                transaction,
-                Parameters.StreamId(streamId),
-                Parameters.Count(count + 1),
-                Parameters.Version(streamVersion),
-                Parameters.ReadDirection(direction),
-                Parameters.Prefetch(prefetch)))
-            using(var reader = await command
-                .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
-                .ConfigureAwait(false))
+            using(var command = BuildFunctionCommand(_schema.Read,
+                      transaction,
+                      Parameters.StreamId(streamId),
+                      Parameters.Count(count + 1),
+                      Parameters.Version(streamVersion),
+                      Parameters.ReadDirection(direction),
+                      Parameters.Prefetch(prefetch)))
+            using(var reader = await command.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken).ConfigureAwait(false))
             {
                 while(await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
@@ -81,22 +79,11 @@
             }
 
             using(var command = new NpgsqlCommand(refcursorSql.ToString(), transaction.Connection, transaction))
-            using(var reader = await command
-                .ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken)
-                .ConfigureAwait(false))
+            using(var reader = await command.ExecuteReaderAsync(CommandBehavior.SequentialAccess, cancellationToken).ConfigureAwait(false))
             {
                 if(!reader.HasRows)
                 {
-                    return new ReadStreamPage(
-                        streamId.IdOriginal,
-                        PageReadStatus.StreamNotFound,
-                        start,
-                        -1,
-                        -1,
-                        -1,
-                        direction,
-                        true,
-                        readNext);
+                    return new ReadStreamPage(streamId.IdOriginal, PageReadStatus.StreamNotFound, start, -1, -1, -1, direction, true, readNext);
                 }
 
                 if(messages.Count == count)
@@ -114,7 +101,7 @@
 
                 while(await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
-                    messages.Add((await ReadStreamMessage(reader, streamId, prefetch), maxAge));
+                    messages.Add(await ReadStreamMessage(reader, streamId, prefetch).ConfigureAwait(false));
                 }
 
                 var isEnd = true;
@@ -125,10 +112,13 @@
                     messages.RemoveAt(count);
                 }
 
-                var filteredMessages = FilterExpired(messages);
+                var readOnlyMessages = messages.AsReadOnly();
 
-                return new ReadStreamPage(
-                    streamId.IdOriginal,
+                var filteredMessages = maxAge.HasValue
+                    ? FilterExpired(readOnlyMessages, new ReadOnlyDictionary<string, int>(new Dictionary<string, int> { { streamId.IdOriginal, maxAge.Value } }))
+                    : readOnlyMessages;
+
+                return new ReadStreamPage(streamId.IdOriginal,
                     PageReadStatus.Success,
                     start,
                     getNextVersion(filteredMessages, lastVersion),
@@ -141,27 +131,14 @@
             }
         }
 
-        protected override async Task<ReadStreamPage> ReadStreamForwardsInternal(
-            string streamId,
-            int start,
-            int count,
-            bool prefetch,
-            ReadNextStreamPage readNext,
-            CancellationToken cancellationToken)
+        protected override async Task<ReadStreamPage> ReadStreamForwardsInternal(string streamId, int start, int count, bool prefetch, ReadNextStreamPage readNext, CancellationToken cancellationToken)
         {
             var streamIdInfo = new StreamIdInfo(streamId);
 
-            using(var connection = await OpenConnection(cancellationToken))
-            using(var transaction = connection.BeginTransaction())
+            using(var connection = await OpenConnection(cancellationToken).ConfigureAwait(false))
+            using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
             {
-                return await ReadStreamInternal(streamIdInfo.PostgresqlStreamId,
-                    start,
-                    count,
-                    ReadDirection.Forward,
-                    prefetch,
-                    readNext,
-                    transaction,
-                    cancellationToken);
+                return await ReadStreamInternal(streamIdInfo.PostgresqlStreamId, start, count, ReadDirection.Forward, prefetch, readNext, transaction, cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -175,24 +152,15 @@
         {
             var streamIdInfo = new StreamIdInfo(streamId);
 
-            using(var connection = await OpenConnection(cancellationToken))
-            using(var transaction = connection.BeginTransaction())
+            using(var connection = await OpenConnection(cancellationToken).ConfigureAwait(false))
+            using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
             {
-                return await ReadStreamInternal(streamIdInfo.PostgresqlStreamId,
-                    fromVersionInclusive,
-                    count,
-                    ReadDirection.Backward,
-                    prefetch,
-                    readNext,
-                    transaction,
-                    cancellationToken);
+                return await ReadStreamInternal(streamIdInfo.PostgresqlStreamId, fromVersionInclusive, count, ReadDirection.Backward, prefetch, readNext, transaction, cancellationToken)
+                    .ConfigureAwait(false);
             }
         }
 
-        private async Task<StreamMessage> ReadStreamMessage(
-            DbDataReader reader,
-            PostgresqlStreamId streamId,
-            bool prefetch)
+        private async Task<StreamMessage> ReadStreamMessage(DbDataReader reader, PostgresqlStreamId streamId, bool prefetch)
         {
             async Task<string> ReadString(int ordinal)
             {
@@ -212,37 +180,20 @@
             var position = reader.GetInt64(3);
             var createdUtc = reader.GetDateTime(4);
             var type = reader.GetString(5);
-            var jsonMetadata = await ReadString(6);
+            var jsonMetadata = await ReadString(6).ConfigureAwait(false);
 
             if(prefetch)
             {
-                return new StreamMessage(
-                    streamId.IdOriginal,
-                    messageId,
-                    streamVersion,
-                    position,
-                    createdUtc,
-                    type,
-                    jsonMetadata,
-                    await ReadString(7));
+                return new StreamMessage(streamId.IdOriginal, messageId, streamVersion, position, createdUtc, type, jsonMetadata, await ReadString(7).ConfigureAwait(false));
             }
 
-            return
-                new StreamMessage(
-                    streamId.IdOriginal,
-                    messageId,
-                    streamVersion,
-                    position,
-                    createdUtc,
-                    type,
-                    jsonMetadata,
-                    ct => GetJsonData(streamId, streamVersion)(ct));
+            return new StreamMessage(streamId.IdOriginal, messageId, streamVersion, position, createdUtc, type, jsonMetadata, ct => GetJsonData(streamId, streamVersion)(ct));
         }
 
         protected override async Task<long> ReadHeadPositionInternal(CancellationToken cancellationToken)
         {
-            using(var connection = await OpenConnection(cancellationToken))
-            using(var transaction = connection.BeginTransaction())
+            using(var connection = await OpenConnection(cancellationToken).ConfigureAwait(false))
+            using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
             using(var command = BuildFunctionCommand(_schema.ReadAllHeadPosition, transaction))
             {
                 var result = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
@@ -253,8 +204,8 @@
 
         protected override async Task<long> ReadStreamHeadPositionInternal(string streamId, CancellationToken cancellationToken)
         {
-            using(var connection = await OpenConnection(cancellationToken))
-            using(var transaction = connection.BeginTransaction())
+            using(var connection = await OpenConnection(cancellationToken).ConfigureAwait(false))
+            using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
             using(var command = BuildFunctionCommand(_schema.ReadStreamHeadPosition, transaction, Parameters.StreamId(new PostgresqlStreamId(streamId))))
             {
                 var result = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
@@ -265,8 +216,8 @@
 
         protected override async Task<int> ReadStreamHeadVersionInternal(string streamId, CancellationToken cancellationToken)
         {
-            using(var connection = await OpenConnection(cancellationToken))
-            using(var transaction = connection.BeginTransaction())
+            using(var connection = await OpenConnection(cancellationToken).ConfigureAwait(false))
+            using(var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
             using(var command = BuildFunctionCommand(_schema.ReadStreamHeadVersion, transaction, Parameters.StreamId(new PostgresqlStreamId(streamId))))
             {
                 var result = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);

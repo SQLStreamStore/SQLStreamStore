@@ -95,8 +95,8 @@ namespace SqlStreamStore
             {
                 appendResult = AppendToStreamInternal(streamId, expectedVersion, messages);
             }
-            var meta = await GetStreamMetadataInternal(streamId, cancellationToken);
-            await CheckStreamMaxCount(streamId, meta.MaxCount, cancellationToken);
+            var meta = await GetStreamMetadataInternal(streamId, cancellationToken).ConfigureAwait(false);
+            await CheckStreamMaxCount(streamId, meta.MaxCount, cancellationToken).ConfigureAwait(false);
             return appendResult;
         }
 
@@ -104,19 +104,19 @@ namespace SqlStreamStore
         {
             if (maxCount.HasValue)
             {
-                var count = await GetStreamMessageCount(streamId, cancellationToken);
+                var count = await GetStreamMessageCount(streamId, cancellationToken).ConfigureAwait(false);
                 if (count > maxCount.Value)
                 {
                     int toPurge = count - maxCount.Value;
 
                     var streamMessagesPage = await ReadStreamForwardsInternal(streamId, StreamVersion.Start,
-                        toPurge, false, null, cancellationToken);
+                        toPurge, false, null, cancellationToken).ConfigureAwait(false);
 
                     if (streamMessagesPage.Status == PageReadStatus.Success)
                     {
                         foreach (var message in streamMessagesPage.Messages)
                         {
-                            await DeleteEventInternal(streamId, message.MessageId, cancellationToken);
+                            await DeleteEventInternal(streamId, message.MessageId, cancellationToken).ConfigureAwait(false);
                         }
                     }
                 }
@@ -198,14 +198,14 @@ namespace SqlStreamStore
                 string metaStreamId = $"$${streamId}";
 
                 var eventsPage = await ReadStreamBackwardsInternal(metaStreamId, StreamVersion.End,
-                    1, true, null, cancellationToken);
+                    1, true, null, cancellationToken).ConfigureAwait(false);
 
                 if (eventsPage.Status == PageReadStatus.StreamNotFound)
                 {
                     return new StreamMetadataResult(streamId, -1);
                 }
 
-                var metadataMessage = await eventsPage.Messages[0].GetJsonDataAs<MetadataMessage>(cancellationToken);
+                var metadataMessage = await eventsPage.Messages[0].GetJsonDataAs<MetadataMessage>(cancellationToken).ConfigureAwait(false);
 
                 return new StreamMetadataResult(
                     streamId,
@@ -241,7 +241,7 @@ namespace SqlStreamStore
 
                 var result = AppendToStreamInternal(metaStreamId, expectedStreamMetadataVersion, new[] { newStreamMessage });
 
-                await CheckStreamMaxCount(streamId, metadataMessage.MaxCount, cancellationToken);
+                await CheckStreamMaxCount(streamId, metadataMessage.MaxCount, cancellationToken).ConfigureAwait(false);
 
                 return new SetStreamMetadataResult(result.CurrentVersion);
             }

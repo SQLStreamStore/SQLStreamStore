@@ -15,7 +15,7 @@
             Output.WriteLine(ConsoleColor.Green, "Appends events to streams and reads them all back in a single task.");
             Output.WriteLine("");
 
-            var (streamStore, dispose) = await GetStore(ct);
+            var (streamStore, dispose, _) = await GetStore(ct);
 
             try
             {

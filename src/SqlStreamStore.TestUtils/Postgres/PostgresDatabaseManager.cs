@@ -51,7 +51,7 @@ namespace SqlStreamStore.TestUtils.Postgres
 
             using(var command = new NpgsqlCommand(commandText, connection))
             {
-                return await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false)
+                return await command.ExecuteScalarAsync(cancellationToken)
                        != null;
             }
         }
@@ -62,7 +62,7 @@ namespace SqlStreamStore.TestUtils.Postgres
 
             using(var command = new NpgsqlCommand(commandText, connection))
             {
-                await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                await command.ExecuteNonQueryAsync(cancellationToken);
             }
         }
 

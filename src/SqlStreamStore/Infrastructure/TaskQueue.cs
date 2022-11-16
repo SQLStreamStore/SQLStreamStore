@@ -55,7 +55,7 @@
         {
             var task = Enqueue(async ct =>
             {
-                await function(ct);
+                await function(ct).ConfigureAwait(false);
                 return true;
             });
             return task;
@@ -90,7 +90,7 @@
                 }
                 try
                 {
-                    var result = await function(_isDisposed.Token);
+                    var result = await function(_isDisposed.Token).ConfigureAwait(false);
                     tcs.SetResult(result);
                 }
                 catch (OperationCanceledException)
@@ -116,7 +116,7 @@
             {
                 if (_taskQueue.TryDequeue(out Func<Task> function))
                 {
-                    await function();
+                    await function().ConfigureAwait(false);
                 }
                 _isProcessing.Set(false);
             } while( _taskQueue.Count > 0 && _isProcessing.CompareExchange(true, false) == false);

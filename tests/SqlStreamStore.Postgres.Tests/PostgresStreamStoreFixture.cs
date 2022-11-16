@@ -13,17 +13,19 @@ namespace SqlStreamStore
         private readonly PostgresStreamStoreSettings _settings;
 
         public PostgresStreamStoreFixture(
+            Version version,
             string schema,
             PostgresContainer dockerInstance,
             string databaseName,
-            Action onDispose)
+            Action onDispose,
+            GapHandlingSettings gapHandlingSettings)
         {
             _onDispose = onDispose;
 
             DatabaseName = databaseName;
             var connectionString = dockerInstance.ConnectionString;
 
-            _settings = new PostgresStreamStoreSettings(connectionString)
+            _settings = new PostgresStreamStoreSettings(connectionString, version, gapHandlingSettings)
             {
                 Schema = schema,
                 GetUtcNow = () => GetUtcNow(),

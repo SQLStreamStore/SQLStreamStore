@@ -1,3 +1,6 @@
+COMMENT ON SCHEMA __schema__ IS '{ "version": 3 }';
+
+DROP FUNCTION __schema__.read_all2(int4, int8, bool, bool);
 CREATE OR REPLACE FUNCTION __schema__.read_all2(
   _count    INT,
   _position BIGINT,
@@ -41,9 +44,31 @@ BEGIN
   RETURN NEXT _messages;
 
   OPEN _txinfo FOR	
-  SELECT pg_snapshot_xip(pg_current_snapshot());
+  SELECT txid_snapshot_xip(txid_current_snapshot());
   RETURN NEXT _txinfo;
 
+END;
+$F$
+LANGUAGE 'plpgsql';
+
+
+CREATE OR REPLACE FUNCTION __schema__.read_any_transactions_in_progress(
+    _datname NAME,
+    _txids   BIGINT[]
+)
+  RETURNS BOOLEAN
+AS $F$
+BEGIN
+  RETURN (
+  SELECT EXISTS(
+    SELECT 1 
+    FROM pg_stat_activity AS activity
+    INNER JOIN (
+        SELECT txid_snapshot_xip(txid_current_snapshot()) AS txid
+    ) AS in_progress_txs 
+    ON activity.backend_xid::TEXT::BIGINT = in_progress_txs.txid
+    WHERE datname = _datname AND in_progress_txs.txid = ANY(_txids))
+  );
 END;
 $F$
 LANGUAGE 'plpgsql';

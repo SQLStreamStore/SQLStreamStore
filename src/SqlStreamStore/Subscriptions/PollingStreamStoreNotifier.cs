@@ -56,7 +56,7 @@
             {
                 try
                 {
-                    headPosition = await _readHeadPosition(_disposed.Token);
+                    headPosition = await _readHeadPosition(_disposed.Token).ConfigureAwait(false);
                     if(s_logger.IsTraceEnabled())
                     {
                         s_logger.TraceFormat("Polling head position {headPosition}. Previous {previousHeadPosition}",
@@ -76,7 +76,7 @@
                 }
                 else
                 {
-                    await Task.Delay(_interval, _disposed.Token);
+                    await Task.Delay(_interval, _disposed.Token).ConfigureAwait(false);
                 }
             }
         }

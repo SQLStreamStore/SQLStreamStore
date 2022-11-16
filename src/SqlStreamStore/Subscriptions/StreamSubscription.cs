@@ -113,7 +113,7 @@
             }
             else if (_continueAfterVersion.Value == StreamVersion.End)
             {
-                await Initialize();
+                await Initialize().ConfigureAwait(false);
             }
             else
             {
@@ -129,9 +129,9 @@
 
                 while (!pause)
                 {
-                    var page = await Pull();
+                    var page = await Pull().ConfigureAwait(false);
 
-                    await Push(page);
+                    await Push(page).ConfigureAwait(false);
 
                     if ((!lastHasCaughtUp.HasValue && page.IsEnd) ||
                         ((!lastHasCaughtUp.HasValue || lastHasCaughtUp.Value != page.IsEnd)))

@@ -1,5 +1,7 @@
 # SQL Stream Store ![CI](https://github.com/SQLStreamStore/SQLStreamStore/workflows/CI/badge.svg) [![release](https://img.shields.io/github/release/SQLStreamStore/SQLStreamStore.svg)](https://github.com/SQLStreamStore/SQLStreamStore/releases) [![license](https://img.shields.io/github/license/SQLStreamStore/SQLStreamStore.svg)](LICENSE) ![code size](https://img.shields.io/github/languages/code-size/SQLStreamStore/SQLStreamStore.svg) [![docs status](https://img.shields.io/readthedocs/sqlstreamstore.svg?logo=readthedocs&style=popout)](https://sqlstreamstore.readthedocs.io) [<img src="https://img.shields.io/badge/slack-DDD--CQRS--ES%20%23sql--stream--store-yellow.svg?logo=slack">](https://t.co/MRxpx0rLH2)
 
+:warning: These libraries are no longer actively maintained.
+
 A stream store library for .NET that specifically targets SQL based implementations. Primarily used to implement Event Sourced applications.
 
 | Package | Install |

@@ -17,6 +17,10 @@ RUN apt-get update \
 
 WORKDIR /repo
 
+# https://stackoverflow.com/questions/73485958/how-to-correct-git-reporting-detected-dubious-ownership-in-repository-withou
+# https://stackoverflow.com/questions/72967326/visual-studio-2022-warningminver1001not-a-valid-git-working-directory-using
+RUN git config --global safe.directory '*'
+
 # https://github.com/moby/moby/issues/15858
 # Docker will flatten out the file structure on COPY
 # We don't want to specify each csproj either - it creates pointless layers and it looks ugly

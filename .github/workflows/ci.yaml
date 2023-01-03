@@ -19,12 +19,12 @@ jobs:
     name: Test ${{ matrix.test }}
     services:
       postgres:
-        image: postgres:14.5-alpine
+        image: postgres:14-alpine
         env:
           POSTGRES_PASSWORD: password
         ports:
           - 5432:5432
-        options: --name sql-stream-store-tests-postgres14.5
+        options: --name sql-stream-store-tests-postgres
 
     steps:
       - name: Checkout

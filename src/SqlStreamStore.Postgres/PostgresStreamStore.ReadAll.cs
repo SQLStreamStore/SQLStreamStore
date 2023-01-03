@@ -286,7 +286,7 @@
                     await reader.NextResultAsync(cancellationToken).ConfigureAwait(false);
                     while(await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                     {
-                        transactionIdsInProgress.Add(await reader.GetFieldValueAsync<long>(0, cancellationToken).ConfigureAwait(false));
+                        transactionIdsInProgress.Add(await reader.GetFieldValueAsync<ulong>(0, cancellationToken).ConfigureAwait(false));
                     }
 
                     Logger.TraceFormat("Correlation: {correlation} | Query 'ReadAllForwards' took: {timeTaken}ms", correlation, sw.ElapsedMilliseconds);

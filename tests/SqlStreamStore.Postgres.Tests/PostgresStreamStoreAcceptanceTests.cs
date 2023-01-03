@@ -1,6 +1,5 @@
 ﻿namespace SqlStreamStore
 {
-    using System;
     using System.Threading.Tasks;
     using Shouldly;
     using SqlStreamStore.PgSqlScripts;
@@ -20,12 +19,12 @@
         }
 
         protected override async Task<IStreamStoreFixture> CreateFixture()
-            => await _fixturePool.Get(TestOutputHelper, new Version(14, 5));
+            => await _fixturePool.Get(TestOutputHelper);
 
         [Fact]
         public async Task Can_check_schema()
         {
-            using(var fixture = await _fixturePool.Get(TestOutputHelper, new Version(14, 5)))
+            using(var fixture = await _fixturePool.Get(TestOutputHelper))
             {
                 var result = await fixture.PostgresStreamStore.CheckSchema();
 
@@ -38,11 +37,10 @@
         public async Task Can_export_database_migration_script()
         {
             var schema = "custom_schema";
-            var version = new Version(14, 5);
-            using(var fixture = await _fixturePool.Get(TestOutputHelper, version, schema))
+            using(var fixture = await _fixturePool.Get(TestOutputHelper, schema))
             {
                 var sqlScript = fixture.PostgresStreamStore.GetMigrationScript();
-                sqlScript.ShouldBe(new Scripts(schema).Migration(version));
+                sqlScript.ShouldBe(new Scripts(schema).Migration);
             }
         }
 

@@ -1,6 +1,5 @@
 ﻿namespace SqlStreamStore
 {
-    using System;
     using Npgsql;
     using SqlStreamStore.Imports.Ensure.That;
     using SqlStreamStore.Infrastructure;
@@ -9,42 +8,59 @@
     public class PostgresStreamStoreSettings
     {
         private string _schema = "public";
-        private Func<string, NpgsqlConnection> _connectionFactory;
         private GetUtcNow _getUtcNow = SystemClock.GetUtcNow;
 
         /// <summary>
         /// Initializes a new instance of <see cref="PostgresStreamStoreSettings"/>.
         /// </summary>
         /// <param name="connectionString">The connection string.</param>
-        /// <param name="version">Postgres server version</param>
         /// <param name="gapHandlingSettings">Settings that are used for gap handling</param>
-        public PostgresStreamStoreSettings(
-            string connectionString,
-            Version version,
-            GapHandlingSettings gapHandlingSettings = null)
+        public PostgresStreamStoreSettings(string connectionString, GapHandlingSettings gapHandlingSettings = null)
+            : this(gapHandlingSettings)
         {
             Ensure.That(connectionString, nameof(connectionString)).IsNotNullOrWhiteSpace();
-            Ensure.That(version, nameof(version)).IsNotNull();
-
-            ConnectionString = connectionString;
-            GapHandlingSettings = gapHandlingSettings;
-            Version = version;
+            DataSource = new NpgsqlDataSourceBuilder(connectionString)
+                .AddPostgresStreamStoreTypes()
+                .Build();
+            InternalManagedDataSource = true;
         }
 
         /// <summary>
-        ///     Gets the connection string.
+        /// Initializes a new instance of <see cref="PostgresStreamStoreSettings"/>.
         /// </summary>
-        public string ConnectionString { get; }
+        /// <param name="dataSource">DataSource for db connection. Make sure you AddPostgresStreamStoreTypes() when building the DataSource</param>
+        /// <param name="gapHandlingSettings">Settings that are used for gap handling</param>
+        public PostgresStreamStoreSettings(NpgsqlDataSource dataSource, GapHandlingSettings gapHandlingSettings = null)
+            : this(gapHandlingSettings)
+        {
+            Ensure.That(dataSource, nameof(dataSource)).IsNotNull();
+            DataSource = dataSource;
+        }
+
+        /// <summary>
+        /// Initializes a new instance of <see cref="PostgresStreamStoreSettings"/>.
+        /// </summary>
+        /// <param name="gapHandlingSettings">Settings that are used for gap handling</param>
+        private PostgresStreamStoreSettings(
+            GapHandlingSettings gapHandlingSettings = null)
+        {
+            GapHandlingSettings = gapHandlingSettings;
+        }
+
+        /// <summary>
+        /// DataSource for all connection
+        /// </summary>
+        internal NpgsqlDataSource DataSource { get; }
+
+        /// <summary>
+        /// Represent information if the DataSource was external provided or not
+        /// </summary>
+        internal bool InternalManagedDataSource { get; }
 
         /// <summary>
         ///    Settings that are used for gap handling.
         /// </summary>
         public GapHandlingSettings GapHandlingSettings { get; }
-        
-        /// <summary>
-        ///    Postgres server version
-        /// </summary>
-        public Version Version { get; }
 
         /// <summary>
         ///     Allows overriding of the stream store notifier. The default implementation
@@ -92,21 +108,6 @@
         ///     This does not effect scavenging when setting a stream's metadata - it is always run in the same transaction.
         /// </summary>
         public bool ScavengeAsynchronously { get; set; } = true;
-
-        /// <summary>
-        ///     Allows overriding the way a <see cref="NpgsqlConnection"/> is created given a connection string.
-        ///     The default implementation simply passes the connection string into the <see cref="NpgsqlConnection"/> constructor.
-        /// </summary>
-        public Func<string, NpgsqlConnection> ConnectionFactory
-        {
-            get => _connectionFactory
-                   ?? (_connectionFactory = connectionString => new NpgsqlConnection(connectionString));
-            set
-            {
-                Ensure.That(value, nameof(value)).IsNotNull();
-                _connectionFactory = value;
-            }
-        }
 
         /// <summary>
         ///     Disables stream and message deletion tracking. Will increase

@@ -24,8 +24,8 @@
             var messages = new List<NewStreamMessage>();
             for(int i = 0; i < count; i++)
             {
-                var mwssageNumber = startId + i;
-                var messageId = Guid.Parse("00000000-0000-0000-0000-" + mwssageNumber.ToString().PadLeft(12, '0'));
+                var messageNumber = startId + i;
+                var messageId = Guid.Parse("00000000-0000-0000-0000-" + messageNumber.ToString().PadLeft(12, '0'));
                 var newStreamMessage = new NewStreamMessage(messageId, "type", "\"data\"", "\"metadata\"");
                 messages.Add(newStreamMessage);
             }

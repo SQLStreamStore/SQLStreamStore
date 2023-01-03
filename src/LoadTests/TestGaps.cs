@@ -17,7 +17,7 @@
             Output.WriteLine(ConsoleColor.Green, "Appends events to streams and reads them all back in a single task.");
             Output.WriteLine("");
 
-            var (streamStore, dispose, _) = await GetStore(ct);
+            var (streamStore, dispose) = await GetStore(ct);
 
             try
             {
@@ -187,12 +187,6 @@
 
             Output.WriteLine("");
             Output.WriteLine($"> {count - 1} messages written in {stopwatch.Elapsed} ({rate} m/s)");
-        }
-
-        private enum YesNo
-        {
-            Yes,
-            No
         }
     }
 }

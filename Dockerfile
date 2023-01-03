@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/sdk:6.0-focal
+FROM mcr.microsoft.com/dotnet/sdk:7.0-jammy
 
 RUN apt-get update \
     && apt-get install git \

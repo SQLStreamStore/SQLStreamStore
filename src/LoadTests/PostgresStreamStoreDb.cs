@@ -12,22 +12,20 @@
         private readonly string _schema;
         private readonly PostgresContainer _databaseManager;
 
-        public PostgresStreamStoreDb(string schema, Version version)
-            : this(schema, version, new ConsoleTestoutputHelper())
+        public PostgresStreamStoreDb(string schema)
+            : this(schema, new ConsoleTestoutputHelper())
         { }
 
-        public PostgresStreamStoreDb(string schema, Version version, ITestOutputHelper testOutputHelper)
+        public PostgresStreamStoreDb(string schema, ITestOutputHelper testOutputHelper)
         {
             _schema = schema;
-
-            _databaseManager = new PostgresContainer($"test_{Guid.NewGuid():n}", version);
+            _databaseManager = new PostgresContainer($"test_{Guid.NewGuid():n}");
         }
 
-        public PostgresStreamStoreDb(string schema, Version version, string connectionString)
+        public PostgresStreamStoreDb(string schema, string connectionString)
         {
             _schema = schema;
-
-            _databaseManager = new PostgresContainer($"test_{Guid.NewGuid():n}", version);
+            _databaseManager = new PostgresContainer($"test_{Guid.NewGuid():n}");
         }
 
         public async Task<PostgresStreamStore> GetPostgresStreamStore(GapHandlingSettings gapHandlingSettings, bool scavengeAsynchronously = false)
@@ -43,7 +41,7 @@
         {
             await CreateDatabase();
 
-            var settings = new PostgresStreamStoreSettings(ConnectionString, new Version("9.6"), gapHandlingSettings)
+            var settings = new PostgresStreamStoreSettings(ConnectionString, gapHandlingSettings)
             {
                 Schema = _schema,
                 ScavengeAsynchronously = scavengeAsynchronously

@@ -5,6 +5,8 @@
 
     internal class PostgresNewStreamMessage
     {
+        internal const string DataTypeName = "new_stream_message";
+
         public Guid MessageId { get; set; }
         public string JsonData { get; set; }
         public string JsonMetadata { get; set; }

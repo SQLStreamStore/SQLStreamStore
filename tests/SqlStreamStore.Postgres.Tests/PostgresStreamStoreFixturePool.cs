@@ -14,7 +14,6 @@
 
         public async Task<PostgresStreamStoreFixture> Get(
             ITestOutputHelper outputHelper,
-            Version version,
             string schema = "dbo",
             GapHandlingSettings gapHandlingSettings = null)
         {
@@ -25,12 +24,11 @@
             if (!fixturePool.TryDequeue(out var fixture))
             {
                 var databaseName = $"test_{Guid.NewGuid():n}";
-                var dockerInstance = new PostgresContainer(databaseName, version);
+                var dockerInstance = new PostgresContainer(databaseName);
                 await dockerInstance.Start();
                 await dockerInstance.CreateDatabase();
 
                 fixture = new PostgresStreamStoreFixture(
-                    version,
                     schema,
                     dockerInstance,
                     databaseName,

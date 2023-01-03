@@ -1,7 +1,6 @@
 ﻿namespace SqlStreamStore.PgSqlScripts
 {
     using System;
-    using System.Linq;
     using Npgsql;
     using NpgsqlTypes;
     using SqlStreamStore.Infrastructure;
@@ -138,9 +137,10 @@
 
         public static NpgsqlParameter TransactionIds(TxIdList value)
         {
-            return new NpgsqlParameter<long[]>
+            return new NpgsqlParameter<ulong[]>
             {
-                Value = value.ToArray()
+                NpgsqlDbType = NpgsqlDbType.Xid8 | NpgsqlDbType.Array,
+                NpgsqlValue = value.ToArray()
             };
         }
 

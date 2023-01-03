@@ -48,11 +48,11 @@
             var exitCode = 0; 
             switch(SQLDialect.ToLowerInvariant())
             {
-                case "postgres": 
+                case "postgres":
                     var postgresSettings = new PostgresStreamStoreSettings(new NpgsqlConnectionStringBuilder
                     {
                         Host = "0.0.0.0"
-                    }.ConnectionString, new Version("9.6"));
+                    }.ConnectionString);
                     if(!string.IsNullOrEmpty(Schema))
                     {
                         postgresSettings.Schema = Schema;
@@ -80,7 +80,7 @@
 
             return exitCode;
         }
-        
+
         public static int Main(string[] args)
         {
             Log.Logger = new LoggerConfiguration()
@@ -88,7 +88,7 @@
                 .Enrich.FromLogContext()
                 .WriteTo.Console()
                 .CreateLogger();
-            
+
             return CommandLineApplication.Execute<Program>(args);
         }
     }

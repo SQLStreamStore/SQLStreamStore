@@ -1,4 +1,4 @@
-CREATE OR REPLACE FUNCTION __schema__.read_all2(
+CREATE OR REPLACE FUNCTION __schema__.read_all(
   _count    INT,
   _position BIGINT,
   _forwards BOOLEAN,

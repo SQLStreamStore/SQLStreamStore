@@ -3,7 +3,7 @@
     using System.Collections.Generic;
     using System.Linq;
 
-    internal class TxIdList : List<long>
+    internal class TxIdList : List<ulong>
     {
         public override string ToString()
         {

@@ -17,7 +17,7 @@ namespace LoadTests
                 "Subscribes to multiple individual streams and appends to each of them in turn, multiple times.");
             Output.WriteLine("");
 
-            var (streamStore, dispose, _) = await GetStore(ct);
+            var (streamStore, dispose) = await GetStore(ct);
 
             try
             {

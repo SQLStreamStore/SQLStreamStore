@@ -3,7 +3,6 @@ namespace SqlStreamStore.TestUtils.Postgres
     using System.Threading;
     using System.Threading.Tasks;
     using Npgsql;
-    using Npgsql.Logging;
 
     public abstract class PostgresDatabaseManager
     {
@@ -17,14 +16,6 @@ namespace SqlStreamStore.TestUtils.Postgres
         }.ConnectionString;
 
         public abstract string ConnectionString { get; }
-
-        static PostgresDatabaseManager()
-        {
-#if DEBUG
-            NpgsqlLogManager.IsParameterLoggingEnabled = true;
-            NpgsqlLogManager.Provider = new LibLogNpgsqlLogProvider();
-#endif
-        }
 
         protected PostgresDatabaseManager(string databaseName)
         {

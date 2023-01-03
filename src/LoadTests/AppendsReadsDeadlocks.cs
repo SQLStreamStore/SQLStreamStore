@@ -16,7 +16,7 @@
         {
             int chunksCount = 1000;
             int chunkSize = 100;
-            var (store, dispose, _) = await GetStore(ct);
+            var (store, dispose) = await GetStore(ct);
 
             Task saveTask = GenerateMessages(store, chunksCount, chunkSize);
             Task readTask = GetManyPagesAsync(store, chunksCount, chunkSize);

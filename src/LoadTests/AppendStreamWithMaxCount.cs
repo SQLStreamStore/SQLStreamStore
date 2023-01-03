@@ -16,7 +16,7 @@
             Output.WriteLine(ConsoleColor.Green, "Appends events to a single stream that has a maxCount.");
             Output.WriteLine("");
 
-            var (streamStore, dispose, _) = await GetStore(ct);
+            var (streamStore, dispose) = await GetStore(ct);
 
             try
             {
@@ -64,9 +64,9 @@
                 Output.WriteLine("");
                 Output.WriteLine($"> {count} messages written in {stopwatch.Elapsed} ({rate} m/s)");
 
-                var streampage = await streamStore.ReadStreamForwards(streamId, StreamVersion.Start, maxCount + 1, ct);
+                var streamPage = await streamStore.ReadStreamForwards(streamId, StreamVersion.Start, maxCount + 1, ct);
 
-                Output.WriteLine($"> Stream Message length: {streampage.Messages.Length}");
+                Output.WriteLine($"> Stream Message length: {streamPage.Messages.Length}");
             }
             finally
             {

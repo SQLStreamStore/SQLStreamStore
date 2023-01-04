@@ -14,6 +14,14 @@ IF NOT EXISTS (SELECT 1 FROM SYS.COLUMNS WHERE OBJECT_ID = OBJECT_ID(N'[dbo].[St
 ALTER TABLE [dbo].[Streams]
 ADD [MaxCount] int NULL DEFAULT NULL;
 
+IF NOT EXISTS(
+    SELECT * 
+    FROM sys.indexes
+    WHERE name='IX_Messages_StreamIdInternal' AND object_id = OBJECT_ID('dbo.Messages'))
+BEGIN
+    CREATE NONCLUSTERED INDEX IX_Messages_StreamIdInternal ON dbo.Messages (StreamIdInternal);
+END
+
 IF NOT EXISTS(SELECT 1
               FROM SYS.COLUMNS
               WHERE OBJECT_ID = OBJECT_ID(N'[dbo].[Streams]')

@@ -231,7 +231,7 @@
 
                 if(checkSchemaResult.CurrentVersion != 2)
                 {
-                    string message = $"Schema did not match expected version for migtation - 2. Actual version is {checkSchemaResult.CurrentVersion}";
+                    string message = $"Schema did not match expected version for migration - 2. Actual version is {checkSchemaResult.CurrentVersion}";
                     throw new InvalidOperationException(message);
                 }
                 progress.Report(new MigrateProgress(MigrateProgress.MigrateStage.SchemaVersionChecked));

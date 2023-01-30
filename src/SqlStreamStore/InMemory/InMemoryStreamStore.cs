@@ -17,7 +17,7 @@ namespace SqlStreamStore
     /// <summary>
     ///     Represents an in-memory implementation of a stream store. Use for testing or high/speed + volatile scenarios.
     /// </summary>
-    public sealed class InMemoryStreamStore : StreamStoreBase
+    public sealed class InMemoryStreamStore : StreamStoreBase<ReadAllPage>
     {
         private readonly InMemoryAllStream _allStream = new InMemoryAllStream();
         private readonly GetUtcNow _getUtcNow;
@@ -296,7 +296,7 @@ namespace SqlStreamStore
         }
 
         protected override Task<ReadAllPage> ReadAllForwardsInternal(long fromPositionExclusive, int maxCount,
-            bool prefetch, ReadNextAllPage readNext, CancellationToken cancellationToken)
+            bool prefetch, CancellationToken cancellationToken, long fromMaxPositionInclusive = -1)
         {
             GuardAgainstDisposed();
             cancellationToken.ThrowIfCancellationRequested();
@@ -307,7 +307,7 @@ namespace SqlStreamStore
                 var current = _allStream.First;
                 if(current.Next == null) //Empty store
                 {
-                    var result = new ReadAllPage(Position.Start, Position.Start, true, ReadDirection.Forward, readNext);
+                    var result = new ReadAllPage(Position.Start, Position.Start, true, ReadDirection.Forward);
                     return Task.FromResult(result);
                 }
 
@@ -317,7 +317,7 @@ namespace SqlStreamStore
                     if(current.Next == null) // fromPosition is past end of store
                     {
                         var result = new ReadAllPage(fromPositionExclusive, fromPositionExclusive, true,
-                            ReadDirection.Forward, readNext);
+                            ReadDirection.Forward);
                         return Task.FromResult(result);
                     }
                     previous = current;
@@ -372,7 +372,6 @@ namespace SqlStreamStore
                     nextPosition,
                     isEnd,
                     ReadDirection.Forward,
-                    readNext,
                     messages.ToArray());
 
                 return Task.FromResult(page);
@@ -383,7 +382,6 @@ namespace SqlStreamStore
             long fromPositionExclusive,
             int maxCount,
             bool prefetch,
-            ReadNextAllPage readNext,
             CancellationToken cancellationToken)
         {
             GuardAgainstDisposed();
@@ -399,7 +397,7 @@ namespace SqlStreamStore
                 var current = _allStream.First;
                 if(current.Next == null) //Empty store
                 {
-                    var result = new ReadAllPage(Position.Start, Position.Start, true, ReadDirection.Backward, readNext);
+                    var result = new ReadAllPage(Position.Start, Position.Start, true, ReadDirection.Backward);
                     return Task.FromResult(result);
                 }
 
@@ -409,7 +407,7 @@ namespace SqlStreamStore
                     if(current.Next == null) // fromPosition is past end of store
                     {
                         var result = new ReadAllPage(fromPositionExclusive, fromPositionExclusive, true,
-                                ReadDirection.Backward, readNext);
+                                ReadDirection.Backward);
                         return Task.FromResult(result);
                     }
                     previous = current;
@@ -476,7 +474,6 @@ namespace SqlStreamStore
                     nextPosition,
                     isEnd,
                     ReadDirection.Backward,
-                    readNext,
                     messages.ToArray());
 
                 return Task.FromResult(page);
@@ -721,7 +718,7 @@ namespace SqlStreamStore
             bool prefetchJsonData,
             string name)
         {
-            return new AllStreamSubscription(
+            return new AllStreamSubscription<ReadAllPage>(
                 fromPosition,
                 this,
                 _subscriptions,

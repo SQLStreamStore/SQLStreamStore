@@ -14,7 +14,7 @@
     using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
 
-    public sealed partial class HttpClientSqlStreamStore : IStreamStore
+    public sealed partial class HttpClientSqlStreamStore : IStreamStore, IReadonlyStreamStore<ReadAllPage>
     {
         private static readonly JsonSerializer s_serializer = JsonSerializer.Create(new JsonSerializerSettings
         {

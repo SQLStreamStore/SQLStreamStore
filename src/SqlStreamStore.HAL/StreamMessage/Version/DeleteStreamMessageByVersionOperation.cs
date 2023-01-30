@@ -5,6 +5,7 @@ namespace SqlStreamStore.HAL.StreamMessage.Version
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Routing;
+    using SqlStreamStore.Streams;
 
     internal class DeleteStreamMessageByVersionOperation : IStreamStoreOperation<Unit>
     {
@@ -20,7 +21,7 @@ namespace SqlStreamStore.HAL.StreamMessage.Version
         public int StreamVersion { get; }
         public PathString Path { get; }
 
-        public async Task<Unit> Invoke(IStreamStore streamStore, CancellationToken ct)
+        public async Task<Unit> Invoke(IStreamStore<ReadAllPage> streamStore, CancellationToken ct)
         {
             var messageId = (await streamStore.ReadStreamBackwards(
                                 StreamId,

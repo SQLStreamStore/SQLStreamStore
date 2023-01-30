@@ -28,8 +28,7 @@
 
                 int readPageSize = Input.ReadInt("Read page size: ", 1, 10000);
 
-                string jsonData = new string('a', messageJsonDataSize * 1024);
-
+                string jsonData = $@"{{""b"": ""{new string('a', messageJsonDataSize * 1024)}""}}"; // new string('a', messageJsonDataSize * 1024);
 
                 var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(ct);
                 for(int i = 0; i < 10; i++)
@@ -66,7 +65,7 @@
             }
         }
 
-        private static async Task WriteActualGaps(CancellationToken ct, IStreamStore streamStore)
+        private static async Task WriteActualGaps(CancellationToken ct, IStreamStore<IReadAllPage> streamStore)
         {
             var stopwatch = Stopwatch.StartNew();
             var count = 0;
@@ -84,7 +83,7 @@
             }
             while(!page.IsEnd)
             {
-                page = await page.ReadNext(ct);
+                page = await streamStore.ReadAllForwards(page.NextPosition, 73, false, ct);
                 count += page.Messages.Length;
                 for(int i = 0; i < page.Messages.Length; i++)
                 {
@@ -102,7 +101,7 @@
         }
 
 
-        private static async Task RunRead(CancellationToken ct, IStreamStore streamStore, int readPageSize)
+        private static async Task RunRead(CancellationToken ct, IStreamStore<IReadAllPage> streamStore, int readPageSize)
         {
             int count = 0;
             var stopwatch = Stopwatch.StartNew();

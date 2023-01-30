@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio Version 16
-VisualStudioVersion = 16.0.29926.136
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.32120.378
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SqlStreamStore", "src\SqlStreamStore\SqlStreamStore.csproj", "{8F86833A-6686-409C-B0E4-6FBFB70F7DE1}"
 EndProject
@@ -148,6 +148,14 @@ Global
 		{5273D70A-96D7-4775-B67C-BDE48D20CA36}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{5273D70A-96D7-4775-B67C-BDE48D20CA36}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{5273D70A-96D7-4775-B67C-BDE48D20CA36}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A8D87EDC-E911-42F3-891F-82DEBBD4E0A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A8D87EDC-E911-42F3-891F-82DEBBD4E0A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A8D87EDC-E911-42F3-891F-82DEBBD4E0A3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A8D87EDC-E911-42F3-891F-82DEBBD4E0A3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{D1FA4E2A-9113-4F8E-987D-DDC1C1C583E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{D1FA4E2A-9113-4F8E-987D-DDC1C1C583E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{D1FA4E2A-9113-4F8E-987D-DDC1C1C583E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{D1FA4E2A-9113-4F8E-987D-DDC1C1C583E2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

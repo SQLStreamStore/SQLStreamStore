@@ -8,7 +8,7 @@ namespace SqlStreamStore
     using SqlStreamStore.Streams;
     using Xunit;
 
-    public partial class AcceptanceTests
+    public partial class AcceptanceTests<TReadAllPage>
     {
         [Fact]
         public async Task Given_large_message_stream_can_be_read_back_in_pages()

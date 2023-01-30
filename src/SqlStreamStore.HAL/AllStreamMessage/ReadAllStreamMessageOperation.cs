@@ -18,7 +18,7 @@ namespace SqlStreamStore.HAL.AllStreamMessage
         public long Position { get; }
         public PathString Path { get; }
 
-        public async Task<StreamMessage> Invoke(IStreamStore streamStore, CancellationToken ct)
+        public async Task<StreamMessage> Invoke(IStreamStore<ReadAllPage> streamStore, CancellationToken ct)
         {
             var page = await streamStore.ReadAllForwards(Position, 1, true, ct);
 

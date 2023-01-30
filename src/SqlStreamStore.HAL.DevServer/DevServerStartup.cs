@@ -6,6 +6,7 @@
     using Microsoft.AspNetCore.Hosting;
     using Microsoft.AspNetCore.Http;
     using Microsoft.Extensions.DependencyInjection;
+    using SqlStreamStore.Streams;
     using MidFunc = System.Func<
         Microsoft.AspNetCore.Http.HttpContext,
         System.Func<System.Threading.Tasks.Task>,
@@ -14,11 +15,11 @@
 
     internal class DevServerStartup : IStartup
     {
-        private readonly IStreamStore _streamStore;
+        private readonly IStreamStore<ReadAllPage> _streamStore;
         private readonly SqlStreamStoreMiddlewareOptions _options;
 
         public DevServerStartup(
-            IStreamStore streamStore,
+            IStreamStore<ReadAllPage> streamStore,
             SqlStreamStoreMiddlewareOptions options)
         {
             _streamStore = streamStore;

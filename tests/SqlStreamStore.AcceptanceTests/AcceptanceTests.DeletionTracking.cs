@@ -6,7 +6,7 @@ namespace SqlStreamStore
     using Xunit;
     using static Streams.Deleted;
 
-    partial class AcceptanceTests
+    partial class AcceptanceTests<TReadAllPage>
     {
         [Fact]
         public async Task When_deletion_tracking_is_disabled_deleted_message_should_not_be_tracked()
@@ -25,7 +25,7 @@ namespace SqlStreamStore
         public async Task When_deletion_tracking_is_disabled_deleted_stream_should_not_be_tracked()
         {
             Fixture.DisableDeletionTracking = true;
-            
+
             var messages = CreateNewStreamMessages(1);
             await Store.AppendToStream("stream", ExpectedVersion.NoStream, messages);
             await Store.DeleteStream("stream");

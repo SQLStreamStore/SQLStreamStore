@@ -5,7 +5,7 @@
     using SqlStreamStore.Streams;
     using Xunit;
 
-    public partial class AcceptanceTests
+    public partial class AcceptanceTests<TReadAllPage>
     {
         [Fact]
         public async Task Time_to_take_to_read_1000_read_head_positions()

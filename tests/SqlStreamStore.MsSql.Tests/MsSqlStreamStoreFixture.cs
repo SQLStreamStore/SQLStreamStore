@@ -3,9 +3,10 @@ namespace SqlStreamStore
     using System;
     using System.Threading.Tasks;
     using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.Streams;
     using SqlStreamStore.TestUtils.MsSql;
 
-    public class MsSqlStreamStoreFixture : IStreamStoreFixture
+    public class MsSqlStreamStoreFixture : IStreamStoreFixture<ReadAllPage>
     {
         private readonly Action _onDispose;
         private readonly MsSqlStreamStoreSettings _settings;
@@ -33,7 +34,7 @@ namespace SqlStreamStore
 
         public string DatabaseName { get; }
 
-        public IStreamStore Store => MsSqlStreamStore;
+        public IStreamStore<ReadAllPage> Store => MsSqlStreamStore;
 
         public MsSqlStreamStore MsSqlStreamStore { get; private set; }
 

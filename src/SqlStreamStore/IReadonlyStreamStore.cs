@@ -3,68 +3,12 @@
     using System;
     using System.Threading;
     using System.Threading.Tasks;
+    using MorseCode.ITask;
     using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
 
-    /// <summary>
-    ///     Represents a readonly stream store.
-    /// </summary>
     public interface IReadonlyStreamStore : IDisposable
     {
-        /// <summary>
-        ///     Reads messages from all streams forwards.
-        /// </summary>
-        /// <param name="fromPositionInclusive">
-        ///     The position to start reading from. Use <see cref="Position.Start"/> to start from the beginning.
-        ///     Note: messages that have expired will be filtered out.
-        /// </param>
-        /// <param name="maxCount">
-        ///     The maximum number of messages to read (int.MaxValue is a bad idea).
-        /// </param>
-        /// <param name="prefetchJsonData">
-        ///     Prefetches the message data as part of the page read. This means a single request to the server
-        ///     but a higher payload size.
-        /// </param>
-        /// <param name="cancellationToken">
-        ///     The cancellation instruction.
-        /// </param>
-        /// <returns>
-        ///     An <see cref="ReadAllPage"/> presenting the result of the read. If all messages read have expired
-        ///     then the message collection MAY be empty.
-        /// </returns>
-        Task<ReadAllPage> ReadAllForwards(
-            long fromPositionInclusive,
-            int maxCount,
-            bool prefetchJsonData = true,
-            CancellationToken cancellationToken = default);
-
-        /// <summary>
-        ///     Reads messages from all streams backwards.
-        /// </summary>
-        /// <param name="fromPositionInclusive">
-        ///     The position to start reading from. Use <see cref="Position.End"/> to start from the end.
-        ///     Note: messages that have expired will be filtered out.
-        /// </param>
-        /// <param name="maxCount">
-        ///     The maximum number of messages to read (int.MaxValue is a bad idea). 
-        /// </param>
-        /// <param name="prefetchJsonData">
-        ///     Prefetches the message data as part of the page read. This means a single request to the server
-        ///     but a higher payload size.
-        /// </param>
-        /// <param name="cancellationToken">
-        ///     The cancellation instruction.
-        /// </param>
-        /// <returns>
-        ///     An <see cref="ReadAllPage"/> presenting the result of the read. If all messages read have expired
-        ///     then the message collection MAY be empty.
-        /// </returns>
-        Task<ReadAllPage> ReadAllBackwards(
-            long fromPositionInclusive,
-            int maxCount,
-            bool prefetchJsonData = true,
-            CancellationToken cancellationToken = default);
-
         /// <summary>
         ///     Reads messages from a stream forwards.
         /// </summary>
@@ -303,5 +247,65 @@
             CancellationToken cancellationToken = default);
 
         event Action OnDispose;
+    }
+
+    /// <summary>
+    ///     Represents a readonly stream store.
+    /// </summary>
+    public interface IReadonlyStreamStore<out TReadAllPage> : IReadonlyStreamStore where TReadAllPage : IReadAllPage
+    {
+        /// <summary>
+        ///     Reads messages from all streams forwards.
+        /// </summary>
+        /// <param name="fromPositionInclusive">
+        ///     The position to start reading from. Use <see cref="Position.Start"/> to start from the beginning.
+        ///     Note: messages that have expired will be filtered out.
+        /// </param>
+        /// <param name="maxCount">
+        ///     The maximum number of messages to read (int.MaxValue is a bad idea).
+        /// </param>
+        /// <param name="prefetchJsonData">
+        ///     Prefetches the message data as part of the page read. This means a single request to the server
+        ///     but a higher payload size.
+        /// </param>
+        /// <param name="cancellationToken">
+        ///     The cancellation instruction.
+        /// </param>
+        /// <returns>
+        ///     An <see cref="ReadAllPage"/> presenting the result of the read. If all messages read have expired
+        ///     then the message collection MAY be empty.
+        /// </returns>
+        ITask<TReadAllPage> ReadAllForwards(
+            long fromPositionInclusive,
+            int maxCount,
+            bool prefetchJsonData = true,
+            CancellationToken cancellationToken = default);
+
+        /// <summary>
+        ///     Reads messages from all streams backwards.
+        /// </summary>
+        /// <param name="fromPositionInclusive">
+        ///     The position to start reading from. Use <see cref="Position.End"/> to start from the end.
+        ///     Note: messages that have expired will be filtered out.
+        /// </param>
+        /// <param name="maxCount">
+        ///     The maximum number of messages to read (int.MaxValue is a bad idea). 
+        /// </param>
+        /// <param name="prefetchJsonData">
+        ///     Prefetches the message data as part of the page read. This means a single request to the server
+        ///     but a higher payload size.
+        /// </param>
+        /// <param name="cancellationToken">
+        ///     The cancellation instruction.
+        /// </param>
+        /// <returns>
+        ///     An <see cref="ReadAllPage"/> presenting the result of the read. If all messages read have expired
+        ///     then the message collection MAY be empty.
+        /// </returns>
+        ITask<TReadAllPage> ReadAllBackwards(
+            long fromPositionInclusive,
+            int maxCount,
+            bool prefetchJsonData = true,
+            CancellationToken cancellationToken = default);
     }
 }

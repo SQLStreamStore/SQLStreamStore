@@ -12,7 +12,7 @@
     using SqlStreamStore.TestUtils;
     using Xunit;
 
-    public partial class AcceptanceTests
+    public partial class AcceptanceTests<TReadAllPage>
     {
         [Fact, Trait("Category", "Subscriptions")]
         public async Task Can_subscribe_to_a_stream_from_start()

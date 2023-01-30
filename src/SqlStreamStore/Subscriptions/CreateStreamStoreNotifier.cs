@@ -1,6 +1,6 @@
 ﻿namespace SqlStreamStore.Subscriptions
 {
-    using SqlStreamStore;
+    using SqlStreamStore.Streams;
 
     /// <summary>
     ///     Represents an operation to create a stream store notifier.

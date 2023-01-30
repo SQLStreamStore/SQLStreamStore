@@ -9,7 +9,7 @@
     using System.Threading;
     using System.Threading.Tasks;
     using Npgsql;
-    using SqlStreamStore.PgSqlScripts;
+    using SqlStreamStore.PgSqlScriptsV2;
     using SqlStreamStore.Streams;
 
     partial class PostgresStreamStore

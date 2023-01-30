@@ -23,7 +23,7 @@ namespace SqlStreamStore.TestUtils.Postgres
                 _name = name;
             }
 
-            public override bool IsEnabled(NpgsqlLogLevel level) => true;
+            public override bool IsEnabled(NpgsqlLogLevel level) => false;
 
             public override void Log(NpgsqlLogLevel level, int connectorId, string msg, Exception exception = null)
                 => _logger.Info($@"[{level:G}] [{_name}] (Connector Id: {connectorId}); {msg}; {FormatOptionalException(exception)}");

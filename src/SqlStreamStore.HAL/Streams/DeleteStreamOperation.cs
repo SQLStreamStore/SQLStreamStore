@@ -4,6 +4,7 @@ namespace SqlStreamStore.HAL.Streams
     using System.Threading.Tasks;
     using Microsoft.AspNetCore.Http;
     using Microsoft.AspNetCore.Routing;
+    using SqlStreamStore.Streams;
 
     internal class DeleteStreamOperation : IStreamStoreOperation<Unit>
     {
@@ -18,7 +19,7 @@ namespace SqlStreamStore.HAL.Streams
         public int ExpectedVersion { get; }
         public PathString Path { get; }
 
-        public async Task<Unit> Invoke(IStreamStore streamStore, CancellationToken ct)
+        public async Task<Unit> Invoke(IStreamStore<ReadAllPage> streamStore, CancellationToken ct)
         {
             await streamStore.DeleteStream(StreamId, ExpectedVersion, ct);
 

@@ -9,7 +9,7 @@
     using Xunit;
     using Xunit.Abstractions;
 
-    public class MsSqlStreamStoreV3AcceptanceTests : AcceptanceTests, IClassFixture<MsSqlStreamStoreV3FixturePool>
+    public class MsSqlStreamStoreV3AcceptanceTests : AcceptanceTests<ReadAllPage>, IClassFixture<MsSqlStreamStoreV3FixturePool>
     {
         private readonly MsSqlStreamStoreV3FixturePool _fixturePool;
 
@@ -19,7 +19,7 @@
             _fixturePool = fixturePool;
         }
 
-        protected override async Task<IStreamStoreFixture> CreateFixture() 
+        protected override async Task<IStreamStoreFixture<ReadAllPage>> CreateFixture() 
             => await _fixturePool.Get(TestOutputHelper);
 
         [Fact]

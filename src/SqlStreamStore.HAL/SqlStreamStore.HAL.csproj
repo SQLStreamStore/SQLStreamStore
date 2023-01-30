@@ -1,26 +1,32 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <TargetFrameworks>netstandard2.0</TargetFrameworks>
     <DefineConstants>$(DefineConstants);LIBLOG_PORTABLE</DefineConstants>
+    <TargetFrameworks>net5.0;net6.0</TargetFrameworks>
     <Description>HTTP Server for SQL Stream Store</Description>
     <AssemblyTitle>Stream Store - HAL Server</AssemblyTitle>    
     <DebugSymbols>true</DebugSymbols>
     <CrossGenDuringPublish>false</CrossGenDuringPublish>
   </PropertyGroup>
+	
+  <ItemGroup>
+	<FrameworkReference Include="Microsoft.AspNetCore.App" />
+  </ItemGroup>
+
   <ItemGroup>
     <PackageReference Include="Halcyon" Version="2.5.1" />
-    <PackageReference Include="LibLog" Version="5.0.8" PrivateAssets="all" />
-    <PackageReference Include="Microsoft.AspNetCore.Routing" Version="2.1.1" />
-    <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
   </ItemGroup>
+
   <ItemGroup>
     <EmbeddedResource Include="**\Schema\*.schema.json;**\Schema\*.schema.md">
       <Link>%(RecursiveDir)%(Filename)%(Extension)</Link>
     </EmbeddedResource>
   </ItemGroup>
+
   <ItemGroup>
     <ProjectReference Include="..\SqlStreamStore\SqlStreamStore.csproj" />
   </ItemGroup>
+
   <ItemGroup>
     <Compile Include="..\SqlStreamStore.Http.Common\**\*.cs" />
   </ItemGroup>

@@ -4,13 +4,14 @@
     using System.Collections.Generic;
     using System.Linq;
     using System.Threading.Tasks;
+    using MorseCode.ITask;
     using Shouldly;
     using SqlStreamStore.Streams;
     using SqlStreamStore.TestUtils;
     using Xunit;
     using Xunit.Abstractions;
 
-    public abstract partial class AcceptanceTests : IAsyncLifetime
+    public abstract partial class AcceptanceTests<TReadAllPage> : IAsyncLifetime where TReadAllPage : IReadAllPage
     {
         private const string DefaultJsonData = @"{ ""data"": ""data"" }";
         private const string DefaultJsonMetadata = @"{ ""meta"": ""data"" }";
@@ -27,9 +28,9 @@
             Fixture = await CreateFixture();
         }
 
-        private IStreamStore Store => Fixture.Store;
+        private IStreamStore<TReadAllPage> Store => Fixture.Store;
 
-        protected IStreamStoreFixture Fixture { get; private set; }
+        protected IStreamStoreFixture<TReadAllPage> Fixture { get; private set; }
 
         protected ITestOutputHelper TestOutputHelper { get; }
 
@@ -40,7 +41,7 @@
             return Task.CompletedTask;
         }
 
-        protected abstract Task<IStreamStoreFixture> CreateFixture();
+        protected abstract Task<IStreamStoreFixture<TReadAllPage>> CreateFixture();
 
         private static IDisposable CaptureLogs(ITestOutputHelper testOutputHelper) 
             => LoggingHelper.Capture(testOutputHelper);
@@ -50,7 +51,7 @@
         {
             Store.Dispose();
 
-            Func<Task> act = () => Store.ReadAllForwards(Position.Start, 10);
+            Func<Task> act = () => Store.ReadAllForwards(Position.Start, 10).AsTask();
 
             await act.ShouldThrowAsync<ObjectDisposedException>();
         }

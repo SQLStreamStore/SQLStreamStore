@@ -2,6 +2,7 @@ namespace SqlStreamStore
 {
     using System;
     using SqlStreamStore.Infrastructure;
+    using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
 
     public partial class SqliteStreamStore
@@ -37,7 +38,7 @@ namespace SqlStreamStore
             bool prefetchJsonData,
             string name)
         {
-            return new AllStreamSubscription(
+            return new AllStreamSubscription<ReadAllPage>(
                 fromPosition,
                 this,
                 GetStoreObservable,

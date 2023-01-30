@@ -18,7 +18,7 @@
     ///     Represents a Microsoft SQL Server stream store implementation that
     ///     uses V3 of the store schema.
     /// </summary>
-    public sealed partial class MsSqlStreamStoreV3 : StreamStoreBase
+    public sealed partial class MsSqlStreamStoreV3 : StreamStoreBase<ReadAllPage>
     {
         private readonly Func<SqlConnection> _createConnection;
         private readonly Lazy<IStreamStoreNotifier> _streamStoreNotifier;

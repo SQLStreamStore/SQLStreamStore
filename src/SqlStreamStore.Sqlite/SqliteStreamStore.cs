@@ -15,7 +15,7 @@ namespace SqlStreamStore
     using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
 
-    public partial class SqliteStreamStore : StreamStoreBase
+    public partial class SqliteStreamStore : StreamStoreBase<ReadAllPage>
     {
         private static readonly System.Collections.Concurrent.ConcurrentDictionary<string, string> _scripts = new ConcurrentDictionary<string, string>();
         private static readonly Assembly s_assembly = typeof(SqliteStreamStore)

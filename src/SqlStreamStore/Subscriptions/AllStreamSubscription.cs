@@ -13,13 +13,13 @@
     ///     Represents a subscription to all streams.
     /// </summary>
 
-    public sealed class AllStreamSubscription : IAllStreamSubscription
+    public sealed class AllStreamSubscription<TReadAllPage> : IAllStreamSubscription where TReadAllPage : IReadAllPage
     {
         public const int DefaultPageSize = 10;
         private static readonly ILog s_logger = LogProvider.GetLogger("SqlStreamStore.Subscriptions.AllStreamSubscription");
         private int _pageSize = DefaultPageSize;
         private long _nextPosition;
-        private readonly IReadonlyStreamStore _readonlyStreamStore;
+        private readonly IReadonlyStreamStore<TReadAllPage> _readonlyStreamStore;
         private readonly AllStreamMessageReceived _streamMessageReceived;
         private readonly bool _prefetchJsonData;
         private readonly HasCaughtUp _hasCaughtUp;
@@ -32,7 +32,7 @@
 
         public AllStreamSubscription(
             long? continueAfterPosition,
-            IReadonlyStreamStore readonlyStreamStore,
+            IReadonlyStreamStore<TReadAllPage> readonlyStreamStore,
             IObservable<Unit> streamStoreAppendedNotification,
             AllStreamMessageReceived streamMessageReceived,
             AllSubscriptionDropped subscriptionDropped,
@@ -176,9 +176,9 @@
             _nextPosition = headPosition == 0 ? 0 : headPosition + 1;
         }
 
-        private async Task<ReadAllPage> Pull()
+        private async Task<TReadAllPage> Pull()
         {
-            ReadAllPage readAllPage;
+            TReadAllPage readAllPage;
             try
             {
                 readAllPage = await _readonlyStreamStore
@@ -204,7 +204,7 @@
             return readAllPage;
         }
 
-        private async Task Push(ReadAllPage page)
+        private async Task Push(TReadAllPage page)
         {
             foreach (var message in page.Messages)
             {

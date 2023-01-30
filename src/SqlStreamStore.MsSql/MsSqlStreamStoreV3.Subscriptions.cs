@@ -1,5 +1,6 @@
 namespace SqlStreamStore
 {
+    using SqlStreamStore.Streams;
     using SqlStreamStore.Subscriptions;
 
     public sealed partial class MsSqlStreamStoreV3
@@ -33,7 +34,7 @@ namespace SqlStreamStore
             bool prefetchJsonData,
             string name)
         {
-            return new AllStreamSubscription(
+            return new AllStreamSubscription<ReadAllPage>(
                 fromPosition,
                 this,
                 GetStoreObservable,

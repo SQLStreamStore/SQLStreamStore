@@ -7,9 +7,11 @@ namespace SqlStreamStore.HAL.DevServer
     using Microsoft.Data.SqlClient;
     using Npgsql;
     using Serilog;
+    using SqlStreamStore.Streams;
+
     internal static class SqlStreamStoreFactory
     {
-        private delegate Task<IStreamStore> CreateStreamStore(
+        private delegate Task<IStreamStore<ReadAllPage>> CreateStreamStore(
             string connectionString,
             string schema,
             CancellationToken cancellationToken);
@@ -26,11 +28,11 @@ namespace SqlStreamStore.HAL.DevServer
             = new Dictionary<string, CreateStreamStore>
             {
                 [inmemory] = CreateInMemoryStreamStore,
-                [postgres] = CreatePostgresStreamStore,
+                //[postgres] = CreatePostgresStreamStore,
                 [mssql] = CreateMssqlStreamStore
             };
 
-        public static Task<IStreamStore> Create(CancellationToken cancellationToken = default)
+        public static Task<IStreamStore<ReadAllPage>> Create(CancellationToken cancellationToken = default)
         {
             var provider = Environment.GetEnvironmentVariable(SQLSTREAMSTORE_PROVIDER)?.ToLowerInvariant()
                            ?? inmemory;
@@ -48,13 +50,13 @@ namespace SqlStreamStore.HAL.DevServer
             return factory(connectionString, schema, cancellationToken);
         }
 
-        private static Task<IStreamStore> CreateInMemoryStreamStore(
+        private static Task<IStreamStore<ReadAllPage>> CreateInMemoryStreamStore(
             string connectionString,
             string schema,
             CancellationToken cancellationToken)
-            => Task.FromResult<IStreamStore>(new InMemoryStreamStore());
+            => Task.FromResult<IStreamStore<ReadAllPage>>(new InMemoryStreamStore());
 
-        private static async Task<IStreamStore> CreateMssqlStreamStore(
+        private static async Task<IStreamStore<ReadAllPage>> CreateMssqlStreamStore(
             string connectionString,
             string schema,
             CancellationToken cancellationToken)
@@ -94,7 +96,7 @@ END;
             return streamStore;
         }
 
-        private static async Task<IStreamStore> CreatePostgresStreamStore(
+        private static async Task<IStreamStore<PostgresReadAllPage>> CreatePostgresStreamStore(
             string connectionString,
             string schema,
             CancellationToken cancellationToken)

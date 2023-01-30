@@ -6,6 +6,7 @@
     using System.Threading.Tasks;
     using EasyConsole;
     using Serilog;
+    using Serilog.Events;
 
     internal class Program
     {
@@ -13,7 +14,7 @@
         {
             Log.Logger = new LoggerConfiguration()
                 .WriteTo
-                .File("LoadTests.txt")
+                .Console(LogEventLevel.Information)
                 .CreateLogger();
 
             var cts = new CancellationTokenSource();

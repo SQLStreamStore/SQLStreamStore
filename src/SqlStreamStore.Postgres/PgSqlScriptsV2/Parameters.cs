@@ -1,4 +1,4 @@
-﻿namespace SqlStreamStore.PgSqlScripts
+﻿namespace SqlStreamStore.PgSqlScriptsV2
 {
     using System;
     using Npgsql;
@@ -102,12 +102,12 @@
                 ? (NpgsqlParameter) new NpgsqlParameter<DateTime>
                 {
                     TypedValue = value.Value,
-                    NpgsqlDbType = NpgsqlDbType.Timestamp
+                    NpgsqlDbType = NpgsqlDbType.TimestampTz
                 }
                 : new NpgsqlParameter<DBNull>
                 {
                     TypedValue = DBNull.Value,
-                    NpgsqlDbType = NpgsqlDbType.Timestamp
+                    NpgsqlDbType = NpgsqlDbType.TimestampTz
                 };
         }
 

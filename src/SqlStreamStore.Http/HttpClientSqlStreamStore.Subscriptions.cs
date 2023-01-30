@@ -38,7 +38,7 @@ namespace SqlStreamStore
         {
             GuardAgainstDisposed();
 
-            return new AllStreamSubscription(
+            return new AllStreamSubscription<ReadAllPage>(
                 continueAfterPosition,
                 this,
                 _streamStoreNotifier.Value,

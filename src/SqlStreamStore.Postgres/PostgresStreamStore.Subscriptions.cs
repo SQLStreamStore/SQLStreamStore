@@ -32,7 +32,7 @@
             HasCaughtUp hasCaughtUp,
             bool prefetchJsonData,
             string name)
-            => new AllStreamSubscription(
+            => new AllStreamSubscription<PostgresReadAllPage>(
                 fromPosition,
                 this,
                 GetStoreObservable,

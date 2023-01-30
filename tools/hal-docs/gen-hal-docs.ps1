@@ -3,5 +3,5 @@
 
 pushd
 cd ../../
-dotnet run -p build/build.csproj -- build-hal-docs
+dotnet run --project build/build.csproj -- build-hal-docs
 popd

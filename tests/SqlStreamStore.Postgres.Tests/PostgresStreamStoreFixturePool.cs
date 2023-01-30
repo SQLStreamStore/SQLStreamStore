@@ -23,7 +23,7 @@
             if (!fixturePool.TryDequeue(out var fixture))
             {
                 var databaseName = $"test_{Guid.NewGuid():n}";
-                var dockerInstance = new PostgresContainer(databaseName);
+                var dockerInstance = new PostgresContainer(schema, databaseName);
                 await dockerInstance.Start();
                 await dockerInstance.CreateDatabase();
 
@@ -31,7 +31,7 @@
                     schema,
                     dockerInstance,
                     databaseName,
-                    onDispose:() => fixturePool.Enqueue(fixture));
+                    () => fixturePool.Enqueue(fixture));
 
                 outputHelper.WriteLine($"Using new fixture with db {databaseName}");
             }

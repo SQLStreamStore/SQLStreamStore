@@ -3,7 +3,7 @@ CREATE OR REPLACE FUNCTION __schema__.append_to_stream(
   _stream_id_original  VARCHAR(1000),
   _metadata_stream_id  CHAR(42),
   _expected_version    INT,
-  _created_utc         TIMESTAMP,
+  _created_utc         TIMESTAMP WITH TIME ZONE,
   _new_stream_messages __schema__.new_stream_message [])
   RETURNS TABLE(
     current_version  INT,

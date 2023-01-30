@@ -55,7 +55,7 @@
             }
         }
 
-        public async Task<long> GetManyPagesAsync(IStreamStore store, int chunksCount, int batchSize)
+        public async Task<long> GetManyPagesAsync(IStreamStore<IReadAllPage> store, int chunksCount, int batchSize)
         {
             long start = 0;
             //var events = new List<StreamMessage>();

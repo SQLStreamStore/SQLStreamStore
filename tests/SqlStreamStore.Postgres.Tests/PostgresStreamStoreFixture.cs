@@ -6,7 +6,7 @@ namespace SqlStreamStore
     using SqlStreamStore.Infrastructure;
     using SqlStreamStore.TestUtils.Postgres;
 
-    public class PostgresStreamStoreFixture : IStreamStoreFixture
+    public class PostgresStreamStoreFixture : IStreamStoreFixture<PostgresReadAllPage>
     {
         private readonly Action _onDispose;
         private bool _preparedPreviously;
@@ -21,7 +21,7 @@ namespace SqlStreamStore
             _onDispose = onDispose;
 
             DatabaseName = databaseName;
-            var connectionString = dockerInstance.ConnectionString;
+            var connectionString = dockerInstance.GenerateConnectionString();
 
             _settings = new PostgresStreamStoreSettings(connectionString)
             {
@@ -41,7 +41,7 @@ namespace SqlStreamStore
 
         public string DatabaseName { get; }
 
-        public IStreamStore Store => PostgresStreamStore;
+        public IStreamStore<PostgresReadAllPage> Store => PostgresStreamStore;
 
         public PostgresStreamStore PostgresStreamStore { get; private set; }
 

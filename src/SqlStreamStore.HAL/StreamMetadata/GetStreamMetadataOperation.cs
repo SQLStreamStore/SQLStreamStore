@@ -17,7 +17,7 @@ namespace SqlStreamStore.HAL.StreamMetadata
         public string StreamId { get; }
         public PathString Path { get; }
 
-        public Task<StreamMetadataResult> Invoke(IStreamStore streamStore, CancellationToken ct)
+        public Task<StreamMetadataResult> Invoke(IStreamStore<ReadAllPage> streamStore, CancellationToken ct)
             => streamStore.GetStreamMetadata(StreamId, ct);
     }
 }

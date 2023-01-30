@@ -8,7 +8,7 @@
     using SqlStreamStore.Streams;
     using Xunit;
 
-    public partial class AcceptanceTests
+    public partial class AcceptanceTests<TReadAllPage>
     {
         [Fact, Trait("Category", "ReadAll")]
         public async Task Can_read_all_forwards()
@@ -31,7 +31,7 @@
             int count = 0;
             while(!page.IsEnd && count <20) //should not take more than 20 iterations.
             {
-                page = await page.ReadNext();
+                page = await Store.ReadAllForwards(page.NextPosition, 500);
                 messages.AddRange(page.Messages);
                 count++;
             }

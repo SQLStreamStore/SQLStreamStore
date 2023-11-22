@@ -100,6 +100,7 @@
                     "Correlation: {correlation} | fromPositionInclusive {fromPositionInclusive} does not match first position of received messages {position} | Transactions in progress: {transactions}",
                     correlation,
                     fromPositionInclusive,
+                    messages[0].Position,
                     transactionsInProgress);
 
                 await PollTransactions(correlation, transactionsInProgress, cancellationToken).ConfigureAwait(false);

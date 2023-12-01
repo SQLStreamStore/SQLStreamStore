@@ -338,7 +338,7 @@ namespace SqlStreamStore
                             current.Value.Created,
                             current.Value.Type,
                             current.Value.JsonMetadata,
-                            current.Value.JsonData);
+                            current.Value.JsonData, 0);
                     }
                     else
                     {
@@ -355,7 +355,7 @@ namespace SqlStreamStore
                             {
                                 return Task.Run(
                                     () => ReadMessageData(currentCopy.Value.StreamId, currentCopy.Value.MessageId), ct);
-                            });
+                            }, 0);
                     }
                     messages.Add(message);
                     maxCount--;
@@ -430,7 +430,7 @@ namespace SqlStreamStore
                             current.Value.Created,
                             current.Value.Type,
                             current.Value.JsonMetadata,
-                            current.Value.JsonData);
+                            current.Value.JsonData, 0);
                     }
                     else
                     {
@@ -447,7 +447,7 @@ namespace SqlStreamStore
                             {
                                 return Task.Run(
                                     () => ReadMessageData(currentCopy.Value.StreamId, currentCopy.Value.MessageId), ct);
-                            });
+                            }, 0);
                     }
                     messages.Add(message);
 
@@ -522,7 +522,7 @@ namespace SqlStreamStore
                             inMemorymessage.Created,
                             inMemorymessage.Type,
                             inMemorymessage.JsonMetadata,
-                            inMemorymessage.JsonData);
+                            inMemorymessage.JsonData, 0);
                     }
                     else
                     {
@@ -534,7 +534,7 @@ namespace SqlStreamStore
                             inMemorymessage.Created,
                             inMemorymessage.Type,
                             inMemorymessage.JsonMetadata,
-                            ct => Task.Run(() => ReadMessageData(streamId, inMemorymessage.MessageId), ct));
+                            ct => Task.Run(() => ReadMessageData(streamId, inMemorymessage.MessageId), ct), 0);
                     }
                     messages.Add(message);
 
@@ -617,7 +617,7 @@ namespace SqlStreamStore
                             inMemorymessage.Created,
                             inMemorymessage.Type,
                             inMemorymessage.JsonMetadata,
-                            inMemorymessage.JsonData);
+                            inMemorymessage.JsonData, 0);
                     }
                     else
                     {
@@ -629,7 +629,7 @@ namespace SqlStreamStore
                             inMemorymessage.Created,
                             inMemorymessage.Type,
                             inMemorymessage.JsonMetadata,
-                            ct =>  Task.Run(() => ReadMessageData(streamId, inMemorymessage.MessageId), ct));
+                            ct =>  Task.Run(() => ReadMessageData(streamId, inMemorymessage.MessageId), ct), 0);
                     }
                     messages.Add(message);
 

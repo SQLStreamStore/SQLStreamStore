@@ -18,7 +18,7 @@
                 2,
                 DateTime.UtcNow,
                 "type",
-                "\"meta\"", "\"data\"");
+                "\"meta\"", "\"data\"", 0);
 
             (await message.GetJsonDataAs<string>()).ShouldBe("data");
             message.JsonMetadataAs<string>().ShouldBe("meta");

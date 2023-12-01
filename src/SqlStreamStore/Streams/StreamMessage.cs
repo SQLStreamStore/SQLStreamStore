@@ -16,6 +16,7 @@
         public readonly int StreamVersion;
         public readonly string StreamId;
         public readonly string Type;
+        public readonly ulong TransactionId;
         private readonly Func<CancellationToken, Task<string>> _getJsonData;
 
         public StreamMessage(
@@ -26,15 +27,18 @@
             DateTime createdUtc,
             string type,
             string jsonMetadata,
-            string jsonData)
+            string jsonData,
+            ulong transactionId)
             : this(streamId,
                 messageId,
                 streamVersion,
                 position,
                 createdUtc,
                 type,
-                jsonMetadata, _ => Task.FromResult(jsonData))
-        {}
+                jsonMetadata,
+                _ => Task.FromResult(jsonData),
+                transactionId)
+        { }
 
         public StreamMessage(
             string streamId,
@@ -44,7 +48,8 @@
             DateTime createdUtc,
             string type,
             string jsonMetadata,
-            Func<CancellationToken, Task<string>> getJsonData)
+            Func<CancellationToken, Task<string>> getJsonData,
+            ulong transactionId)
         {
             MessageId = messageId;
             StreamId = streamId;
@@ -54,6 +59,7 @@
             Type = type;
             _getJsonData = getJsonData;
             JsonMetadata = jsonMetadata;
+            TransactionId = transactionId;
         }
 
         /// <summary>
@@ -80,7 +86,7 @@
         /// <filterpriority>2</filterpriority>
         public override string ToString()
         {
-            return $"MessageId={MessageId} StreamId={StreamId} StreamVersion={StreamVersion} Position={Position} Type={Type}";
+            return $"MessageId={MessageId} StreamId={StreamId} StreamVersion={StreamVersion} Position={Position} Type={Type} TransactionId={TransactionId}";
         }
     }
 }

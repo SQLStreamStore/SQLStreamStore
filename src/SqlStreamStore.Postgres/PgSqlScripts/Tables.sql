@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS __schema__.messages (
   type               VARCHAR(128) NOT NULL,
   json_data          JSONB      NOT NULL,
   json_metadata      JSONB,
+  transaction_id     XID8       NOT NULL,
   CONSTRAINT pk_messages PRIMARY KEY (position),
   CONSTRAINT fk_messages_stream FOREIGN KEY (stream_id_internal) REFERENCES __schema__.streams (id_internal),
   CONSTRAINT uq_messages_stream_id_internal_and_stream_version UNIQUE (stream_id_internal, stream_version),

@@ -13,6 +13,10 @@ DECLARE
   _txinfo             REFCURSOR := 'tx_info';
 BEGIN
 
+  OPEN _txinfo FOR
+  SELECT pg_snapshot_xmin(pg_current_snapshot());
+  RETURN NEXT _txinfo;
+    
   OPEN _messages FOR
   WITH messages AS (
       SELECT __schema__.streams.id_original,
@@ -21,6 +25,7 @@ BEGIN
              __schema__.messages.position,
              __schema__.messages.created_utc,
              __schema__.messages.type,
+             __schema__.messages.transaction_id,
              __schema__.messages.json_metadata,
              (CASE _prefetch
                 WHEN TRUE THEN __schema__.messages.json_data
@@ -37,12 +42,7 @@ BEGIN
       LIMIT _count
   )
   SELECT * FROM messages LIMIT _count;
-
   RETURN NEXT _messages;
-
-  OPEN _txinfo FOR	
-  SELECT pg_snapshot_xip(pg_current_snapshot());
-  RETURN NEXT _txinfo;
 
 END;
 $F$

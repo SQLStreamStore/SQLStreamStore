@@ -33,6 +33,7 @@ BEGIN
          __schema__.messages.position,
          __schema__.messages.created_utc,
          __schema__.messages.type,
+         __schema__.messages.transaction_id,
          __schema__.messages.json_metadata,
          (CASE _prefetch
             WHEN TRUE THEN __schema__.messages.json_data

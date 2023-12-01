@@ -165,7 +165,7 @@
                 db.AddRange(page.Messages.Select(x => x.Position));
 
                 // It's possible that s_db.Last() will never be equal to head (skipped event) hence why we time limit this loop.
-                var maxLoopTime = sw.ElapsedMilliseconds + TimeSpan.FromSeconds(30).Milliseconds;
+                var maxLoopTime = sw.ElapsedMilliseconds + TimeSpan.FromMinutes(1).TotalMilliseconds;
                 while (sw.ElapsedMilliseconds < maxLoopTime)
                 {
                     var head = await pgStreamStore.ReadHeadPosition(linkedToken.Token);
